@@ -8,12 +8,58 @@ params.summary_params = [:]
 /* --          VALIDATE INPUTS                 -- */
 ////////////////////////////////////////////////////
 
+// Check input path parameters to see if they exist
+checkPathParamList = [
+    params.input
+]
+for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
+// Check mandatory parameters
+if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 
+// Save AWS IGenomes file containing annotation version
+def anno_readme = params.genomes[ params.genome ]?.readme
+if (anno_readme && file(anno_readme).exists()) {
+    file("${params.outdir}/genome/").mkdirs()
+    file(anno_readme).copyTo("${params.outdir}/genome/")
+}
 
+// Stage dummy file to be used as an optional input where required
+//ch_dummy_file = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
 
+////////////////////////////////////////////////////
+/* --          CONFIG FILES                    -- */
+////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////
+/* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
+////////////////////////////////////////////////////
+
+// Don't overwrite global params.modules, create a copy instead and use that within the main script.
+def modules = params.modules.clone()
+
+include { INPUT_CHECK } from './modules/local/subworkflow/input_check' addParams( options: [:] )
+
+////////////////////////////////////////////////////
+/* --           RUN MAIN WORKFLOW              -- */
+////////////////////////////////////////////////////
 
 workflow CUTANDRUN {
+
+    /*
+     * SUBWORKFLOW: Read in samplesheet, validate and stage input files
+     */
+    INPUT_CHECK ( 
+        ch_input
+    )
+    .map {
+        meta, fastq ->
+            meta.id = meta.id.split('_')[0..-2].join('_')
+            [ meta, fastq ] }
+    .groupTuple(by: [0])
+    .map { it ->  [ it[0], it[1].flatten() ] }
+    .set { ch_cat_fastq }
+    ch_cat_fastq | view
 
 }
 
