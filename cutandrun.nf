@@ -9,14 +9,29 @@ params.summary_params = [:]
 ////////////////////////////////////////////////////
 
 
+
+
+
+
+workflow CUTANDRUN {
+
+}
+
+
+
+
+
+
+
+
 ////////////////////////////////////////////////////
 /* --              COMPLETION EMAIL            -- */
 ////////////////////////////////////////////////////
 
-workflow.onComplete {
-    Completion.email(workflow, params, params.summary_params, projectDir, log, multiqc_report, fail_percent_mapped)
-    Completion.summary(workflow, params, log, fail_percent_mapped, pass_percent_mapped)
-}
+// workflow.onComplete {
+//     Completion.email(workflow, params, params.summary_params, projectDir, log, multiqc_report, fail_percent_mapped)
+//     Completion.summary(workflow, params, log, fail_percent_mapped, pass_percent_mapped)
+// }
 
 ////////////////////////////////////////////////////
 /* --                  THE END                 -- */
