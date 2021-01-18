@@ -12,13 +12,26 @@ params.summary_params = [:]
 checkPathParamList = [
     params.input,
     params.fasta,
-    params.bowtie2_index
+    params.bowtie2_index,
+    params.spikein_fasta,
+    params.spikein_bowtie2_index
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 if (params.fasta) { ch_fasta = file(params.fasta) } else { exit 1, 'Genome fasta file not specified!' }
+
+// Resolve spike-in genome
+def spikein_fasta = params.spikein_fasta
+if(!params.spikein_bowtie2_index && !params.spikein_fasta) {
+    if(params.genomes[params.spikein_geome] != null) {
+        spikein_fasta = params.genomes[params.spikein_geome].fasta
+    }
+    else {
+        exit 1, 'Invalid spike-in genome specified!'
+    }
+}
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
@@ -54,12 +67,15 @@ if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
 
 // Alignment
 def prepareToolIndices  = ['bowtie2']
+def samtools_sort_options = modules['samtools_sort']
 
 // Genome
 def publish_genome_options = params.save_reference ? [publish_dir: 'genome']       : [publish_files: false]
 def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
 
 def bowtie2_index_options = modules['bowtie2_index']
+if (!params.save_reference) { bowtie2_index_options['publish_files'] = false }
+def bowtie2_spikein_index_options = modules['bowtie2_spikein_index']
 if (!params.save_reference) { bowtie2_index_options['publish_files'] = false }
 
 ////////////////////////////////////////////////////
@@ -74,9 +90,9 @@ include { CAT_FASTQ             } from './modules/local/process/cat_fastq'      
 include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions' addParams( options: [publish_files : ['csv':'']] )
 
 /*
- * SUBWORKFLOW: Consisting entirely of nf-core/modules
+ * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
-include { PREPARE_GENOME  } from './modules/local/subworkflow/prepare_genome' addParams( genome_options: publish_genome_options, index_options: publish_index_options, bt2_index_options: bowtie2_index_options)
+include { PREPARE_GENOME  } from './modules/local/subworkflow/prepare_genome' addParams( genome_options: publish_genome_options, index_options: publish_index_options, bt2_index_options: bowtie2_index_options, bt2_spikein_index_options: bowtie2_spikein_index_options, spikein_fasta: spikein_fasta )
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
