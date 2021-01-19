@@ -1,6 +1,7 @@
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 params.options = [:]
+params.save_unaligned = false
 def options    = initOptions(params.options)
 
 process BOWTIE2_ALIGN {
@@ -23,35 +24,35 @@ process BOWTIE2_ALIGN {
     path  index
 
     output:
-    tuple val(meta), path("*.bam"), emit: bam
-    //path  "*.version.txt"         , emit: version
-    //tuple val(meta), path("${prefix}${opts.unmapped_suffix}.1.fastq.gz"), path("${prefix}${opts.unmapped_suffix}.2.fastq.gz"), optional: true, emit: unmapped_fq_pe
-    //tuple val(meta), path("${prefix}${opts.unmapped_suffix}.fastq.gz"), optional: true, emit: unmapped_fq_s
-    //tuple val(meta), path("${summary_name}.txt"), emit: report_meta
+    tuple val(meta), path("*.bam"),           emit: bam
+    tuple val(meta), path("*.unmapped.1.gz"), path("*.unmapped.2.gz"), optional: true, emit: unmapped_sam
+    tuple val(meta), path("*summary.txt"),    emit: log
+    path  "*.version.txt",                    emit: version
 
     script:
     def software   = getSoftwareName(task.process)
     def prefix     = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def args = "--threads $task.cpus --no-unal"
     def inputs     = ''
-    def unpaired  = ''
+    def unmapped  = ''
 
     read_list = reads.collect{it.toString()}
     if(read_list.size > 1){
         inputs = '-1 ' + reads[0] + ' -2 ' + reads[1]
-        unpaired = '--un-gz'
+        if(params.save_unaligned) { unmapped = " --un-conc-gz ${prefix}.unmapped.gz" }
     }
     else {
         inputs = '-U ' + reads[0]
-        unpaired = '--un-conc-gz'
+        if(params.save_unaligned) { unmapped = " --un-gz ${prefix}.unmapped.gz" }
     }
 
+    args += unmapped
+    if(options.args != '') { args += ' ' + options.args }
+
     """
-    bowtie2 \\
-    $options.args \\
-    -p $task.cpus \\
-    --no-unal \\
-    $unpaired \\
-    -x ${index[0].simpleName} \\
-    $inputs \\
+    bowtie2 -x ${index[0].simpleName} $args $inputs 2>${prefix}_summary.txt \\
     | samtools view $options.args2 -@ $task.cpus -bS -o ${prefix}.bam -
+
+    echo \$(bowtie2 --version 2>&1) | sed 's/^.*bowtie2-align-s version //; s/ .*\$//' > ${software}.version.txt
     """
+}

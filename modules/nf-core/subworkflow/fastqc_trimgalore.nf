@@ -41,10 +41,10 @@ workflow FASTQC_TRIMGALORE {
 
     fastqc_html        // channel: [ val(meta), [ html ] ]
     fastqc_zip         // channel: [ val(meta), [ zip ] ]
-    fastqc_version     //    path: *.version.txt
+    fastqc_version     // path: *.version.txt
 
     trim_html          // channel: [ val(meta), [ html ] ]
     trim_zip           // channel: [ val(meta), [ zip ] ]
     trim_log           // channel: [ val(meta), [ txt ] ]
-    trimgalore_version //    path: *.version.txt
+    trimgalore_version // path: *.version.txt
 }
