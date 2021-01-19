@@ -3,14 +3,14 @@
 */
 
 params.genome_options            = [:]
-params.index_options             = [:]
+params.spikein_genome_options    = [:]
 params.bt2_index_options         = [:]
 params.bt2_spikein_index_options = [:]
 
 include { GUNZIP as GUNZIP_FASTA } from '../process/gunzip'                              addParams( options: params.genome_options    )
-include { GUNZIP as GUNZIP_SPIKEIN_FASTA } from '../process/gunzip'                      addParams( options: params.genome_options    )
+include { GUNZIP as GUNZIP_SPIKEIN_FASTA } from '../process/gunzip'                      addParams( options: params.spikein_genome_options    )
 include { GET_CHROM_SIZES } from '../process/get_chrom_sizes'                            addParams( options: params.genome_options    )
-include { GET_CHROM_SIZES as GET_SPIKEIN_CHROM_SIZES } from '../process/get_chrom_sizes' addParams( options: params.genome_options    )
+include { GET_CHROM_SIZES as GET_SPIKEIN_CHROM_SIZES } from '../process/get_chrom_sizes' addParams( options: params.spikein_genome_options    )
 include { UNTAR as UNTAR_BT2_INDEX   } from '../process/untar'                           addParams( options: params.bt2_index_options )
 include { UNTAR as UNTAR_SPIKEIN_BT2_INDEX   } from '../process/untar'                   addParams( options: params.bt2_spikein_index_options )
 include { BOWTIE2_INDEX } from '../software/bowtie2/index/main'                          addParams( options: params.bt2_index_options )

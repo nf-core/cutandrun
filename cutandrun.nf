@@ -70,13 +70,10 @@ def prepareToolIndices  = ['bowtie2']
 def samtools_sort_options = modules['samtools_sort']
 
 // Genome
-def publish_genome_options = params.save_reference ? [publish_dir: 'genome']       : [publish_files: false]
-def publish_index_options  = params.save_reference ? [publish_dir: 'genome/index'] : [publish_files: false]
-
-def bowtie2_index_options = modules['bowtie2_index']
-if (!params.save_reference) { bowtie2_index_options['publish_files'] = false }
-def bowtie2_spikein_index_options = modules['bowtie2_spikein_index']
-if (!params.save_reference) { bowtie2_index_options['publish_files'] = false }
+def publish_genome_options = params.save_reference ? [publish_dir: 'genome/target']               : [publish_files: false]
+def spikein_genome_options = params.save_reference ? [publish_dir: 'genome/spikein']              : [publish_files: false]
+def bowtie2_index_options = params.save_reference ? [publish_dir: 'genome/target/index']          : [publish_files: false]
+def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: 'genome/spikein/index'] : [publish_files: false]
 
 ////////////////////////////////////////////////////
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
@@ -92,7 +89,11 @@ include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_ver
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
-include { PREPARE_GENOME  } from './modules/local/subworkflow/prepare_genome' addParams( genome_options: publish_genome_options, index_options: publish_index_options, bt2_index_options: bowtie2_index_options, bt2_spikein_index_options: bowtie2_spikein_index_options, spikein_fasta: spikein_fasta )
+include { PREPARE_GENOME  } from './modules/local/subworkflow/prepare_genome' addParams( genome_options: publish_genome_options,
+                                                                                         spikein_genome_options: spikein_genome_options,
+                                                                                         bt2_index_options: bowtie2_index_options,
+                                                                                         bt2_spikein_index_options: bowtie2_spikein_index_options,
+                                                                                         spikein_fasta: spikein_fasta )
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -128,35 +129,34 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Read in samplesheet, validate and stage input files
      */
-    INPUT_CHECK ( 
-        ch_input
-    )
-    .map {
-        meta, fastq ->
-            meta.id = meta.id.split('_')[0..-2].join('_')
-            [ meta, fastq ] }
-    .groupTuple(by: [0])
-    .map { it ->  [ it[0], it[1].flatten() ] }
-    .set { ch_cat_fastq }
-    ch_cat_fastq | view
+    // INPUT_CHECK ( 
+    //     ch_input
+    // )
+    // .map {
+    //     meta, fastq ->
+    //         meta.id = meta.id.split('_')[0..-2].join('_')
+    //         [ meta, fastq ] }
+    // .groupTuple(by: [0])
+    // .map { it ->  [ it[0], it[1].flatten() ] }
+    // .set { ch_cat_fastq }
 
     /*
      * MODULE: Concatenate FastQ files from same sample if required
      */
-    CAT_FASTQ ( 
-        ch_cat_fastq
-    )
+    // CAT_FASTQ ( 
+    //     ch_cat_fastq
+    // )
 
     /*
      * SUBWORKFLOW: Read QC, trim adapters and perform post-trim read QC
      */
-    FASTQC_TRIMGALORE (
-        CAT_FASTQ.out.reads,
-        params.skip_fastqc || params.skip_qc,
-        params.skip_trimming
-    )
-    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
+    // FASTQC_TRIMGALORE (
+    //     CAT_FASTQ.out.reads,
+    //     params.skip_fastqc || params.skip_qc,
+    //     params.skip_trimming
+    // )
+    // ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
+    // ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
 
     /*
      * MODULE: Pipeline reporting
