@@ -129,34 +129,34 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Read in samplesheet, validate and stage input files
      */
-    // INPUT_CHECK ( 
-    //     ch_input
-    // )
-    // .map {
-    //     meta, fastq ->
-    //         meta.id = meta.id.split('_')[0..-2].join('_')
-    //         [ meta, fastq ] }
-    // .groupTuple(by: [0])
-    // .map { it ->  [ it[0], it[1].flatten() ] }
-    // .set { ch_cat_fastq }
+    INPUT_CHECK ( 
+        ch_input
+    )
+    .map {
+        meta, fastq ->
+            meta.id = meta.id.split('_')[0..-2].join('_')
+            [ meta, fastq ] }
+    .groupTuple(by: [0])
+    .map { it ->  [ it[0], it[1].flatten() ] }
+    .set { ch_cat_fastq }
 
     /*
      * MODULE: Concatenate FastQ files from same sample if required
      */
-    // CAT_FASTQ ( 
-    //     ch_cat_fastq
-    // )
+    CAT_FASTQ ( 
+        ch_cat_fastq
+    )
 
     /*
      * SUBWORKFLOW: Read QC, trim adapters and perform post-trim read QC
      */
-    // FASTQC_TRIMGALORE (
-    //     CAT_FASTQ.out.reads,
-    //     params.skip_fastqc || params.skip_qc,
-    //     params.skip_trimming
-    // )
-    // ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
-    // ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
+    FASTQC_TRIMGALORE (
+        CAT_FASTQ.out.reads,
+        params.skip_fastqc || params.skip_qc,
+        params.skip_trimming
+    )
+    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
 
     /*
      * MODULE: Pipeline reporting
