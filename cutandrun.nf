@@ -47,7 +47,11 @@ if (anno_readme && file(anno_readme).exists()) {
 /* --               CONFIG FILES               -- */
 ////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////
+/* --                  ASSETS                  -- */
+////////////////////////////////////////////////////
 
+ch_bt2_to_csv_awk = file("$projectDir/assets/awk/bt2_report_to_csv.awk", checkIfExists: true)
 
 ////////////////////////////////////////////////////
 /* --     INIALISE PARAMETERS AND OPTIONS      -- */
@@ -93,6 +97,12 @@ def samtools_spikein_sort_options = modules['samtools_spikein_sort']
 //     }
 // }
 
+// Meta annotation
+def awk_bt2_options = modules['awk_bt2']
+awk_bt2_options['suffix'] = '.bt2.target'
+//def awk_bt2_spikein_options = modules['awk_bt2']
+//awk_bt2_spikein_options['suffix'] = '.bt2.spikein'
+
 ////////////////////////////////////////////////////
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
 ////////////////////////////////////////////////////
@@ -107,15 +117,16 @@ include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_ver
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
-include { PREPARE_GENOME  } from './modules/local/subworkflow/prepare_genome'   addParams( genome_options: publish_genome_options,
+include { PREPARE_GENOME } from './modules/local/subworkflow/prepare_genome' addParams( genome_options: publish_genome_options,
                                                                                            spikein_genome_options: spikein_genome_options,
                                                                                            bt2_index_options: bowtie2_index_options,
                                                                                            bt2_spikein_index_options: bowtie2_spikein_index_options,
                                                                                            spikein_fasta: spikein_fasta )
-include { ALIGN_BOWTIE2      } from './modules/local/subworkflow/align_bowtie2' addParams( align_options: bowtie2_align_options, 
+include { ALIGN_BOWTIE2 } from './modules/local/subworkflow/align_bowtie2'   addParams( align_options: bowtie2_align_options, 
                                                                                            spikein_align_options: bowtie2_spikein_align_options, 
                                                                                            samtools_options: samtools_sort_options,
                                                                                            samtools_spikein_options: samtools_spikein_sort_options )
+include { ANNOTATE_META as ANNOTATE_BT2_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_options)                                                                                     
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -204,13 +215,13 @@ workflow CUTANDRUN {
             PREPARE_GENOME.out.bowtie2_index,
             PREPARE_GENOME.out.bowtie2_spikein_index
         )
-        ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.bowtie2_version.first().ifEmpty(null))
+        //ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.bowtie2_version.first().ifEmpty(null))
         ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.samtools_version.first().ifEmpty(null))
         // ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
         // ch_orig_spikein_bam           = ALIGN_BOWTIE2.out.orig_spikein_bam
-        // ch_bowtie2_log                = ALIGN_BOWTIE2.out.bowtie2_log
+         ch_bowtie2_log                = ALIGN_BOWTIE2.out.bowtie2_log
         // ch_bowtie2_spikein_log        = ALIGN_BOWTIE2.out.bowtie2_spikein_log
-        // ch_samtools_bam               = ALIGN_BOWTIE2.out.bam
+         ch_samtools_bam               = ALIGN_BOWTIE2.out.bam
         // ch_samtools_bai               = ALIGN_BOWTIE2.out.bai
         // ch_samtools_stats             = ALIGN_BOWTIE2.out.stats
         // ch_samtools_flagstat          = ALIGN_BOWTIE2.out.flagstat
@@ -221,6 +232,9 @@ workflow CUTANDRUN {
         // ch_samtools_spikein_flagstat  = ALIGN_BOWTIE2.out.spikein_flagstat
         // ch_samtools_spikein_idxstats  = ALIGN_BOWTIE2.out.spikein_idxstats
     }
+
+    ANNOTATE_BT2_META( ch_samtools_bam, ch_bowtie2_log, ch_bt2_to_csv_awk)
+    ANNOTATE_BT2_META.out.output | view
 
     /*
      * MODULE: Pipeline reporting
