@@ -96,32 +96,23 @@ if (params.publish_align_intermed || params.skip_markduplicates) {
 
 
 def samtools_view_options         = modules['samtools_view']
-def samtools_spikein_view_options = modules['samtools_spikein_view']
 def samtools_qfilter_options         = modules['samtools_qfilter']
-def samtools_spikein_qfilter_options = modules['samtools_spikein_qfilter']
 if (params.minimum_alignment_q_score > 0) {
     samtools_view_options.args = "-q " + params.minimum_alignment_q_score
-    samtools_spikein_view_options.args = "-q " + params.minimum_alignment_q_score
 }
 if (params.publish_align_intermed) {
     samtools_view_options.publish_files = ['bam':'']
     samtools_qfilter_options.publish_files.put('bai','')
-    samtools_spikein_view_options.publish_files = ['bam':'']
-    samtools_spikein_qfilter_options.publish_files.put('bai','')
 }
 
 def picard_markduplicates_options         = modules['picard_markduplicates']
-def picard_markduplicates_spikein_options = modules['picard_markduplicates_spikein']
 def picard_markduplicates_samtools_options         = modules['picard_markduplicates_samtools']
-def picard_markduplicates_samtools_spikein_options = modules['picard_markduplicates_samtools_spikein']
 if (params.publish_align_intermed) {
-    picard_markduplicates_spikein_options.publish_files.put('bam','')
-    picard_markduplicates_samtools_spikein_options.publish_files.put('bai','')
-}
-if (!params.dedup_target_reads || (params.dedup_target_reads && params.publish_align_intermed)) {
     picard_markduplicates_options.publish_files.put('bam','')
     picard_markduplicates_samtools_options.publish_files.put('bai','')
 }
+dedup_control_only = true
+if(params.dedup_target_reads) { dedup_control_only = false }
 
 // Meta annotation
 def awk_bt2_options = modules['awk_bt2']
@@ -136,7 +127,9 @@ def awk_bt2_spikein_options = modules['awk_bt2_spikein']
  */
 include { INPUT_CHECK           } from './modules/local/subworkflow/input_check'       addParams( options: [:] )
 include { CAT_FASTQ             } from './modules/local/process/cat_fastq'             addParams( options: cat_fastq_options )
+include { BEDTOOLS_GENOMECOV_SCALE } from './modules/local/process/bedtools_genomecov_scale' addParams( options: modules['bedtools_genomecov_bedgraph'] )
 include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions' addParams( options: [publish_files : ['csv':'']] )
+
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -150,10 +143,9 @@ include { ALIGN_BOWTIE2 } from './modules/local/subworkflow/align_bowtie2'   add
                                                                                            spikein_align_options: bowtie2_spikein_align_options, 
                                                                                            samtools_options: samtools_sort_options,
                                                                                            samtools_spikein_options: samtools_spikein_sort_options )
-include { SAMTOOLS_VIEW_SORT_STATS } from './modules/local/subworkflow/samtools_view_sort_stats' addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options)
-include { SAMTOOLS_VIEW_SORT_STATS as SAMTOOLS_SPIKEIN_VIEW_SORT_STATS } from './modules/local/subworkflow/samtools_view_sort_stats' addParams( samtools_options: samtools_spikein_qfilter_options, samtools_view_options: samtools_spikein_view_options)                                                                                       
-include { ANNOTATE_META as ANNOTATE_BT2_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_options)
-include { ANNOTATE_META as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_spikein_options)                                                                                 
+include { SAMTOOLS_VIEW_SORT_STATS } from './modules/local/subworkflow/samtools_view_sort_stats' addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options)                                                                                    
+include { ANNOTATE_META as ANNOTATE_BT2_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_options, meta_suffix: '_target')
+include { ANNOTATE_META as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_spikein_options, meta_suffix: '_spikein')                                                                                 
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -168,10 +160,8 @@ include { ANNOTATE_META as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/sub
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
  */
 include { FASTQC_TRIMGALORE                                        } from './modules/nf-core/subworkflow/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
-include { MARK_DUPLICATES_PICARD                                   } from './modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options )
-include { MARK_DUPLICATES_PICARD as MARK_DUPLICATES_PICARD_SPIKEIN } from './modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_spikein_options, samtools_options: picard_markduplicates_samtools_spikein_options )
-include { MARK_DUPLICATES_PICARD as DEDUP_PICARD                   } from './modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup'], samtools_options: modules['picard_dedup_samtools'] )
-include { MARK_DUPLICATES_PICARD as DEDUP_PICARD_SPIKEIN           } from './modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup_spikein'], samtools_options: modules['picard_dedup_samtools_spikein'] )
+include { MARK_DUPLICATES_PICARD                                   } from './modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
+include { MARK_DUPLICATES_PICARD as DEDUP_PICARD                   } from './modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup'], samtools_options: modules['picard_dedup_samtools'], control_only: dedup_control_only )
 
 ////////////////////////////////////////////////////
 /* --           RUN MAIN WORKFLOW              -- */
@@ -246,7 +236,6 @@ workflow CUTANDRUN {
             PREPARE_GENOME.out.bowtie2_index,
             PREPARE_GENOME.out.bowtie2_spikein_index
         )
-        //ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.bowtie2_version.first().ifEmpty(null))
         ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.samtools_version.first().ifEmpty(null))
         ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
         ch_orig_spikein_bam           = ALIGN_BOWTIE2.out.orig_spikein_bam
@@ -279,22 +268,12 @@ workflow CUTANDRUN {
         ch_samtools_stats         = SAMTOOLS_VIEW_SORT_STATS.out.stats
         ch_samtools_flagstat      = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
         ch_samtools_idxstats      = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
-
-        SAMTOOLS_SPIKEIN_VIEW_SORT_STATS (
-            ch_samtools_spikein_bam
-        )
-        ch_samtools_spikein_bam           = SAMTOOLS_SPIKEIN_VIEW_SORT_STATS.out.bam
-        ch_samtools_spikein_bai           = SAMTOOLS_SPIKEIN_VIEW_SORT_STATS.out.bai
-        ch_samtools_spikein_stats         = SAMTOOLS_SPIKEIN_VIEW_SORT_STATS.out.stats
-        ch_samtools_spikein_flagstat      = SAMTOOLS_SPIKEIN_VIEW_SORT_STATS.out.flagstat
-        ch_samtools_spikein_idxstats      = SAMTOOLS_SPIKEIN_VIEW_SORT_STATS.out.idxstats
     }
 
     /*
      * SUBWORKFLOW: Mark duplicates on all samples
      */
     ch_markduplicates_multiqc = Channel.empty()
-    ch_markduplicates_spikein_multiqc = Channel.empty()
     if (!params.skip_markduplicates) {
         MARK_DUPLICATES_PICARD (
             ch_samtools_bam
@@ -306,72 +285,69 @@ workflow CUTANDRUN {
         ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
         ch_markduplicates_multiqc = MARK_DUPLICATES_PICARD.out.metrics
         ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
-
-        MARK_DUPLICATES_PICARD_SPIKEIN (
-            ch_samtools_spikein_bam
-        )
-        ch_samtools_spikein_bam           = MARK_DUPLICATES_PICARD.out.bam
-        ch_samtools_spikein_bai           = MARK_DUPLICATES_PICARD.out.bai
-        ch_samtools_spikein_stats         = MARK_DUPLICATES_PICARD.out.stats
-        ch_samtools_spikein_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
-        ch_samtools_spikein_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
-        ch_markduplicates_spikein_multiqc = MARK_DUPLICATES_PICARD.out.metrics
     }
 
     /*
      * SUBWORKFLOW: Remove duplicates
      */
     ch_dedup_multiqc = Channel.empty()
-    ch_dedup_spikein_multiqc = Channel.empty()
     if (!params.skip_markduplicates && !params.skip_removeduplicates) {
-        if(params.dedup_target_reads) {
-            DEDUP_PICARD (
-                ch_samtools_bam
-            )
-            ch_samtools_bam           = DEDUP_PICARD.out.bam
-            ch_samtools_bai           = DEDUP_PICARD.out.bai
-            ch_samtools_stats         = DEDUP_PICARD.out.stats
-            ch_samtools_flagstat      = DEDUP_PICARD.out.flagstat
-            ch_samtools_idxstats      = DEDUP_PICARD.out.idxstats
-            ch_dedup_multiqc          = DEDUP_PICARD.out.metrics
-        }
-
-        DEDUP_PICARD_SPIKEIN (
-            ch_samtools_spikein_bam
+        DEDUP_PICARD (
+            ch_samtools_bam
         )
-        ch_samtools_spikein_bam           = DEDUP_PICARD_SPIKEIN.out.bam
-        ch_samtools_spikein_bai           = DEDUP_PICARD_SPIKEIN.out.bai
-        ch_samtools_spikein_stats         = DEDUP_PICARD_SPIKEIN.out.stats
-        ch_samtools_spikein_flagstat      = DEDUP_PICARD_SPIKEIN.out.flagstat
-        ch_samtools_spikein_idxstats      = DEDUP_PICARD_SPIKEIN.out.idxstats
-        ch_dedup_spikein_multiqc          = DEDUP_PICARD_SPIKEIN.out.metrics
+        ch_samtools_bam           = DEDUP_PICARD.out.bam
+        ch_samtools_bai           = DEDUP_PICARD.out.bai
+        ch_samtools_stats         = DEDUP_PICARD.out.stats
+        ch_samtools_flagstat      = DEDUP_PICARD.out.flagstat
+        ch_samtools_idxstats      = DEDUP_PICARD.out.idxstats
+        ch_dedup_multiqc          = DEDUP_PICARD.out.metrics
     }
 
     /*
-     * SUBWORKFLOW: Annotate meta data with aligner stats
+     * SUBWORKFLOW: Annotate meta data with aligner stats and 
      */
     ANNOTATE_BT2_META( ch_samtools_bam, ch_bowtie2_log, ch_bt2_to_csv_awk)
     ANNOTATE_BT2_SPIKEIN_META( ch_samtools_bam, ch_bowtie2_log, ch_bt2_to_csv_awk)
 
     /*
-     * CHANNEL: Calculate scale factor
+     * CHANNEL: Combine merge spikein meta data with main data stream
      */
+    ANNOTATE_BT2_SPIKEIN_META.out.output
+        .map { row -> [row[0].id, row[0] ].flatten()}
+        .set { ch_spikein_bt2_meta }
 
+    ANNOTATE_BT2_META.out.output
+        .map { row -> [row[0].id, row ].flatten()}
+        .join ( ch_spikein_bt2_meta )
+        .map { row -> [ row[1] << row[3], row[2] ] }
+        .set { ch_combined_meta }
 
+    /*
+     * CHANNEL: Calculate scale factor for each sample and join to main data flow
+     */
+    ANNOTATE_BT2_SPIKEIN_META.out.output
+        .map { row -> [ row[0].id, params.normalisation_c / (row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()) ] }
+        .set { ch_scale_factor }
 
-    //     // ***** CALCULATE SCALE FACTOR FOR SPIKE-IN NORMALISATION ***** //
-    // if (params.spike_in_genome){
-    //     final_meta_spike
-    //         .combine ( ch_normalisation_c )
-    //         .map { row -> [ row[0].sample_id, row[-1] / (row[0].find{ it.key == "bt2_spike_total_aligned" }?.value.toInteger()) ] }
-    //         .set { ch_scale_factor }
-    // } else { // this else doesn't make sense because there would be no spike_in_meta_out from alignment if now spike-in genome is provided
-    //     //spike_in_meta_annotate.out.annotated_input
-    //     final_meta_spike
-    //     .map { row -> [ row[0].sample_id, 1] }
-    //     .set { ch_scale_factor }
-    // }
-    // //ch_scale_factor | view
+    ch_combined_meta
+        .map { row -> [row[0].id, row ].flatten()}
+        .join ( ch_scale_factor )
+        .map { row -> row[1..(row.size() - 1)] }
+        .map { row -> 
+            row[0].put('scale_factor', row[2])
+            [ row[0], row[1], row[2] ] }
+        .set { ch_samtools_bam_scale }
+
+    /*
+     * MODULE: Convert to bedgraph
+     */
+    if(!params.skip_coverage) {
+        BEDTOOLS_GENOMECOV_SCALE (
+            ch_samtools_bam_scale
+        )
+        ch_bedtools_bedgraph = BEDTOOLS_GENOMECOV_SCALE.out.bedgraph
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_GENOMECOV_SCALE.out.version.first().ifEmpty(null))
+    }
 
     /*
      * MODULE: Pipeline reporting

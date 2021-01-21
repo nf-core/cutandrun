@@ -4,6 +4,7 @@
  */
 
 params.options = [:]
+params.meta_suffix = '_test'
 
 include { AWK } from '../process/awk' addParams( options: params.options )
 
@@ -24,6 +25,11 @@ workflow ANNOTATE_META {
     // the awk script
     AWK.out.file
         .splitCsv(header:true)
+        .map { row -> 
+            new_meta = [:]
+            row[1].each{ k, v -> new_meta.put(k + params.meta_suffix, v) }
+            [row[0], new_meta]
+        }
         .map { row -> [ row[0].id, row[0] << row[1] ] }
         .join ( ch_paths )
         .map { row -> row[1..-1] }

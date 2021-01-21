@@ -31,7 +31,9 @@ process SAMPLESHEET_CHECK {
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
 def get_samplesheet_paths(LinkedHashMap row) {
     def meta = [:]
-    meta.id           = row.sample
+    meta.id           = row.id
+    meta.group        = row.group
+    meta.replicate    = row.replicate.toInteger()
     meta.single_end   = row.single_end.toBoolean()
 
     def array = []
