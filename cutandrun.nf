@@ -75,7 +75,7 @@ def trimgalore_options    = modules['trimgalore']
 trimgalore_options.args  += params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ''
 if (params.save_trimmed) { trimgalore_options.publish_files.put('fq.gz','') }
 
-// Alignment
+// Alignment dedup and filtering
 def prepareToolIndices  = ['bowtie2']
 
 def bowtie2_align_options          = modules['bowtie2_align']
@@ -92,6 +92,22 @@ if (params.publish_align_intermed || params.skip_markduplicates) {
     samtools_sort_options.publish_files.put('bai','')
     samtools_spikein_sort_options.publish_files.put('bam','')
     samtools_spikein_sort_options.publish_files.put('bai','')
+}
+
+
+def samtools_view_options         = modules['samtools_view']
+def samtools_spikein_view_options = modules['samtools_spikein_view']
+def samtools_qfilter_options         = modules['samtools_qfilter']
+def samtools_spikein_qfilter_options = modules['samtools_spikein_qfilter']
+if (params.minimum_alignment_q_score > 0) {
+    samtools_view_options.args = "-q " + params.minimum_alignment_q_score
+    samtools_spikein_view_options.args = "-q " + params.minimum_alignment_q_score
+}
+if (params.publish_align_intermed) {
+    samtools_view_options.publish_files = ['bam':'']
+    samtools_qfilter_options.publish_files.put('bai','')
+    samtools_spikein_view_options.publish_files = ['bam':'']
+    samtools_spikein_qfilter_options.publish_files.put('bai','')
 }
 
 def picard_markduplicates_options         = modules['picard_markduplicates']
@@ -134,6 +150,8 @@ include { ALIGN_BOWTIE2 } from './modules/local/subworkflow/align_bowtie2'   add
                                                                                            spikein_align_options: bowtie2_spikein_align_options, 
                                                                                            samtools_options: samtools_sort_options,
                                                                                            samtools_spikein_options: samtools_spikein_sort_options )
+include { SAMTOOLS_VIEW_SORT_STATS } from './modules/local/subworkflow/samtools_view_sort_stats' addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options)
+include { SAMTOOLS_VIEW_SORT_STATS as SAMTOOLS_SPIKEIN_VIEW_SORT_STATS } from './modules/local/subworkflow/samtools_view_sort_stats' addParams( samtools_options: samtools_spikein_qfilter_options, samtools_view_options: samtools_spikein_view_options)                                                                                       
 include { ANNOTATE_META as ANNOTATE_BT2_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_options)
 include { ANNOTATE_META as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_spikein_options)                                                                                 
 
@@ -249,6 +267,30 @@ workflow CUTANDRUN {
     }
 
     /*
+     *  SUBWORKFLOW: Filter reads based on quality metrics
+     *  http://biofinysics.blogspot.com/2014/05/how-does-bowtie2-assign-mapq-scores.html
+     */
+    if (params.minimum_alignment_q_score > 0) {
+        SAMTOOLS_VIEW_SORT_STATS (
+            ch_samtools_bam
+        )
+        ch_samtools_bam           = SAMTOOLS_VIEW_SORT_STATS.out.bam
+        ch_samtools_bai           = SAMTOOLS_VIEW_SORT_STATS.out.bai
+        ch_samtools_stats         = SAMTOOLS_VIEW_SORT_STATS.out.stats
+        ch_samtools_flagstat      = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
+        ch_samtools_idxstats      = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
+
+        SAMTOOLS_SPIKEIN_VIEW_SORT_STATS (
+            ch_samtools_spikein_bam
+        )
+        ch_samtools_spikein_bam           = SAMTOOLS_SPIKEIN_VIEW_SORT_STATS.out.bam
+        ch_samtools_spikein_bai           = SAMTOOLS_SPIKEIN_VIEW_SORT_STATS.out.bai
+        ch_samtools_spikein_stats         = SAMTOOLS_SPIKEIN_VIEW_SORT_STATS.out.stats
+        ch_samtools_spikein_flagstat      = SAMTOOLS_SPIKEIN_VIEW_SORT_STATS.out.flagstat
+        ch_samtools_spikein_idxstats      = SAMTOOLS_SPIKEIN_VIEW_SORT_STATS.out.idxstats
+    }
+
+    /*
      * SUBWORKFLOW: Mark duplicates on all samples
      */
     ch_markduplicates_multiqc = Channel.empty()
@@ -310,6 +352,26 @@ workflow CUTANDRUN {
      */
     ANNOTATE_BT2_META( ch_samtools_bam, ch_bowtie2_log, ch_bt2_to_csv_awk)
     ANNOTATE_BT2_SPIKEIN_META( ch_samtools_bam, ch_bowtie2_log, ch_bt2_to_csv_awk)
+
+    /*
+     * CHANNEL: Calculate scale factor
+     */
+
+
+
+    //     // ***** CALCULATE SCALE FACTOR FOR SPIKE-IN NORMALISATION ***** //
+    // if (params.spike_in_genome){
+    //     final_meta_spike
+    //         .combine ( ch_normalisation_c )
+    //         .map { row -> [ row[0].sample_id, row[-1] / (row[0].find{ it.key == "bt2_spike_total_aligned" }?.value.toInteger()) ] }
+    //         .set { ch_scale_factor }
+    // } else { // this else doesn't make sense because there would be no spike_in_meta_out from alignment if now spike-in genome is provided
+    //     //spike_in_meta_annotate.out.annotated_input
+    //     final_meta_spike
+    //     .map { row -> [ row[0].sample_id, 1] }
+    //     .set { ch_scale_factor }
+    // }
+    // //ch_scale_factor | view
 
     /*
      * MODULE: Pipeline reporting
