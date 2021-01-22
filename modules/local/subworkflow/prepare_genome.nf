@@ -7,13 +7,14 @@ params.spikein_genome_options    = [:]
 params.bt2_index_options         = [:]
 params.bt2_spikein_index_options = [:]
 
-include { GUNZIP as GUNZIP_FASTA } from '../process/gunzip'                              addParams( options: params.genome_options    )
+include { GUNZIP as GUNZIP_FASTA } from '../process/gunzip'                              addParams( options: params.genome_options            )
 include { GUNZIP as GUNZIP_SPIKEIN_FASTA } from '../process/gunzip'                      addParams( options: params.spikein_genome_options    )
-include { GET_CHROM_SIZES } from '../process/get_chrom_sizes'                            addParams( options: params.genome_options    )
+include { GUNZIP as GUNZIP_GTF } from '../process/gunzip'                                addParams( options: params.spikein_genome_options    )
+include { GET_CHROM_SIZES } from '../process/get_chrom_sizes'                            addParams( options: params.genome_options            )
 include { GET_CHROM_SIZES as GET_SPIKEIN_CHROM_SIZES } from '../process/get_chrom_sizes' addParams( options: params.spikein_genome_options    )
-include { UNTAR as UNTAR_BT2_INDEX   } from '../process/untar'                           addParams( options: params.bt2_index_options )
+include { UNTAR as UNTAR_BT2_INDEX   } from '../process/untar'                           addParams( options: params.bt2_index_options         )
 include { UNTAR as UNTAR_SPIKEIN_BT2_INDEX   } from '../process/untar'                   addParams( options: params.bt2_spikein_index_options )
-include { BOWTIE2_INDEX } from '../software/bowtie2/index/main'                          addParams( options: params.bt2_index_options )
+include { BOWTIE2_INDEX } from '../software/bowtie2/index/main'                          addParams( options: params.bt2_index_options         )
 include { BOWTIE2_INDEX as BOWTIE2_SPIKEIN_INDEX } from '../software/bowtie2/index/main' addParams( options: params.bt2_spikein_index_options )
 
 workflow PREPARE_GENOME {
@@ -37,6 +38,16 @@ workflow PREPARE_GENOME {
         ch_spikein_fasta = GUNZIP_FASTA ( params.spikein_fasta ).gunzip
     } else {
         ch_spikein_fasta = file(params.spikein_fasta)
+    }
+
+    /*
+     * Uncompress GTF annotation file
+     */
+    ch_gtf = Channel.empty()
+    if (params.gtf.endsWith('.gz')) {
+        ch_gtf = GUNZIP_GTF ( params.gtf ).gunzip
+    } else {
+        ch_gtf = file(params.gtf)
     }
 
     /*
@@ -82,6 +93,7 @@ workflow PREPARE_GENOME {
     fasta                 = ch_fasta               // path: genome.fasta
     chrom_sizes           = ch_chrom_sizes         // path: genome.sizes
     spikein_chrom_sizes   = ch_spikein_chrom_sizes // path: genome.sizes
+    gtf                   = ch_gtf                 // path: genome.gtf
     bowtie2_index         = ch_bt2_index           // path: bt2/index/
     bowtie2_spikein_index = ch_bt2_spikein_index   // path: bt2/index/
     bowtie2_version       = ch_bt2_version         // path: *.version.txt

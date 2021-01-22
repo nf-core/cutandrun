@@ -12,6 +12,7 @@ params.summary_params = [:]
 checkPathParamList = [
     params.input,
     params.fasta,
+    params.gtf,
     params.bowtie2_index,
     params.spikein_fasta,
     params.spikein_bowtie2_index
@@ -21,6 +22,7 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 if (params.fasta) { ch_fasta = file(params.fasta) } else { exit 1, 'Genome fasta file not specified!' }
+if (params.gtf) { ch_gtf = file(params.gtf)   } else { exit 1, 'Genome GTF file not specified!' }
 
 // Resolve spike-in genome
 def spikein_fasta = params.spikein_fasta
@@ -130,6 +132,7 @@ include { CAT_FASTQ             } from './modules/local/process/cat_fastq'      
 include { BEDTOOLS_GENOMECOV_SCALE } from './modules/local/process/bedtools_genomecov_scale' addParams( options: modules['bedtools_genomecov_bedgraph'] )
 include { SEACR_CALLPEAK } from './modules/local/software/seacr/callpeak/main' addParams( options: modules['seacr'] )
 include { UCSC_BEDCLIP                       } from './modules/local/process/ucsc_bedclip'                addParams( options: modules['ucsc_bedclip']  )
+include { IGV_SESSION                       } from './modules/local/process/igv_session'                addParams( options: modules['igv']  )
 include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions' addParams( options: [publish_files : ['csv':'']] )
 
 /*
@@ -390,6 +393,16 @@ workflow CUTANDRUN {
             PREPARE_GENOME.out.chrom_sizes
         )
         ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.version.first().ifEmpty(null))
+
+        /*
+        * MODULE: Create igv session
+        */
+        IGV_SESSION (
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.gtf,
+            SEACR_CALLPEAK.out.bed.collect{it[1]}.ifEmpty([]),
+            UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
+        )
     }
 
     /*
