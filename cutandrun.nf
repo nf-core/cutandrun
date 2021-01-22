@@ -129,6 +129,7 @@ include { INPUT_CHECK           } from './modules/local/subworkflow/input_check'
 include { CAT_FASTQ             } from './modules/local/process/cat_fastq'             addParams( options: cat_fastq_options )
 include { BEDTOOLS_GENOMECOV_SCALE } from './modules/local/process/bedtools_genomecov_scale' addParams( options: modules['bedtools_genomecov_bedgraph'] )
 include { SEACR_CALLPEAK } from './modules/local/software/seacr/callpeak/main' addParams( options: modules['seacr'] )
+include { UCSC_BEDCLIP                       } from './modules/local/process/ucsc_bedclip'                addParams( options: modules['ucsc_bedclip']  )
 include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions' addParams( options: [publish_files : ['csv':'']] )
 
 /*
@@ -154,7 +155,7 @@ include { ANNOTATE_META as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/sub
 /*
  * MODULES
  */
-
+include { UCSC_BEDGRAPHTOBIGWIG } from './modules/nf-core/software/ucsc/bedgraphtobigwig/main' addParams( options: modules['ucsc_bedgraphtobigwig'] )
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -371,7 +372,24 @@ workflow CUTANDRUN {
             ch_bedgraph_combined
         )
         ch_seacr_bed = SEACR_CALLPEAK.out.bed
-        ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null)) 
+        ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
+
+        /*
+        * MODULE: Clip off-chromosome peaks
+        */
+        UCSC_BEDCLIP (
+            ch_bedtools_bedgraph,
+            PREPARE_GENOME.out.chrom_sizes
+        )
+
+        /*
+        * MODULE: Convert to bigwig
+        */
+        UCSC_BEDGRAPHTOBIGWIG (
+            UCSC_BEDCLIP.out.bedgraph,
+            PREPARE_GENOME.out.chrom_sizes
+        )
+        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.version.first().ifEmpty(null))
     }
 
     /*
@@ -381,8 +399,6 @@ workflow CUTANDRUN {
         ch_software_versions.map { it }.collect()
     )
 }
-
-
 
 ////////////////////////////////////////////////////
 /* --              COMPLETION EMAIL            -- */
