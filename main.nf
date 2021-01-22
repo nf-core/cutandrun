@@ -27,18 +27,7 @@ if (params.help) {
 ////////////////////////////////////////////////////
 
 params.fasta        = Checks.get_genome_attribute(params, 'fasta')
-//params.gtf          = Checks.get_genome_attribute(params, 'gtf')
-params.gtf = 'test'
-
-if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
-    if (params.genomes[ params.genome ].containsKey('gtf')) {
-        val = params.genomes[ params.genome ][ 'gtf' ]
-        println ( "TEST < " + val + " >" )
-    }
-}
-
-println ( "TEST < " + params.gtf + " >" )
-
+params.gtf          = Checks.get_genome_attribute(params, 'gtf')
 
 ////////////////////////////////////////////////////
 /* --         PRINT PARAMETER SUMMARY          -- */
