@@ -128,8 +128,8 @@ def awk_bt2_spikein_options = modules['awk_bt2_spikein']
 include { INPUT_CHECK           } from './modules/local/subworkflow/input_check'       addParams( options: [:] )
 include { CAT_FASTQ             } from './modules/local/process/cat_fastq'             addParams( options: cat_fastq_options )
 include { BEDTOOLS_GENOMECOV_SCALE } from './modules/local/process/bedtools_genomecov_scale' addParams( options: modules['bedtools_genomecov_bedgraph'] )
+include { SEACR_CALLPEAK } from './modules/local/software/seacr/callpeak/main' addParams( options: modules['seacr'] )
 include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions' addParams( options: [publish_files : ['csv':'']] )
-
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -338,15 +338,40 @@ workflow CUTANDRUN {
             [ row[0], row[1], row[2] ] }
         .set { ch_samtools_bam_scale }
 
-    /*
-     * MODULE: Convert to bedgraph
-     */
+
     if(!params.skip_coverage) {
+        /*
+        * MODULE: Convert to bedgraph
+        */
         BEDTOOLS_GENOMECOV_SCALE (
             ch_samtools_bam_scale
         )
         ch_bedtools_bedgraph = BEDTOOLS_GENOMECOV_SCALE.out.bedgraph
         ch_software_versions = ch_software_versions.mix(BEDTOOLS_GENOMECOV_SCALE.out.version.first().ifEmpty(null))
+
+        /*
+         * CHANNEL: Separate bedgraphs into target/control pairings for each replicate
+         */
+         ch_bedtools_bedgraph.branch { it ->
+            target: it[0].group != 'igg'
+            control: it[0].group == 'igg'
+        }
+        .set { ch_bedgraph_split }
+
+        ch_bedgraph_split.target
+            .combine(ch_bedgraph_split.control)
+            .filter { row -> row[0].replicate == row[2].replicate }
+            .map { row -> [ row[0], row[1], row[3] ] }
+            .set { ch_bedgraph_combined }
+
+        /*
+        * MODULE: Call peaks
+        */
+        SEACR_CALLPEAK (
+            ch_bedgraph_combined
+        )
+        ch_seacr_bed = SEACR_CALLPEAK.out.bed
+        ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null)) 
     }
 
     /*
@@ -356,6 +381,8 @@ workflow CUTANDRUN {
         ch_software_versions.map { it }.collect()
     )
 }
+
+
 
 ////////////////////////////////////////////////////
 /* --              COMPLETION EMAIL            -- */
