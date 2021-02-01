@@ -142,6 +142,7 @@ include { IGV_SESSION              } from './modules/local/process/igv_session' 
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'    addParams( options: [publish_files : ['csv':'']] )
 include { MULTIQC                            } from './modules/local/process/multiqc'                     addParams( options: multiqc_options )
 include { EXPORT_META                            } from './modules/local/process/export_meta'                     addParams( options: modules['export_meta'] )
+include { GENERATE_REPORTS                            } from './modules/local/process/generate_reports'                     addParams( options: [:] )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -453,6 +454,8 @@ workflow CUTANDRUN {
             ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
         )
     }
+
+    GENERATE_REPORTS()
 }
 
 ////////////////////////////////////////////////////
