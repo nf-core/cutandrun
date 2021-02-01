@@ -49,6 +49,9 @@ if (anno_readme && file(anno_readme).exists()) {
 /* --               CONFIG FILES               -- */
 ////////////////////////////////////////////////////
 
+ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
+
 ////////////////////////////////////////////////////
 /* --                  ASSETS                  -- */
 ////////////////////////////////////////////////////
@@ -71,6 +74,9 @@ def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: 'genom
 // QC
 def cat_fastq_options          = modules['cat_fastq']
 if (!params.save_merged_fastq) { cat_fastq_options['publish_files'] = false }
+
+def multiqc_options         = modules['multiqc']
+multiqc_options.args       += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ''
 
 // Trimming
 def trimgalore_options    = modules['trimgalore']
@@ -134,6 +140,7 @@ include { SEACR_CALLPEAK           } from './modules/local/software/seacr/callpe
 include { UCSC_BEDCLIP             } from './modules/local/process/ucsc_bedclip'             addParams( options: modules['ucsc_bedclip']  )
 include { IGV_SESSION              } from './modules/local/process/igv_session'              addParams( options: modules['igv']  )
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'    addParams( options: [publish_files : ['csv':'']] )
+include { MULTIQC                            } from './modules/local/process/multiqc'                     addParams( options: multiqc_options )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -311,7 +318,7 @@ workflow CUTANDRUN {
      * SUBWORKFLOW: Annotate meta data with aligner stats and 
      */
     ANNOTATE_BT2_META( ch_samtools_bam, ch_bowtie2_log, ch_bt2_to_csv_awk)
-    ANNOTATE_BT2_SPIKEIN_META( ch_samtools_bam, ch_bowtie2_log, ch_bt2_to_csv_awk)
+    ANNOTATE_BT2_SPIKEIN_META( ch_samtools_bam, ch_bowtie2_spikein_log, ch_bt2_to_csv_awk)
 
     /*
      * CHANNEL: Combine merge spikein meta data with main data stream
@@ -406,11 +413,36 @@ workflow CUTANDRUN {
     }
 
     /*
-     * MODULE: Pipeline reporting
+     * MODULE: Collect software versions used in pipeline
      */
     GET_SOFTWARE_VERSIONS ( 
         ch_software_versions.map { it }.collect()
     )
+
+    /*
+     * MODULE: Multiqc
+     */
+    if (!params.skip_multiqc) {
+        workflow_summary    = Schema.params_summary_multiqc(workflow, params.summary_params)
+        ch_workflow_summary = Channel.value(workflow_summary)
+
+        MULTIQC (
+            ch_multiqc_config,
+            ch_multiqc_custom_config.collect().ifEmpty([]),
+            GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+            ch_bowtie2_log.collect{it[1]}.ifEmpty([]),
+            ch_bowtie2_spikein_log.collect{it[1]}.ifEmpty([]),
+            ch_samtools_stats.collect{it[1]}.ifEmpty([]),
+            ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
+            ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
+            ch_markduplicates_multiqc.collect{it[1]}.ifEmpty([])
+        )
+        multiqc_report = MULTIQC.out.report.toList()
+    }
 }
 
 ////////////////////////////////////////////////////
