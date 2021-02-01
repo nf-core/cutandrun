@@ -141,6 +141,7 @@ include { UCSC_BEDCLIP             } from './modules/local/process/ucsc_bedclip'
 include { IGV_SESSION              } from './modules/local/process/igv_session'              addParams( options: modules['igv']  )
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'    addParams( options: [publish_files : ['csv':'']] )
 include { MULTIQC                            } from './modules/local/process/multiqc'                     addParams( options: multiqc_options )
+include { EXPORT_META                            } from './modules/local/process/export_meta'                     addParams( options: modules['export_meta'] )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -442,6 +443,15 @@ workflow CUTANDRUN {
             ch_markduplicates_multiqc.collect{it[1]}.ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
+    }
+
+    /*
+     * MODULE: Reporting
+     */
+    if (!params.skip_reporting) {
+        EXPORT_META (
+            ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+        )
     }
 }
 
