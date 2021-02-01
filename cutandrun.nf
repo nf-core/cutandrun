@@ -127,13 +127,13 @@ def awk_bt2_spikein_options = modules['awk_bt2_spikein']
 /*
  * MODULES
  */
-include { INPUT_CHECK           } from './modules/local/subworkflow/input_check'       addParams( options: [:] )
-include { CAT_FASTQ             } from './modules/local/process/cat_fastq'             addParams( options: cat_fastq_options )
+include { INPUT_CHECK              } from './modules/local/subworkflow/input_check'          addParams( options: [:] )
+include { CAT_FASTQ                } from './modules/local/process/cat_fastq'                addParams( options: cat_fastq_options )
 include { BEDTOOLS_GENOMECOV_SCALE } from './modules/local/process/bedtools_genomecov_scale' addParams( options: modules['bedtools_genomecov_bedgraph'] )
-include { SEACR_CALLPEAK } from './modules/local/software/seacr/callpeak/main' addParams( options: modules['seacr'] )
-include { UCSC_BEDCLIP                       } from './modules/local/process/ucsc_bedclip'                addParams( options: modules['ucsc_bedclip']  )
-include { IGV_SESSION                       } from './modules/local/process/igv_session'                addParams( options: modules['igv']  )
-include { GET_SOFTWARE_VERSIONS } from './modules/local/process/get_software_versions' addParams( options: [publish_files : ['csv':'']] )
+include { SEACR_CALLPEAK           } from './modules/local/software/seacr/callpeak/main'     addParams( options: modules['seacr'] )
+include { UCSC_BEDCLIP             } from './modules/local/process/ucsc_bedclip'             addParams( options: modules['ucsc_bedclip']  )
+include { IGV_SESSION              } from './modules/local/process/igv_session'              addParams( options: modules['igv']  )
+include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'    addParams( options: [publish_files : ['csv':'']] )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
