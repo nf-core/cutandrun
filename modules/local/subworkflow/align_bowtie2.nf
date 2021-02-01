@@ -43,7 +43,7 @@ workflow ALIGN_BOWTIE2 {
     orig_spikein_bam    = BOWTIE2_SPIKEIN_ALIGN.out.bam          // channel: [ val(meta), bam            ]
     
     bowtie2_log         = BOWTIE2_ALIGN.out.log                  // channel: [ val(meta), log_final      ]
-    bowtie2_spikein_log = BAM_SORT_SAMTOOLS_SPIKEIN.out.log      // channel: [ val(meta), log_final      ]
+    bowtie2_spikein_log = BOWTIE2_SPIKEIN_ALIGN.out.log          // channel: [ val(meta), log_final      ]
     
     bam                 = BAM_SORT_SAMTOOLS.out.bam              // channel: [ val(meta), [ bam ] ]
     bai                 = BAM_SORT_SAMTOOLS.out.bai              // channel: [ val(meta), [ bai ] ]
