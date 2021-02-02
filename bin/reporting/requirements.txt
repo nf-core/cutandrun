@@ -1,0 +1,3 @@
+dash==1.19.*
+dash-daq==0.5.*
+dash-bootstrap-components==0.11.*

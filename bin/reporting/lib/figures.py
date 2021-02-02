@@ -7,6 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import seaborn as sb
+import plotly.express as px
 
 class Figures:
     data_table = None
@@ -38,6 +39,22 @@ class Figures:
 
         # Plot 1
         plot1, data1 = self.alignment_summary()
+        plots["alignment_summary"] = plot1
+        data["alignment_summary"] = data1
+
+        return (plots, data)
+
+    def generate_dash_plots(self):
+        # Init
+        plots = dict()
+        data = dict()
+
+        # Get Data
+        self.load_data()
+        self.annotate_data()
+
+        # Plot 1
+        plot1, data1 = self.alignment_summary_ex()
         plots["alignment_summary"] = plot1
         data["alignment_summary"] = data1
 
@@ -108,12 +125,16 @@ class Figures:
         
         return fig, df_data
 
+    def alignment_summary_ex(self):
+        # Subset data 
+        df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
+
+        fig = px.box(df_data, x="group", y="bt2_total_reads_target")
+
+        return fig, df_data
 
 
         
-
-
-
 # import glob
 # 
 # import re
