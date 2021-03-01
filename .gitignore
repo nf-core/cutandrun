@@ -10,3 +10,6 @@ testing*
 
 .local
 .config
+.bash_history
+
+R_sessionInfo.log
