@@ -455,7 +455,7 @@ workflow CUTANDRUN {
         )
     }
 
-    GENERATE_REPORTS()
+    //GENERATE_REPORTS()
 }
 
 ////////////////////////////////////////////////////
