@@ -24,7 +24,7 @@ process SAMPLESHEET_CHECK {
 
     script:  // This script is bundled with the pipeline, in nf-core/cutandrun/bin/
     """
-    check_samplesheet.py $samplesheet samplesheet.valid.csv
+    $baseDir/bin/python/check_samplesheet.py $samplesheet samplesheet.valid.csv
     """
 }
 
