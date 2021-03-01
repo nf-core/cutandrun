@@ -51,7 +51,7 @@ process IGV_SESSION {
     echo "$output" > exp_files.txt
     find -L * -iname "*.gtf" -exec echo -e {}"\\t0,48,73" \\; > gtf.igv.txt
     cat *.txt > igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt $genome --path_prefix './'
+    $baseDir/bin/python/igv_files_to_session.py igv_session.xml igv_files.txt $genome --path_prefix './'
     """
 }
 
