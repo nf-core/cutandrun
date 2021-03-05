@@ -13,3 +13,9 @@ testing*
 .bash_history
 
 R_sessionInfo.log
+
+dev/docker/static_reports/test_output/alignment_summary.csv
+
+dev/docker/static_reports/test_output/alignment_summary.png
+
+dev/docker/static_reports/test_output/report.pdf
