@@ -19,6 +19,7 @@ def gen_png(parsed_args):
     log_path = None
     if parsed_args.log:
         log_path = parsed_args.log
+        print(log_path)
 
     logging.basicConfig(filename=log_path, level=os.environ.get("LOGLEVEL", "INFO"))
     logger = logging.getLogger("gen_png")
