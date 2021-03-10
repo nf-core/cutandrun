@@ -56,6 +56,7 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 /* --                  ASSETS                  -- */
 ////////////////////////////////////////////////////
 
+ch_dummy_file = file("dummy/file", checkIfExists: false)
 ch_bt2_to_csv_awk = file("$projectDir/assets/awk/bt2_report_to_csv.awk", checkIfExists: true)
 
 ////////////////////////////////////////////////////
@@ -125,6 +126,7 @@ if(params.dedup_target_reads) { dedup_control_only = false }
 // Meta annotation
 def awk_bt2_options = modules['awk_bt2']
 def awk_bt2_spikein_options = modules['awk_bt2_spikein']
+def awk_dedup_options = modules['awk_dedup']
 
 ////////////////////////////////////////////////////
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
@@ -157,8 +159,9 @@ include { ALIGN_BOWTIE2 } from './modules/local/subworkflow/align_bowtie2'   add
                                                                                            samtools_options: samtools_sort_options,
                                                                                            samtools_spikein_options: samtools_spikein_sort_options )
 include { SAMTOOLS_VIEW_SORT_STATS } from './modules/local/subworkflow/samtools_view_sort_stats' addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options)                                                                                    
-include { ANNOTATE_META as ANNOTATE_BT2_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_options, meta_suffix: '_target')
-include { ANNOTATE_META as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_spikein_options, meta_suffix: '_spikein')                                                                                 
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_bt2_options, meta_suffix: '_target', script_mode: true)
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_bt2_spikein_options, meta_suffix: '_spikein', script_mode: true)
+include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_dedup_options, meta_suffix: '', meta_prefix: 'dedup_', script_mode: false)                                                                              
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -450,8 +453,10 @@ workflow CUTANDRUN {
      * MODULE: Reporting
      */
     if (!params.skip_reporting) {
+        ANNOTATE_DEDUP_META(ch_samtools_bam_scale, ch_markduplicates_multiqc, ch_dummy_file.collect())
+
         EXPORT_META (
-            ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+            ANNOTATE_DEDUP_META.out.output.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
         )
 
         GENERATE_REPORTS(EXPORT_META.out.csv)
