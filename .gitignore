@@ -19,3 +19,5 @@ dev/docker/static_reports/test_output/alignment_summary.png
 dev/docker/static_reports/test_output/report.pdf
 dev/docker/static_reports/test_output/log.txt
 dev/docker/static_reports/test_output/duplication_summary.csv
+
+dev/docker/static_reports/test_output/duplication_summary.png
