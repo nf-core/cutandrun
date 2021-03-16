@@ -354,7 +354,6 @@ workflow CUTANDRUN {
             [ row[0], row[1], row[2] ] }
         .set { ch_samtools_bam_scale }
 
-
     if(!params.skip_coverage) {
         /*
         * MODULE: Convert to bedgraph
@@ -454,12 +453,14 @@ workflow CUTANDRUN {
      */
     if (!params.skip_reporting) {
         ANNOTATE_DEDUP_META(ch_samtools_bam_scale, ch_markduplicates_multiqc, ch_dummy_file.collect())
+        //ANNOTATE_DEDUP_META.out.output | view
 
         EXPORT_META (
             ANNOTATE_DEDUP_META.out.output.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+            //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
         )
 
-        GENERATE_REPORTS(EXPORT_META.out.csv)
+        //GENERATE_REPORTS(EXPORT_META.out.csv)
     }
 }
 
