@@ -2,7 +2,7 @@
  * Annotate the pipeline meta data with the columns from a csv file
    generated from processing a report text file with an awk script
    
-   TODO: input is a passthrough
+   TODO: input is a passthrough and that is the thing that is annotated
     */
 
 params.options = [:]
@@ -20,8 +20,8 @@ workflow ANNOTATE_META_AWK {
     main:
     
     main:
-    // Strip sample id and paths only from input
-    ch_paths = passthrough.map { row -> [row[0].id, row[1..-1]].flatten() }
+    // Strip out the sample id from the meta in the passthrough
+    ch_paths = passthrough.map { row -> [row[0].id, row[0], row[1..-1]].flatten() }
 
     ch_annotated_meta = Channel.empty()
     if(params.script_mode) {
@@ -32,11 +32,10 @@ workflow ANNOTATE_META_AWK {
             .map { row -> 
                 new_meta = [:]
                 row[1].each{ k, v -> new_meta.put(params.meta_prefix + k + params.meta_suffix, v) }
-                [row[0], new_meta]
+                [row[0].id, new_meta]
             }
-            .map { row -> [ row[0].id, row[0] << row[1] ] }
             .join ( ch_paths )
-            .map { row -> row[1..-1] }
+            .map { row -> [ row[2] << row[1], row[3..-1] ] }
             .set { ch_annotated_meta }
     }
     else {
@@ -47,11 +46,10 @@ workflow ANNOTATE_META_AWK {
             .map { row -> 
                 new_meta = [:]
                 row[1].each{ k, v -> new_meta.put(params.meta_prefix + k + params.meta_suffix, v) }
-                [row[0], new_meta]
+                [row[0].id, new_meta]
             }
-            .map { row -> [ row[0].id, row[0] << row[1] ] }
             .join ( ch_paths )
-            .map { row -> row[1..-1] }
+            .map { row -> [ row[2] << row[1], row[3..-1] ] }
             .set { ch_annotated_meta }
     }
 
