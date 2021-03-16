@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-import seaborn as sb
+from matplotlib.ticker import FuncFormatter
+import seaborn as sns
 import plotly.express as px
 
 class Figures:
@@ -15,6 +16,17 @@ class Figures:
     def __init__(self, logger, data):
         self.logger = logger
         self.data_path = data
+        sns.set()
+        sns.set_theme()
+        sns.set_context("paper")
+
+    def format_millions(self, x, pos):
+        #the two args are the value and tick position
+        return '%1.1fM' % (x * 1e-6)
+
+    def format_thousands(self, x, pos):
+        #the two args are the value and tick position
+        return '%1.1fK' % (x * 1e-3)
 
     def load_data(self):
         self.data_table = pd.read_csv(self.data_path, sep=',')
@@ -42,6 +54,12 @@ class Figures:
         plots["alignment_summary"] = plot1
         data["alignment_summary"] = data1
 
+        # Plot 2
+        plot2, data2 = self.duplication_summary()
+        plots["duplication_summary"] = plot2
+        data["duplication_summary"] = data2
+        
+
         return (plots, data)
 
     def generate_dash_plots(self):
@@ -62,7 +80,6 @@ class Figures:
 
     def gen_plots_to_folder(self, output_path):
         # Init
-        sb.set_theme()
         abs_path = os.path.abspath(output_path)
 
         # Get plots and supporting data tables
@@ -92,6 +109,8 @@ class Figures:
 
     ##### PLOTS #####
 
+    # TODO: Add group ordering -  order=['h3k27me3', 'h3k4me3', 'igg']
+
     # ---------- Plot 1 - Alignment Summary --------- #
     def alignment_summary(self):
         # Subset data 
@@ -102,26 +121,66 @@ class Figures:
         fig.suptitle("Sequencing and Alignment Summary")
 
         # Seq depth
-        sb.boxplot(data=df_data, x='group', y='bt2_total_reads_target', order=['h3k27me3', 'h3k4me3', 'igg'], ax=seq_summary[0,0])
+        sns.boxplot(data=df_data, x='group', y='bt2_total_reads_target', ax=seq_summary[0,0])
         seq_summary[0,0].set_title("Sequencing Depth")
         seq_summary[0,0].set_ylabel("Total Reads")
 
         # Alignable fragments
-        sb.boxplot(data=df_data, x='group', y='bt2_total_aligned_target', order=['h3k27me3', 'h3k4me3', 'igg'], ax=seq_summary[0,1])
+        sns.boxplot(data=df_data, x='group', y='bt2_total_aligned_target', ax=seq_summary[0,1])
         seq_summary[0,1].set_title("Alignable Fragments")
         seq_summary[0,1].set_ylabel("Total Aligned Reads")
 
         # Alignment rate hg38
-        sb.boxplot(data=df_data, x='group', y='target_alignment_rate', order=['h3k27me3', 'h3k4me3', 'igg'], ax=seq_summary[1,0])
+        sns.boxplot(data=df_data, x='group', y='target_alignment_rate', ax=seq_summary[1,0])
         seq_summary[1,0].set_title("Alignment Rate (hg38)")
         seq_summary[1,0].set_ylabel("Percent of Fragments Aligned")
 
         # Alignment rate e.coli
-        sb.boxplot(data=df_data, x='group', y='spikein_alignment_rate', order=['h3k27me3', 'h3k4me3', 'igg'], ax=seq_summary[1,1])
+        sns.boxplot(data=df_data, x='group', y='spikein_alignment_rate', ax=seq_summary[1,1])
         seq_summary[1,1].set_title("Alignment Rate (e.coli)")
         seq_summary[1,1].set_ylabel("Percent of Fragments Aligned")
 
         plt.subplots_adjust(wspace=0.5, hspace=0.5)
+        
+        return fig, df_data
+
+        # ---------- Plot 2 - Duplication Summary --------- #
+    def duplication_summary(self):
+        # Init
+        k_formatter = FuncFormatter(self.format_thousands)
+        m_formatter = FuncFormatter(self.format_millions)
+
+        # Subset data 
+        df_data = self.data_table.loc[:, ('id', 'group', 'dedup_percent_duplication', 'dedup_estimated_library_size', 'dedup_read_pairs_examined')]
+        df_data['dedup_percent_duplication'] *= 100
+        df_data['unique_frag_num'] = df_data['dedup_read_pairs_examined'] * (1-df_data['dedup_percent_duplication']/100)
+
+        #"dedup_library,dedup_unpaired_reads_examined,dedup_read_pairs_examined,dedup_secondary_or_supplementary_rds,dedup_unmapped_reads,dedup_unpaired_read_duplicates,dedup_read_pair_duplicates,dedup_read_pair_optical_duplicates,dedup_percent_duplication,dedup_estimated_library_size"
+
+        ## Construct quad plot
+        fig, seq_summary = plt.subplots(1,3)
+        fig.suptitle("Duplication Summary")
+
+        # Duplication rate
+        sns.boxplot(data=df_data, x='group', y='dedup_percent_duplication', ax=seq_summary[0])
+        seq_summary[0].set_ylabel("Duplication Rate (%)")
+        seq_summary[0].set(ylim=(0, 100))
+        seq_summary[0].xaxis.set_tick_params(labelrotation=45)
+
+        # Estimated library size
+        sns.boxplot(data=df_data, x='group', y='dedup_estimated_library_size', ax=seq_summary[1])
+        seq_summary[1].set_ylabel("Estimated Library Size")
+        seq_summary[1].yaxis.set_major_formatter(m_formatter)
+        seq_summary[1].xaxis.set_tick_params(labelrotation=45)
+
+        # No. of unique fragments 
+        sns.boxplot(data=df_data, x='group', y='unique_frag_num', ax=seq_summary[2])
+        seq_summary[2].set_ylabel("No. of Unique Fragments")
+        seq_summary[2].yaxis.set_major_formatter(k_formatter)
+        seq_summary[2].xaxis.set_tick_params(labelrotation=45)
+
+        # Set the plot sizing
+        plt.subplots_adjust(top = 0.9, bottom = 0.2, right = 0.9, left = 0.1, hspace = 0.7, wspace = 0.7)
         
         return fig, df_data
 
@@ -134,7 +193,7 @@ class Figures:
         return fig, df_data
 
 
-        
+        #        plt.yticks(np.arange(0, 100, 10))
 # import glob
 # 
 # import re

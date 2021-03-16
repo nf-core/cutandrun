@@ -460,7 +460,7 @@ workflow CUTANDRUN {
             //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
         )
 
-        //GENERATE_REPORTS(EXPORT_META.out.csv)
+        GENERATE_REPORTS(EXPORT_META.out.csv)
     }
 }
 
