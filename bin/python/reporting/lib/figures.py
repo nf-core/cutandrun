@@ -2,6 +2,8 @@
 # coding: utf-8
 
 import os
+import glob
+import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -12,10 +14,14 @@ import plotly.express as px
 
 class Figures:
     data_table = None
+    frag_hist = None
+    frag_violin = None
 
-    def __init__(self, logger, data):
+    def __init__(self, logger, meta, frags):
         self.logger = logger
-        self.data_path = data
+        self.meta_path = meta
+        self.frag_path = frags
+
         sns.set()
         sns.set_theme()
         sns.set_context("paper")
@@ -29,8 +35,39 @@ class Figures:
         return '%1.1fK' % (x * 1e-3)
 
     def load_data(self):
-        self.data_table = pd.read_csv(self.data_path, sep=',')
+        self.data_table = pd.read_csv(self.meta_path, sep=',')
 
+        # Create list of deeptools raw fragment files
+        dt_frag_list = glob.glob(self.frag_path)
+
+        for i in list(range(len(dt_frag_list))):
+            # create dataframe from csv file for each file and save to a list
+            dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', skiprows=[0], header=0)
+
+            # create long forms of fragment histograms
+            dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
+            dt_sample_i_long = np.repeat(dt_frag_i['Sample'][0], len(dt_frag_i_long))
+
+            if i==0:
+                frags_arr = dt_frag_i_long
+                sample_arr = dt_sample_i_long
+                self.frag_hist = dt_frag_i
+            else:
+                frags_arr = np.append(frags_arr, dt_frag_i_long)
+                sample_arr = np.append(sample_arr, dt_sample_i_long)
+                self.frag_hist = self.frag_hist.append(dt_frag_i)
+
+        # create hue array using regex pattern matching
+        for i in list(range(0,len(sample_arr))):
+            sample_i = sample_arr[i]
+            sample_exp = re.findall("^[^_]*", sample_i)
+
+            if i==0:
+                sample_exp_arr = np.array(sample_exp[0])
+            else:
+                sample_exp_arr = np.append(sample_exp_arr, sample_exp[0])
+
+        self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "sample" : sample_arr , "histone_mark": sample_exp_arr}, index = np.arange(len(frags_arr)))
 
     def annotate_data(self):
         # Make new perctenage alignment columns
@@ -58,8 +95,17 @@ class Figures:
         plot2, data2 = self.duplication_summary()
         plots["duplication_summary"] = plot2
         data["duplication_summary"] = data2
-        
 
+        # Plot 3
+        plot3, data3 = self.fraglen_summary_violin()
+        plots["frag_violin"] = plot3
+        data["frag_violin"] = data3
+
+        # Plot 4
+        plot4, data4 = self.fraglen_summary_histogram()
+        plots["frag_hist"] = plot4
+        data["frag_hist"] = data4
+        
         return (plots, data)
 
     def generate_dash_plots(self):
@@ -144,7 +190,7 @@ class Figures:
         
         return fig, df_data
 
-        # ---------- Plot 2 - Duplication Summary --------- #
+    # ---------- Plot 2 - Duplication Summary --------- #
     def duplication_summary(self):
         # Init
         k_formatter = FuncFormatter(self.format_thousands)
@@ -154,8 +200,6 @@ class Figures:
         df_data = self.data_table.loc[:, ('id', 'group', 'dedup_percent_duplication', 'dedup_estimated_library_size', 'dedup_read_pairs_examined')]
         df_data['dedup_percent_duplication'] *= 100
         df_data['unique_frag_num'] = df_data['dedup_read_pairs_examined'] * (1-df_data['dedup_percent_duplication']/100)
-
-        #"dedup_library,dedup_unpaired_reads_examined,dedup_read_pairs_examined,dedup_secondary_or_supplementary_rds,dedup_unmapped_reads,dedup_unpaired_read_duplicates,dedup_read_pair_duplicates,dedup_read_pair_optical_duplicates,dedup_percent_duplication,dedup_estimated_library_size"
 
         ## Construct quad plot
         fig, seq_summary = plt.subplots(1,3)
@@ -184,113 +228,24 @@ class Figures:
         
         return fig, df_data
 
+    
+    # ---------- Plot 3 - Fragment Distribution Violin --------- #
+    def fraglen_summary_violin(self):
+        fig, ax = plt.subplots()
+        ax = sns.violinplot(data=self.frag_violin, x="sample", y="fragment_size", hue="histone_mark")
+
+        return fig, self.frag_violin
+
+    # ---------- Plot 4 - Fragment Distribution Histogram --------- #
+    def fraglen_summary_histogram(self):
+        fig, ax = plt.subplots()
+        ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="Sample")
+
+        return fig, self.frag_hist
+
     def alignment_summary_ex(self):
-        # Subset data 
         df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
-        fig = px.box(df_data, x="group", y="bt2_total_reads_target")
+        ax = px.box(df_data, x="group", y="bt2_total_reads_target")
 
-        return fig, df_data
-
-
-        #        plt.yticks(np.arange(0, 100, 10))
-# import glob
-# 
-# import re
-
-
-# # ---------- Plots 2&3 - Mapped Fragment Distribution --------- #
-
-# # Parse './' to fragments argument as we expect all data to be in the same directory. 
-# fragments = args.exp_fragments
-
-# # Create list of deeptools raw fragment files
-# dt_frag_list = glob.glob(fragments + '*raw.csv')
-
-# df_list = list()
-# for i in list(range(0,len(dt_frag_list))):
-#     # create dataframe from csv file for each file and save to a list
-#     dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', skiprows=[0], header=0)
-#     df_list.append( dt_frag_i )
-
-#     # create long forms of fragment histograms
-#     dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
-#     dt_sample_i_long = np.repeat(dt_frag_i['Sample'][0], len(dt_frag_i_long))
-
-#     if i==0:
-#         frags_arr = dt_frag_i_long
-#         sample_arr = dt_sample_i_long
-#         og_frag_df = dt_frag_i
-#     else:
-#         frags_arr = np.append(frags_arr, dt_frag_i_long)
-#         sample_arr = np.append(sample_arr, dt_sample_i_long)
-#         og_frag_df = og_frag_df.append(dt_frag_i)
-
-# # create hue array using regex pattern matching
-# for i in list(range(0,len(sample_arr))):
-#     sample_i = sample_arr[i]
-#     sample_exp = re.findall("^[^_]*", sample_i)
-
-#     if i==0:
-#         sample_exp_arr = np.array(sample_exp[0])
-#     else:
-#         sample_exp_arr = np.append(sample_exp_arr, sample_exp[0])
-
-# df_long = pd.DataFrame( { "fragment_size" : frags_arr, "sample" : sample_arr , "histone_mark": sample_exp_arr}, index = np.arange(len(frags_arr)))
-# df_long.to_csv('./fragmanet_distribution_violin.csv', index=False)
-# og_frag_df.to_csv('./fragmanet_distribution_line.csv', index=False)
-# # print(df_long)
-
-# plt.clf()
-# ax1 = sns.violinplot(data=df_long, x="sample", y="fragment_size", hue="histone_mark")
-# # plt.show()
-# fig1 = ax1.get_figure()
-# fig1.savefig('fragmanet_distribution_violin.png')
-
-# plt.clf()
-# ax2 = sns.lineplot(data=og_frag_df, x="Size", y="Occurrences", hue="Sample")
-# # plt.show()
-# fig2 = ax2.get_figure()
-# fig2.savefig('fragmanet_distribution_line.png')
-
-# import datetime
-# import numpy as np
-# from matplotlib.backends.backend_pdf import PdfPages
-# import matplotlib.pyplot as plt
-
-# # Create the PdfPages object to which we will save the pages:
-# # The with statement makes sure that the PdfPages object is closed properly at
-# # the end of the block, even if an Exception occurs.
-# with PdfPages('multipage_pdf.pdf') as pdf:
-#     plt.figure(figsize=(3, 3))
-#     plt.plot(range(7), [3, 1, 4, 1, 5, 9, 2], 'r-o')
-#     plt.title('Page One')
-#     pdf.savefig()  # saves the current figure into a pdf page
-#     plt.close()
-
-#     # if LaTeX is not installed or error caught, change to `usetex=False`
-#     plt.rc('text', usetex=True)
-#     plt.figure(figsize=(8, 6))
-#     x = np.arange(0, 5, 0.1)
-#     plt.plot(x, np.sin(x), 'b-')
-#     plt.title('Page Two')
-#     pdf.attach_note("plot of sin(x)")  # you can add a pdf note to
-#                                        # attach metadata to a page
-#     pdf.savefig()
-#     plt.close()
-
-#     plt.rc('text', usetex=False)
-#     fig = plt.figure(figsize=(4, 5))
-#     plt.plot(x, x ** 2, 'ko')
-#     plt.title('Page Three')
-#     pdf.savefig(fig)  # or you can pass a Figure object to pdf.savefig
-#     plt.close()
-
-#     # We can also set the file's metadata via the PdfPages object:
-#     d = pdf.infodict()
-#     d['Title'] = 'Multipage PDF Example'
-#     d['Author'] = 'Jouni K. Sepp\xe4nen'
-#     d['Subject'] = 'How to create a multipage pdf file and set its metadata'
-#     d['Keywords'] = 'PdfPages multipage keywords author title subject'
-#     d['CreationDate'] = datetime.datetime(2009, 11, 13)
-#     d['ModDate'] = datetime.datetime.today()
+        return ax, df_data

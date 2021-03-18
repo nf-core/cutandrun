@@ -31,12 +31,13 @@ def init_logger(app_name, log_file = None):
     return logger
 
 def gen_png(parsed_args):
-    input_path = parsed_args.input
+    meta_path = parsed_args.meta
+    frag_path = parsed_args.raw_frag
     output_path = parsed_args.output
     logger = init_logger('gen_img', parsed_args.log)
     
     logger.info('Generating plots to output folder')
-    fig = Figures(logger, input_path)
+    fig = Figures(logger, meta_path, frag_path)
     fig.gen_plots_to_folder(output_path)
 
     logger.info('Completed')
@@ -49,7 +50,8 @@ if __name__ == '__main__':
     # Functions
     parser_genimg = subparsers.add_parser('genimg', help='generate images help')
     parser_genimg.set_defaults(func=gen_png)
-    parser_genimg.add_argument('--input', required=True)
+    parser_genimg.add_argument('--meta', required=True)
+    parser_genimg.add_argument('--raw_frag', required=True)
     parser_genimg.add_argument('--output', required=True)
     parser_genimg.add_argument('--log', required=False)
 

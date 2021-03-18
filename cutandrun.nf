@@ -13,6 +13,7 @@ checkPathParamList = [
     params.input,
     params.fasta,
     params.gtf,
+    params.blacklist,
     params.bowtie2_index,
     params.spikein_fasta,
     params.spikein_bowtie2_index
@@ -23,6 +24,7 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 if (params.fasta) { ch_fasta = file(params.fasta) } else { exit 1, 'Genome fasta file not specified!' }
 if (params.gtf) { ch_gtf = file(params.gtf)   } else { exit 1, 'Genome GTF file not specified!' }
+if (params.blacklist) { ch_blacklist = file(params.blacklist) } else { exit 1, 'Genome blacklist file not specified!' }
 
 // Resolve spike-in genome
 def spikein_fasta = params.spikein_fasta
@@ -58,6 +60,7 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 
 ch_dummy_file = file("dummy/file", checkIfExists: false)
 ch_bt2_to_csv_awk = file("$projectDir/assets/awk/bt2_report_to_csv.awk", checkIfExists: true)
+ch_dt_frag_to_csv_awk = file("$projectDir/assets/awk/dt_frag_report_to_csv.awk", checkIfExists: true)
 
 ////////////////////////////////////////////////////
 /* --     INIALISE PARAMETERS AND OPTIONS      -- */
@@ -127,6 +130,7 @@ if(params.dedup_target_reads) { dedup_control_only = false }
 def awk_bt2_options = modules['awk_bt2']
 def awk_bt2_spikein_options = modules['awk_bt2_spikein']
 def awk_dedup_options = modules['awk_dedup']
+def awk_dt_frag_options = modules['awk_dt_frag']
 
 ////////////////////////////////////////////////////
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
@@ -145,6 +149,7 @@ include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_
 include { MULTIQC                            } from './modules/local/process/multiqc'                     addParams( options: multiqc_options )
 include { EXPORT_META                            } from './modules/local/process/export_meta'                     addParams( options: modules['export_meta'] )
 include { GENERATE_REPORTS                            } from './modules/local/process/generate_reports'                     addParams( options: modules['generate_reports'] )
+include { DEEPTOOLS_BAMPEFRAGMENTSIZE } from './modules/local/software/deeptools/bamPEFragmentSize/main' addParams( options: modules['deeptools_fragmentsize'] )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -161,7 +166,8 @@ include { ALIGN_BOWTIE2 } from './modules/local/subworkflow/align_bowtie2'   add
 include { SAMTOOLS_VIEW_SORT_STATS } from './modules/local/subworkflow/samtools_view_sort_stats' addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options)                                                                                    
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_bt2_options, meta_suffix: '_target', script_mode: true)
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_bt2_spikein_options, meta_suffix: '_spikein', script_mode: true)
-include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_dedup_options, meta_suffix: '', meta_prefix: 'dedup_', script_mode: false)                                                                              
+include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_dedup_options, meta_suffix: '', meta_prefix: 'dedup_', script_mode: false)
+include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_dt_frag_options, meta_suffix: '', meta_prefix: '', script_mode: true)                                                                    
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -354,6 +360,11 @@ workflow CUTANDRUN {
             [ row[0], row[1], row[2] ] }
         .set { ch_samtools_bam_scale }
 
+    //Create channel without scale as seperate value
+    ch_samtools_bam_scale
+        .map { row -> [ row[0], row[1] ] }
+        .set { ch_samtools_bam_meta }
+
     if(!params.skip_coverage) {
         /*
         * MODULE: Convert to bedgraph
@@ -419,9 +430,9 @@ workflow CUTANDRUN {
     /*
      * MODULE: Collect software versions used in pipeline
      */
-    GET_SOFTWARE_VERSIONS ( 
-        ch_software_versions.map { it }.collect()
-    )
+    // GET_SOFTWARE_VERSIONS ( 
+    //     ch_software_versions.map { it }.collect()
+    // )
 
     /*
      * MODULE: Multiqc
@@ -452,15 +463,35 @@ workflow CUTANDRUN {
      * MODULE: Reporting
      */
     if (!params.skip_reporting) {
-        ANNOTATE_DEDUP_META(ch_samtools_bam_scale, ch_markduplicates_multiqc, ch_dummy_file.collect())
+        ANNOTATE_DEDUP_META(ch_samtools_bam_meta, ch_markduplicates_multiqc, ch_dummy_file.collect())
         //ANNOTATE_DEDUP_META.out.output | view
+
+        ch_samtools_bam
+            .map { row -> [row[0].id, row[0], row[1] ] }
+            .set { ch_samtools_bam_id }
+
+        ch_samtools_bai
+            .map { row -> [row[0].id, row[0], row[1] ] }
+            .set { ch_samtools_bai_id }
+
+        ch_samtools_bam_id
+            .join( ch_samtools_bai_id )
+            .map { row -> [row[1], row[2], row[4] ] }
+            .set { ch_samtools_bam_bai }
+        //ch_samtools_bam_bai | view
+        
+        DEEPTOOLS_BAMPEFRAGMENTSIZE(ch_samtools_bam_bai, ch_blacklist)
+        //DEEPTOOLS_BAMPEFRAGMENTSIZE.out.summary_csv | view
+
+        ANNOTATE_DT_FRAG_META( ANNOTATE_DEDUP_META.out.output, DEEPTOOLS_BAMPEFRAGMENTSIZE.out.summary_csv, ch_dt_frag_to_csv_awk)
+        //ANNOTATE_DT_FRAG_META.out.output | view
 
         EXPORT_META (
             ANNOTATE_DEDUP_META.out.output.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
             //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
         )
 
-        GENERATE_REPORTS(EXPORT_META.out.csv)
+        GENERATE_REPORTS(EXPORT_META.out.csv, DEEPTOOLS_BAMPEFRAGMENTSIZE.out.raw_csv.collect{it[1]})
     }
 }
 
