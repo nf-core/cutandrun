@@ -52,6 +52,7 @@ if __name__ == '__main__':
     parser_genimg.set_defaults(func=gen_png)
     parser_genimg.add_argument('--meta', required=True)
     parser_genimg.add_argument('--raw_frag', required=True)
+    parser_genimg.add_argument('--bed_frag', required=True)
     parser_genimg.add_argument('--output', required=True)
     parser_genimg.add_argument('--log', required=False)
 
