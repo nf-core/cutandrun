@@ -38,6 +38,7 @@ option_list <- list(
     make_option(c("-o", "--outdir"        ), type="character", default='./'    , metavar="path"   , help="Output directory."  ),
     make_option(c("-p", "--outprefix"     ), type="character", default='deseq2', metavar="string" , help="Output prefix."     ),
     make_option(c("-s", "--count_thresh"     ), type="integer", default='5', metavar="string" , help="TODO"     ),
+    make_option(c("-v", "--vst"           ), type="logical"  , default=FALSE   , metavar="boolean", help="Run vst transform instead of rlog." ),
     make_option(c("-@", "--cores"         ), type="integer"  , default=1       , metavar="integer", help="Number of cores."   )
 )
 
@@ -83,17 +84,6 @@ if (length(bed_list) != length(bam_list)) {
 # Create group list
 groups = c(opt$control, opt$treatment)
 
-if (file.exists(opt$outdir) == FALSE) {
-    dir.create(opt$outdir,recursive=TRUE)
-}
-setwd(opt$outdir)
-
-################################################
-################################################
-## READ IN DATA FILES                         ##
-################################################
-################################################
-
 # Init
 mPeak = GRanges()
 file_count = 0
@@ -123,7 +113,6 @@ colnames(countMat) = paste(rep(groups, 2), rep(reps, each = 2), sep = "_")
 for(i in seq_along(groups)){
     search_res <-  str_detect(bam_list, groups[i])
     file_list <- bam_list[search_res]
-    print(file_list)
     
     for(j in seq_along(file_list)) {
         fragment_counts <- getCounts(file_list[j], masterPeak, paired = TRUE, by_rg = FALSE, format = "bam")
@@ -138,29 +127,53 @@ for(i in seq_along(groups)){
 ################################################
 ################################################
 
-selectR = which(rowSums(countMat) > opt$count_thresh) ## Create index list for peak count filter
+if (file.exists(opt$outdir) == FALSE) {
+    dir.create(opt$outdir,recursive=TRUE)
+}
+setwd(opt$outdir)
+
+## Create index list for peak count filter
+selectR = which(rowSums(countMat) > opt$count_thresh) 
 dataS = countMat[selectR,] ## Select data from filter
 condition = factor(rep(groups, each = length(reps)))
-dds = DESeqDataSetFromMatrix(countData = dataS,
-                             colData = DataFrame(condition),
-                             design = ~ condition)
+
+samples.vec <- sort(colnames(countMat))
+groups      <- sub("_[^_]+$", "", samples.vec)
+if (length(unique(groups)) == 1 || length(unique(groups)) == length(samples.vec)) {
+    quit(save = "no", status = 0, runLast = FALSE)
+}
+
+DDSFile <- paste(opt$outprefix,".dds.RData",sep="")
+if (file.exists(DDSFile) == FALSE) {
+    dds = DESeqDataSetFromMatrix(countData = dataS,colData = DataFrame(condition),design = ~ condition)
+    dds     <- DESeq(dds, parallel=TRUE, BPPARAM=MulticoreParam(opt$cores))
+    if (!opt$vst) {
+        vst_name <- "rlog"
+        rld      <- rlog(dds)
+    } else {
+        vst_name <- "vst"
+        rld      <- varianceStabilizingTransformation(dds)
+    }
+    assay(dds, vst_name) <- assay(rld)
+    save(dds,file=DDSFile)
+} else {
+    load(DDSFile)
+    vst_name <- intersect(assayNames(dds), c("vst", "rlog"))
+    if (length(vst_name)==0) { # legacy might mean vst was saved as a separate object called rld
+        vst_name <- "loaded_rld"
+        assay(dds, vst_name) <- assay(rld)
+    } else {
+        vst_name==vst_name[1]
+    }
+}
+
+## Normalised results
 DDS = DESeq(dds)
 normDDS = counts(DDS, normalized = TRUE) ## normalization with respect to the sequencing depth
 colnames(normDDS) = paste0(colnames(normDDS), "_norm")
 res = results(DDS, independentFiltering = FALSE, altHypothesis = "greaterAbs")
-
-
-################################################
-################################################
-## FORMAT RESULTS                             ##
-################################################
-################################################
-
 countMatDiff = cbind(dataS, normDDS, res) ## Combine deseq results
-countMatDiff
-
-peakFiltered = masterPeak[selectR,]
-peakFiltered
+write.csv(countMatDiff, paste(opt$outprefix, "count_mat_diff.csv", sep=""), row.names=FALSE)
 
 ################################################
 ################################################
@@ -168,14 +181,12 @@ peakFiltered
 ################################################
 ################################################
 
-if(FALSE) {
 ################################################
 ################################################
 ## OUTPUT RESULTS                             ##
 ################################################
 ################################################
 
-#write.csv(countMatDiff,"count_mat_diff.csv", row.names=FALSE)
 
 ################################################
 ################################################
@@ -190,7 +201,7 @@ if (file.exists(RLogFile) == FALSE) {
     print(a)
     sink()
 }
-}
+
 ################################################
 ################################################
 ################################################
