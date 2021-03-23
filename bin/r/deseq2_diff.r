@@ -114,7 +114,6 @@ group_count = length(groups)
 rep_count = file_count / group_count
 reps = paste0("rep", 1:rep_count)
 
-#if(FALSE) {
 # Create peak table and count matrix
 masterPeak = reduce(mPeak)
 countMat = matrix(NA, length(masterPeak), file_count)
@@ -124,12 +123,14 @@ colnames(countMat) = paste(rep(groups, 2), rep(reps, each = 2), sep = "_")
 for(i in seq_along(groups)){
     search_res <-  str_detect(bam_list, groups[i])
     file_list <- bam_list[search_res]
+    print(file_list)
     
     for(j in seq_along(file_list)) {
         fragment_counts <- getCounts(file_list[j], masterPeak, paired = TRUE, by_rg = FALSE, format = "bam")
         countMat[, (((i-1)*group_count) + (j-1)) + 1] = counts(fragment_counts)[,1]
     }
 }
+
 
 ################################################
 ################################################
@@ -140,7 +141,6 @@ for(i in seq_along(groups)){
 selectR = which(rowSums(countMat) > opt$count_thresh) ## Create index list for peak count filter
 dataS = countMat[selectR,] ## Select data from filter
 condition = factor(rep(groups, each = length(reps)))
-
 dds = DESeqDataSetFromMatrix(countData = dataS,
                              colData = DataFrame(condition),
                              design = ~ condition)
@@ -148,6 +148,7 @@ DDS = DESeq(dds)
 normDDS = counts(DDS, normalized = TRUE) ## normalization with respect to the sequencing depth
 colnames(normDDS) = paste0(colnames(normDDS), "_norm")
 res = results(DDS, independentFiltering = FALSE, altHypothesis = "greaterAbs")
+
 
 ################################################
 ################################################
@@ -161,9 +162,13 @@ countMatDiff
 peakFiltered = masterPeak[selectR,]
 peakFiltered
 
-diffFinal = merge(peakFiltered, countMatDiff, by=0)
-#summary(diffFinal)
+################################################
+################################################
+## PLOT QC                                    ##
+################################################
+################################################
 
+if(FALSE) {
 ################################################
 ################################################
 ## OUTPUT RESULTS                             ##
@@ -185,7 +190,7 @@ if (file.exists(RLogFile) == FALSE) {
     print(a)
     sink()
 }
-#}
+}
 ################################################
 ################################################
 ################################################
