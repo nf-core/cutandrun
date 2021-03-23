@@ -97,17 +97,16 @@ setwd(opt$outdir)
 # Init
 mPeak = GRanges()
 file_count = 0
-
+file_list=vector()
 # Read in bed files that match the control or treatment group
 for(group in groups){
     search_res <-  str_detect(bed_list, group)
-    file_list <- bed_list[search_res]
-    
-    for(file in file_list) {
-        peakRes = read.table(file, header = FALSE, fill = TRUE)
-        mPeak = GRanges(seqnames = peakRes$V1, IRanges(start = peakRes$V2, end = peakRes$V3), strand = "*") %>% append(mPeak, .)
-        file_count = file_count + 1
-    }
+    file_list <- bed_list[search_res] %>% append(file_list, .)
+}    
+for(file in file_list) {
+    peakRes = read.table(file, header = FALSE, fill = TRUE)
+    mPeak = GRanges(seqnames = peakRes$V1, IRanges(start = peakRes$V2, end = peakRes$V3), strand = "*") %>% append(mPeak, .)
+    file_count = file_count + 1
 }
 
 # Create replicate counts and names
@@ -115,6 +114,7 @@ group_count = length(groups)
 rep_count = file_count / group_count
 reps = paste0("rep", 1:rep_count)
 
+#if(FALSE) {
 # Create peak table and count matrix
 masterPeak = reduce(mPeak)
 countMat = matrix(NA, length(masterPeak), file_count)
@@ -185,7 +185,7 @@ if (file.exists(RLogFile) == FALSE) {
     print(a)
     sink()
 }
-
+#}
 ################################################
 ################################################
 ################################################
