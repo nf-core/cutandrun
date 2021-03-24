@@ -6,9 +6,9 @@
 ################################################
 ################################################
 
-## TODO
-
-## TODO: TIDY CAMEL CASE AND SNAKE CASE
+## DIFFERENTIAL ANALYSIS, SCATTERPLOTS, HEATMAP AND PCA FROM COUNT FILE
+    ## - COUNT FILE IS PRODUCED FROM SEACR PEAK BED FILES AND ALIGNMENT BAMS
+    ## - PACKAGES BELOW NEED TO BE AVAILABLE TO LOAD WHEN RUNNING R
 
 ################################################
 ################################################
@@ -122,7 +122,6 @@ for(i in seq_along(groups)){
         countMat[, (((i-1)*group_count) + (j-1)) + 1] = counts(fragment_counts)[,1]
     }
 }
-
 
 ################################################
 ################################################
@@ -301,7 +300,7 @@ if (file.exists(PlotFile) == FALSE) {
 ## SAVE SIZE FACTORS                          ##
 ################################################
 ################################################
-#if(FALSE){
+
 SizeFactorsDir <- "size_factors/"
 if (file.exists(SizeFactorsDir) == FALSE) {
     dir.create(SizeFactorsDir,recursive=TRUE)
@@ -319,7 +318,6 @@ if (file.exists(NormFactorsFile) == FALSE) {
         }
     }
 }
-#}
 
 ################################################
 ################################################
