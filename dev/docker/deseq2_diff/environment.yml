@@ -5,10 +5,23 @@ channels:
   - defaults
 dependencies:
     - conda-forge::r-optparse=1.6.6
+    - conda-forge::r-ggplot2=3.3.2
+    - conda-forge::r-rcolorbrewer=1.1_2
+    - conda-forge::r-pheatmap=1.0.12
+    - bioconda::bioconductor-deseq2=1.28.0
+    - bioconda::bioconductor-biocparallel=1.22.0
     - conda-forge::r-stringr=1.4.0
     - conda-forge::r-magrittr=2.0.1
-    - bioconda::bioconductor-biocparallel=1.24.0
-    - bioconda::bioconductor-genomicranges=1.42.0
-    - bioconda::bioconductor-chromvar=1.12.0
-    - bioconda::bioconductor-deseq2=1.30.0
+    - bioconda::bioconductor-chromvar=1.10.0
+    - bioconda::bioconductor-genomicranges=1.40.0
+
+
+    # - conda-forge::r-optparse=1.6.6
+    # - conda-forge::r-stringr=1.4.0
+    # - conda-forge::r-magrittr=2.0.1
+    # - conda-forge::r-ggplot2=3.1.1
+    # - bioconda::bioconductor-biocparallel=1.24.0
+    # - bioconda::bioconductor-genomicranges=1.42.0
+    # - bioconda::bioconductor-chromvar=1.12.0
+    # - bioconda::bioconductor-deseq2=1.30.0
     
