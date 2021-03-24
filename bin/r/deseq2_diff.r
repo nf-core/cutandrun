@@ -25,7 +25,7 @@ library(chromVAR)
 library(DESeq2)
 library(ggplot2)
 library(RColorBrewer)
-#library(pheatmap)
+library(pheatmap)
 
 ################################################
 ################################################
@@ -269,6 +269,9 @@ if (file.exists(PlotFile) == FALSE) {
         print(pl)
     } # at end of loop, we'll be using the user-defined ntop if any, else all peaks
     
+    ## VOLCANO PLOT
+    plotMA(dds)
+    
     ## WRITE PC1 vs PC2 VALUES TO FILE
     pca.vals           <- pca.data[,1:2]
     colnames(pca.vals) <- paste0(colnames(pca.vals), ": ", percentVar[1:2], '% variance')
@@ -298,7 +301,7 @@ if (file.exists(PlotFile) == FALSE) {
 ## SAVE SIZE FACTORS                          ##
 ################################################
 ################################################
-if(FALSE){
+#if(FALSE){
 SizeFactorsDir <- "size_factors/"
 if (file.exists(SizeFactorsDir) == FALSE) {
     dir.create(SizeFactorsDir,recursive=TRUE)
@@ -316,13 +319,7 @@ if (file.exists(NormFactorsFile) == FALSE) {
         }
     }
 }
-}
-################################################
-################################################
-## OUTPUT RESULTS                             ##
-################################################
-################################################
-
+#}
 
 ################################################
 ################################################
