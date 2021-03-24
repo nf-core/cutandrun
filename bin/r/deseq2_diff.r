@@ -35,12 +35,10 @@ library(pheatmap)
 
 option_list <- list(
     make_option(c("-g", "--groups"), type="character", default=NULL    , metavar="string"   , help="comma-separated list of experimental group names" ),
-    make_option(c("-i", "--include"), type="character", default=NULL    , metavar="string"   , help="experimental groups to include in analysis"),
-    make_option(c("-e", "--exclude"), type="character", default=NULL    , metavar="string"   , help="experimental groups to exclude in analysis"),
-    make_option(c("-c", "--control"    ), type="character", default=NULL    , metavar="path"   , help="TODO" ),
-    make_option(c("-t", "--treatment"    ), type="character", default=NULL    , metavar="path"   , help="TODO" ),
     make_option(c("-b", "--bed"    ), type="character", default=NULL    , metavar="path"   , help="TODO" ),
     make_option(c("-a", "--bam"    ), type="character", default=NULL    , metavar="path"   , help="TODO"  ),
+    make_option(c("-i", "--include"), type="character", default=NULL    , metavar="string"   , help="experimental groups to include in analysis"),
+    make_option(c("-e", "--exclude"), type="character", default=NULL    , metavar="string"   , help="experimental groups to exclude in analysis"),
     make_option(c("-o", "--outdir"        ), type="character", default='./'    , metavar="path"   , help="Output directory."  ),
     make_option(c("-p", "--outprefix"     ), type="character", default='deseq2', metavar="string" , help="Output prefix."     ),
     make_option(c("-s", "--count_thresh"     ), type="integer", default='5', metavar="string" , help="TODO"     ),
@@ -48,6 +46,8 @@ option_list <- list(
     make_option(c("-@", "--cores"         ), type="integer"  , default=1       , metavar="integer", help="Number of cores."   )
 )
 
+#make_option(c("-c", "--control"    ), type="character", default=NULL    , metavar="path"   , help="TODO" ),
+#make_option(c("-t", "--treatment"    ), type="character", default=NULL    , metavar="path"   , help="TODO" ),
 opt_parser <- OptionParser(option_list=option_list)
 opt        <- parse_args(opt_parser)
 
@@ -94,12 +94,12 @@ if (length(bed_list) != length(bam_list)) {
 
 # Create group list
 # groups = c(opt$control, opt$treatment) <- groups is now just opt$group
-groups = strsplit(opt$groups, split=",")
+groups = unlist(strsplit(opt$groups, split=","))
 if (!is.null(opt$include)) {
-    groups = strsplit(opt$include, split=",")
+    groups = unlist(strsplit(opt$include, split=","))
 }
 if (!is.null(opt$exclude)) {
-    exclude_vec = strsplit(opt$exclude, split=",")
+    exclude_vec = unlist(strsplit(opt$exclude, split=","))
     matching = match(groups, exclude_vec)
     groups = groups[!matching]
 }
@@ -111,6 +111,9 @@ file_list=vector()
 # Read in bed files that match the control or treatment group
 for(group in groups){
     search_res <-  str_detect(bed_list, group)
+    if (!any(search_res)) {
+        stop(paste("group", group, "was not found amongst bed files"))
+    }
     file_list <- bed_list[search_res] %>% append(file_list, .)
 }    
 for(file in file_list) {
@@ -127,25 +130,40 @@ reps = paste0("rep", 1:rep_count)
 # Create peak table and count matrix
 masterPeak = reduce(mPeak)
 countMat = matrix(NA, length(masterPeak), file_count)
+countMat[1:10,]
 colnames(countMat) = paste(rep(groups, 2), rep(reps, each = 2), sep = "_")
 
 # Read in bam files that match the control or treatment group
+print("seq along groups")
+print(seq_along(groups))
+print("seq along file_list")
+print(seq_along(file_list))
 for(i in seq_along(groups)){
     search_res <-  str_detect(bam_list, groups[i])
+    print("search res")
+    print(search_res)
+    if (!any(search_res)) {
+        stop(paste("group", i, "was not found amongst bam files"))
+    }
     file_list <- bam_list[search_res]
+    print("file list")
+    print(file_list)
     
     for(j in seq_along(file_list)) {
+        print("index")
+        print((((i-1)*group_count) + (j-1)) + 1)
         fragment_counts <- getCounts(file_list[j], masterPeak, paired = TRUE, by_rg = FALSE, format = "bam")
         countMat[, (((i-1)*group_count) + (j-1)) + 1] = counts(fragment_counts)[,1]
+        print(countMat[1:10,])
     }
 }
-
+print("got here")
 ################################################
 ################################################
 ## RUN DESEQ2                                 ##
 ################################################
 ################################################
-
+if (FALSE) {
 if (file.exists(opt$outdir) == FALSE) {
     dir.create(opt$outdir,recursive=TRUE)
 }
@@ -235,7 +253,7 @@ if (file.exists(PlotFile) == FALSE) {
     
     dev.off()
 }
-
+}
 ################################################
 ################################################
 ## LOOP THROUGH COMPARISONS                   ##
