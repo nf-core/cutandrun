@@ -1,6 +1,7 @@
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 params.options       = [:]
+params.multiqc_label = ''
 def options          = initOptions(params.options)
 
 process DESEQ2_QC {
@@ -14,9 +15,31 @@ process DESEQ2_QC {
     container "luslab/cutrun-ds2-dev"
 
     input:
+    path peak_beds
+    path bams
 
     output:
+    path "*.pdf"                , optional:true, emit: pdf
+    path "*.RData"              , optional:true, emit: rdata
+    path "*pca.vals.txt"        , optional:true, emit: pca_txt
+    path "*pca.vals_mqc.tsv"    , optional:true, emit: pca_multiqc
+    path "*sample.dists.txt"    , optional:true, emit: dists_txt
+    path "*sample.dists_mqc.tsv", optional:true, emit: dists_multiqc
+    path "*.log"                , optional:true, emit: log
+    path "size_factors"         , optional:true, emit: size_factors
+    path  "*.version.txt"       , emit: version
 
     script:
-    
+    def software    = getSoftwareName(task.process)
+    def label_lower = params.multiqc_label.toLowerCase()
+    def label_upper = params.multiqc_label.toUpperCase()
+    """
+    deseq2_diff.r \\
+        --control \\
+        --treatment \\
+        --bed \\
+        --bam \\
+        --cores $task.cpus \\
+        $options.args
+    """
 }
