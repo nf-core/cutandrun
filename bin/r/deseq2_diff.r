@@ -34,6 +34,9 @@ library(pheatmap)
 ################################################
 
 option_list <- list(
+    make_option(c("-g", "--groups"), type="character", default=NULL    , metavar="string"   , help="comma-separated list of experimental group names" ),
+    make_option(c("-i", "--include"), type="character", default=NULL    , metavar="string"   , help="experimental groups to include in analysis"),
+    make_option(c("-e", "--exclude"), type="character", default=NULL    , metavar="string"   , help="experimental groups to exclude in analysis"),
     make_option(c("-c", "--control"    ), type="character", default=NULL    , metavar="path"   , help="TODO" ),
     make_option(c("-t", "--treatment"    ), type="character", default=NULL    , metavar="path"   , help="TODO" ),
     make_option(c("-b", "--bed"    ), type="character", default=NULL    , metavar="path"   , help="TODO" ),
@@ -48,15 +51,20 @@ option_list <- list(
 opt_parser <- OptionParser(option_list=option_list)
 opt        <- parse_args(opt_parser)
 
-if (is.null(opt$control)){
+if (is.null(opt$groups)){
     print_help(opt_parser)
-    stop("Please provide a control group name.", call.=FALSE)
+    stop("Please provide group names for analysis.", call.=FALSE)
 }
 
-if (is.null(opt$treatment)){
-    print_help(opt_parser)
-    stop("Please provide a treatment group name.", call.=FALSE)
-}
+#if (is.null(opt$control)){
+#    print_help(opt_parser)
+#    stop("Please provide a control group name.", call.=FALSE)
+#}
+#
+#if (is.null(opt$treatment)){
+#    print_help(opt_parser)
+#    stop("Please provide a treatment group name.", call.=FALSE)
+#}
 
 if (is.null(opt$bed)){
     print_help(opt_parser)
@@ -72,7 +80,7 @@ if (is.null(opt$bam)){
 bed_list <- unlist(strsplit(opt$bed, ","))
 bam_list <- unlist(strsplit(opt$bam, ","))
 
-# Check same length
+# Check same length <- MAYBE TAKE THIS OUT IF WE SIMPLY PASS THE ALIGNMENT CHANNEL AS IT WILL CONTAIN IGG
 if (length(bed_list) != length(bam_list)) {
     print_help(opt_parser)
     stop("Bed and bam file list are different lengths", call.=FALSE)
@@ -85,7 +93,16 @@ if (length(bed_list) != length(bam_list)) {
 ################################################
 
 # Create group list
-groups = c(opt$control, opt$treatment)
+# groups = c(opt$control, opt$treatment) <- groups is now just opt$group
+groups = strsplit(opt$groups, split=",")
+if (!is.null(opt$include)) {
+    groups = strsplit(opt$include, split=",")
+}
+if (!is.null(opt$exclude)) {
+    exclude_vec = strsplit(opt$exclude, split=",")
+    matching = match(groups, exclude_vec)
+    groups = groups[!matching]
+}
 
 # Init
 mPeak = GRanges()
