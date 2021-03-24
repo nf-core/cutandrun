@@ -341,13 +341,15 @@ workflow CUTANDRUN {
         .map { row -> [row[0].id, row[0] ].flatten()}
         .set { ch_spikein_bt2_meta }
 
+    ANNOTATE_BT2_META.out.output | view
+
     ANNOTATE_BT2_META.out.output
         .map { row -> [row[0].id, row ].flatten()}
         .join ( ch_spikein_bt2_meta )
         .map { row -> [ row[1] << row[3], row[2] ] }
         .set { ch_combined_meta }
     
-    ANNOTATE_BT2_SPIKEIN_META.out.output | view
+    // ANNOTATE_BT2_SPIKEIN_META.out.output | view
 
     /*
      * CHANNEL: Calculate scale factor for each sample and join to main data flow
