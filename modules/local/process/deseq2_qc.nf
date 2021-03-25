@@ -15,6 +15,7 @@ process DESEQ2_QC {
     container "luslab/cutrun-ds2-dev"
 
     input:
+    val groups
     path peak_beds
     path bams
 
@@ -25,7 +26,7 @@ process DESEQ2_QC {
     path "*pca.vals_mqc.tsv"    , optional:true, emit: pca_multiqc
     path "*sample.dists.txt"    , optional:true, emit: dists_txt
     path "*sample.dists_mqc.tsv", optional:true, emit: dists_multiqc
-    path "*.log"                , optional:true, emit: log
+    //path "*.log"                , optional:true, emit: log
     path "size_factors"         , optional:true, emit: size_factors
     path  "*.version.txt"       , emit: version
 
@@ -35,10 +36,9 @@ process DESEQ2_QC {
     def label_upper = params.multiqc_label.toUpperCase()
     """
     deseq2_diff.r \\
-        --control \\
-        --treatment \\
-        --bed \\
-        --bam \\
+        --groups $groups \\
+        --bed $peak_beds \\
+        --bam $bams \\
         --cores $task.cpus \\
         $options.args
     """
