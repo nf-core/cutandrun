@@ -414,6 +414,12 @@ workflow CUTANDRUN {
         ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
 
         /*
+        * MODULE: DESeq2
+        */
+        
+
+
+        /*
         * MODULE: Clip off-chromosome peaks
         */
         UCSC_BEDCLIP (
@@ -507,7 +513,7 @@ workflow CUTANDRUN {
             //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
         )
 
-        GENERATE_REPORTS(EXPORT_META.out.csv, DEEPTOOLS_BAMPEFRAGMENTSIZE.out.raw_csv.collect{it[1]})
+        // GENERATE_REPORTS(EXPORT_META.out.csv, DEEPTOOLS_BAMPEFRAGMENTSIZE.out.raw_csv.collect{it[1]})
     }
 }
 
