@@ -16,8 +16,8 @@ process DESEQ2_QC {
 
     input:
     val groups
-    path peak_beds
-    path bams
+    tuple val(meta) path (peak_beds)
+    tuple val(meta) path (bams)
 
     output:
     path "*.pdf"                , optional:true, emit: pdf
