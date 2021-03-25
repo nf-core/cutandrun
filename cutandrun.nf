@@ -414,9 +414,30 @@ workflow CUTANDRUN {
         ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
 
         /*
+         * CHANNEL: Collect group names and remove igg
+         */
+        ch_seacr_bed
+            .map {row -> row[0].group}
+            .collect()
+            .set { ch_groups_no_igg }
+
+
+         /*
+         * CHANNEL: Collect bams and remove igg
+         */
+        ch_samtools_bam.branch { it ->
+            no_igg: it[0].group != 'igg'
+        }
+
+        
+        /*
         * MODULE: DESeq2
         */
-        
+        DESEQ2_QC {
+            ch_groups_no_igg
+            ch_seacr_bed.collect()
+            ch_samtools_bam.no_igg.collect()
+        }
 
 
         /*
