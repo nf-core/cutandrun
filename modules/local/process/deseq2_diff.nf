@@ -23,9 +23,9 @@ process DESEQ2_DIFF {
     path "*.pdf"                , optional:true, emit: pdf
     path "*.RData"              , optional:true, emit: rdata
     path "*pca.vals.txt"        , optional:true, emit: pca_txt
-    path "*pca.vals_mqc.tsv"    , optional:true, emit: pca_multiqc
+    // path "*pca.vals_mqc.tsv"    , optional:true, emit: pca_multiqc
     path "*sample.dists.txt"    , optional:true, emit: dists_txt
-    path "*sample.dists_mqc.tsv", optional:true, emit: dists_multiqc
+    // path "*sample.dists_mqc.tsv", optional:true, emit: dists_multiqc
     //path "*.log"                , optional:true, emit: log
     path "size_factors"         , optional:true, emit: size_factors
     path  "*.version.txt"       , emit: version
