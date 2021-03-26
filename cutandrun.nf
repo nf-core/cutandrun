@@ -417,9 +417,9 @@ workflow CUTANDRUN {
         /*
          * CHANNEL: Collect group names and remove igg
          */
-        ch_seacr_bed
-            .map {row -> row[0].group}
-            .collect()
+        SEACR_CALLPEAK.out.bed
+            //.map {row -> row[0].group}
+            //.collect()
             .set { ch_groups_no_igg }
 
 
@@ -431,17 +431,17 @@ workflow CUTANDRUN {
         }
         .set { ch_bam_split }
 
-        ch_groups_no_igg | view
+        // ch_groups_no_igg | view
         ch_seacr_bed.collect() | view
-        ch_bam_split.no_igg.collect() | view
+        // ch_bam_split.no_igg.collect() | view
 
         
         /*
         * MODULE: DESeq2 QC Analysis
         */
         DESEQ2_QC (
-            ch_groups_no_igg
-            ch_seacr_bed.collect()
+            ch_groups_no_igg,
+            ch_seacr_bed.collect(),
             ch_bam_split.no_igg.collect()
         )
 
