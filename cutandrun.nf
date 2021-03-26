@@ -150,7 +150,7 @@ include { EXPORT_META                            } from './modules/local/process
 include { GENERATE_REPORTS                            } from './modules/local/process/generate_reports'                     addParams( options: modules['generate_reports'] )
 include { DEEPTOOLS_BAMPEFRAGMENTSIZE } from './modules/local/software/deeptools/bamPEFragmentSize/main' addParams( options: modules['deeptools_fragmentsize'] )
 include { AWK as AWK_FRAG_BIN } from './modules/local/process/awk' addParams( options: modules['awk_frag_bin'] )
-include { DESEQ2_DIFF } from './modules/local/process/deseq2_diff' addParams( options: [:] )
+include { DESEQ2_DIFF } from './modules/local/process/deseq2_diff' addParams( options: [:],  multiqc_label: 'deseq2' )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -342,7 +342,7 @@ workflow CUTANDRUN {
         .map { row -> [row[0].id, row[0] ].flatten()}
         .set { ch_spikein_bt2_meta }
 
-    ANNOTATE_BT2_META.out.output | view
+    // ANNOTATE_BT2_META.out.output | view
 
     ANNOTATE_BT2_META.out.output
         .map { row -> [row[0].id, row ].flatten()}
@@ -415,36 +415,22 @@ workflow CUTANDRUN {
         ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
 
         /*
-         * CHANNEL: Collect group names and remove igg
+         * CHANNEL: Collect SEACR group names
          */
         SEACR_CALLPEAK.out.bed
-            //.map {row -> row[0].group}
-            //.collect()
+            .map {row -> row[0].group}
+            .unique()
+            .collect()
             .set { ch_groups_no_igg }
 
-
-         /*
-         * CHANNEL: Collect bams and remove igg
-         */
-        ch_samtools_bam.branch { it ->
-            no_igg: it[0].group != 'igg'
-        }
-        .set { ch_bam_split }
-
-        // ch_groups_no_igg | view
-        // ch_seacr_bed.collect() | view
-        // ch_bam_split.no_igg.collect() | view
-
-        
         /*
         * MODULE: DESeq2 QC Analysis
         */
         DESEQ2_DIFF (
             ch_groups_no_igg,
-            ch_seacr_bed.collect(),
-            ch_bam_split.no_igg.collect()
+            ch_seacr_bed.collect{it[1]},
+            ch_samtools_bam.collect{it[1]}
         )
-
 
         /*
         * MODULE: Clip off-chromosome peaks

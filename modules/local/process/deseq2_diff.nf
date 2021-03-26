@@ -16,8 +16,8 @@ process DESEQ2_DIFF {
 
     input:
     val groups
-    tuple val(meta) path (peak_beds)
-    tuple val(meta) path (bams)
+    path peak_beds
+    path bams
 
     output:
     path "*.pdf"                , optional:true, emit: pdf
@@ -35,7 +35,7 @@ process DESEQ2_DIFF {
     def label_lower = params.multiqc_label.toLowerCase()
     def label_upper = params.multiqc_label.toUpperCase()
     """
-    deseq2_diff.r \\
+    $baseDir/bin/r/deseq2_diff.r \\
         --groups $groups \\
         --bed $peak_beds \\
         --bam $bams \\
