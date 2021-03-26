@@ -82,10 +82,10 @@ bed_list <- unlist(strsplit(opt$bed, ","))
 bam_list <- unlist(strsplit(opt$bam, ","))
 
 # Check same length <- MAYBE TAKE THIS OUT IF WE SIMPLY PASS THE ALIGNMENT CHANNEL AS IT WILL CONTAIN IGG
-if (length(bed_list) != length(bam_list)) {
-    print_help(opt_parser)
-    stop("Bed and bam file list are different lengths", call.=FALSE)
-}
+#if (length(bed_list) != length(bam_list)) {
+#    print_help(opt_parser)
+#    stop("Bed and bam file list are different lengths", call.=FALSE)
+#}
 
 ################################################
 ################################################
