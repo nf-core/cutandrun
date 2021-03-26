@@ -418,7 +418,8 @@ workflow CUTANDRUN {
          * CHANNEL: Collect SEACR group names
          */
         SEACR_CALLPEAK.out.bed
-            .map {row -> row[0].group}
+            //.map{ row -> row[0].find{ it.key == "group" }?.value() }
+            .map{ row -> row[0].group}
             .unique()
             .collect()
             .set { ch_groups_no_igg }
