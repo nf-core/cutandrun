@@ -152,7 +152,6 @@ include { DEEPTOOLS_BAMPEFRAGMENTSIZE } from './modules/local/software/deeptools
 include { AWK as AWK_FRAG_BIN } from './modules/local/process/awk' addParams( options: modules['awk_frag_bin'] )
 include { DESEQ2_QC } from './modules/local/process/deseq2_qc' addParams( options: [:] )
 
-
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
@@ -438,13 +437,13 @@ workflow CUTANDRUN {
 
         
         /*
-        * MODULE: DESeq2
+        * MODULE: DESeq2 QC Analysis
         */
-        DESEQ2_QC {
+        DESEQ2_QC (
             ch_groups_no_igg
             ch_seacr_bed.collect()
             ch_bam_split.no_igg.collect()
-        }
+        )
 
 
         /*
