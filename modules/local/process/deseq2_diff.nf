@@ -41,5 +41,7 @@ process DESEQ2_DIFF {
         --bam $bams \\
         --cores $task.cpus \\
         $options.args
+
+    Rscript -e "library(DESeq2); write(x=as.character(packageVersion('DESeq2')), file='${software}.version.txt')"
     """
 }
