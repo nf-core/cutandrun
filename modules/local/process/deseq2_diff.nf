@@ -4,8 +4,8 @@ params.options       = [:]
 params.multiqc_label = ''
 def options          = initOptions(params.options)
 
-process DESEQ2_QC {
-    tag "DESeq2"
+process DESEQ2_DIFF {
+    //tag "DESeq2"
     label "process_medium"
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,

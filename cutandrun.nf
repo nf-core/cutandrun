@@ -150,7 +150,7 @@ include { EXPORT_META                            } from './modules/local/process
 include { GENERATE_REPORTS                            } from './modules/local/process/generate_reports'                     addParams( options: modules['generate_reports'] )
 include { DEEPTOOLS_BAMPEFRAGMENTSIZE } from './modules/local/software/deeptools/bamPEFragmentSize/main' addParams( options: modules['deeptools_fragmentsize'] )
 include { AWK as AWK_FRAG_BIN } from './modules/local/process/awk' addParams( options: modules['awk_frag_bin'] )
-include { DESEQ2_QC } from './modules/local/process/deseq2_qc' addParams( options: [:] )
+include { DESEQ2_DIFF } from './modules/local/process/deseq2_diff' addParams( options: [:] )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -432,14 +432,14 @@ workflow CUTANDRUN {
         .set { ch_bam_split }
 
         // ch_groups_no_igg | view
-        ch_seacr_bed.collect() | view
+        // ch_seacr_bed.collect() | view
         // ch_bam_split.no_igg.collect() | view
 
         
         /*
         * MODULE: DESeq2 QC Analysis
         */
-        DESEQ2_QC (
+        DESEQ2_DIFF (
             ch_groups_no_igg,
             ch_seacr_bed.collect(),
             ch_bam_split.no_igg.collect()
