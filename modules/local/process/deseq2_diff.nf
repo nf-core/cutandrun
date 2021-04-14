@@ -35,7 +35,7 @@ process DESEQ2_DIFF {
     def label_lower = params.multiqc_label.toLowerCase()
     def label_upper = params.multiqc_label.toUpperCase()
     """
-    $baseDir/bin/r/deseq2_diff.r \\
+    Rscript $baseDir/bin/r/deseq2_diff.r \\
         --groups $groups \\
         --bed $peak_beds \\
         --bam $bams \\
