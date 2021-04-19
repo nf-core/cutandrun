@@ -34,11 +34,17 @@ process DESEQ2_DIFF {
     def software    = getSoftwareName(task.process)
     def label_lower = params.multiqc_label.toLowerCase()
     def label_upper = params.multiqc_label.toUpperCase()
+
+    // Convert to comma separated strings
+    String str_groups = groups.join(",")
+    String str_beds = peak_beds.join(",")
+    String str_bams = bams.join(",")
+    
     """
     Rscript $baseDir/bin/r/deseq2_diff.r \\
-        --groups $groups \\
-        --bed $peak_beds \\
-        --bam $bams \\
+        --groups $str_groups \\
+        --bed $str_beds \\
+        --bam $str_bams \\
         --cores $task.cpus \\
         $options.args
 
