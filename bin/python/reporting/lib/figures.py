@@ -83,7 +83,7 @@ class Figures:
             else:
                 self.frag_bin500 = pd.merge(self.frag_bin500, dt_bin_frag_i, on=['chrom','bin'], how='outer')
 
-
+        # add log2 transformed count data column
 
     def annotate_data(self):
         # Make new perctenage alignment columns
