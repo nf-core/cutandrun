@@ -16,11 +16,13 @@ class Figures:
     data_table = None
     frag_hist = None
     frag_violin = None
+    frag_bin500 = None
 
-    def __init__(self, logger, meta, frags):
+    def __init__(self, logger, meta, frags, bin_frag):
         self.logger = logger
         self.meta_path = meta
         self.frag_path = frags
+        self.bin_frag_path = bin_frag
 
         sns.set()
         sns.set_theme()
@@ -68,6 +70,20 @@ class Figures:
                 sample_exp_arr = np.append(sample_exp_arr, sample_exp[0])
 
         self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "sample" : sample_arr , "histone_mark": sample_exp_arr}, index = np.arange(len(frags_arr)))
+
+        # create full join data frame for count data
+        # start by creating list of bin500 files
+        dt_bin_frag_list = glob.glob(self.bin_frag_path)
+
+        for i in list(range(len(dt_bin_frag_list))):
+            dt_bin_frag_i = pd.read_csv(dt_bin_frag_list[i], sep='\t', header=None, names=['chrom','bin','count','sample'])
+
+            if i==0:
+                self.frag_bin500 = dt_bin_frag_i
+            else:
+                self.frag_bin500 = pd.merge(self.frag_bin500, dt_bin_frag_i, on=['chrom','bin'], how='outer')
+
+
 
     def annotate_data(self):
         # Make new perctenage alignment columns
@@ -249,3 +265,8 @@ class Figures:
         ax = px.box(df_data, x="group", y="bt2_total_reads_target")
 
         return ax, df_data
+
+
+    # ---------- Plot 5 - Replicate Reproducibility Heatmap --------- #
+    def replicate_heatmap(self):
+        

@@ -35,6 +35,7 @@ def gen_png(parsed_args):
     frag_path = parsed_args.raw_frag
     output_path = parsed_args.output
     logger = init_logger('gen_img', parsed_args.log)
+    bin_frag_path = parsed_args.bed_frag
     
     logger.info('Generating plots to output folder')
     fig = Figures(logger, meta_path, frag_path)
@@ -52,9 +53,9 @@ if __name__ == '__main__':
     parser_genimg.set_defaults(func=gen_png)
     parser_genimg.add_argument('--meta', required=True)
     parser_genimg.add_argument('--raw_frag', required=True)
-    parser_genimg.add_argument('--bed_frag', required=True)
     parser_genimg.add_argument('--output', required=True)
     parser_genimg.add_argument('--log', required=False)
+    parser_genimg.add_argument('--bed_frag', required=True)
 
     # Parse
     parsed_args = parser.parse_args()
