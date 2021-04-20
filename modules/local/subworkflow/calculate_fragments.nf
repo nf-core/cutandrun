@@ -19,7 +19,7 @@ workflow CALCULATE_FRAGMENTS {
 
     main:
 
-    // Filer for mapped reads only
+    // Filter for mapped reads only
     SAMTOOLS_VIEW_SORT_STATS( bam )
 
     // Convert to bed file
