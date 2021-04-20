@@ -269,4 +269,4 @@ class Figures:
 
     # ---------- Plot 5 - Replicate Reproducibility Heatmap --------- #
     def replicate_heatmap(self):
-        
+        ax = sns.heatmap(self.frag_bin500, annot=True)
