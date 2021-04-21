@@ -76,7 +76,7 @@ class Figures:
         dt_bin_frag_list = glob.glob(self.bin_frag_path)
         for i in list(range(len(dt_bin_frag_list))):
             dt_bin_frag_i_read = pd.read_csv(dt_bin_frag_list[i], sep='\t', header=None, names=['chrom','bin','count','sample'])
-            sample_name = dt_bin_frag_i_read['sample'].iloc[0]
+            sample_name = dt_bin_frag_i_read['sample'].iloc[0].split(".")[0]
             dt_bin_frag_i = dt_bin_frag_i_read[['chrom','bin','count']]
             dt_bin_frag_i.columns = ['chrom','bin',sample_name]
             # print(dt_bin_frag_i.head(5))
@@ -128,6 +128,11 @@ class Figures:
         plot4, data4 = self.fraglen_summary_histogram()
         plots["frag_hist"] = plot4
         data["frag_hist"] = data4
+
+        # Plot 5
+        plot5, data5 = self.replicate_heatmap()
+        plots["replicate_heatmap"] = plot5
+        data["replicate_heatmap"] = data5
         
         return (plots, data)
 
@@ -276,6 +281,11 @@ class Figures:
 
     # ---------- Plot 5 - Replicate Reproducibility Heatmap --------- #
     def replicate_heatmap(self):
-        print("hello world")
+        sns.set(font_scale=0.6)
         fig, ax = plt.subplots()
-        ax = sns.heatmap(self.frag_bin500, annot=True)
+        plot_data = self.frag_bin500[self.frag_bin500.columns[-(len(self.frag_bin500.columns)-2):]]
+        corr_mat = plot_data.corr()
+        ax = sns.heatmap(corr_mat, annot=True)
+
+        return fig, self.frag_bin500
+
