@@ -133,6 +133,11 @@ class Figures:
         plot5, data5 = self.replicate_heatmap()
         plots["replicate_heatmap"] = plot5
         data["replicate_heatmap"] = data5
+
+        # Plot 6
+        plot6, data6 = self.scale_factor_summary()
+        plots["scale_factor_summary"] = plot6
+        data["scale_factor_summary"] = data6
         
         return (plots, data)
 
@@ -289,3 +294,26 @@ class Figures:
 
         return fig, self.frag_bin500
 
+    # ---------- Plot 6 - Replicate Reproducibility Heatmap --------- #
+    def scale_factor_summary(self):
+        fig, scale_summary = plt.subplots(1,2)
+        fig.suptitle("Scaling Factor")
+
+        # Get normalised count data
+        df_normalised_frags = self.data_table.loc[:, ('id', 'group')]
+        df_normalised_frags['normalised_frags'] = self.data_table['bt2_total_reads_target']*self.data_table['scale_factor']
+        print(df_normalised_frags)
+
+        # Subset meta data
+        df_data_scale = self.data_table.loc[:, ('id', 'group','scale_factor')]
+
+        # Scale factor
+        sns.boxplot(data=df_data_scale, x='group', y='scale_factor', ax=scale_summary[0])
+        scale_summary[0].set_ylabel('Scale Factor')
+
+        # Normalised fragment count
+        sns.boxplot(data=df_normalised_frags, x='group', y='normalised_frags', ax=scale_summary[1])
+        scale_summary[1].set_ylabel('Normalised Fragment Count')
+
+        return fig, df_data_scale
+    
