@@ -37,8 +37,10 @@ class Figures:
         return '%1.1fK' % (x * 1e-3)
 
     def load_data(self):
+        # ---------- Data - data_table --------- #
         self.data_table = pd.read_csv(self.meta_path, sep=',')
 
+        # ---------- Data - frag_hist --------- #
         # Create list of deeptools raw fragment files
         dt_frag_list = glob.glob(self.frag_path)
 
@@ -59,6 +61,7 @@ class Figures:
                 sample_arr = np.append(sample_arr, dt_sample_i_long)
                 self.frag_hist = self.frag_hist.append(dt_frag_i)
 
+        # ---------- Data - frag_violin --------- #
         # create hue array using regex pattern matching
         for i in list(range(0,len(sample_arr))):
             sample_i = sample_arr[i]
@@ -71,6 +74,7 @@ class Figures:
 
         self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "sample" : sample_arr , "histone_mark": sample_exp_arr}, index = np.arange(len(frags_arr)))
 
+        # ---------- Data - frag_bin500 --------- #
         # create full join data frame for count data
         # start by creating list of bin500 files
         dt_bin_frag_list = glob.glob(self.bin_frag_path)
@@ -91,6 +95,11 @@ class Figures:
         log2_counts = self.frag_bin500[self.frag_bin500.columns[-(len(dt_bin_frag_list)):]].transform(lambda x: np.log2(x))
         chrom_bin_cols = self.frag_bin500[['chrom','bin']]
         self.frag_bin500 = pd.concat([chrom_bin_cols,log2_counts], axis=1)
+
+        
+        # create dataframe for seacr peaks
+        # self.data_table = pd.read_csv(self.meta_path, sep=',')
+
 
     def annotate_data(self):
         # Make new perctenage alignment columns
@@ -317,3 +326,5 @@ class Figures:
 
         return fig, df_data_scale
     
+    # ---------- Plot 7 - Peak Analysis --------- #
+
