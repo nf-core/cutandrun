@@ -17,7 +17,7 @@ class Figures:
     frag_hist = None
     frag_violin = None
     frag_bin500 = None
-    seacr_bed = None
+    seacr_beds = None
 
     def __init__(self, logger, meta, frags, bin_frag, seacr_bed):
         self.logger = logger
@@ -98,10 +98,25 @@ class Figures:
         chrom_bin_cols = self.frag_bin500[['chrom','bin']]
         self.frag_bin500 = pd.concat([chrom_bin_cols,log2_counts], axis=1)
 
-
+        # ---------- Data - seacr_bed --------- #
         # create dataframe for seacr peaks
-        # self.data_table = pd.read_csv(self.meta_path, sep=',')
+        seacr_bed_list = glob.glob(self.seacr_bed_path)
 
+        # combine all seacr bed files into one df including group and replicate info
+        for i in list(range(len(seacr_bed_list))):
+            seacr_bed_i = pd.read_csv(seacr_bed_list[i], sep='\t', header=None, usecols=[0,1,2,3,4], names=['chrom','start','end','total_signal','max_signal'])
+            bed_base_i = os.path.basename(seacr_bed_list[i])
+            sample_id = bed_base_i.split(".")[0]
+            [group_i,rep_i] = sample_id.split("_")
+            seacr_bed_i['group'] = np.repeat(group_i, seacr_bed_i.shape[0])
+            seacr_bed_i['replicate'] = np.repeat(rep_i, seacr_bed_i.shape[0])
+
+            if i==0:
+                self.seacr_beds = seacr_bed_i
+
+            else:
+                self.seacr_beds = self.seacr_beds.append(seacr_bed_i)
+        
 
     def annotate_data(self):
         # Make new perctenage alignment columns
@@ -313,7 +328,6 @@ class Figures:
         # Get normalised count data
         df_normalised_frags = self.data_table.loc[:, ('id', 'group')]
         df_normalised_frags['normalised_frags'] = self.data_table['bt2_total_reads_target']*self.data_table['scale_factor']
-        print(df_normalised_frags)
 
         # Subset meta data
         df_data_scale = self.data_table.loc[:, ('id', 'group','scale_factor')]
