@@ -39,7 +39,7 @@ def gen_png(parsed_args):
     seacr_bed_path = parsed_args.seacr_bed
     
     logger.info('Generating plots to output folder')
-    fig = Figures(logger, meta_path, frag_path, bin_frag_path)
+    fig = Figures(logger, meta_path, frag_path, bin_frag_path, seacr_bed_path)
     fig.gen_plots_to_folder(output_path)
 
     logger.info('Completed')
