@@ -36,6 +36,7 @@ def gen_png(parsed_args):
     output_path = parsed_args.output
     logger = init_logger('gen_img', parsed_args.log)
     bin_frag_path = parsed_args.bed_frag
+    seacr_bed_path = parsed_args.seacr_bed
     
     logger.info('Generating plots to output folder')
     fig = Figures(logger, meta_path, frag_path, bin_frag_path)
@@ -56,6 +57,7 @@ if __name__ == '__main__':
     parser_genimg.add_argument('--output', required=True)
     parser_genimg.add_argument('--log', required=False)
     parser_genimg.add_argument('--bed_frag', required=True)
+    parser_genimg.add_argument('--seacr_bed', required=True)
 
     # Parse
     parsed_args = parser.parse_args()

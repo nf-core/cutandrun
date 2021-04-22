@@ -17,12 +17,14 @@ class Figures:
     frag_hist = None
     frag_violin = None
     frag_bin500 = None
+    seacr_bed = None
 
-    def __init__(self, logger, meta, frags, bin_frag):
+    def __init__(self, logger, meta, frags, bin_frag, seacr_bed):
         self.logger = logger
         self.meta_path = meta
         self.frag_path = frags
         self.bin_frag_path = bin_frag
+        self.seacr_bed_path = seacr_bed
 
         sns.set()
         sns.set_theme()
@@ -96,7 +98,7 @@ class Figures:
         chrom_bin_cols = self.frag_bin500[['chrom','bin']]
         self.frag_bin500 = pd.concat([chrom_bin_cols,log2_counts], axis=1)
 
-        
+
         # create dataframe for seacr peaks
         # self.data_table = pd.read_csv(self.meta_path, sep=',')
 
