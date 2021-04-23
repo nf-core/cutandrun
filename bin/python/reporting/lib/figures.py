@@ -116,7 +116,6 @@ class Figures:
 
             else:
                 self.seacr_beds = self.seacr_beds.append(seacr_bed_i)
-        
 
     def annotate_data(self):
         # Make new perctenage alignment columns
@@ -165,6 +164,11 @@ class Figures:
         plots["scale_factor_summary"] = plot6
         data["scale_factor_summary"] = data6
         
+        # Plot 7 
+        plot7, data7 = self.no_of_peaks()
+        plots["no_of_peaks"] = plot7
+        data["no_of_peaks"] = data7
+
         return (plots, data)
 
     def generate_dash_plots(self):
@@ -343,4 +347,36 @@ class Figures:
         return fig, df_data_scale
     
     # ---------- Plot 7 - Peak Analysis --------- #
+    def no_of_peaks(self):
+        # 7a - Number of peaks
+        fig, ax = plt.subplots()
+        fig.suptitle("Total Peaks")
 
+        ## create number of peaks df
+        unique_groups = self.seacr_beds.group.unique()
+        unique_replicates = self.seacr_beds.replicate.unique()
+        df_no_peaks = pd.DataFrame(index=range(0,(len(unique_groups)*len(unique_replicates))), columns=['group','replicate','all_peaks'])
+        k=0 # counter
+        print(df_no_peaks)
+        for i in list(range(len(unique_groups))):
+            for j in list(range(len(unique_replicates))):
+                df_no_peaks.at[k,'all_peaks'] = self.seacr_beds[(self.seacr_beds['group']==unique_groups[i]) & (self.seacr_beds['replicate']==unique_replicates[j])].shape[0]
+                df_no_peaks.at[k,'group'] = unique_groups[i]
+                df_no_peaks.at[k,'replicate'] = unique_replicates[j]
+                k=k+1
+                print(df_no_peaks.head(5))
+
+
+        ax = sns.boxplot(data=df_no_peaks, x='group', y='all_peaks')
+        ax.set_ylabel("No. of Peaks")
+        # seq_summary[0,0].set_title("Sequencing Depth")
+        # seq_summary[0,0].set_ylabel("Total Reads")
+
+        return fig, df_no_peaks
+
+        # 7b - Width of peaks
+
+        # 7c - Peaks reproduced
+
+        # 7d - Fragments within peaks
+        
