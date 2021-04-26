@@ -11,6 +11,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import FuncFormatter
 import seaborn as sns
 import plotly.express as px
+import pyranges as pr
 
 class Figures:
     data_table = None
@@ -164,10 +165,20 @@ class Figures:
         plots["scale_factor_summary"] = plot6
         data["scale_factor_summary"] = data6
         
-        # Plot 7 
-        plot7, data7 = self.no_of_peaks()
-        plots["no_of_peaks"] = plot7
-        data["no_of_peaks"] = data7
+        # Plot 7a 
+        plot7a, data7a = self.no_of_peaks()
+        plots["no_of_peaks"] = plot7a
+        data["no_of_peaks"] = data7a
+
+        # Plot 7b
+        plot7b, data7b = self.peak_widths()
+        plots["peak_widths"] = plot7b
+        data["peak_widths"] = data7b
+
+        # Plot 7c 
+        plot7c, data7c = self.reproduced_peaks()
+        plots["reproduced_peaks"] = plot7c
+        data["reproduced_peaks"] = data7c
 
         return (plots, data)
 
@@ -355,28 +366,74 @@ class Figures:
         ## create number of peaks df
         unique_groups = self.seacr_beds.group.unique()
         unique_replicates = self.seacr_beds.replicate.unique()
-        df_no_peaks = pd.DataFrame(index=range(0,(len(unique_groups)*len(unique_replicates))), columns=['group','replicate','all_peaks'])
+        self.df_no_peaks = pd.DataFrame(index=range(0,(len(unique_groups)*len(unique_replicates))), columns=['group','replicate','all_peaks'])
         k=0 # counter
-        print(df_no_peaks)
+
         for i in list(range(len(unique_groups))):
             for j in list(range(len(unique_replicates))):
-                df_no_peaks.at[k,'all_peaks'] = self.seacr_beds[(self.seacr_beds['group']==unique_groups[i]) & (self.seacr_beds['replicate']==unique_replicates[j])].shape[0]
-                df_no_peaks.at[k,'group'] = unique_groups[i]
-                df_no_peaks.at[k,'replicate'] = unique_replicates[j]
+                self.df_no_peaks.at[k,'all_peaks'] = self.seacr_beds[(self.seacr_beds['group']==unique_groups[i]) & (self.seacr_beds['replicate']==unique_replicates[j])].shape[0]
+                self.df_no_peaks.at[k,'group'] = unique_groups[i]
+                self.df_no_peaks.at[k,'replicate'] = unique_replicates[j]
                 k=k+1
-                print(df_no_peaks.head(5))
 
-
-        ax = sns.boxplot(data=df_no_peaks, x='group', y='all_peaks')
+        ax = sns.boxplot(data=self.df_no_peaks, x='group', y='all_peaks')
         ax.set_ylabel("No. of Peaks")
-        # seq_summary[0,0].set_title("Sequencing Depth")
-        # seq_summary[0,0].set_ylabel("Total Reads")
 
-        return fig, df_no_peaks
+        return fig, self.df_no_peaks
 
         # 7b - Width of peaks
+    def peak_widths(self):
+        fig, ax = plt.subplots()
+
+        ## add peak width column
+        self.seacr_beds['peak_width'] = self.seacr_beds['end'] - self.seacr_beds['start']
+        self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs()
+
+        ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate")
+
+        return fig, self.seacr_beds
+
 
         # 7c - Peaks reproduced
+    def reproduced_peaks(self):
+        fig, ax = plt.subplots()
+        ## empty dataframe to fill in loop
+        reprod_peak_stats = self.df_no_peaks
+        reprod_peak_stats = reprod_peak_stats.reindex(columns=reprod_peak_stats.columns.tolist() + ['no_peaks_reproduced','peak_reproduced_rate'])
 
+        ## create pyranges objects and fill df
+        unique_groups = self.seacr_beds.group.unique()
+        unique_replicates = self.seacr_beds.replicate.unique()
+        # pyr_overlap = pr.PyRanges(chromosomes="chr1", starts=(1, 5), ends=[3, 149],
+        #     strands=("+", "-"), int64=True)
+        # print(len(pyr_overlap))
+
+        # peak_ranges = pr.PyRanges(chromosomes=self.seacr_beds['chrom'], starts=self.seacr_beds['start'], ends=self.seacr_beds['end'])
+        # print(peak_ranges)
+        # fill_no_peaks = np.empty((0,))
+
+        for i in list(range(len(unique_groups))):
+            pyr_query = pr.PyRanges()
+            group_i = unique_groups[i]
+            for j in list(range(len(unique_replicates))):
+                rep_i = unique_replicates[j]
+                peaks_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
+                pyr_subject = pr.PyRanges(chromosomes=peaks_i['chrom'], starts=peaks_i['start'], ends=peaks_i['end'])
+                if(len(pyr_query) > 0):
+                    pyr_overlap = pyr_query.join(pyr_subject)
+                    pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
+                    pyr_query = pyr_overlap
+                else:
+                    pyr_query = pyr_subject
+            # fill_no_peaks
+            
+            # idx = ((j)*len(unique_groups)) - (len(unique_groups) - (i+1))
+            # print(idx)        
+            # reprod_peak_stats.at[idx, 'no_peaks_reproduced'] = len(pyr_overlap)
+            # reprod_peak_stats.at[idx+1, 'no_peaks_reproduced'] = len(pyr_overlap)
+
+
+
+        return fig, reprod_peak_stats
         # 7d - Fragments within peaks
         
