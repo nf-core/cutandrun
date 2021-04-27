@@ -180,6 +180,11 @@ class Figures:
         plots["reproduced_peaks"] = plot7c
         data["reproduced_peaks"] = data7c
 
+        # Plot 7d
+        plot7d, data7d = self.frags_in_peaks()
+        plots["frags_in_peaks"] = plot7d
+        data["frags_in_peaks"] = data7d
+
         return (plots, data)
 
     def generate_dash_plots(self):
@@ -401,39 +406,56 @@ class Figures:
         reprod_peak_stats = self.df_no_peaks
         reprod_peak_stats = reprod_peak_stats.reindex(columns=reprod_peak_stats.columns.tolist() + ['no_peaks_reproduced','peak_reproduced_rate'])
 
+        # create permutations list
+        def array_permutate(x):
+            arr_len=len(x)
+            loop_list = x
+            out_list = x
+            for i in range(arr_len-1):
+                i_list = np.roll(loop_list, -1)
+                out_list = np.vstack((out_list, i_list))
+                loop_list = i_list
+            return out_list
+
         ## create pyranges objects and fill df
         unique_groups = self.seacr_beds.group.unique()
         unique_replicates = self.seacr_beds.replicate.unique()
-        # pyr_overlap = pr.PyRanges(chromosomes="chr1", starts=(1, 5), ends=[3, 149],
-        #     strands=("+", "-"), int64=True)
-        # print(len(pyr_overlap))
-
-        # peak_ranges = pr.PyRanges(chromosomes=self.seacr_beds['chrom'], starts=self.seacr_beds['start'], ends=self.seacr_beds['end'])
-        # print(peak_ranges)
-        # fill_no_peaks = np.empty((0,))
+        rep_permutations = array_permutate(range(len(unique_replicates)))
+        idx_count=0
 
         for i in list(range(len(unique_groups))):
-            pyr_query = pr.PyRanges()
             group_i = unique_groups[i]
-            for j in list(range(len(unique_replicates))):
-                rep_i = unique_replicates[j]
-                peaks_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
-                pyr_subject = pr.PyRanges(chromosomes=peaks_i['chrom'], starts=peaks_i['start'], ends=peaks_i['end'])
-                if(len(pyr_query) > 0):
-                    pyr_overlap = pyr_query.join(pyr_subject)
-                    pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
-                    pyr_query = pyr_overlap
-                else:
-                    pyr_query = pyr_subject
-            # fill_no_peaks
-            
-            # idx = ((j)*len(unique_groups)) - (len(unique_groups) - (i+1))
-            # print(idx)        
-            # reprod_peak_stats.at[idx, 'no_peaks_reproduced'] = len(pyr_overlap)
-            # reprod_peak_stats.at[idx+1, 'no_peaks_reproduced'] = len(pyr_overlap)
+            for k in list(range(len(unique_replicates))):
+                pyr_query = pr.PyRanges()
+                rep_perm = rep_permutations[k]
+                for j in rep_perm:
+                    rep_i = unique_replicates[j]
+                    peaks_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
+                    pyr_subject = pr.PyRanges(chromosomes=peaks_i['chrom'], starts=peaks_i['start'], ends=peaks_i['end'])
+                    if(len(pyr_query) > 0):
+                        pyr_overlap = pyr_query.join(pyr_subject)
+                        pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
+                        pyr_query = pyr_overlap
+                        
+                    else:
+                        pyr_query = pyr_subject
 
+                pyr_starts = pyr_overlap.values()[0]['Start']
+                unique_pyr_starts = pyr_starts.unique()
+                reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
+                idx_count = idx_count + 1
 
+        fill_reprod_rate = (reprod_peak_stats['no_peaks_reproduced'] / reprod_peak_stats['all_peaks'])*100
+        reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
+
+        # plot
+        ax = sns.barplot(data=reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate")
 
         return fig, reprod_peak_stats
+
         # 7d - Fragments within peaks
+    def frags_in_peaks(self):
+        fig, ax = plt.subplots()
+
+        return fig, self.seacr_beds
         
