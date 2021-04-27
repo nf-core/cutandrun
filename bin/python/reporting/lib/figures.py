@@ -19,13 +19,15 @@ class Figures:
     frag_violin = None
     frag_bin500 = None
     seacr_beds = None
+    bams = None
 
-    def __init__(self, logger, meta, frags, bin_frag, seacr_bed):
+    def __init__(self, logger, meta, frags, bin_frag, seacr_bed, bams):
         self.logger = logger
         self.meta_path = meta
         self.frag_path = frags
         self.bin_frag_path = bin_frag
         self.seacr_bed_path = seacr_bed
+        self.bam_path = bams
 
         sns.set()
         sns.set_theme()
@@ -117,6 +119,22 @@ class Figures:
 
             else:
                 self.seacr_beds = self.seacr_beds.append(seacr_bed_i)
+
+        # ---------- Data - target histone mark bams --------- #
+        bam_list = glob.glob(self.bam_path)
+        self.bam_df_list = list()
+        self.frip = pd.DataFrame(data=None, index=range(len(bam_list)), columns=['group','replicate','mapped_frags','frags_in_peaks','percentage_frags_in_peaks'])
+        k = 0 #counter
+        for bam in bam_list:
+            bam_now = pr.read_bam(bam, as_df=True, filter_flag=0) # no frags filtered
+            self.bam_df_list.append(bam_now)
+            bam_base = os.path.basename(bam)
+            sample_id = bam_base.split(".")[0]
+            [group_now,rep_now] = sample_id.split("_")
+            self.frip.at[k, 'group'] = group_now
+            self.frip.at[k, 'replicate'] = rep_now
+            self.frip.at[k, 'mapped_frags'] = bam_now.shape[0]
+            k=k+1
 
     def annotate_data(self):
         # Make new perctenage alignment columns
@@ -457,5 +475,23 @@ class Figures:
     def frags_in_peaks(self):
         fig, ax = plt.subplots()
 
-        return fig, self.seacr_beds
+        for i in range(len(self.bam_df_list)):
+            bam_i = self.bam_df_list[i]
+            self.frip.at[i,'mapped_frags'] = bam_i.shape[0]
+            group_i = self.frip.at[i,'group']
+            rep_i = self.frip.at[i,'replicate']
+            seacr_bed_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
+            pyr_seacr = pr.PyRanges(chromosomes=seacr_bed_i['chrom'], starts=seacr_bed_i['start'], ends=seacr_bed_i['end'])
+            pyr_bam = pr.PyRanges(df=bam_i)
+            sample_id = group_i + "_" + rep_i
+            pyr_bam_dict = {sample_id : pyr_bam}
+            frag_count_pyr = pr.count_overlaps(pyr_bam_dict, pyr_seacr)
+            frag_counts = frag_count_pyr.items()[0][1][sample_id].sum()
+            self.frip.at[i,'frags_in_peaks'] = frag_counts
+
+        self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
+
+        ax = sns.boxplot(data=self.frip, x='group', y='percentage_frags_in_peaks')
+
+        return fig, self.frip
         
