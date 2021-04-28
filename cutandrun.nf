@@ -539,7 +539,7 @@ workflow CUTANDRUN {
             AWK_FRAG_BIN.out.file.collect{it[1]},
             SEACR_CALLPEAK.out.bed.collect{it[1]},
             ch_no_igg_bam_bai.collect{it[1]}
-            )
+        )
     }
 }
 
