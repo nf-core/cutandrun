@@ -150,6 +150,7 @@ include { EXPORT_META                            } from './modules/local/process
 include { GENERATE_REPORTS                            } from './modules/local/process/generate_reports'                     addParams( options: modules['generate_reports'] )
 include { DEEPTOOLS_BAMPEFRAGMENTSIZE } from './modules/local/software/deeptools/bamPEFragmentSize/main' addParams( options: modules['deeptools_fragmentsize'] )
 include { AWK as AWK_FRAG_BIN } from './modules/local/process/awk' addParams( options: modules['awk_frag_bin'] )
+include { DESEQ2_DIFF } from './modules/local/process/deseq2_diff' addParams( options: [:],  multiqc_label: 'deseq2' )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -341,13 +342,15 @@ workflow CUTANDRUN {
         .map { row -> [row[0].id, row[0] ].flatten()}
         .set { ch_spikein_bt2_meta }
 
+    // ANNOTATE_BT2_META.out.output | view
+
     ANNOTATE_BT2_META.out.output
         .map { row -> [row[0].id, row ].flatten()}
         .join ( ch_spikein_bt2_meta )
         .map { row -> [ row[1] << row[3], row[2] ] }
         .set { ch_combined_meta }
     
-    ANNOTATE_BT2_SPIKEIN_META.out.output | view
+    // ANNOTATE_BT2_SPIKEIN_META.out.output | view
 
     /*
      * CHANNEL: Calculate scale factor for each sample and join to main data flow
@@ -410,6 +413,25 @@ workflow CUTANDRUN {
         )
         ch_seacr_bed = SEACR_CALLPEAK.out.bed
         ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
+
+        /*
+         * CHANNEL: Collect SEACR group names
+         */
+        SEACR_CALLPEAK.out.bed
+            //.map{ row -> row[0].find{ it.key == "group" }?.value() }
+            .map{ row -> row[0].group}
+            .unique()
+            .collect()
+            .set { ch_groups_no_igg }
+
+        /*
+        * MODULE: DESeq2 QC Analysis
+        */
+        DESEQ2_DIFF (
+            ch_groups_no_igg,
+            ch_seacr_bed.collect{it[1]},
+            ch_samtools_bam.collect{it[1]}
+        )
 
         /*
         * MODULE: Clip off-chromosome peaks
@@ -505,7 +527,19 @@ workflow CUTANDRUN {
             //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
         )
 
-        GENERATE_REPORTS(EXPORT_META.out.csv, DEEPTOOLS_BAMPEFRAGMENTSIZE.out.raw_csv.collect{it[1]})
+        // Filter bam bai channels for non-igg only
+        ch_samtools_bam_bai
+            .filter { it[0].group != 'igg' }
+            .set { ch_no_igg_bam_bai }
+
+
+        GENERATE_REPORTS(
+            EXPORT_META.out.csv, 
+            DEEPTOOLS_BAMPEFRAGMENTSIZE.out.raw_csv.collect{it[1]},
+            AWK_FRAG_BIN.out.file.collect{it[1]},
+            SEACR_CALLPEAK.out.bed.collect{it[1]},
+            ch_no_igg_bam_bai.collect{it[1]}
+            )
     }
 }
 

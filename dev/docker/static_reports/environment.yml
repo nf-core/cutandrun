@@ -13,3 +13,5 @@ dependencies:
     - pandas=1.2.*
     - seaborn=0.11.*
     - plotly:plotly_express=0.4.*
+    - pyranges=0.0.96
+    - bamread=0.0.7
