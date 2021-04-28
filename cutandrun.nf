@@ -527,7 +527,23 @@ workflow CUTANDRUN {
             //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
         )
 
-        // GENERATE_REPORTS(EXPORT_META.out.csv, DEEPTOOLS_BAMPEFRAGMENTSIZE.out.raw_csv.collect{it[1]})
+        // Filter bam bai channels for non-igg only
+        ch_samtools_bam
+            .filter { it[0].group != 'igg' }
+            .set { ch_no_igg_bam }
+
+        ch_samtools_bam_bai
+            .filter { it[0].group != 'igg' }
+            .set { ch_no_igg_bai }
+
+        GENERATE_REPORTS(
+            EXPORT_META.out.csv, 
+            DEEPTOOLS_BAMPEFRAGMENTSIZE.out.raw_csv.collect{it[1]},
+            AWK_FRAG_BIN.out.file.collect{it[1]},
+            SEACR_CALLPEAK.out.bed.collect{it[1]},
+            ch_no_igg_bam,
+            ch_no_igg_bai
+            )
     }
 }
 
