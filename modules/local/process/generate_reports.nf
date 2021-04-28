@@ -24,6 +24,14 @@ process GENERATE_REPORTS {
 
     script:  // This script is bundled with the pipeline, in nf-core/cutandrun/bin/
     """
-    $baseDir/bin/python/reporting/main.py genimg --meta $meta_data --raw_frag "*_raw.csv" --output . --log log.txt
+    $baseDir/bin/python/reporting/main.py genimg \\
+        --meta $meta_data \\
+        --raw_frag "*_raw.csv" \\
+        --bed_frag "*bin500.awk.bed" \\
+        --seacr_bed "*bed.*.bed" \\
+        --bams "*.bam" \\
+        --output . \\
+        --log log.txt
     """
+
 }
