@@ -16,6 +16,9 @@ process GENERATE_REPORTS {
     input:
     path meta_data
     path raw_fragments
+    path bed_fragments
+    path seacr_beds
+    path bam_bais
     
     output:
     path '*.pdf', emit: pdf
