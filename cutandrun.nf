@@ -14,6 +14,7 @@ checkPathParamList = [
     params.fasta,
     params.gtf,
     params.blacklist,
+    params.gene_bed,
     params.bowtie2_index,
     params.spikein_fasta,
     params.spikein_bowtie2_index
@@ -25,6 +26,7 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 if (params.fasta) { ch_fasta = file(params.fasta) } else { exit 1, 'Genome fasta file not specified!' }
 if (params.gtf) { ch_gtf = file(params.gtf)   } else { exit 1, 'Genome GTF file not specified!' }
 if (params.blacklist) { ch_blacklist = file(params.blacklist) } else { exit 1, 'Genome blacklist file not specified!' }
+if (params.gene_bed) { ch_gene_bed = file(params.gene_bed) } else { exit 1, 'Genome gene bed file not specified!' }
 
 // Resolve spike-in genome
 def spikein_fasta = params.spikein_fasta
@@ -150,6 +152,7 @@ include { EXPORT_META                            } from './modules/local/process
 include { GENERATE_REPORTS                            } from './modules/local/process/generate_reports'                     addParams( options: modules['generate_reports'] )
 include { DEEPTOOLS_BAMPEFRAGMENTSIZE } from './modules/local/software/deeptools/bamPEFragmentSize/main' addParams( options: modules['deeptools_fragmentsize'] )
 include { AWK as AWK_FRAG_BIN } from './modules/local/process/awk' addParams( options: modules['awk_frag_bin'] )
+include { AWK as AWK_EDIT_PEAK_BED } from './modules/local/process/awk' addParams( options: modules['awk_edit_peak_bed'] )
 include { DESEQ2_DIFF } from './modules/local/process/deseq2_diff' addParams( options: [:],  multiqc_label: 'deseq2' )
 
 /*
@@ -181,6 +184,11 @@ include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from './modules/local/sub
  * MODULES
  */
 include { UCSC_BEDGRAPHTOBIGWIG } from './modules/nf-core/software/ucsc/bedgraphtobigwig/main' addParams( options: modules['ucsc_bedgraphtobigwig'] )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE } from './modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_gene'] )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from './modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_peaks'] )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE } from './modules/nf-core/software/deeptools/plotheatmap/main' addParams( options: modules['dt_plotheatmap_gene'] )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS } from './modules/nf-core/software/deeptools/plotheatmap/main' addParams( options: modules['dt_plotheatmap_peaks'] )
+
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -492,6 +500,41 @@ workflow CUTANDRUN {
         )
         multiqc_report = MULTIQC.out.report.toList()
     }
+
+    // filter igg from bigwigs
+    UCSC_BEDGRAPHTOBIGWIG.out.bigwig
+        .filter { it[0].group != 'igg' }
+        .set { ch_bigwig_no_igg }
+
+    //DEEPTOOLS HEATMAPS
+    //HEATMAP OVER TRANSCRIPTION UNITS
+    DEEPTOOLS_COMPUTEMATRIX_GENE (
+        ch_bigwig_no_igg,
+        ch_gene_bed
+    )
+
+    DEEPTOOLS_PLOTHEATMAP_GENE (
+        DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
+    )
+
+    //HEATMAP ON PEAKS
+    // extract max signal region from SEACR bed
+    AWK_EDIT_PEAK_BED (
+        SEACR_CALLPEAK.out.bed
+    )
+
+    // ch_bigwig_no_igg | view
+    // AWK_EDIT_PEAK_BED.out.file | view
+
+    DEEPTOOLS_COMPUTEMATRIX_PEAKS (
+        ch_bigwig_no_igg,
+        AWK_EDIT_PEAK_BED.out.file
+    )
+
+    DEEPTOOLS_PLOTHEATMAP_PEAKS (
+        DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
+    )
+
 
     /*
      * MODULE: Reporting
