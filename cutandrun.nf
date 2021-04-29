@@ -516,6 +516,7 @@ workflow CUTANDRUN {
     DEEPTOOLS_PLOTHEATMAP_GENE (
         DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
     )
+    
 
     //HEATMAP ON PEAKS
     // extract max signal region from SEACR bed
@@ -523,12 +524,33 @@ workflow CUTANDRUN {
         SEACR_CALLPEAK.out.bed
     )
 
+    // order bigwig and bed channels such that they match on id
+    ch_bigwig_no_igg
+        .map { row -> [row[0].id, row ].flatten()}
+        .set { ch_bigwig_no_igg_id }
+
+    AWK_EDIT_PEAK_BED.out.file
+        .map { row -> [row[0].id, row ].flatten()}
+        .set { ch_seacr_max_id }
+
+    ch_bigwig_no_igg_id
+        .join ( ch_seacr_max_id )
+        .set { ch_dt_peaks }
+    
+    ch_dt_peaks
+        .map { row -> row[0,1] }
+        .set { ch_ordered_bigwig }
+
+    ch_dt_peaks
+        .map { row -> row[-1] }
+        .set { ch_ordered_seacr_max }
+
     // ch_bigwig_no_igg | view
     // AWK_EDIT_PEAK_BED.out.file | view
 
     DEEPTOOLS_COMPUTEMATRIX_PEAKS (
-        ch_bigwig_no_igg,
-        AWK_EDIT_PEAK_BED.out.file
+        ch_ordered_bigwig,
+        ch_ordered_seacr_max
     )
 
     DEEPTOOLS_PLOTHEATMAP_PEAKS (
