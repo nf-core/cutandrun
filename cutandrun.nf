@@ -538,15 +538,13 @@ workflow CUTANDRUN {
         .set { ch_dt_peaks }
     
     ch_dt_peaks
-        .map { row -> row[0,1] }
+        .map { row -> row[1] }
         .set { ch_ordered_bigwig }
 
     ch_dt_peaks
         .map { row -> row[-1] }
         .set { ch_ordered_seacr_max }
 
-    // ch_bigwig_no_igg | view
-    // AWK_EDIT_PEAK_BED.out.file | view
 
     ch_ordered_bigwig | view
     ch_ordered_seacr_max | view
