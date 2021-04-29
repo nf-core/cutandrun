@@ -88,13 +88,11 @@ class Figures:
             sample_name = dt_bin_frag_i_read['sample'].iloc[0].split(".")[0]
             dt_bin_frag_i = dt_bin_frag_i_read[['chrom','bin','count']]
             dt_bin_frag_i.columns = ['chrom','bin',sample_name]
-            # print(dt_bin_frag_i.head(5))
 
             if i==0:
                 self.frag_bin500 = dt_bin_frag_i
             else:
                 self.frag_bin500 = pd.merge(self.frag_bin500, dt_bin_frag_i, on=['chrom','bin'], how='outer')
-                # print(self.frag_bin500.head(5))
 
         # add log2 transformed count data column
         log2_counts = self.frag_bin500[self.frag_bin500.columns[-(len(dt_bin_frag_list)):]].transform(lambda x: np.log2(x))
@@ -140,9 +138,6 @@ class Figures:
         # Make new perctenage alignment columns
         self.data_table['target_alignment_rate'] = self.data_table.loc[:, ('bt2_total_aligned_target')] / self.data_table.loc[:, ('bt2_total_reads_target')] * 100
         self.data_table['spikein_alignment_rate'] = self.data_table.loc[:, ('bt2_total_aligned_spikein')] / self.data_table.loc[:, ('bt2_total_reads_spikein')] * 100
-        # self.data_table.describe()
-        # print(self.data_table)
-        # self.data_table.info()
 
     def generate_plots(self):
         # Init
