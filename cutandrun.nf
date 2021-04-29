@@ -575,7 +575,7 @@ workflow CUTANDRUN {
             .join( ch_samtools_bai_id )
             .map { row -> [row[1], row[2], row[4] ] }
             .set { ch_samtools_bam_bai }
-        //ch_samtools_bam_bai | view
+        // ch_samtools_bam_bai | view
         
         DEEPTOOLS_BAMPEFRAGMENTSIZE(ch_samtools_bam_bai, ch_blacklist)
         //DEEPTOOLS_BAMPEFRAGMENTSIZE.out.summary_csv | view
@@ -601,7 +601,7 @@ workflow CUTANDRUN {
             DEEPTOOLS_BAMPEFRAGMENTSIZE.out.raw_csv.collect{it[1]},
             AWK_FRAG_BIN.out.file.collect{it[1]},
             SEACR_CALLPEAK.out.bed.collect{it[1]},
-            ch_no_igg_bam_bai.collect{it[1]}
+            ch_no_igg_bam_bai.collect{it[1,2]}
         )
     }
 }
