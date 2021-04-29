@@ -546,9 +546,6 @@ workflow CUTANDRUN {
         .set { ch_ordered_seacr_max }
 
 
-    ch_ordered_bigwig | view
-    ch_ordered_seacr_max | view
-
     DEEPTOOLS_COMPUTEMATRIX_PEAKS (
         ch_ordered_bigwig,
         ch_ordered_seacr_max
