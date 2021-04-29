@@ -548,6 +548,9 @@ workflow CUTANDRUN {
     // ch_bigwig_no_igg | view
     // AWK_EDIT_PEAK_BED.out.file | view
 
+    ch_ordered_bigwig | view
+    ch_ordered_seacr_max | view
+
     DEEPTOOLS_COMPUTEMATRIX_PEAKS (
         ch_ordered_bigwig,
         ch_ordered_seacr_max
