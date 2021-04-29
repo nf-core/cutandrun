@@ -538,7 +538,7 @@ workflow CUTANDRUN {
         .set { ch_dt_peaks }
     
     ch_dt_peaks
-        .map { row -> row[1] }
+        .map { row -> row[1,2] }
         .set { ch_ordered_bigwig }
 
     ch_dt_peaks
