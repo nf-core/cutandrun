@@ -169,32 +169,34 @@ class Figures:
         unique_groups = self.seacr_beds.group.unique()
         unique_replicates = self.seacr_beds.replicate.unique()
         rep_permutations = array_permutate(range(len(unique_replicates)))
-        idx_count=0
+        self.replicate_number = len(unique_replicates)
+        
+        if self.replicate_number > 1:
+            idx_count=0
+            for i in list(range(len(unique_groups))):
+                group_i = unique_groups[i]
+                for k in list(range(len(unique_replicates))):
+                    pyr_query = pr.PyRanges()
+                    rep_perm = rep_permutations[k]
+                    for j in rep_perm:
+                        rep_i = unique_replicates[j]
+                        peaks_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
+                        pyr_subject = pr.PyRanges(chromosomes=peaks_i['chrom'], starts=peaks_i['start'], ends=peaks_i['end'])
+                        if(len(pyr_query) > 0):
+                            pyr_overlap = pyr_query.join(pyr_subject)
+                            pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
+                            pyr_query = pyr_overlap
+                            
+                        else:
+                            pyr_query = pyr_subject
 
-        for i in list(range(len(unique_groups))):
-            group_i = unique_groups[i]
-            for k in list(range(len(unique_replicates))):
-                pyr_query = pr.PyRanges()
-                rep_perm = rep_permutations[k]
-                for j in rep_perm:
-                    rep_i = unique_replicates[j]
-                    peaks_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
-                    pyr_subject = pr.PyRanges(chromosomes=peaks_i['chrom'], starts=peaks_i['start'], ends=peaks_i['end'])
-                    if(len(pyr_query) > 0):
-                        pyr_overlap = pyr_query.join(pyr_subject)
-                        pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
-                        pyr_query = pyr_overlap
-                        
-                    else:
-                        pyr_query = pyr_subject
+                    pyr_starts = pyr_overlap.values()[0]['Start']
+                    unique_pyr_starts = pyr_starts.unique()
+                    self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
+                    idx_count = idx_count + 1
 
-                pyr_starts = pyr_overlap.values()[0]['Start']
-                unique_pyr_starts = pyr_starts.unique()
-                self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
-                idx_count = idx_count + 1
-
-        fill_reprod_rate = (self.reprod_peak_stats['no_peaks_reproduced'] / self.reprod_peak_stats['all_peaks'])*100
-        self.reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
+            fill_reprod_rate = (self.reprod_peak_stats['no_peaks_reproduced'] / self.reprod_peak_stats['all_peaks'])*100
+            self.reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
 
         # ---------- Data - Percentage of fragments in peaks --------- #
         # test_query = pr.PyRanges(chromosomes="chr1", starts=[1,7,15], ends=[3,8,20])
@@ -209,24 +211,21 @@ class Figures:
             group_i = self.frip.at[i,'group']
             rep_i = self.frip.at[i,'replicate']
             seacr_bed_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
-            # bam_i.to_csv('test_bam.csv', index=False)
-            # seacr_bed_i.to_csv('test_bed.csv', index=False)
             # seacr_bed_prep = seacr_bed_i.drop(['total_signal','max_signal','group','replicate'],axis=1)
             # seacr_bed_prep = seacr_bed_prep.rename(columns={"chrom":"Chromosome","start":"Start","end":"End"})
-            # pyr_seacr = pr.PyRanges(df=seacr_bed_prep)
             pyr_seacr = pr.PyRanges(chromosomes=seacr_bed_i['chrom'], starts=seacr_bed_i['start'], ends=seacr_bed_i['end'])
             pyr_bam = pr.PyRanges(df=bam_i)
             # pyr_bam = pyr_bam.apply(lambda df: df.drop(['Strand','Flag'], axis=1))
             sample_id = group_i + "_" + rep_i
             pyr_bam_dict = {sample_id : pyr_bam}
-            print(pyr_bam_dict)
-            print(pyr_seacr)
-        #     frag_count_pyr = pr.count_overlaps(pyr_bam_dict, pyr_seacr)
-        #     print(frag_count_pyr)
-        #     frag_counts = frag_count_pyr.items()[0][1][sample_id].sum()
-        #     self.frip.at[i,'frags_in_peaks'] = frag_counts
+            # print(pyr_bam_dict)
+            # print(pyr_seacr)
+            frag_count_pyr = pr.count_overlaps(pyr_bam_dict, pyr_seacr)
+            # print(frag_count_pyr)
+            frag_counts = frag_count_pyr.items()[0][1][sample_id].sum()
+            self.frip.at[i,'frags_in_peaks'] = frag_counts
 
-        # self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
+        self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
 
     def annotate_data(self):
         # Make new perctenage alignment columns
@@ -283,9 +282,10 @@ class Figures:
         data["peak_widths"] = data7b
 
         # Plot 7c 
-        plot7c, data7c = self.reproduced_peaks()
-        plots["reproduced_peaks"] = plot7c
-        data["reproduced_peaks"] = data7c
+        if self.replicate_number > 1:
+            plot7c, data7c = self.reproduced_peaks()
+            plots["reproduced_peaks"] = plot7c
+            data["reproduced_peaks"] = data7c
 
         # Plot 7d
         plot7d, data7d = self.frags_in_peaks()
@@ -498,7 +498,7 @@ class Figures:
         fig, ax = plt.subplots()
 
         # plot
-        # ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate")
+        ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate")
 
         return fig, self.reprod_peak_stats
 
