@@ -134,6 +134,100 @@ class Figures:
             self.frip.at[k, 'mapped_frags'] = bam_now.shape[0]
             k=k+1
 
+        # ---------- Data - Peak stats --------- #
+        ## create number of peaks df
+        unique_groups = self.seacr_beds.group.unique()
+        unique_replicates = self.seacr_beds.replicate.unique()
+        self.df_no_peaks = pd.DataFrame(index=range(0,(len(unique_groups)*len(unique_replicates))), columns=['group','replicate','all_peaks'])
+        k=0 # counter
+
+        for i in list(range(len(unique_groups))):
+            for j in list(range(len(unique_replicates))):
+                self.df_no_peaks.at[k,'all_peaks'] = self.seacr_beds[(self.seacr_beds['group']==unique_groups[i]) & (self.seacr_beds['replicate']==unique_replicates[j])].shape[0]
+                self.df_no_peaks.at[k,'group'] = unique_groups[i]
+                self.df_no_peaks.at[k,'replicate'] = unique_replicates[j]
+                k=k+1
+
+
+        # ---------- Data - Reproducibility of peaks between replicates --------- #
+        ## empty dataframe to fill in loop
+        self.reprod_peak_stats = self.df_no_peaks
+        self.reprod_peak_stats = self.reprod_peak_stats.reindex(columns=self.reprod_peak_stats.columns.tolist() + ['no_peaks_reproduced','peak_reproduced_rate'])
+
+        # create permutations list
+        def array_permutate(x):
+            arr_len=len(x)
+            loop_list = x
+            out_list = x
+            for i in range(arr_len-1):
+                i_list = np.roll(loop_list, -1)
+                out_list = np.vstack((out_list, i_list))
+                loop_list = i_list
+            return out_list
+
+        ## create pyranges objects and fill df
+        unique_groups = self.seacr_beds.group.unique()
+        unique_replicates = self.seacr_beds.replicate.unique()
+        rep_permutations = array_permutate(range(len(unique_replicates)))
+        idx_count=0
+
+        for i in list(range(len(unique_groups))):
+            group_i = unique_groups[i]
+            for k in list(range(len(unique_replicates))):
+                pyr_query = pr.PyRanges()
+                rep_perm = rep_permutations[k]
+                for j in rep_perm:
+                    rep_i = unique_replicates[j]
+                    peaks_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
+                    pyr_subject = pr.PyRanges(chromosomes=peaks_i['chrom'], starts=peaks_i['start'], ends=peaks_i['end'])
+                    if(len(pyr_query) > 0):
+                        pyr_overlap = pyr_query.join(pyr_subject)
+                        pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
+                        pyr_query = pyr_overlap
+                        
+                    else:
+                        pyr_query = pyr_subject
+
+                pyr_starts = pyr_overlap.values()[0]['Start']
+                unique_pyr_starts = pyr_starts.unique()
+                self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
+                idx_count = idx_count + 1
+
+        fill_reprod_rate = (self.reprod_peak_stats['no_peaks_reproduced'] / self.reprod_peak_stats['all_peaks'])*100
+        self.reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
+
+        # ---------- Data - Percentage of fragments in peaks --------- #
+        # test_query = pr.PyRanges(chromosomes="chr1", starts=[1,7,15], ends=[3,8,20])
+        # test_subject = pr.PyRanges(chromosomes="chr1", starts=[25,28,31], ends=[26,29,37])
+        # test_query_dict = {'test_query' : test_query }
+        # test_overlap = pr.count_overlaps(test_query_dict, test_subject)
+        # print(test_overlap)
+
+        for i in range(len(self.bam_df_list)):
+            bam_i = self.bam_df_list[i]
+            self.frip.at[i,'mapped_frags'] = bam_i.shape[0]
+            group_i = self.frip.at[i,'group']
+            rep_i = self.frip.at[i,'replicate']
+            seacr_bed_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
+            # bam_i.to_csv('test_bam.csv', index=False)
+            # seacr_bed_i.to_csv('test_bed.csv', index=False)
+            # seacr_bed_prep = seacr_bed_i.drop(['total_signal','max_signal','group','replicate'],axis=1)
+            # seacr_bed_prep = seacr_bed_prep.rename(columns={"chrom":"Chromosome","start":"Start","end":"End"})
+            # pyr_seacr = pr.PyRanges(df=seacr_bed_prep)
+            pyr_seacr = pr.PyRanges(chromosomes=seacr_bed_i['chrom'], starts=seacr_bed_i['start'], ends=seacr_bed_i['end'])
+            pyr_bam = pr.PyRanges(df=bam_i)
+            # pyr_bam = pyr_bam.apply(lambda df: df.drop(['Strand','Flag'], axis=1))
+            sample_id = group_i + "_" + rep_i
+            pyr_bam_dict = {sample_id : pyr_bam}
+            print(pyr_bam_dict)
+            print(pyr_seacr)
+        #     frag_count_pyr = pr.count_overlaps(pyr_bam_dict, pyr_seacr)
+        #     print(frag_count_pyr)
+        #     frag_counts = frag_count_pyr.items()[0][1][sample_id].sum()
+        #     self.frip.at[i,'frags_in_peaks'] = frag_counts
+
+        # self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
+
     def annotate_data(self):
         # Make new perctenage alignment columns
         self.data_table['target_alignment_rate'] = self.data_table.loc[:, ('bt2_total_aligned_target')] / self.data_table.loc[:, ('bt2_total_reads_target')] * 100
@@ -377,29 +471,16 @@ class Figures:
     
     # ---------- Plot 7 - Peak Analysis --------- #
     def no_of_peaks(self):
-        # 7a - Number of peaks
+    # 7a - Number of peaks
         fig, ax = plt.subplots()
         fig.suptitle("Total Peaks")
-
-        ## create number of peaks df
-        unique_groups = self.seacr_beds.group.unique()
-        unique_replicates = self.seacr_beds.replicate.unique()
-        self.df_no_peaks = pd.DataFrame(index=range(0,(len(unique_groups)*len(unique_replicates))), columns=['group','replicate','all_peaks'])
-        k=0 # counter
-
-        for i in list(range(len(unique_groups))):
-            for j in list(range(len(unique_replicates))):
-                self.df_no_peaks.at[k,'all_peaks'] = self.seacr_beds[(self.seacr_beds['group']==unique_groups[i]) & (self.seacr_beds['replicate']==unique_replicates[j])].shape[0]
-                self.df_no_peaks.at[k,'group'] = unique_groups[i]
-                self.df_no_peaks.at[k,'replicate'] = unique_replicates[j]
-                k=k+1
 
         ax = sns.boxplot(data=self.df_no_peaks, x='group', y='all_peaks')
         ax.set_ylabel("No. of Peaks")
 
         return fig, self.df_no_peaks
 
-        # 7b - Width of peaks
+    # 7b - Width of peaks
     def peak_widths(self):
         fig, ax = plt.subplots()
 
@@ -412,81 +493,19 @@ class Figures:
         return fig, self.seacr_beds
 
 
-        # 7c - Peaks reproduced
+    # 7c - Peaks reproduced
     def reproduced_peaks(self):
         fig, ax = plt.subplots()
-        ## empty dataframe to fill in loop
-        reprod_peak_stats = self.df_no_peaks
-        reprod_peak_stats = reprod_peak_stats.reindex(columns=reprod_peak_stats.columns.tolist() + ['no_peaks_reproduced','peak_reproduced_rate'])
-
-        # create permutations list
-        def array_permutate(x):
-            arr_len=len(x)
-            loop_list = x
-            out_list = x
-            for i in range(arr_len-1):
-                i_list = np.roll(loop_list, -1)
-                out_list = np.vstack((out_list, i_list))
-                loop_list = i_list
-            return out_list
-
-        ## create pyranges objects and fill df
-        unique_groups = self.seacr_beds.group.unique()
-        unique_replicates = self.seacr_beds.replicate.unique()
-        rep_permutations = array_permutate(range(len(unique_replicates)))
-        idx_count=0
-
-        for i in list(range(len(unique_groups))):
-            group_i = unique_groups[i]
-            for k in list(range(len(unique_replicates))):
-                pyr_query = pr.PyRanges()
-                rep_perm = rep_permutations[k]
-                for j in rep_perm:
-                    rep_i = unique_replicates[j]
-                    peaks_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
-                    pyr_subject = pr.PyRanges(chromosomes=peaks_i['chrom'], starts=peaks_i['start'], ends=peaks_i['end'])
-                    if(len(pyr_query) > 0):
-                        pyr_overlap = pyr_query.join(pyr_subject)
-                        pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
-                        pyr_query = pyr_overlap
-                        
-                    else:
-                        pyr_query = pyr_subject
-
-                pyr_starts = pyr_overlap.values()[0]['Start']
-                unique_pyr_starts = pyr_starts.unique()
-                reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
-                idx_count = idx_count + 1
-
-        fill_reprod_rate = (reprod_peak_stats['no_peaks_reproduced'] / reprod_peak_stats['all_peaks'])*100
-        reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
 
         # plot
-        ax = sns.barplot(data=reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate")
+        # ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate")
 
-        return fig, reprod_peak_stats
+        return fig, self.reprod_peak_stats
 
-        # 7d - Fragments within peaks
+    # 7d - Fragments within peaks
     def frags_in_peaks(self):
         fig, ax = plt.subplots()
-
-        for i in range(len(self.bam_df_list)):
-            bam_i = self.bam_df_list[i]
-            self.frip.at[i,'mapped_frags'] = bam_i.shape[0]
-            group_i = self.frip.at[i,'group']
-            rep_i = self.frip.at[i,'replicate']
-            seacr_bed_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
-            pyr_seacr = pr.PyRanges(chromosomes=seacr_bed_i['chrom'], starts=seacr_bed_i['start'], ends=seacr_bed_i['end'])
-            pyr_bam = pr.PyRanges(df=bam_i)
-            sample_id = group_i + "_" + rep_i
-            pyr_bam_dict = {sample_id : pyr_bam}
-            frag_count_pyr = pr.count_overlaps(pyr_bam_dict, pyr_seacr)
-            frag_counts = frag_count_pyr.items()[0][1][sample_id].sum()
-            self.frip.at[i,'frags_in_peaks'] = frag_counts
-
-        self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
 
         ax = sns.boxplot(data=self.frip, x='group', y='percentage_frags_in_peaks')
 
         return fig, self.frip
-        
