@@ -65,8 +65,9 @@ class Figures:
                 frags_arr = np.append(frags_arr, dt_frag_i_long)
                 sample_arr = np.append(sample_arr, dt_sample_i_long)
                 self.frag_hist = self.frag_hist.append(dt_frag_i)
-        print(sample_arr[1:10,])
-        print(self.frag_hist.head(10))
+
+        # self.frag_hist[['group','replicate']] = self.frag_hist['Sample'].str.split('.', 1)[:,0].str.split('_', 1, expand=True)
+        # print(self.frag_hist.head(10))
 
         # ---------- Data - frag_violin --------- #
         # create hue array using regex pattern matching
@@ -89,7 +90,7 @@ class Figures:
 
         self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr}, index = np.arange(len(frags_arr)))
         # self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "sample" : sample_arr , "histone_mark": sample_exp_arr}, index = np.arange(len(frags_arr)))
-        print(self.frag_violin.head(10))
+        # print(self.frag_violin.head(10))
         # ---------- Data - frag_bin500 --------- #
         # create full join data frame for count data
         # start by creating list of bin500 files
@@ -231,9 +232,16 @@ class Figures:
             pyr_bam_dict = {sample_id : pyr_bam}
             # print(pyr_bam_dict)
             # print(pyr_seacr)
-            frag_count_pyr = pr.count_overlaps(pyr_bam_dict, pyr_seacr)
+            frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)  # pr.count_overlaps(pyr_bam_dict, pyr_seacr)
             # print(frag_count_pyr)
-            frag_counts = frag_count_pyr.items()[0][1][sample_id].sum()
+            # print(frag_count_pyr.items())
+            # print(frag_count_pyr.dfs())
+            # print(frag_count_pyr.NumberOverlaps.sum())
+            # print(np.count_nonzero(frag_count_pyr.NumberOverlaps))
+            # frag_counts = frag_count_pyr.items()[0][1][sample_id].sum()
+            # frag_counts = frag_count_pyr.items()[0][1]['NumberOverlaps'].sum()
+            frag_counts = frag_count_pyr.NumberOverlaps.sum()    
+
             self.frip.at[i,'frags_in_peaks'] = frag_counts
 
         self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
@@ -431,6 +439,7 @@ class Figures:
         fig, ax = plt.subplots()
         ax = sns.violinplot(data=self.frag_violin, x="group", y="fragment_size", hue="replicate")
         ax.set(ylabel="Fragment Size")
+        fig.suptitle("Fragment Length Distribution")
 
         return fig, self.frag_violin
 
@@ -438,6 +447,7 @@ class Figures:
     def fraglen_summary_histogram(self):
         fig, ax = plt.subplots()
         ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="Sample")
+        fig.suptitle("Fragment Length Distribution")
 
         return fig, self.frag_hist
 
@@ -456,6 +466,7 @@ class Figures:
         plot_data = self.frag_bin500[self.frag_bin500.columns[-(len(self.frag_bin500.columns)-2):]]
         corr_mat = plot_data.corr()
         ax = sns.heatmap(corr_mat, annot=True)
+        fig.suptitle("Replicate Reproducibility")
 
         return fig, self.frag_bin500
 
@@ -501,6 +512,7 @@ class Figures:
         self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs()
 
         ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate")
+        fig.suptitle("Peak Width Distribution")
 
         return fig, self.seacr_beds
 
@@ -511,6 +523,7 @@ class Figures:
 
         # plot
         ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate")
+        fig.suptitle("Peak Reprodducibility")
 
         return fig, self.reprod_peak_stats
 
@@ -519,5 +532,6 @@ class Figures:
         fig, ax = plt.subplots()
 
         ax = sns.boxplot(data=self.frip, x='group', y='percentage_frags_in_peaks')
+        fig.suptitle("Aligned Fragments within Peaks")
 
         return fig, self.frip
