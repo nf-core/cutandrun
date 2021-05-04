@@ -65,20 +65,31 @@ class Figures:
                 frags_arr = np.append(frags_arr, dt_frag_i_long)
                 sample_arr = np.append(sample_arr, dt_sample_i_long)
                 self.frag_hist = self.frag_hist.append(dt_frag_i)
+        print(sample_arr[1:10,])
+        print(self.frag_hist.head(10))
 
         # ---------- Data - frag_violin --------- #
         # create hue array using regex pattern matching
         for i in list(range(0,len(sample_arr))):
             sample_i = sample_arr[i]
-            sample_exp = re.findall("^[^_]*", sample_i)
+            # sample_exp = re.findall("^[^_]*", sample_i)
+            sample_exp = sample_i.split(".")[0]
+            group_exp = sample_exp.split("_")[0]
+            rep_exp = sample_exp.split("_")[1]
+
 
             if i==0:
-                sample_exp_arr = np.array(sample_exp[0])
+                # sample_exp_arr = np.array(sample_exp[0])
+                group_arr = np.array(group_exp)
+                rep_arr = np.array(rep_exp)
             else:
-                sample_exp_arr = np.append(sample_exp_arr, sample_exp[0])
+                # sample_exp_arr = np.append(sample_exp_arr, sample_exp[0])
+                group_arr = np.append(group_arr, group_exp)
+                rep_arr = np.append(rep_arr, rep_exp)
 
-        self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "sample" : sample_arr , "histone_mark": sample_exp_arr}, index = np.arange(len(frags_arr)))
-
+        self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr}, index = np.arange(len(frags_arr)))
+        # self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "sample" : sample_arr , "histone_mark": sample_exp_arr}, index = np.arange(len(frags_arr)))
+        print(self.frag_violin.head(10))
         # ---------- Data - frag_bin500 --------- #
         # create full join data frame for count data
         # start by creating list of bin500 files
@@ -418,7 +429,8 @@ class Figures:
     # ---------- Plot 3 - Fragment Distribution Violin --------- #
     def fraglen_summary_violin(self):
         fig, ax = plt.subplots()
-        ax = sns.violinplot(data=self.frag_violin, x="sample", y="fragment_size", hue="histone_mark")
+        ax = sns.violinplot(data=self.frag_violin, x="group", y="fragment_size", hue="replicate")
+        ax.set(ylabel="Fragment Size")
 
         return fig, self.frag_violin
 
