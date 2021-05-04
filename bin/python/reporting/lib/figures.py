@@ -364,12 +364,12 @@ class Figures:
 
         # Alignment rate hg38
         sns.boxplot(data=df_data, x='group', y='target_alignment_rate', ax=seq_summary[1,0])
-        seq_summary[1,0].set_title("Alignment Rate (hg38)")
+        seq_summary[1,0].set_title("Alignment Rate (Target)")
         seq_summary[1,0].set_ylabel("Percent of Fragments Aligned")
 
         # Alignment rate e.coli
         sns.boxplot(data=df_data, x='group', y='spikein_alignment_rate', ax=seq_summary[1,1])
-        seq_summary[1,1].set_title("Alignment Rate (e.coli)")
+        seq_summary[1,1].set_title("Alignment Rate (Spike-in)")
         seq_summary[1,1].set_ylabel("Percent of Fragments Aligned")
 
         plt.subplots_adjust(wspace=0.5, hspace=0.5)
