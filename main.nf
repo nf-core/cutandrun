@@ -28,6 +28,10 @@ if (params.help) {
 
 params.fasta        = Checks.get_genome_attribute(params, 'fasta')
 params.gtf          = Checks.get_genome_attribute(params, 'gtf')
+params.blacklist    = Checks.get_genome_attribute(params, 'blacklist')
+params.gene_bed     = Checks.get_genome_attribute(params, 'bed12')
+
+log.info 'test-' + params.blacklist
 
 ////////////////////////////////////////////////////
 /* --         PRINT PARAMETER SUMMARY          -- */

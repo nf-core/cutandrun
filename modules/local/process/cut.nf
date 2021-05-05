@@ -3,10 +3,9 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 def options      = initOptions(params.options)
 options.command  = params.options.command ?: ''
-options.command2 = params.options.command2 ?: ''
 options.ext      = params.options.ext ?: ''
 
-process AWK {
+process CUT {
     tag "$meta.id"
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
@@ -23,15 +22,13 @@ process AWK {
     tuple val(meta), path(input)
     
     output:
-    tuple val(meta), path("*.awk.*"), emit: file
-    path "*.version.txt",           emit: version
+    tuple val(meta), path("*.cut.*"), emit: file
     
     script:
     def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     def ext   = options.ext ? "${options.ext}" : "txt"
     """
-    awk $options.args $options.command $input $options.command2 > ${prefix}.awk.${ext}
-    echo \$(awk --version 2>&1) | sed 's/^.*version //;' > ${software}.version.txt
+    cut $options.args $input $options.command > ${prefix}.cut.${ext}
     """
 }

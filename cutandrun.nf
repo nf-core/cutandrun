@@ -13,6 +13,8 @@ checkPathParamList = [
     params.input,
     params.fasta,
     params.gtf,
+    params.blacklist,
+    params.gene_bed,
     params.bowtie2_index,
     params.spikein_fasta,
     params.spikein_bowtie2_index
@@ -23,6 +25,8 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 if (params.fasta) { ch_fasta = file(params.fasta) } else { exit 1, 'Genome fasta file not specified!' }
 if (params.gtf) { ch_gtf = file(params.gtf)   } else { exit 1, 'Genome GTF file not specified!' }
+if (params.blacklist) { ch_blacklist = file(params.blacklist) } else { exit 1, 'Genome blacklist file not specified!' }
+if (params.gene_bed) { ch_gene_bed = file(params.gene_bed) } else { exit 1, 'Genome gene bed file not specified!' }
 
 // Resolve spike-in genome
 def spikein_fasta = params.spikein_fasta
@@ -56,7 +60,9 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 /* --                  ASSETS                  -- */
 ////////////////////////////////////////////////////
 
+ch_dummy_file = file("dummy/file", checkIfExists: false)
 ch_bt2_to_csv_awk = file("$projectDir/assets/awk/bt2_report_to_csv.awk", checkIfExists: true)
+ch_dt_frag_to_csv_awk = file("$projectDir/assets/awk/dt_frag_report_to_csv.awk", checkIfExists: true)
 
 ////////////////////////////////////////////////////
 /* --     INIALISE PARAMETERS AND OPTIONS      -- */
@@ -102,7 +108,6 @@ if (params.publish_align_intermed || params.skip_markduplicates) {
     samtools_spikein_sort_options.publish_files.put('bai','')
 }
 
-
 def samtools_view_options         = modules['samtools_view']
 def samtools_qfilter_options         = modules['samtools_qfilter']
 if (params.minimum_alignment_q_score > 0) {
@@ -125,6 +130,8 @@ if(params.dedup_target_reads) { dedup_control_only = false }
 // Meta annotation
 def awk_bt2_options = modules['awk_bt2']
 def awk_bt2_spikein_options = modules['awk_bt2_spikein']
+def awk_dedup_options = modules['awk_dedup']
+def awk_dt_frag_options = modules['awk_dt_frag']
 
 ////////////////////////////////////////////////////
 /* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
@@ -142,7 +149,11 @@ include { IGV_SESSION              } from './modules/local/process/igv_session' 
 include { GET_SOFTWARE_VERSIONS    } from './modules/local/process/get_software_versions'    addParams( options: [publish_files : ['csv':'']] )
 include { MULTIQC                            } from './modules/local/process/multiqc'                     addParams( options: multiqc_options )
 include { EXPORT_META                            } from './modules/local/process/export_meta'                     addParams( options: modules['export_meta'] )
-include { GENERATE_REPORTS                            } from './modules/local/process/generate_reports'                     addParams( options: [:] )
+include { GENERATE_REPORTS                            } from './modules/local/process/generate_reports'                     addParams( options: modules['generate_reports'] )
+include { DEEPTOOLS_BAMPEFRAGMENTSIZE } from './modules/local/software/deeptools/bamPEFragmentSize/main' addParams( options: modules['deeptools_fragmentsize'] )
+include { AWK as AWK_FRAG_BIN } from './modules/local/process/awk' addParams( options: modules['awk_frag_bin'] )
+include { AWK as AWK_EDIT_PEAK_BED } from './modules/local/process/awk' addParams( options: modules['awk_edit_peak_bed'] )
+include { DESEQ2_DIFF } from './modules/local/process/deseq2_diff' addParams( options: [:],  multiqc_label: 'deseq2' )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -156,9 +167,14 @@ include { ALIGN_BOWTIE2 } from './modules/local/subworkflow/align_bowtie2'   add
                                                                                            spikein_align_options: bowtie2_spikein_align_options, 
                                                                                            samtools_options: samtools_sort_options,
                                                                                            samtools_spikein_options: samtools_spikein_sort_options )
-include { SAMTOOLS_VIEW_SORT_STATS } from './modules/local/subworkflow/samtools_view_sort_stats' addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options)                                                                                    
-include { ANNOTATE_META as ANNOTATE_BT2_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_options, meta_suffix: '_target')
-include { ANNOTATE_META as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/subworkflow/annotate_meta' addParams( options: awk_bt2_spikein_options, meta_suffix: '_spikein')                                                                                 
+include { SAMTOOLS_VIEW_SORT_STATS } from './modules/local/subworkflow/samtools_view_sort_stats' addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options)
+include { CALCULATE_FRAGMENTS } from './modules/local/subworkflow/calculate_fragments' addParams( samtools_options: modules['calc_frag_samtools'], samtools_view_options: modules['calc_frag_samtools_view'], bamtobed_options: modules['calc_frag_bamtobed'], awk_options: modules['calc_frag_awk'], cut_options: modules['calc_frag_cut'])   
+
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_bt2_options, meta_suffix: '_target', script_mode: true)
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_bt2_spikein_options, meta_suffix: '_spikein', script_mode: true)
+include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_dedup_options, meta_suffix: '', meta_prefix: 'dedup_', script_mode: false)
+include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from './modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_dt_frag_options, meta_suffix: '', meta_prefix: '', script_mode: true)     
+                                                               
 
 ////////////////////////////////////////////////////
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
@@ -168,6 +184,11 @@ include { ANNOTATE_META as ANNOTATE_BT2_SPIKEIN_META } from './modules/local/sub
  * MODULES
  */
 include { UCSC_BEDGRAPHTOBIGWIG } from './modules/nf-core/software/ucsc/bedgraphtobigwig/main' addParams( options: modules['ucsc_bedgraphtobigwig'] )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE } from './modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_gene'] )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from './modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_peaks'] )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE } from './modules/nf-core/software/deeptools/plotheatmap/main' addParams( options: modules['dt_plotheatmap_gene'] )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS } from './modules/nf-core/software/deeptools/plotheatmap/main' addParams( options: modules['dt_plotheatmap_peaks'] )
+
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -317,7 +338,7 @@ workflow CUTANDRUN {
     }
 
     /*
-     * SUBWORKFLOW: Annotate meta data with aligner stats and 
+     * SUBWORKFLOW: Annotate meta data with aligner stats 
      */
     ANNOTATE_BT2_META( ch_samtools_bam, ch_bowtie2_log, ch_bt2_to_csv_awk)
     ANNOTATE_BT2_SPIKEIN_META( ch_samtools_bam, ch_bowtie2_spikein_log, ch_bt2_to_csv_awk)
@@ -329,11 +350,15 @@ workflow CUTANDRUN {
         .map { row -> [row[0].id, row[0] ].flatten()}
         .set { ch_spikein_bt2_meta }
 
+    // ANNOTATE_BT2_META.out.output | view
+
     ANNOTATE_BT2_META.out.output
         .map { row -> [row[0].id, row ].flatten()}
         .join ( ch_spikein_bt2_meta )
         .map { row -> [ row[1] << row[3], row[2] ] }
         .set { ch_combined_meta }
+    
+    // ANNOTATE_BT2_SPIKEIN_META.out.output | view
 
     /*
      * CHANNEL: Calculate scale factor for each sample and join to main data flow
@@ -351,6 +376,17 @@ workflow CUTANDRUN {
             [ row[0], row[1], row[2] ] }
         .set { ch_samtools_bam_scale }
 
+    // Create channel without scale as seperate value
+    ch_samtools_bam_scale
+        .map { row -> [ row[0], row[1] ] }
+        .set { ch_samtools_bam_meta }
+
+    /*
+     * SUBWORKFLOW: Calculate fragment bed from bams 
+     */
+    CALCULATE_FRAGMENTS ( 
+        ch_samtools_bam_meta 
+    )
 
     if(!params.skip_coverage) {
         /*
@@ -387,6 +423,25 @@ workflow CUTANDRUN {
         ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
 
         /*
+         * CHANNEL: Collect SEACR group names
+         */
+        SEACR_CALLPEAK.out.bed
+            //.map{ row -> row[0].find{ it.key == "group" }?.value() }
+            .map{ row -> row[0].group}
+            .unique()
+            .collect()
+            .set { ch_groups_no_igg }
+
+        /*
+        * MODULE: DESeq2 QC Analysis
+        */
+        DESEQ2_DIFF (
+            ch_groups_no_igg,
+            ch_seacr_bed.collect{it[1]},
+            ch_samtools_bam.collect{it[1]}
+        )
+
+        /*
         * MODULE: Clip off-chromosome peaks
         */
         UCSC_BEDCLIP (
@@ -417,9 +472,9 @@ workflow CUTANDRUN {
     /*
      * MODULE: Collect software versions used in pipeline
      */
-    GET_SOFTWARE_VERSIONS ( 
-        ch_software_versions.map { it }.collect()
-    )
+    // GET_SOFTWARE_VERSIONS ( 
+    //     ch_software_versions.map { it }.collect()
+    // )
 
     /*
      * MODULE: Multiqc
@@ -446,16 +501,109 @@ workflow CUTANDRUN {
         multiqc_report = MULTIQC.out.report.toList()
     }
 
+    // filter igg from bigwigs
+    UCSC_BEDGRAPHTOBIGWIG.out.bigwig
+        .filter { it[0].group != 'igg' }
+        .set { ch_bigwig_no_igg }
+
+    //DEEPTOOLS HEATMAPS
+    //HEATMAP OVER TRANSCRIPTION UNITS
+    DEEPTOOLS_COMPUTEMATRIX_GENE (
+        ch_bigwig_no_igg,
+        ch_gene_bed
+    )
+
+    DEEPTOOLS_PLOTHEATMAP_GENE (
+        DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
+    )
+    
+
+    //HEATMAP ON PEAKS
+    // extract max signal region from SEACR bed
+    AWK_EDIT_PEAK_BED (
+        SEACR_CALLPEAK.out.bed
+    )
+
+    // order bigwig and bed channels such that they match on id
+    ch_bigwig_no_igg
+        .map { row -> [row[0].id, row ].flatten()}
+        .set { ch_bigwig_no_igg_id }
+
+    AWK_EDIT_PEAK_BED.out.file
+        .map { row -> [row[0].id, row ].flatten()}
+        .set { ch_seacr_max_id }
+
+    ch_bigwig_no_igg_id
+        .join ( ch_seacr_max_id )
+        .set { ch_dt_peaks }
+    
+    ch_dt_peaks
+        .map { row -> row[1,2] }
+        .set { ch_ordered_bigwig }
+
+    ch_dt_peaks
+        .map { row -> row[-1] }
+        .set { ch_ordered_seacr_max }
+
+
+    DEEPTOOLS_COMPUTEMATRIX_PEAKS (
+        ch_ordered_bigwig,
+        ch_ordered_seacr_max
+    )
+
+    DEEPTOOLS_PLOTHEATMAP_PEAKS (
+        DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
+    )
+
+
     /*
      * MODULE: Reporting
      */
     if (!params.skip_reporting) {
+        ANNOTATE_DEDUP_META(ch_samtools_bam_meta, ch_markduplicates_multiqc, ch_dummy_file.collect())
+        //ANNOTATE_DEDUP_META.out.output | view
+
+        ch_samtools_bam
+            .map { row -> [row[0].id, row[0], row[1] ] }
+            .set { ch_samtools_bam_id }
+
+        ch_samtools_bai
+            .map { row -> [row[0].id, row[0], row[1] ] }
+            .set { ch_samtools_bai_id }
+
+        ch_samtools_bam_id
+            .join( ch_samtools_bai_id )
+            .map { row -> [row[1], row[2], row[4] ] }
+            .set { ch_samtools_bam_bai }
+        // ch_samtools_bam_bai | view
+        
+        DEEPTOOLS_BAMPEFRAGMENTSIZE(ch_samtools_bam_bai, ch_blacklist)
+        //DEEPTOOLS_BAMPEFRAGMENTSIZE.out.summary_csv | view
+
+        ANNOTATE_DT_FRAG_META( ANNOTATE_DEDUP_META.out.output, DEEPTOOLS_BAMPEFRAGMENTSIZE.out.summary_csv, ch_dt_frag_to_csv_awk)
+        //ANNOTATE_DT_FRAG_META.out.output | view
+
+        AWK_FRAG_BIN( CALCULATE_FRAGMENTS.out.bed )
+
         EXPORT_META (
-            ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+            ANNOTATE_DEDUP_META.out.output.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+            //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+        )
+
+        // Filter bam bai channels for non-igg only
+        ch_samtools_bam_bai
+            .filter { it[0].group != 'igg' }
+            .set { ch_no_igg_bam_bai }
+
+
+        GENERATE_REPORTS(
+            EXPORT_META.out.csv, 
+            DEEPTOOLS_BAMPEFRAGMENTSIZE.out.raw_csv.collect{it[1]},
+            AWK_FRAG_BIN.out.file.collect{it[1]},
+            SEACR_CALLPEAK.out.bed.collect{it[1]},
+            ch_no_igg_bam_bai.collect{it[1,2]}
         )
     }
-
-    //GENERATE_REPORTS()
 }
 
 ////////////////////////////////////////////////////
