@@ -146,6 +146,36 @@ class Figures:
             self.frip.at[k, 'mapped_frags'] = bam_now.shape[0]
             k=k+1
 
+        # ---------- Data - New frag_hist --------- #
+        # print(self.bam_df_list)
+        
+        for i in list(range(len(self.bam_df_list))):
+            df_i = self.bam_df_list[i]
+            widths_i = (df_i['End'] - df_i['Start']).abs()
+            print(df_i)
+            print(widths_i[1:20,])
+            print(np.max(widths_i))
+            unique_i, counts_i = np.unique(widths_i, return_counts=True)
+            group_i = np.repeat(self.frip.at[i, 'group'], len(unique_i))
+            rep_i = np.repeat(self.frip.at[i, 'replicate'], len(unique_i))
+
+            if i==0:
+                frag_lens = unique_i
+                frag_counts = counts_i
+                group_arr = group_i
+                rep_arr = rep_i
+            else:
+                frag_lens = np.append(frag_lens, unique_i)
+                frag_counts = np.append(frag_counts, counts_i)
+                group_arr = np.append(group_arr, group_i)
+                rep_arr = np.append(rep_arr, rep_i)
+
+        self.frag_series = pd.DataFrame({'group' : group_arr, 'replicate' : rep_arr, 'frag_len' : frag_lens, 'occurences' : frag_counts})
+        # print(self.frag_series.head(10))
+            # print(self.frip.at[i, 'group'])
+            # print(self.frip.at[i, 'replicate'])
+
+
         # ---------- Data - Peak stats --------- #
         ## create number of peaks df
         unique_groups = self.seacr_beds.group.unique()
@@ -446,7 +476,8 @@ class Figures:
     # ---------- Plot 4 - Fragment Distribution Histogram --------- #
     def fraglen_summary_histogram(self):
         fig, ax = plt.subplots()
-        ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="Sample")
+        # ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="Sample")
+        ax = sns.lineplot(data=self.frag_series, x="frag_len", y="occurences", hue="group", style="replicate")
         fig.suptitle("Fragment Length Distribution")
 
         return fig, self.frag_hist
