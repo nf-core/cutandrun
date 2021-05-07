@@ -84,7 +84,7 @@ class Figures:
 
         self.frag_hist['group'] = group_short
         self.frag_hist['replicate'] = rep_short
-        print(self.frag_hist.head(10))
+        # print(self.frag_hist.head(10))
         # self.frag_hist[['group','replicate']] = self.frag_hist['Sample'].str.split('.', 1)[:,0].str.split('_', 1, expand=True)
         # print(self.frag_hist.head(10))
 
@@ -413,6 +413,8 @@ class Figures:
 
     # ---------- Plot 1 - Alignment Summary --------- #
     def alignment_summary(self):
+        sns.color_palette("magma", as_cmap=True)
+
         # Subset data 
         df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
@@ -421,22 +423,22 @@ class Figures:
         fig.suptitle("Sequencing and Alignment Summary")
 
         # Seq depth
-        sns.boxplot(data=df_data, x='group', y='bt2_total_reads_target', ax=seq_summary[0,0])
+        sns.boxplot(data=df_data, x='group', y='bt2_total_reads_target', ax=seq_summary[0,0], palette = "magma")
         seq_summary[0,0].set_title("Sequencing Depth")
         seq_summary[0,0].set_ylabel("Total Reads")
 
         # Alignable fragments
-        sns.boxplot(data=df_data, x='group', y='bt2_total_aligned_target', ax=seq_summary[0,1])
+        sns.boxplot(data=df_data, x='group', y='bt2_total_aligned_target', ax=seq_summary[0,1], palette = "magma")
         seq_summary[0,1].set_title("Alignable Fragments")
         seq_summary[0,1].set_ylabel("Total Aligned Reads")
 
         # Alignment rate hg38
-        sns.boxplot(data=df_data, x='group', y='target_alignment_rate', ax=seq_summary[1,0])
+        sns.boxplot(data=df_data, x='group', y='target_alignment_rate', ax=seq_summary[1,0], palette = "magma")
         seq_summary[1,0].set_title("Alignment Rate (Target)")
         seq_summary[1,0].set_ylabel("Percent of Fragments Aligned")
 
         # Alignment rate e.coli
-        sns.boxplot(data=df_data, x='group', y='spikein_alignment_rate', ax=seq_summary[1,1])
+        sns.boxplot(data=df_data, x='group', y='spikein_alignment_rate', ax=seq_summary[1,1], palette = "magma")
         seq_summary[1,1].set_title("Alignment Rate (Spike-in)")
         seq_summary[1,1].set_ylabel("Percent of Fragments Aligned")
 
@@ -460,19 +462,19 @@ class Figures:
         fig.suptitle("Duplication Summary")
 
         # Duplication rate
-        sns.boxplot(data=df_data, x='group', y='dedup_percent_duplication', ax=seq_summary[0])
+        sns.boxplot(data=df_data, x='group', y='dedup_percent_duplication', ax=seq_summary[0], palette = "magma")
         seq_summary[0].set_ylabel("Duplication Rate (%)")
         seq_summary[0].set(ylim=(0, 100))
         seq_summary[0].xaxis.set_tick_params(labelrotation=45)
 
         # Estimated library size
-        sns.boxplot(data=df_data, x='group', y='dedup_estimated_library_size', ax=seq_summary[1])
+        sns.boxplot(data=df_data, x='group', y='dedup_estimated_library_size', ax=seq_summary[1], palette = "magma")
         seq_summary[1].set_ylabel("Estimated Library Size")
         seq_summary[1].yaxis.set_major_formatter(m_formatter)
         seq_summary[1].xaxis.set_tick_params(labelrotation=45)
 
         # No. of unique fragments 
-        sns.boxplot(data=df_data, x='group', y='unique_frag_num', ax=seq_summary[2])
+        sns.boxplot(data=df_data, x='group', y='unique_frag_num', ax=seq_summary[2], palette = "magma")
         seq_summary[2].set_ylabel("No. of Unique Fragments")
         seq_summary[2].yaxis.set_major_formatter(k_formatter)
         seq_summary[2].xaxis.set_tick_params(labelrotation=45)
@@ -486,7 +488,7 @@ class Figures:
     # ---------- Plot 3 - Fragment Distribution Violin --------- #
     def fraglen_summary_violin(self):
         fig, ax = plt.subplots()
-        ax = sns.violinplot(data=self.frag_violin, x="group", y="fragment_size", hue="replicate")
+        ax = sns.violinplot(data=self.frag_violin, x="group", y="fragment_size", hue="replicate", palette = "viridis")
         ax.set(ylabel="Fragment Size")
         fig.suptitle("Fragment Length Distribution")
 
@@ -496,7 +498,7 @@ class Figures:
     def fraglen_summary_histogram(self):
         fig, ax = plt.subplots()
         # ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="Sample")
-        ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="group", style="replicate")
+        ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="group", style="replicate", palette = "magma")
         fig.suptitle("Fragment Length Distribution")
 
         return fig, self.frag_hist
@@ -504,7 +506,7 @@ class Figures:
     def alignment_summary_ex(self):
         df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
-        ax = px.box(df_data, x="group", y="bt2_total_reads_target")
+        ax = px.box(df_data, x="group", y="bt2_total_reads_target", palette = "magma")
 
         return ax, df_data
 
@@ -533,11 +535,11 @@ class Figures:
         df_data_scale = self.data_table.loc[:, ('id', 'group','scale_factor')]
 
         # Scale factor
-        sns.boxplot(data=df_data_scale, x='group', y='scale_factor', ax=scale_summary[0])
+        sns.boxplot(data=df_data_scale, x='group', y='scale_factor', ax=scale_summary[0], palette = "magma")
         scale_summary[0].set_ylabel('Scale Factor')
 
         # Normalised fragment count
-        sns.boxplot(data=df_normalised_frags, x='group', y='normalised_frags', ax=scale_summary[1])
+        sns.boxplot(data=df_normalised_frags, x='group', y='normalised_frags', ax=scale_summary[1], palette = "magma")
         scale_summary[1].set_ylabel('Normalised Fragment Count')
 
         return fig, df_data_scale
@@ -548,7 +550,7 @@ class Figures:
         fig, ax = plt.subplots()
         fig.suptitle("Total Peaks")
 
-        ax = sns.boxplot(data=self.df_no_peaks, x='group', y='all_peaks')
+        ax = sns.boxplot(data=self.df_no_peaks, x='group', y='all_peaks', palette = "magma")
         ax.set_ylabel("No. of Peaks")
 
         return fig, self.df_no_peaks
@@ -561,7 +563,7 @@ class Figures:
         self.seacr_beds['peak_width'] = self.seacr_beds['end'] - self.seacr_beds['start']
         self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs()
 
-        ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate")
+        ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate", palette = "viridis")
         fig.suptitle("Peak Width Distribution")
 
         return fig, self.seacr_beds
@@ -572,7 +574,7 @@ class Figures:
         fig, ax = plt.subplots()
 
         # plot
-        ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate")
+        ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate", palette = "viridis")
         fig.suptitle("Peak Reprodducibility")
 
         return fig, self.reprod_peak_stats
@@ -581,7 +583,7 @@ class Figures:
     def frags_in_peaks(self):
         fig, ax = plt.subplots()
 
-        ax = sns.boxplot(data=self.frip, x='group', y='percentage_frags_in_peaks')
+        ax = sns.boxplot(data=self.frip, x='group', y='percentage_frags_in_peaks', palette = "magma")
         fig.suptitle("Aligned Fragments within Peaks")
 
         return fig, self.frip
