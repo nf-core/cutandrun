@@ -604,7 +604,7 @@ workflow CUTANDRUN {
 
         GENERATE_REPORTS(
             EXPORT_META.out.csv, 
-            SAMTOOLS_CUSTOMVIEW.out.txt.collect{it[1]},
+            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]},
             AWK_FRAG_BIN.out.file.collect{it[1]},
             SEACR_CALLPEAK.out.bed.collect{it[1]},
             ch_no_igg_bam_bai.collect{it[1,2]}
