@@ -51,7 +51,7 @@ class Figures:
 
         for i in list(range(len(dt_frag_list))):
             # create dataframe from csv file for each file and save to a list
-            dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', skiprows=[0], header=0)
+            dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None)
 
             # create long forms of fragment histograms
             dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)

@@ -154,6 +154,7 @@ include { DEEPTOOLS_BAMPEFRAGMENTSIZE } from './modules/local/software/deeptools
 include { AWK as AWK_FRAG_BIN } from './modules/local/process/awk' addParams( options: modules['awk_frag_bin'] )
 include { AWK as AWK_EDIT_PEAK_BED } from './modules/local/process/awk' addParams( options: modules['awk_edit_peak_bed'] )
 include { DESEQ2_DIFF } from './modules/local/process/deseq2_diff' addParams( options: [:],  multiqc_label: 'deseq2' )
+include { SAMTOOLS_CUSTOMVIEW } from './modules/local/software/samtools/custom_view/main' addParams( options: modules['samtools_frag_len'] )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -590,15 +591,20 @@ workflow CUTANDRUN {
             //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
         )
 
+        SAMTOOLS_CUSTOMVIEW (
+            ch_samtools_bam,
+            ch_samtools_bai
+        )
+        //SAMTOOLS_CUSTOMVIEW.out.txt | view
+
         // Filter bam bai channels for non-igg only
         ch_samtools_bam_bai
             .filter { it[0].group != 'igg' }
             .set { ch_no_igg_bam_bai }
 
-
         GENERATE_REPORTS(
             EXPORT_META.out.csv, 
-            DEEPTOOLS_BAMPEFRAGMENTSIZE.out.raw_csv.collect{it[1]},
+            SAMTOOLS_CUSTOMVIEW.out.txt.collect{it[1]},
             AWK_FRAG_BIN.out.file.collect{it[1]},
             SEACR_CALLPEAK.out.bed.collect{it[1]},
             ch_no_igg_bam_bai.collect{it[1,2]}
