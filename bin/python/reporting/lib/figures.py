@@ -51,44 +51,63 @@ class Figures:
 
         for i in list(range(len(dt_frag_list))):
             # create dataframe from csv file for each file and save to a list
-            dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None)
+            dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None, names=['Size','Occurrences'])
+            # print(dt_frag_i.shape[0])
+            frag_base_i = os.path.basename(dt_frag_list[i])
+            sample_id = frag_base_i.split(".")[0]
+            [group_i,rep_i] = sample_id.split("_")
 
             # create long forms of fragment histograms
             dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
-            dt_sample_i_long = np.repeat(dt_frag_i['Sample'][0], len(dt_frag_i_long))
+            dt_group_i_long = np.repeat(group_i, len(dt_frag_i_long))
+            dt_rep_i_long = np.repeat(rep_i, len(dt_frag_i_long))
+
+            dt_group_i_short = np.repeat(group_i, dt_frag_i.shape[0])
+            dt_rep_i_short = np.repeat(rep_i, dt_frag_i.shape[0])
 
             if i==0:
                 frags_arr = dt_frag_i_long
-                sample_arr = dt_sample_i_long
+                group_arr = dt_group_i_long
+                rep_arr = dt_rep_i_long
+
+                group_short = dt_group_i_short
+                rep_short = dt_rep_i_short
                 self.frag_hist = dt_frag_i
             else:
                 frags_arr = np.append(frags_arr, dt_frag_i_long)
-                sample_arr = np.append(sample_arr, dt_sample_i_long)
+                group_arr = np.append(group_arr, dt_group_i_long)
+                rep_arr = np.append(rep_arr, dt_rep_i_long)
+
+                group_short = np.append(group_short, dt_group_i_short)
+                rep_short = np.append(rep_short, dt_rep_i_short)
                 self.frag_hist = self.frag_hist.append(dt_frag_i)
 
+        self.frag_hist['group'] = group_short
+        self.frag_hist['replicate'] = rep_short
+        print(self.frag_hist.head(10))
         # self.frag_hist[['group','replicate']] = self.frag_hist['Sample'].str.split('.', 1)[:,0].str.split('_', 1, expand=True)
         # print(self.frag_hist.head(10))
 
         # ---------- Data - frag_violin --------- #
         # create hue array using regex pattern matching
-        for i in list(range(0,len(sample_arr))):
-            sample_i = sample_arr[i]
-            # sample_exp = re.findall("^[^_]*", sample_i)
-            sample_exp = sample_i.split(".")[0]
-            group_exp = sample_exp.split("_")[0]
-            rep_exp = sample_exp.split("_")[1]
+        # for i in list(range(0,len(sample_arr))):
+        #     sample_i = sample_arr[i]
+        #     # sample_exp = re.findall("^[^_]*", sample_i)
+        #     sample_exp = sample_i.split(".")[0]
+        #     group_exp = sample_exp.split("_")[0]
+        #     rep_exp = sample_exp.split("_")[1]
 
 
-            if i==0:
-                # sample_exp_arr = np.array(sample_exp[0])
-                group_arr = np.array(group_exp)
-                rep_arr = np.array(rep_exp)
-            else:
-                # sample_exp_arr = np.append(sample_exp_arr, sample_exp[0])
-                group_arr = np.append(group_arr, group_exp)
-                rep_arr = np.append(rep_arr, rep_exp)
+        #     if i==0:
+        #         # sample_exp_arr = np.array(sample_exp[0])
+        #         group_arr = np.array(group_exp)
+        #         rep_arr = np.array(rep_exp)
+        #     else:
+        #         # sample_exp_arr = np.append(sample_exp_arr, sample_exp[0])
+        #         group_arr = np.append(group_arr, group_exp)
+        #         rep_arr = np.append(rep_arr, rep_exp)
 
-        self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr}, index = np.arange(len(frags_arr)))
+        self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr} ) #, index = np.arange(len(frags_arr)))
         # self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "sample" : sample_arr , "histone_mark": sample_exp_arr}, index = np.arange(len(frags_arr)))
         # print(self.frag_violin.head(10))
         # ---------- Data - frag_bin500 --------- #
@@ -152,9 +171,9 @@ class Figures:
         for i in list(range(len(self.bam_df_list))):
             df_i = self.bam_df_list[i]
             widths_i = (df_i['End'] - df_i['Start']).abs()
-            print(df_i)
-            print(widths_i[1:20,])
-            print(np.max(widths_i))
+            # print(df_i)
+            # print(widths_i[1:20,])
+            # print(np.max(widths_i))
             unique_i, counts_i = np.unique(widths_i, return_counts=True)
             group_i = np.repeat(self.frip.at[i, 'group'], len(unique_i))
             rep_i = np.repeat(self.frip.at[i, 'replicate'], len(unique_i))
@@ -477,7 +496,7 @@ class Figures:
     def fraglen_summary_histogram(self):
         fig, ax = plt.subplots()
         # ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="Sample")
-        ax = sns.lineplot(data=self.frag_series, x="frag_len", y="occurences", hue="group", style="replicate")
+        ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="group", style="replicate")
         fig.suptitle("Fragment Length Distribution")
 
         return fig, self.frag_hist
