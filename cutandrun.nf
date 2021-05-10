@@ -197,6 +197,7 @@ include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS } from './modules
 include { FASTQC_TRIMGALORE                                        } from './modules/nf-core/subworkflow/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
 include { MARK_DUPLICATES_PICARD                                   } from './modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
 include { MARK_DUPLICATES_PICARD as DEDUP_PICARD                   } from './modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup'], samtools_options: modules['picard_dedup_samtools'], control_only: dedup_control_only )
+include { BAM_SORT_SAMTOOLS                                        } from './modules/nf-core/subworkflow/bam_sort_samtools' addParams( samtools_sort_options: modules['samtools_sort'] )
 
 ////////////////////////////////////////////////////
 /* --           RUN MAIN WORKFLOW              -- */
@@ -601,6 +602,11 @@ workflow CUTANDRUN {
         ch_samtools_bam_bai
             .filter { it[0].group != 'igg' }
             .set { ch_no_igg_bam_bai }
+
+        // Sort bams by mate pairs
+        BAM_SORT_SAMTOOLS ( ch_samtools_bam )
+
+
 
         GENERATE_REPORTS(
             EXPORT_META.out.csv, 
