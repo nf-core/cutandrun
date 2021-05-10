@@ -473,9 +473,9 @@ workflow CUTANDRUN {
     /*
      * MODULE: Collect software versions used in pipeline
      */
-    // GET_SOFTWARE_VERSIONS ( 
-    //     ch_software_versions.map { it }.collect()
-    // )
+    GET_SOFTWARE_VERSIONS ( 
+        ch_software_versions.map { it }.collect()
+    )
 
     /*
      * MODULE: Multiqc
