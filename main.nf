@@ -58,12 +58,43 @@ Checks.hostname(workflow, params, log)
 // Check genome key exists if provided
 Checks.genome_exists(params, log)
 
-workflow {
+
+/*
+========================================================================================
+    NAMED WORKFLOW FOR PIPELINE
+========================================================================================
+*/
+
+workflow NFCORE_CUTANDRUN {
     /*
-    * SUBWORKFLOW: Run main nf-core/cutandrun analysis pipeline (also valid for cutandtag analysis)
-    */
-    include { CUTANDRUN } from './cutandrun' addParams( summary_params: summary_params )
-    CUTANDRUN ()
+     * WORKFLOW: Get SRA run information for public database ids, download and md5sum check FastQ files, auto-create samplesheet
+     */
+    if (params.public_data_ids) {
+        include { SRA_DOWNLOAD } from './workflows/sra_download'
+        SRA_DOWNLOAD ()
+    
+    /*
+     * WORKFLOW: Run main nf-core/cutandrun analysis pipeline
+     */
+    } else {
+        include { CUTANDRUN } from './workflows/cutandrun' addParams( summary_params: summary_params )
+        CUTANDRUN ()
+    }
+}
+
+
+/*
+========================================================================================
+    RUN ALL WORKFLOWS
+========================================================================================
+*/
+
+/*
+ * WORKFLOW: Execute a single named workflow for the pipeline
+ * See: https://github.com/nf-core/rnaseq/issues/619
+ */
+workflow {
+    NFCORE_CUTANDRUN ()
 }
 
 ////////////////////////////////////////////////////
