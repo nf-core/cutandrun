@@ -29,7 +29,7 @@ process GENERATE_REPORTS {
     """
     $baseDir/bin/python/reporting/main.py genimg \\
         --meta $meta_data \\
-        --raw_frag "*_raw.csv" \\
+        --raw_frag "*.frag_len.txt" \\
         --bed_frag "*bin500.awk.bed" \\
         --seacr_bed "*bed.*.bed" \\
         --bams "*.bam" \\

@@ -12,6 +12,8 @@ from matplotlib.ticker import FuncFormatter
 import seaborn as sns
 import plotly.express as px
 import pyranges as pr
+import pysam
+import time
 
 class Figures:
     data_table = None
@@ -51,44 +53,63 @@ class Figures:
 
         for i in list(range(len(dt_frag_list))):
             # create dataframe from csv file for each file and save to a list
-            dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', skiprows=[0], header=0)
+            dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None, names=['Size','Occurrences'])
+            # print(dt_frag_i.shape[0])
+            frag_base_i = os.path.basename(dt_frag_list[i])
+            sample_id = frag_base_i.split(".")[0]
+            [group_i,rep_i] = sample_id.split("_")
 
             # create long forms of fragment histograms
             dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
-            dt_sample_i_long = np.repeat(dt_frag_i['Sample'][0], len(dt_frag_i_long))
+            dt_group_i_long = np.repeat(group_i, len(dt_frag_i_long))
+            dt_rep_i_long = np.repeat(rep_i, len(dt_frag_i_long))
+
+            dt_group_i_short = np.repeat(group_i, dt_frag_i.shape[0])
+            dt_rep_i_short = np.repeat(rep_i, dt_frag_i.shape[0])
 
             if i==0:
                 frags_arr = dt_frag_i_long
-                sample_arr = dt_sample_i_long
+                group_arr = dt_group_i_long
+                rep_arr = dt_rep_i_long
+
+                group_short = dt_group_i_short
+                rep_short = dt_rep_i_short
                 self.frag_hist = dt_frag_i
             else:
                 frags_arr = np.append(frags_arr, dt_frag_i_long)
-                sample_arr = np.append(sample_arr, dt_sample_i_long)
+                group_arr = np.append(group_arr, dt_group_i_long)
+                rep_arr = np.append(rep_arr, dt_rep_i_long)
+
+                group_short = np.append(group_short, dt_group_i_short)
+                rep_short = np.append(rep_short, dt_rep_i_short)
                 self.frag_hist = self.frag_hist.append(dt_frag_i)
 
+        self.frag_hist['group'] = group_short
+        self.frag_hist['replicate'] = rep_short
+        # print(self.frag_hist.head(10))
         # self.frag_hist[['group','replicate']] = self.frag_hist['Sample'].str.split('.', 1)[:,0].str.split('_', 1, expand=True)
         # print(self.frag_hist.head(10))
 
         # ---------- Data - frag_violin --------- #
         # create hue array using regex pattern matching
-        for i in list(range(0,len(sample_arr))):
-            sample_i = sample_arr[i]
-            # sample_exp = re.findall("^[^_]*", sample_i)
-            sample_exp = sample_i.split(".")[0]
-            group_exp = sample_exp.split("_")[0]
-            rep_exp = sample_exp.split("_")[1]
+        # for i in list(range(0,len(sample_arr))):
+        #     sample_i = sample_arr[i]
+        #     # sample_exp = re.findall("^[^_]*", sample_i)
+        #     sample_exp = sample_i.split(".")[0]
+        #     group_exp = sample_exp.split("_")[0]
+        #     rep_exp = sample_exp.split("_")[1]
 
 
-            if i==0:
-                # sample_exp_arr = np.array(sample_exp[0])
-                group_arr = np.array(group_exp)
-                rep_arr = np.array(rep_exp)
-            else:
-                # sample_exp_arr = np.append(sample_exp_arr, sample_exp[0])
-                group_arr = np.append(group_arr, group_exp)
-                rep_arr = np.append(rep_arr, rep_exp)
+        #     if i==0:
+        #         # sample_exp_arr = np.array(sample_exp[0])
+        #         group_arr = np.array(group_exp)
+        #         rep_arr = np.array(rep_exp)
+        #     else:
+        #         # sample_exp_arr = np.append(sample_exp_arr, sample_exp[0])
+        #         group_arr = np.append(group_arr, group_exp)
+        #         rep_arr = np.append(rep_arr, rep_exp)
 
-        self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr}, index = np.arange(len(frags_arr)))
+        self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr} ) #, index = np.arange(len(frags_arr)))
         # self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "sample" : sample_arr , "histone_mark": sample_exp_arr}, index = np.arange(len(frags_arr)))
         # print(self.frag_violin.head(10))
         # ---------- Data - frag_bin500 --------- #
@@ -135,8 +156,72 @@ class Figures:
         self.bam_df_list = list()
         self.frip = pd.DataFrame(data=None, index=range(len(bam_list)), columns=['group','replicate','mapped_frags','frags_in_peaks','percentage_frags_in_peaks'])
         k = 0 #counter
+        
+        def pe_bam_to_df(bam_path):
+            bamfile = pysam.AlignmentFile(bam_path, "rb")
+            # Iterate through reads.
+            read1 = None
+            read2 = None
+            k=0 #counter
+
+            # get number of reads in bam
+            count = 0
+            for _ in bamfile:
+                count += 1
+
+            bamfile.close()
+            bamfile = pysam.AlignmentFile(bam_path, "rb")
+
+            # initialise arrays
+            frag_no = round(count/2)
+            start_arr = np.zeros(frag_no, dtype=np.int64)
+            end_arr = np.zeros(frag_no, dtype=np.int64)
+            chrom_arr = np.empty(frag_no, dtype="<U20")
+
+            for read in bamfile:
+
+                if not read.is_paired or read.mate_is_unmapped or read.is_duplicate:
+                    continue
+
+                if read.is_read2:
+                    read2 = read
+                    # print("is read2: " + read.query_name)
+
+                else:
+                    read1 = read
+                    read2 = None
+                    # print("is read1: " + read.query_name)
+
+                if read1 is not None and read2 is not None and read1.query_name == read2.query_name:
+
+                    start_pos = min(read1.reference_start, read2.reference_start)
+                    end_pos = max(read1.reference_end, read2.reference_end) - 1
+                    chrom = read.reference_name
+                    
+                    start_arr[k] = start_pos
+                    end_arr[k] = end_pos
+                    chrom_arr[k] = chrom
+
+                    k +=1
+                    
+            bamfile.close()
+
+            # remove zeros and empty elements. The indicies for these are always the same from end_arr and chrom_arr
+            remove_idx = np.where(chrom_arr == '')[0]
+            chrom_arr = np.delete(chrom_arr, remove_idx)
+            start_arr = np.delete(start_arr, remove_idx)
+            end_arr = np.delete(end_arr, remove_idx)
+
+            # create dataframe
+            bam_df = pd.DataFrame({ "Chromosome" : chrom_arr, "Start" : start_arr, "End" : end_arr })
+            return(bam_df)
+
+        
         for bam in bam_list:
-            bam_now = pr.read_bam(bam, as_df=True, filter_flag=0) # no frags filtered
+            # bam_now = pr.read_bam(bam, as_df=True, filter_flag=0) # no frags filtered
+            # print(bam_now)
+            bam_now = pe_bam_to_df(bam)
+            # print(bam_now.head(10))
             self.bam_df_list.append(bam_now)
             bam_base = os.path.basename(bam)
             sample_id = bam_base.split(".")[0]
@@ -145,6 +230,36 @@ class Figures:
             self.frip.at[k, 'replicate'] = rep_now
             self.frip.at[k, 'mapped_frags'] = bam_now.shape[0]
             k=k+1
+
+        # ---------- Data - New frag_hist --------- #
+        # print(self.bam_df_list)
+        
+        for i in list(range(len(self.bam_df_list))):
+            df_i = self.bam_df_list[i]
+            widths_i = (df_i['End'] - df_i['Start']).abs()
+            # print(df_i)
+            # print(widths_i[1:20,])
+            # print(np.max(widths_i))
+            unique_i, counts_i = np.unique(widths_i, return_counts=True)
+            group_i = np.repeat(self.frip.at[i, 'group'], len(unique_i))
+            rep_i = np.repeat(self.frip.at[i, 'replicate'], len(unique_i))
+
+            if i==0:
+                frag_lens = unique_i
+                frag_counts = counts_i
+                group_arr = group_i
+                rep_arr = rep_i
+            else:
+                frag_lens = np.append(frag_lens, unique_i)
+                frag_counts = np.append(frag_counts, counts_i)
+                group_arr = np.append(group_arr, group_i)
+                rep_arr = np.append(rep_arr, rep_i)
+
+        self.frag_series = pd.DataFrame({'group' : group_arr, 'replicate' : rep_arr, 'frag_len' : frag_lens, 'occurences' : frag_counts})
+        # print(self.frag_series.head(10))
+            # print(self.frip.at[i, 'group'])
+            # print(self.frip.at[i, 'replicate'])
+
 
         # ---------- Data - Peak stats --------- #
         ## create number of peaks df
@@ -211,11 +326,6 @@ class Figures:
             self.reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
 
         # ---------- Data - Percentage of fragments in peaks --------- #
-        # test_query = pr.PyRanges(chromosomes="chr1", starts=[1,7,15], ends=[3,8,20])
-        # test_subject = pr.PyRanges(chromosomes="chr1", starts=[25,28,31], ends=[26,29,37])
-        # test_query_dict = {'test_query' : test_query }
-        # test_overlap = pr.count_overlaps(test_query_dict, test_subject)
-        # print(test_overlap)
 
         for i in range(len(self.bam_df_list)):
             bam_i = self.bam_df_list[i]
@@ -223,28 +333,19 @@ class Figures:
             group_i = self.frip.at[i,'group']
             rep_i = self.frip.at[i,'replicate']
             seacr_bed_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
-            # seacr_bed_prep = seacr_bed_i.drop(['total_signal','max_signal','group','replicate'],axis=1)
-            # seacr_bed_prep = seacr_bed_prep.rename(columns={"chrom":"Chromosome","start":"Start","end":"End"})
             pyr_seacr = pr.PyRanges(chromosomes=seacr_bed_i['chrom'], starts=seacr_bed_i['start'], ends=seacr_bed_i['end'])
             pyr_bam = pr.PyRanges(df=bam_i)
-            # pyr_bam = pyr_bam.apply(lambda df: df.drop(['Strand','Flag'], axis=1))
             sample_id = group_i + "_" + rep_i
             pyr_bam_dict = {sample_id : pyr_bam}
-            # print(pyr_bam_dict)
-            # print(pyr_seacr)
             frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)  # pr.count_overlaps(pyr_bam_dict, pyr_seacr)
-            # print(frag_count_pyr)
-            # print(frag_count_pyr.items())
-            # print(frag_count_pyr.dfs())
-            # print(frag_count_pyr.NumberOverlaps.sum())
-            # print(np.count_nonzero(frag_count_pyr.NumberOverlaps))
-            # frag_counts = frag_count_pyr.items()[0][1][sample_id].sum()
-            # frag_counts = frag_count_pyr.items()[0][1]['NumberOverlaps'].sum()
-            frag_counts = frag_count_pyr.NumberOverlaps.sum()    
+            print(frag_count_pyr)
+            # frag_counts = frag_count_pyr.NumberOverlaps.sum()    
+            frag_counts = np.count_nonzero(frag_count_pyr.NumberOverlaps)
 
             self.frip.at[i,'frags_in_peaks'] = frag_counts
 
         self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
+        print(self.frip)
 
     def annotate_data(self):
         # Make new perctenage alignment columns
@@ -364,6 +465,8 @@ class Figures:
 
     # ---------- Plot 1 - Alignment Summary --------- #
     def alignment_summary(self):
+        sns.color_palette("magma", as_cmap=True)
+
         # Subset data 
         df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
@@ -372,22 +475,22 @@ class Figures:
         fig.suptitle("Sequencing and Alignment Summary")
 
         # Seq depth
-        sns.boxplot(data=df_data, x='group', y='bt2_total_reads_target', ax=seq_summary[0,0])
+        sns.boxplot(data=df_data, x='group', y='bt2_total_reads_target', ax=seq_summary[0,0], palette = "magma")
         seq_summary[0,0].set_title("Sequencing Depth")
         seq_summary[0,0].set_ylabel("Total Reads")
 
         # Alignable fragments
-        sns.boxplot(data=df_data, x='group', y='bt2_total_aligned_target', ax=seq_summary[0,1])
+        sns.boxplot(data=df_data, x='group', y='bt2_total_aligned_target', ax=seq_summary[0,1], palette = "magma")
         seq_summary[0,1].set_title("Alignable Fragments")
         seq_summary[0,1].set_ylabel("Total Aligned Reads")
 
         # Alignment rate hg38
-        sns.boxplot(data=df_data, x='group', y='target_alignment_rate', ax=seq_summary[1,0])
+        sns.boxplot(data=df_data, x='group', y='target_alignment_rate', ax=seq_summary[1,0], palette = "magma")
         seq_summary[1,0].set_title("Alignment Rate (Target)")
         seq_summary[1,0].set_ylabel("Percent of Fragments Aligned")
 
         # Alignment rate e.coli
-        sns.boxplot(data=df_data, x='group', y='spikein_alignment_rate', ax=seq_summary[1,1])
+        sns.boxplot(data=df_data, x='group', y='spikein_alignment_rate', ax=seq_summary[1,1], palette = "magma")
         seq_summary[1,1].set_title("Alignment Rate (Spike-in)")
         seq_summary[1,1].set_ylabel("Percent of Fragments Aligned")
 
@@ -411,19 +514,19 @@ class Figures:
         fig.suptitle("Duplication Summary")
 
         # Duplication rate
-        sns.boxplot(data=df_data, x='group', y='dedup_percent_duplication', ax=seq_summary[0])
+        sns.boxplot(data=df_data, x='group', y='dedup_percent_duplication', ax=seq_summary[0], palette = "magma")
         seq_summary[0].set_ylabel("Duplication Rate (%)")
         seq_summary[0].set(ylim=(0, 100))
         seq_summary[0].xaxis.set_tick_params(labelrotation=45)
 
         # Estimated library size
-        sns.boxplot(data=df_data, x='group', y='dedup_estimated_library_size', ax=seq_summary[1])
+        sns.boxplot(data=df_data, x='group', y='dedup_estimated_library_size', ax=seq_summary[1], palette = "magma")
         seq_summary[1].set_ylabel("Estimated Library Size")
         seq_summary[1].yaxis.set_major_formatter(m_formatter)
         seq_summary[1].xaxis.set_tick_params(labelrotation=45)
 
         # No. of unique fragments 
-        sns.boxplot(data=df_data, x='group', y='unique_frag_num', ax=seq_summary[2])
+        sns.boxplot(data=df_data, x='group', y='unique_frag_num', ax=seq_summary[2], palette = "magma")
         seq_summary[2].set_ylabel("No. of Unique Fragments")
         seq_summary[2].yaxis.set_major_formatter(k_formatter)
         seq_summary[2].xaxis.set_tick_params(labelrotation=45)
@@ -437,7 +540,7 @@ class Figures:
     # ---------- Plot 3 - Fragment Distribution Violin --------- #
     def fraglen_summary_violin(self):
         fig, ax = plt.subplots()
-        ax = sns.violinplot(data=self.frag_violin, x="group", y="fragment_size", hue="replicate")
+        ax = sns.violinplot(data=self.frag_violin, x="group", y="fragment_size", hue="replicate", palette = "viridis")
         ax.set(ylabel="Fragment Size")
         fig.suptitle("Fragment Length Distribution")
 
@@ -446,7 +549,8 @@ class Figures:
     # ---------- Plot 4 - Fragment Distribution Histogram --------- #
     def fraglen_summary_histogram(self):
         fig, ax = plt.subplots()
-        ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="Sample")
+        # ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="Sample")
+        ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="group", style="replicate", palette = "magma")
         fig.suptitle("Fragment Length Distribution")
 
         return fig, self.frag_hist
@@ -454,7 +558,7 @@ class Figures:
     def alignment_summary_ex(self):
         df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
-        ax = px.box(df_data, x="group", y="bt2_total_reads_target")
+        ax = px.box(df_data, x="group", y="bt2_total_reads_target", palette = "magma")
 
         return ax, df_data
 
@@ -483,11 +587,11 @@ class Figures:
         df_data_scale = self.data_table.loc[:, ('id', 'group','scale_factor')]
 
         # Scale factor
-        sns.boxplot(data=df_data_scale, x='group', y='scale_factor', ax=scale_summary[0])
+        sns.boxplot(data=df_data_scale, x='group', y='scale_factor', ax=scale_summary[0], palette = "magma")
         scale_summary[0].set_ylabel('Scale Factor')
 
         # Normalised fragment count
-        sns.boxplot(data=df_normalised_frags, x='group', y='normalised_frags', ax=scale_summary[1])
+        sns.boxplot(data=df_normalised_frags, x='group', y='normalised_frags', ax=scale_summary[1], palette = "magma")
         scale_summary[1].set_ylabel('Normalised Fragment Count')
 
         return fig, df_data_scale
@@ -498,7 +602,7 @@ class Figures:
         fig, ax = plt.subplots()
         fig.suptitle("Total Peaks")
 
-        ax = sns.boxplot(data=self.df_no_peaks, x='group', y='all_peaks')
+        ax = sns.boxplot(data=self.df_no_peaks, x='group', y='all_peaks', palette = "magma")
         ax.set_ylabel("No. of Peaks")
 
         return fig, self.df_no_peaks
@@ -511,7 +615,7 @@ class Figures:
         self.seacr_beds['peak_width'] = self.seacr_beds['end'] - self.seacr_beds['start']
         self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs()
 
-        ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate")
+        ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate", palette = "viridis")
         fig.suptitle("Peak Width Distribution")
 
         return fig, self.seacr_beds
@@ -522,7 +626,7 @@ class Figures:
         fig, ax = plt.subplots()
 
         # plot
-        ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate")
+        ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate", palette = "viridis")
         fig.suptitle("Peak Reprodducibility")
 
         return fig, self.reprod_peak_stats
@@ -531,7 +635,7 @@ class Figures:
     def frags_in_peaks(self):
         fig, ax = plt.subplots()
 
-        ax = sns.boxplot(data=self.frip, x='group', y='percentage_frags_in_peaks')
+        ax = sns.boxplot(data=self.frip, x='group', y='percentage_frags_in_peaks', palette = "magma")
         fig.suptitle("Aligned Fragments within Peaks")
 
         return fig, self.frip
