@@ -29,3 +29,7 @@ dev/docker/static_reports/test_output/frag_hist.png
 dev/docker/static_reports/test_output/frag_violin.csv
 
 dev/docker/static_reports/test_output/frag_violin.png
+
+dev/docker/static_reports/test_data/tmp_dir/*
+
+dev/docker/static_reports/test_output/*
