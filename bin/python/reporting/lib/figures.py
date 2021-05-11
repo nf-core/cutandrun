@@ -162,15 +162,23 @@ class Figures:
             # Iterate through reads.
             read1 = None
             read2 = None
-            # print("hello")
-            # time.sleep(3)
             k=0 #counter
 
+            # get number of reads in bam
+            count = 0
+            for _ in bamfile:
+                count += 1
+
+            bamfile.close()
+            bamfile = pysam.AlignmentFile(bam_path, "rb")
+
+            # initialise arrays
+            frag_no = round(count/2)
+            start_arr = np.zeros(frag_no, dtype=np.int64)
+            end_arr = np.zeros(frag_no, dtype=np.int64)
+            chrom_arr = np.empty(frag_no, dtype="<U20")
+
             for read in bamfile:
-                # print ("new read " + str(read.is_read2))
-                # print(read)
-                # print(type(read))
-            
 
                 if not read.is_paired or read.mate_is_unmapped or read.is_duplicate:
                     continue
@@ -185,22 +193,26 @@ class Figures:
                     # print("is read1: " + read.query_name)
 
                 if read1 is not None and read2 is not None and read1.query_name == read2.query_name:
-                    start_pos = min(read1.get_reference_positions()[0], read2.get_reference_positions()[0])
-                    end_pos = max(read1.get_reference_positions()[-1], read2.get_reference_positions()[-1])
-                    chrom = "chr" + str(read.reference_id)
-                    
-                    if k==0:
-                        start_arr = np.array(start_pos)
-                        end_arr = np.array(end_pos)
-                        chrom_arr = np.array(chrom)
-                    
-                    else:   
-                        start_arr = np.append(start_arr, start_pos)
-                        end_arr = np.append(end_arr, end_pos)
-                        chrom_arr = np.append(chrom_arr, chrom)
 
-                    k=k+1
+                    start_pos = min(read1.reference_start, read2.reference_start)
+                    end_pos = max(read1.reference_end, read2.reference_end) - 1
+                    chrom = read.reference_name
+                    
+                    start_arr[k] = start_pos
+                    end_arr[k] = end_pos
+                    chrom_arr[k] = chrom
 
+                    k +=1
+                    
+            bamfile.close()
+
+            # remove zeros and empty elements. The indicies for these are always the same from end_arr and chrom_arr
+            remove_idx = np.where(chrom_arr == '')[0]
+            chrom_arr = np.delete(chrom_arr, remove_idx)
+            start_arr = np.delete(start_arr, remove_idx)
+            end_arr = np.delete(end_arr, remove_idx)
+
+            # create dataframe
             bam_df = pd.DataFrame({ "Chromosome" : chrom_arr, "Start" : start_arr, "End" : end_arr })
             return(bam_df)
 
@@ -209,7 +221,7 @@ class Figures:
             # bam_now = pr.read_bam(bam, as_df=True, filter_flag=0) # no frags filtered
             # print(bam_now)
             bam_now = pe_bam_to_df(bam)
-            print(bam_now.head(10))
+            # print(bam_now.head(10))
             self.bam_df_list.append(bam_now)
             bam_base = os.path.basename(bam)
             sample_id = bam_base.split(".")[0]
@@ -314,11 +326,6 @@ class Figures:
             self.reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
 
         # ---------- Data - Percentage of fragments in peaks --------- #
-        # test_query = pr.PyRanges(chromosomes="chr1", starts=[1,7,15], ends=[3,8,20])
-        # test_subject = pr.PyRanges(chromosomes="chr1", starts=[25,28,31], ends=[26,29,37])
-        # test_query_dict = {'test_query' : test_query }
-        # test_overlap = pr.count_overlaps(test_query_dict, test_subject)
-        # print(test_overlap)
 
         for i in range(len(self.bam_df_list)):
             bam_i = self.bam_df_list[i]
@@ -326,28 +333,19 @@ class Figures:
             group_i = self.frip.at[i,'group']
             rep_i = self.frip.at[i,'replicate']
             seacr_bed_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
-            # seacr_bed_prep = seacr_bed_i.drop(['total_signal','max_signal','group','replicate'],axis=1)
-            # seacr_bed_prep = seacr_bed_prep.rename(columns={"chrom":"Chromosome","start":"Start","end":"End"})
             pyr_seacr = pr.PyRanges(chromosomes=seacr_bed_i['chrom'], starts=seacr_bed_i['start'], ends=seacr_bed_i['end'])
             pyr_bam = pr.PyRanges(df=bam_i)
-            # pyr_bam = pyr_bam.apply(lambda df: df.drop(['Strand','Flag'], axis=1))
             sample_id = group_i + "_" + rep_i
             pyr_bam_dict = {sample_id : pyr_bam}
-            # print(pyr_bam_dict)
-            # print(pyr_seacr)
             frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)  # pr.count_overlaps(pyr_bam_dict, pyr_seacr)
-            # print(frag_count_pyr)
-            # print(frag_count_pyr.items())
-            # print(frag_count_pyr.dfs())
-            # print(frag_count_pyr.NumberOverlaps.sum())
-            # print(np.count_nonzero(frag_count_pyr.NumberOverlaps))
-            # frag_counts = frag_count_pyr.items()[0][1][sample_id].sum()
-            # frag_counts = frag_count_pyr.items()[0][1]['NumberOverlaps'].sum()
-            frag_counts = frag_count_pyr.NumberOverlaps.sum()    
+            print(frag_count_pyr)
+            # frag_counts = frag_count_pyr.NumberOverlaps.sum()    
+            frag_counts = np.count_nonzero(frag_count_pyr.NumberOverlaps)
 
             self.frip.at[i,'frags_in_peaks'] = frag_counts
 
         self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
+        print(self.frip)
 
     def annotate_data(self):
         # Make new perctenage alignment columns
