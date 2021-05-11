@@ -189,7 +189,7 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE } from './modu
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from './modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_peaks'] )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE } from './modules/nf-core/software/deeptools/plotheatmap/main' addParams( options: modules['dt_plotheatmap_gene'] )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS } from './modules/nf-core/software/deeptools/plotheatmap/main' addParams( options: modules['dt_plotheatmap_peaks'] )
-
+include { SAMTOOLS_SORT } from './modules/nf-core/software/samtools/sort/main.nf' addParams( options: modules['samtools_sort'] )
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -197,7 +197,7 @@ include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS } from './modules
 include { FASTQC_TRIMGALORE                                        } from './modules/nf-core/subworkflow/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
 include { MARK_DUPLICATES_PICARD                                   } from './modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
 include { MARK_DUPLICATES_PICARD as DEDUP_PICARD                   } from './modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup'], samtools_options: modules['picard_dedup_samtools'], control_only: dedup_control_only )
-include { BAM_SORT_SAMTOOLS                                        } from './modules/nf-core/subworkflow/bam_sort_samtools' addParams( samtools_sort_options: modules['samtools_sort'] )
+
 
 ////////////////////////////////////////////////////
 /* --           RUN MAIN WORKFLOW              -- */
@@ -598,14 +598,13 @@ workflow CUTANDRUN {
         )
         //SAMTOOLS_CUSTOMVIEW.out.txt | view
 
-        // Filter bam bai channels for non-igg only
-        ch_samtools_bam_bai
-            .filter { it[0].group != 'igg' }
-            .set { ch_no_igg_bam_bai }
+        // // Filter bam bai channels for non-igg only
+        // ch_samtools_bam_bai
+        //     .filter { it[0].group != 'igg' }
+        //     .set { ch_no_igg_bam_bai }
 
         // Sort bams by mate pairs
-        BAM_SORT_SAMTOOLS ( ch_samtools_bam )
-
+        SAMTOOLS_SORT ( ch_samtools_bam )
 
 
         GENERATE_REPORTS(
@@ -613,7 +612,7 @@ workflow CUTANDRUN {
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]},
             AWK_FRAG_BIN.out.file.collect{it[1]},
             SEACR_CALLPEAK.out.bed.collect{it[1]},
-            ch_no_igg_bam_bai.collect{it[1,2]}
+            SAMTOOLS_SORT.out.bam.collect{it[1]}
         )
     }
 }
