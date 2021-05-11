@@ -11,7 +11,7 @@ docker run --rm -v "$PWD":/home/repo -it luslab/cutandrun-dev-reporting:latest /
 --raw_frag /home/repo/dev/docker/static_reports/test_data/tmp_dir/*frag_len.txt \
 --bed_frag /home/repo/dev/docker/static_reports/test_data/tmp_dir/*bin500*.bed \
 --seacr_bed /home/repo/dev/docker/static_reports/test_data/tmp_dir/*bed.*.bed \
---bams /home/repo/dev/docker/static_reports/test_data/tmp_dir/*.bam \
+--bams /home/repo/dev/docker/static_reports/test_data/tmp_dir/*sorted.bam \
 --output /home/repo/dev/docker/static_reports/test_output \
 --log /home/repo/dev/docker/static_reports/test_output/log.txt
 # --raw_frag /home/repo/dev/docker/static_reports/test_data/tmp_dir/*_raw.csv \

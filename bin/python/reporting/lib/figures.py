@@ -12,6 +12,8 @@ from matplotlib.ticker import FuncFormatter
 import seaborn as sns
 import plotly.express as px
 import pyranges as pr
+import pysam
+import time
 
 class Figures:
     data_table = None
@@ -154,8 +156,60 @@ class Figures:
         self.bam_df_list = list()
         self.frip = pd.DataFrame(data=None, index=range(len(bam_list)), columns=['group','replicate','mapped_frags','frags_in_peaks','percentage_frags_in_peaks'])
         k = 0 #counter
+        
+        def pe_bam_to_df(bam_path):
+            bamfile = pysam.AlignmentFile(bam_path, "rb")
+            # Iterate through reads.
+            read1 = None
+            read2 = None
+            # print("hello")
+            # time.sleep(3)
+            k=0 #counter
+
+            for read in bamfile:
+                # print ("new read " + str(read.is_read2))
+                # print(read)
+                # print(type(read))
+            
+
+                if not read.is_paired or read.mate_is_unmapped or read.is_duplicate:
+                    continue
+
+                if read.is_read2:
+                    read2 = read
+                    # print("is read2: " + read.query_name)
+
+                else:
+                    read1 = read
+                    read2 = None
+                    # print("is read1: " + read.query_name)
+
+                if read1 is not None and read2 is not None and read1.query_name == read2.query_name:
+                    start_pos = min(read1.get_reference_positions()[0], read2.get_reference_positions()[0])
+                    end_pos = max(read1.get_reference_positions()[-1], read2.get_reference_positions()[-1])
+                    chrom = "chr" + str(read.reference_id)
+                    
+                    if k==0:
+                        start_arr = np.array(start_pos)
+                        end_arr = np.array(end_pos)
+                        chrom_arr = np.array(chrom)
+                    
+                    else:   
+                        start_arr = np.append(start_arr, start_pos)
+                        end_arr = np.append(end_arr, end_pos)
+                        chrom_arr = np.append(chrom_arr, chrom)
+
+                    k=k+1
+
+            bam_df = pd.DataFrame({ "Chromosome" : chrom_arr, "Start" : start_arr, "End" : end_arr })
+            return(bam_df)
+
+        
         for bam in bam_list:
-            bam_now = pr.read_bam(bam, as_df=True, filter_flag=0) # no frags filtered
+            # bam_now = pr.read_bam(bam, as_df=True, filter_flag=0) # no frags filtered
+            # print(bam_now)
+            bam_now = pe_bam_to_df(bam)
+            print(bam_now.head(10))
             self.bam_df_list.append(bam_now)
             bam_base = os.path.basename(bam)
             sample_id = bam_base.split(".")[0]
