@@ -619,6 +619,8 @@ workflow CUTANDRUN {
             SEACR_CALLPEAK.out.bed.collect{it[1]},
             SAMTOOLS_SORT.out.bam.collect{it[1]}
         )
+
+        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.first().ifEmpty(null))
     }
 }
 

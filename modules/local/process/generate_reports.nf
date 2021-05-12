@@ -24,6 +24,7 @@ process GENERATE_REPORTS {
     path '*.pdf', emit: pdf
     path '*.csv', emit: csv
     path '*.png', emit: png
+    path '*.version.txt', emit: version
 
     script:  // This script is bundled with the pipeline, in nf-core/cutandrun/bin/
     """
@@ -35,6 +36,8 @@ process GENERATE_REPORTS {
         --bams "*.bam" \\
         --output . \\
         --log log.txt
+
+    python --version | grep -E -o "([0-9]{1,}\.)+[0-9]{1,}" > python.version.txt
     """
 
 }
