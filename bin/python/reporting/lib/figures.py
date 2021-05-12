@@ -338,14 +338,14 @@ class Figures:
             sample_id = group_i + "_" + rep_i
             pyr_bam_dict = {sample_id : pyr_bam}
             frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)  # pr.count_overlaps(pyr_bam_dict, pyr_seacr)
-            print(frag_count_pyr)
+            # print(frag_count_pyr)
             # frag_counts = frag_count_pyr.NumberOverlaps.sum()    
             frag_counts = np.count_nonzero(frag_count_pyr.NumberOverlaps)
 
             self.frip.at[i,'frags_in_peaks'] = frag_counts
 
         self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
-        print(self.frip)
+        # print(self.frip)
 
     def annotate_data(self):
         # Make new perctenage alignment columns
