@@ -442,6 +442,7 @@ workflow CUTANDRUN {
             ch_seacr_bed.collect{it[1]},
             ch_samtools_bam.collect{it[1]}
         )
+        ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.first().ifEmpty(null))
 
         /*
         * MODULE: Clip off-chromosome peaks
@@ -526,6 +527,8 @@ workflow CUTANDRUN {
         SEACR_CALLPEAK.out.bed
     )
 
+    ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.version.first().ifEmpty(null))
+
     // order bigwig and bed channels such that they match on id
     ch_bigwig_no_igg
         .map { row -> [row[0].id, row ].flatten()}
@@ -552,6 +555,8 @@ workflow CUTANDRUN {
         ch_ordered_bigwig,
         ch_ordered_seacr_max
     )
+
+    ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.version.first().ifEmpty(null))
 
     DEEPTOOLS_PLOTHEATMAP_PEAKS (
         DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
