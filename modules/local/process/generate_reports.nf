@@ -38,7 +38,7 @@ process GENERATE_REPORTS {
         --output . \\
         --log log.txt
 
-    python --version | grep -E -o "([0-9]{1,}\.)+[0-9]{1,}" > python.version.txt
+    python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\" > python.version.txt
     """
 
 }
