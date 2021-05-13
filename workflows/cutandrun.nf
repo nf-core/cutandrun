@@ -140,10 +140,10 @@ def awk_dt_frag_options = modules['awk_dt_frag']
 /*
  * MODULES
  */
-include { INPUT_CHECK              } from '../modules/local/subworkflow/input_check'          addParams( options: [:] )
+include { INPUT_CHECK              } from '../subworkflows/local/input_check'          addParams( options: [:] )
 include { CAT_FASTQ                } from '../modules/local/process/cat_fastq'                addParams( options: cat_fastq_options )
 include { BEDTOOLS_GENOMECOV_SCALE } from '../modules/local/process/bedtools_genomecov_scale' addParams( options: modules['bedtools_genomecov_bedgraph'] )
-include { SEACR_CALLPEAK           } from '../modules/local/software/seacr/callpeak/main'     addParams( options: modules['seacr'] )
+include { SEACR_CALLPEAK           } from '../modules/nf-core/software/seacr/callpeak/main'     addParams( options: modules['seacr'] )
 include { UCSC_BEDCLIP             } from '../modules/local/process/ucsc_bedclip'             addParams( options: modules['ucsc_bedclip']  )
 include { IGV_SESSION              } from '../modules/local/process/igv_session'              addParams( options: modules['igv']  )
 include { GET_SOFTWARE_VERSIONS    } from '../modules/local/process/get_software_versions'    addParams( options: [publish_files : ['csv':'']] )
@@ -159,22 +159,22 @@ include { SAMTOOLS_CUSTOMVIEW } from '../modules/local/software/samtools/custom_
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
-include { PREPARE_GENOME } from '../modules/local/subworkflow/prepare_genome' addParams( genome_options: publish_genome_options,
+include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams( genome_options: publish_genome_options,
                                                                                            spikein_genome_options: spikein_genome_options,
                                                                                            bt2_index_options: bowtie2_index_options,
                                                                                            bt2_spikein_index_options: bowtie2_spikein_index_options,
                                                                                            spikein_fasta: spikein_fasta )
-include { ALIGN_BOWTIE2 } from '../modules/local/subworkflow/align_bowtie2'   addParams( align_options: bowtie2_align_options, 
+include { ALIGN_BOWTIE2 } from '../subworkflows/local/align_bowtie2'   addParams( align_options: bowtie2_align_options, 
                                                                                            spikein_align_options: bowtie2_spikein_align_options, 
                                                                                            samtools_options: samtools_sort_options,
                                                                                            samtools_spikein_options: samtools_spikein_sort_options )
-include { SAMTOOLS_VIEW_SORT_STATS } from '../modules/local/subworkflow/samtools_view_sort_stats' addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options)
-include { CALCULATE_FRAGMENTS } from '../modules/local/subworkflow/calculate_fragments' addParams( samtools_options: modules['calc_frag_samtools'], samtools_view_options: modules['calc_frag_samtools_view'], bamtobed_options: modules['calc_frag_bamtobed'], awk_options: modules['calc_frag_awk'], cut_options: modules['calc_frag_cut'])   
+include { SAMTOOLS_VIEW_SORT_STATS } from '../subworkflows/local/samtools_view_sort_stats' addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options)
+include { CALCULATE_FRAGMENTS } from '../subworkflows/local/calculate_fragments' addParams( samtools_options: modules['calc_frag_samtools'], samtools_view_options: modules['calc_frag_samtools_view'], bamtobed_options: modules['calc_frag_bamtobed'], awk_options: modules['calc_frag_awk'], cut_options: modules['calc_frag_cut'])   
 
-include { ANNOTATE_META_AWK as ANNOTATE_BT2_META } from '../modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_bt2_options, meta_suffix: '_target', script_mode: true)
-include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from '../modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_bt2_spikein_options, meta_suffix: '_spikein', script_mode: true)
-include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META } from '../modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_dedup_options, meta_suffix: '', meta_prefix: 'dedup_', script_mode: false)
-include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from '../modules/local/subworkflow/annotate_meta_awk' addParams( options: awk_dt_frag_options, meta_suffix: '', meta_prefix: '', script_mode: true)     
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_META } from '../subworkflows/local/annotate_meta_awk' addParams( options: awk_bt2_options, meta_suffix: '_target', script_mode: true)
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from '../subworkflows/local/annotate_meta_awk' addParams( options: awk_bt2_spikein_options, meta_suffix: '_spikein', script_mode: true)
+include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META } from '../subworkflows/local/annotate_meta_awk' addParams( options: awk_dedup_options, meta_suffix: '', meta_prefix: 'dedup_', script_mode: false)
+include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from '../subworkflows/local/annotate_meta_awk' addParams( options: awk_dt_frag_options, meta_suffix: '', meta_prefix: '', script_mode: true)     
                                                                
 
 ////////////////////////////////////////////////////
@@ -194,9 +194,9 @@ include { SAMTOOLS_SORT } from '../modules/nf-core/software/samtools/sort/main.n
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
  */
-include { FASTQC_TRIMGALORE                                        } from '../modules/nf-core/subworkflow/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
-include { MARK_DUPLICATES_PICARD                                   } from '../modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
-include { MARK_DUPLICATES_PICARD as DEDUP_PICARD                   } from '../modules/nf-core/subworkflow/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup'], samtools_options: modules['picard_dedup_samtools'], control_only: dedup_control_only )
+include { FASTQC_TRIMGALORE                                        } from '../subworkflows/nf-core/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
+include { MARK_DUPLICATES_PICARD                                   } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
+include { MARK_DUPLICATES_PICARD as DEDUP_PICARD                   } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup'], samtools_options: modules['picard_dedup_samtools'], control_only: dedup_control_only )
 
 
 ////////////////////////////////////////////////////

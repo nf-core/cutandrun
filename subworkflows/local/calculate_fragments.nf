@@ -9,9 +9,9 @@ params.awk_options    = [:]
 params.cut_options    = [:]
 
 include { SAMTOOLS_VIEW_SORT_STATS } from './samtools_view_sort_stats' addParams( samtools_options: params.samtools_options , samtools_view_options: params.samtools_view_options)
-include { BEDTOOLS_BAMTOBED } from '../process/bedtools_bamtobed' addParams( options: params.bamtobed_options)
-include { AWK } from '../process/awk' addParams( options: params.awk_options)
-include { CUT } from '../process/cut' addParams( options: params.cut_options)
+include { BEDTOOLS_BAMTOBED } from '../../modules/nf-core/software/bedtools/bamtobed/main' addParams( options: params.bamtobed_options)
+include { AWK } from '../../modules/local/awk' addParams( options: params.awk_options)
+include { CUT } from '../../modules/local/cut' addParams( options: params.cut_options)
 
 workflow CALCULATE_FRAGMENTS {
     take:
