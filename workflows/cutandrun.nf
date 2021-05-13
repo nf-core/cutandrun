@@ -141,7 +141,8 @@ def awk_dt_frag_options = modules['awk_dt_frag']
  * MODULES
  */
 include { INPUT_CHECK              } from '../subworkflows/local/input_check'          addParams( options: [:] )
-include { CAT_FASTQ                } from '../modules/nf-core/software/cat/fastq/main'                addParams( options: cat_fastq_options )
+// include { CAT_FASTQ                } from '../modules/nf-core/software/cat/fastq/main'                addParams( options: cat_fastq_options )
+include { CAT_FASTQ                } from '../modules/local/cat_fastq'                addParams( options: cat_fastq_options )
 include { BEDTOOLS_GENOMECOV_SCALE } from '../modules/local/bedtools_genomecov_scale' addParams( options: modules['bedtools_genomecov_bedgraph'] )
 include { SEACR_CALLPEAK           } from '../modules/nf-core/software/seacr/callpeak/main'     addParams( options: modules['seacr'] )
 include { UCSC_BEDCLIP             } from '../modules/nf-core/software/ucsc/bedclip/main'             addParams( options: modules['ucsc_bedclip']  )
