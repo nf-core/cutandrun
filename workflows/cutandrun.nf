@@ -156,6 +156,7 @@ include { AWK as AWK_FRAG_BIN } from '../modules/local/awk' addParams( options: 
 include { AWK as AWK_EDIT_PEAK_BED } from '../modules/local/awk' addParams( options: modules['awk_edit_peak_bed'] )
 include { DESEQ2_DIFF } from '../modules/local/deseq2_diff' addParams( options: [:],  multiqc_label: 'deseq2' )
 include { SAMTOOLS_CUSTOMVIEW } from '../modules/local/software/samtools/custom_view/main' addParams( options: modules['samtools_frag_len'] )
+include { SEACR_CALLPEAK as SEACR_NO_IGG } from '../modules/local/seacr_no_igg' addParams( options: modules['seacr'] )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -228,21 +229,31 @@ workflow CUTANDRUN {
             meta.id = meta.id.split('_')[0..-2].join('_')
             [ meta, fastq ] }
     .groupTuple(by: [0])
-    .map { it ->  [ it[0], it[1].flatten() ] }
-    .set { ch_cat_fastq }
+    // .map { it ->  [ it[0], it[1].flatten() ] }
+    // .set { ch_cat_fastq }
+    .branch {
+        meta, fastq ->
+            single  : fastq.size() == 1
+                return [ meta, fastq.flatten() ]
+            multiple: fastq.size() > 1
+                return [ meta, fastq.flatten() ]
+    }
+    .set { ch_fastq }
 
     /*
      * MODULE: Concatenate FastQ files from same sample if required
      */
     CAT_FASTQ ( 
-        ch_cat_fastq
+        ch_fastq.multiple
     )
+    .mix(ch_fastq.single)
+    .set { ch_cat_fastq }
 
     /*
      * SUBWORKFLOW: Read QC, trim adapters and perform post-trim read QC
      */
     FASTQC_TRIMGALORE (
-        CAT_FASTQ.out.reads,
+        ch_cat_fastq,
         params.skip_fastqc || params.skip_qc,
         params.skip_trimming
     )
@@ -410,25 +421,46 @@ workflow CUTANDRUN {
         }
         .set { ch_bedgraph_split }
 
-        ch_bedgraph_split.target
-            .combine(ch_bedgraph_split.control)
-            .filter { row -> row[0].replicate == row[2].replicate }
-            .map { row -> [ row[0], row[1], row[3] ] }
-            .set { ch_bedgraph_combined }
+        /*
+        * MODULE: Call peaks with IgG COntrol
+        */
+        if (params.igg_control) {
+
+            ch_bedgraph_split.target
+                .combine(ch_bedgraph_split.control)
+                .filter { row -> row[0].replicate == row[2].replicate }
+                .map { row -> [ row[0], row[1], row[3] ] }
+                .set { ch_bedgraph_combined }    
+
+            SEACR_CALLPEAK (
+                ch_bedgraph_combined
+            )
+            ch_seacr_bed = SEACR_CALLPEAK.out.bed
+            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
+
+        }
 
         /*
-        * MODULE: Call peaks
+        * MODULE: Call peaks without IgG COntrol
         */
-        SEACR_CALLPEAK (
-            ch_bedgraph_combined
-        )
-        ch_seacr_bed = SEACR_CALLPEAK.out.bed
-        ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
+
+        if (!params.igg_control) {
+
+            ch_peak_threshold = Channel.value(params.peak_threshold)
+
+            SEACR_NO_IGG (
+                ch_bedgraph_split.target,
+                ch_peak_threshold.collect()
+            )
+            ch_seacr_bed = SEACR_NO_IGG.out.bed
+            ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.version.first().ifEmpty(null))
+
+        }
 
         /*
          * CHANNEL: Collect SEACR group names
          */
-        SEACR_CALLPEAK.out.bed
+        ch_seacr_bed
             //.map{ row -> row[0].find{ it.key == "group" }?.value() }
             .map{ row -> row[0].group}
             .unique()
@@ -468,7 +500,7 @@ workflow CUTANDRUN {
         IGV_SESSION (
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.gtf,
-            SEACR_CALLPEAK.out.bed.collect{it[1]}.ifEmpty([]),
+            ch_seacr_bed.collect{it[1]}.ifEmpty([]),
             UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
         )
     }
@@ -525,7 +557,7 @@ workflow CUTANDRUN {
     //HEATMAP ON PEAKS
     // extract max signal region from SEACR bed
     AWK_EDIT_PEAK_BED (
-        SEACR_CALLPEAK.out.bed
+        ch_seacr_bed
     )
 
     ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.version.first().ifEmpty(null))
@@ -617,7 +649,7 @@ workflow CUTANDRUN {
             EXPORT_META.out.csv, 
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]},
             AWK_FRAG_BIN.out.file.collect{it[1]},
-            SEACR_CALLPEAK.out.bed.collect{it[1]},
+            ch_seacr_bed.collect{it[1]},
             SAMTOOLS_SORT.out.bam.collect{it[1]}
         )
 
