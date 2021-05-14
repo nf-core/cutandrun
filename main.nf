@@ -11,6 +11,36 @@
 
 nextflow.enable.dsl = 2
 
+/*
+========================================================================================
+    GENOME PARAMETER VALUES
+========================================================================================
+*/
+
+params.fasta     = WorkflowMain.getGenomeAttribute(params, 'fasta')
+params.gtf       = WorkflowMain.getGenomeAttribute(params, 'gtf')
+params.gene_bed  = WorkflowMain.getGenomeAttribute(params, 'bed12')
+params.blacklist = WorkflowMain.getGenomeAttribute(params, 'blacklist')
+params.bowtie2   = WorkflowMain.getGenomeAttribute(params, 'bowtie2')
+
+/*
+========================================================================================
+    SPIKEIN GENOME PARAMETER VALUES
+========================================================================================
+*/
+
+params.spikein_fasta   = WorkflowMain.getGenomeAttributeSpikeIn(params, 'fasta')
+params.spikein_bowtie2 = WorkflowMain.getGenomeAttributeSpikeIn(params, 'bowtie2')
+
+/*
+========================================================================================
+    VALIDATE & PRINT PARAMETER SUMMARY
+========================================================================================
+*/
+
+WorkflowMain.initialise(workflow, params, log)
+
+
 ////////////////////////////////////////////////////
 /* --               PRINT HELP                 -- */
 ////////////////////////////////////////////////////
@@ -22,16 +52,7 @@ if (params.help) {
     exit 0
 }
 
-////////////////////////////////////////////////////
-/* --        GENOME PARAMETER VALUES           -- */
-////////////////////////////////////////////////////
 
-params.fasta        = Checks.get_genome_attribute(params, 'fasta')
-params.gtf          = Checks.get_genome_attribute(params, 'gtf')
-params.blacklist    = Checks.get_genome_attribute(params, 'blacklist')
-params.gene_bed     = Checks.get_genome_attribute(params, 'bed12')
-
-log.info 'test-' + params.blacklist
 
 ////////////////////////////////////////////////////
 /* --         PRINT PARAMETER SUMMARY          -- */
