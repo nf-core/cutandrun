@@ -1,43 +1,42 @@
-////////////////////////////////////////////////////
-/* --         LOCAL PARAMETER VALUES           -- */
-////////////////////////////////////////////////////
+/*
+========================================================================================
+    VALIDATE INPUTS
+========================================================================================
+*/
 
-params.summary_params = [:]
+def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
-////////////////////////////////////////////////////
-/* --          VALIDATE INPUTS                 -- */
-////////////////////////////////////////////////////
+// Validate input parameters in specialised library 
+WorkflowCutandrun.initialise(params, log)
 
-// Check input path parameters to see if they exist
+// Check input path parameters to see if the files exist if they have been specified
 checkPathParamList = [
     params.input,
     params.fasta,
     params.gtf,
     params.blacklist,
     params.gene_bed,
-    params.bowtie2_index,
+    params.bowtie2,
     params.spikein_fasta,
-    params.spikein_bowtie2_index
+    params.spikein_bowtie2
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
-// Check mandatory parameters
-if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
-if (params.fasta) { ch_fasta = file(params.fasta) } else { exit 1, 'Genome fasta file not specified!' }
-if (params.gtf) { ch_gtf = file(params.gtf)   } else { exit 1, 'Genome GTF file not specified!' }
+// Check mandatory parameters that cannot be checked in the groovy lib as we want a channel for them
+if (params.input)     { ch_input     = file(params.input)     } else { exit 1, 'Input samplesheet not specified!'     }
 if (params.blacklist) { ch_blacklist = file(params.blacklist) } else { exit 1, 'Genome blacklist file not specified!' }
-if (params.gene_bed) { ch_gene_bed = file(params.gene_bed) } else { exit 1, 'Genome gene bed file not specified!' }
+if (params.gene_bed)  { ch_gene_bed  = file(params.gene_bed)  } else { exit 1, 'Genome gene bed file not specified!'  }
 
-// Resolve spike-in genome
-def spikein_fasta = params.spikein_fasta
-if(!params.spikein_bowtie2_index && !params.spikein_fasta) {
-    if(params.genomes[params.spikein_geome] != null) {
-        spikein_fasta = params.genomes[params.spikein_geome].fasta
-    }
-    else {
-        exit 1, 'Invalid spike-in genome specified!'
-    }
-}
+// // Resolve spike-in genome
+// def spikein_fasta = params.spikein_fasta
+// if(!params.spikein_bowtie2_index && !params.spikein_fasta) {
+//     if(params.genomes[params.spikein_geome] != null) {
+//         spikein_fasta = params.genomes[params.spikein_geome].fasta
+//     }
+//     else {
+//         exit 1, 'Invalid spike-in genome specified!'
+//     }
+// }
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
@@ -47,26 +46,26 @@ if (anno_readme && file(anno_readme).exists()) {
 }
 
 // Stage dummy file to be used as an optional input where required
-//ch_dummy_file = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
+ch_dummy_file = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
 
-////////////////////////////////////////////////////
-/* --               CONFIG FILES               -- */
-////////////////////////////////////////////////////
+// Stage awk files for parsing log files
+ch_bt2_to_csv_awk     = file("$projectDir/assets/awk/bt2_report_to_csv.awk"    , checkIfExists: true)
+ch_dt_frag_to_csv_awk = file("$projectDir/assets/awk/dt_frag_report_to_csv.awk", checkIfExists: true)
+
+/*
+========================================================================================
+    CONFIG FILES
+========================================================================================
+*/
 
 ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
-////////////////////////////////////////////////////
-/* --                  ASSETS                  -- */
-////////////////////////////////////////////////////
-
-ch_dummy_file = file("dummy/file", checkIfExists: false)
-ch_bt2_to_csv_awk = file("$projectDir/assets/awk/bt2_report_to_csv.awk", checkIfExists: true)
-ch_dt_frag_to_csv_awk = file("$projectDir/assets/awk/dt_frag_report_to_csv.awk", checkIfExists: true)
-
-////////////////////////////////////////////////////
-/* --     INIALISE PARAMETERS AND OPTIONS      -- */
-////////////////////////////////////////////////////
+/*
+========================================================================================
+    INIALISE PARAMETERS AND OPTIONS
+========================================================================================
+*/
 
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
@@ -133,9 +132,11 @@ def awk_bt2_spikein_options = modules['awk_bt2_spikein']
 def awk_dedup_options = modules['awk_dedup']
 def awk_dt_frag_options = modules['awk_dt_frag']
 
-////////////////////////////////////////////////////
-/* --    IMPORT LOCAL MODULES/SUBWORKFLOWS     -- */
-////////////////////////////////////////////////////
+/*
+========================================================================================
+    IMPORT LOCAL MODULES/SUBWORKFLOWS
+========================================================================================
+*/
 
 /*
  * MODULES
@@ -164,8 +165,7 @@ include { SEACR_CALLPEAK as SEACR_NO_IGG } from '../modules/local/seacr_no_igg' 
 include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams( genome_options: publish_genome_options,
                                                                                            spikein_genome_options: spikein_genome_options,
                                                                                            bt2_index_options: bowtie2_index_options,
-                                                                                           bt2_spikein_index_options: bowtie2_spikein_index_options,
-                                                                                           spikein_fasta: spikein_fasta )
+                                                                                           bt2_spikein_index_options: bowtie2_spikein_index_options)
 include { ALIGN_BOWTIE2 } from '../subworkflows/local/align_bowtie2'   addParams( align_options: bowtie2_align_options, 
                                                                                            spikein_align_options: bowtie2_spikein_align_options, 
                                                                                            samtools_options: samtools_sort_options,
@@ -179,9 +179,11 @@ include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META } from '../subworkflows/local
 include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from '../subworkflows/local/annotate_meta_awk' addParams( options: awk_dt_frag_options, meta_suffix: '', meta_prefix: '', script_mode: true)     
                                                                
 
-////////////////////////////////////////////////////
-/* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
-////////////////////////////////////////////////////
+/*
+========================================================================================
+    IMPORT NF-CORE MODULES/SUBWORKFLOWS
+========================================================================================
+*/
 
 /*
  * MODULES
@@ -200,10 +202,11 @@ include { FASTQC_TRIMGALORE                                        } from '../su
 include { MARK_DUPLICATES_PICARD                                   } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
 include { MARK_DUPLICATES_PICARD as DEDUP_PICARD                   } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup'], samtools_options: modules['picard_dedup_samtools'], control_only: dedup_control_only )
 
-
-////////////////////////////////////////////////////
-/* --           RUN MAIN WORKFLOW              -- */
-////////////////////////////////////////////////////
+/*
+========================================================================================
+    RUN MAIN WORKFLOW
+========================================================================================
+*/
 
 workflow CUTANDRUN {
 
@@ -475,7 +478,7 @@ workflow CUTANDRUN {
             ch_seacr_bed.collect{it[1]},
             ch_samtools_bam.collect{it[1]}
         )
-        ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
 
         /*
         * MODULE: Clip off-chromosome peaks
@@ -497,44 +500,12 @@ workflow CUTANDRUN {
         /*
         * MODULE: Create igv session
         */
-        IGV_SESSION (
-            PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.gtf,
-            ch_seacr_bed.collect{it[1]}.ifEmpty([]),
-            UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
-        )
-    }
-
-    /*
-     * MODULE: Collect software versions used in pipeline
-     */
-    GET_SOFTWARE_VERSIONS ( 
-        ch_software_versions.map { it }.collect()
-    )
-
-    /*
-     * MODULE: Multiqc
-     */
-    if (!params.skip_multiqc) {
-        workflow_summary    = Schema.params_summary_multiqc(workflow, params.summary_params)
-        ch_workflow_summary = Channel.value(workflow_summary)
-
-        MULTIQC (
-            ch_multiqc_config,
-            ch_multiqc_custom_config.collect().ifEmpty([]),
-            GET_SOFTWARE_VERSIONS.out.yaml.collect(),
-            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
-            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
-            ch_bowtie2_log.collect{it[1]}.ifEmpty([]),
-            ch_bowtie2_spikein_log.collect{it[1]}.ifEmpty([]),
-            ch_samtools_stats.collect{it[1]}.ifEmpty([]),
-            ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
-            ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
-            ch_markduplicates_multiqc.collect{it[1]}.ifEmpty([])
-        )
-        multiqc_report = MULTIQC.out.report.toList()
+        // IGV_SESSION (
+        //     PREPARE_GENOME.out.fasta,
+        //     PREPARE_GENOME.out.gtf,
+        //     ch_seacr_bed.collect{it[1]}.ifEmpty([]),
+        //     UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
+        // )
     }
 
     // filter igg from bigwigs
@@ -552,14 +523,12 @@ workflow CUTANDRUN {
     DEEPTOOLS_PLOTHEATMAP_GENE (
         DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
     )
-    
 
     //HEATMAP ON PEAKS
     // extract max signal region from SEACR bed
     AWK_EDIT_PEAK_BED (
         ch_seacr_bed
     )
-
     ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.version.first().ifEmpty(null))
 
     // order bigwig and bed channels such that they match on id
@@ -583,18 +552,15 @@ workflow CUTANDRUN {
         .map { row -> row[-1] }
         .set { ch_ordered_seacr_max }
 
-
     DEEPTOOLS_COMPUTEMATRIX_PEAKS (
         ch_ordered_bigwig,
         ch_ordered_seacr_max
     )
-
     ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.version.first().ifEmpty(null))
 
     DEEPTOOLS_PLOTHEATMAP_PEAKS (
         DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
     )
-
 
     /*
      * MODULE: Reporting
@@ -625,11 +591,6 @@ workflow CUTANDRUN {
 
         AWK_FRAG_BIN( CALCULATE_FRAGMENTS.out.bed )
 
-        EXPORT_META (
-            ANNOTATE_DEDUP_META.out.output.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
-            //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
-        )
-
         SAMTOOLS_CUSTOMVIEW (
             ch_samtools_bam,
             ch_samtools_bai
@@ -644,17 +605,52 @@ workflow CUTANDRUN {
         // Sort bams by mate pairs
         SAMTOOLS_SORT ( ch_samtools_bam )
 
+        // EXPORT_META (
+        //     ANNOTATE_DEDUP_META.out.output.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+        //     //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+        // )
 
-        GENERATE_REPORTS(
-            EXPORT_META.out.csv, 
-            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]},
-            AWK_FRAG_BIN.out.file.collect{it[1]},
-            ch_seacr_bed.collect{it[1]},
-            SAMTOOLS_SORT.out.bam.collect{it[1]}
-        )
-
-        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.first().ifEmpty(null))
+        // GENERATE_REPORTS(
+        //     EXPORT_META.out.csv, 
+        //     SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]},
+        //     AWK_FRAG_BIN.out.file.collect{it[1]},
+        //     ch_seacr_bed.collect{it[1]},
+        //     SAMTOOLS_SORT.out.bam.collect{it[1]}
+        // )
+        // ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.first().ifEmpty(null))
     }
+
+    // /*
+    //  * MODULE: Collect software versions used in pipeline
+    //  */
+    // GET_SOFTWARE_VERSIONS ( 
+    //     ch_software_versions.map { it }.collect()
+    // )
+
+    // /*
+    //  * MODULE: Multiqc
+    //  */
+    // if (!params.skip_multiqc) {
+    //     workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
+    //     ch_workflow_summary = Channel.value(workflow_summary)
+
+    //     MULTIQC (
+    //         ch_multiqc_config,
+    //         ch_multiqc_custom_config.collect().ifEmpty([]),
+    //         GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+    //         ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+    //         FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+    //         FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+    //         FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+    //         ch_bowtie2_log.collect{it[1]}.ifEmpty([]),
+    //         ch_bowtie2_spikein_log.collect{it[1]}.ifEmpty([]),
+    //         ch_samtools_stats.collect{it[1]}.ifEmpty([]),
+    //         ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
+    //         ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
+    //         ch_markduplicates_multiqc.collect{it[1]}.ifEmpty([])
+    //     )
+    //     multiqc_report = MULTIQC.out.report.toList()
+    // }
 }
 
 ////////////////////////////////////////////////////
