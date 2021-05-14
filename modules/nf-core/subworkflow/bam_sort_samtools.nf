@@ -3,8 +3,9 @@
  */
 
 params.options = [:]
+params.samtools_sort_options = [:]
 
-include { SAMTOOLS_SORT      } from '../software/samtools/sort/main'  addParams( options: params.options )
+include { SAMTOOLS_SORT      } from '../software/samtools/sort/main'  addParams( options: params.samtools_sort_options )
 include { SAMTOOLS_INDEX     } from '../software/samtools/index/main' addParams( options: params.options )
 include { BAM_STATS_SAMTOOLS } from './bam_stats_samtools'            addParams( options: params.options )
 
