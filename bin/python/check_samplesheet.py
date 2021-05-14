@@ -17,6 +17,7 @@ def parse_args(args=None):
     parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
     parser.add_argument("FILE_IN", help="Input samplesheet file.")
     parser.add_argument("FILE_OUT", help="Output file.")
+    parser.add_argument("IGG", help="Boolean for whether or not igg is given")
     return parser.parse_args(args)
 
 
@@ -40,7 +41,7 @@ def print_error(error, context="Line", context_str=""):
 
 
 # TODO nf-core: Update the check_samplesheet function
-def check_samplesheet(file_in, file_out):
+def check_samplesheet(file_in, file_out, igg_control):
     """
     This function checks that the samplesheet follows the following structure:
 
@@ -50,6 +51,8 @@ def check_samplesheet(file_in, file_out):
     WT,2,WT_LIB1_REP2_1.fastq.gz,WT_LIB1_REP2_2.fastq.gz
     KO,1,KO_LIB1_REP1_1.fastq.gz,KO_LIB1_REP1_2.fastq.gz
     """
+
+    igg_present = False
 
     sample_run_dict = {}
     with open(file_in, "r") as fin:
@@ -66,6 +69,10 @@ def check_samplesheet(file_in, file_out):
         ## Check sample entries
         for line in fin:
             lspl = [x.strip().strip('"') for x in line.strip().split(",")]
+
+            if not igg_present:
+                if 'igg' in lspl:
+                    igg_present = True
 
             ## Check valid number of columns per row
             if len(lspl) < len(HEADER):
@@ -126,6 +133,15 @@ def check_samplesheet(file_in, file_out):
                 else:
                     sample_run_dict[sample][replicate].append(sample_info)
 
+    ## Check igg_control parameter is consistent with input groups
+    if (igg_control == 'true' and not igg_present):
+        print("ERROR: No 'igg' group was found in " + str(file_in) + " If you are not supplying an IgG control, please specify --igg_control 'false' on command line.")
+        sys.exit(1)
+
+    if (igg_control == 'false' and igg_present):
+        print("ERROR: Parameter --igg_control was set to false, but an 'igg' group was found in " + str(file_in) + ".")
+        sys.exit(1)
+
     ## Write validated samplesheet with appropriate columns
     if len(sample_run_dict) > 0:
         out_dir = os.path.dirname(file_out)
@@ -162,7 +178,7 @@ def check_samplesheet(file_in, file_out):
 
 def main(args=None):
     args = parse_args(args)
-    check_samplesheet(args.FILE_IN, args.FILE_OUT)
+    check_samplesheet(args.FILE_IN, args.FILE_OUT, args.IGG)
 
 
 if __name__ == "__main__":
