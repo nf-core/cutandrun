@@ -25,7 +25,6 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 // Check mandatory parameters that cannot be checked in the groovy lib as we want a channel for them
 if (params.input)     { ch_input     = file(params.input)     } else { exit 1, 'Input samplesheet not specified!'     }
 if (params.blacklist) { ch_blacklist = file(params.blacklist) } else { exit 1, 'Genome blacklist file not specified!' }
-if (params.gene_bed)  { ch_gene_bed  = file(params.gene_bed)  } else { exit 1, 'Genome gene bed file not specified!'  }
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
@@ -193,21 +192,21 @@ include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from '../subworkflows/loc
 /*
  * MODULES
  */
-include { UCSC_BEDGRAPHTOBIGWIG } from '../modules/nf-core/software/ucsc/bedgraphtobigwig/main' addParams( options: modules['ucsc_bedgraphtobigwig'] )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE } from '../modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_gene'] )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from '../modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_peaks'] )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE } from '../modules/nf-core/software/deeptools/plotheatmap/main' addParams( options: modules['dt_plotheatmap_gene'] )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS } from '../modules/nf-core/software/deeptools/plotheatmap/main' addParams( options: modules['dt_plotheatmap_peaks'] )
-include { SAMTOOLS_SORT } from '../modules/nf-core/software/samtools/sort/main.nf' addParams( options: modules['samtools_sort'] )
-include { SEACR_CALLPEAK             } from '../modules/nf-core/software/seacr/callpeak/main'     addParams( options: modules['seacr'] )
-include { UCSC_BEDCLIP                   } from '../modules/nf-core/software/ucsc/bedclip/main'             addParams( options: modules['ucsc_bedclip']  )
+include { UCSC_BEDGRAPHTOBIGWIG                                    } from '../modules/nf-core/software/ucsc/bedgraphtobigwig/main'   addParams( options: modules['ucsc_bedgraphtobigwig'] )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from '../modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_gene']   )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from '../modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_peaks']  )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from '../modules/nf-core/software/deeptools/plotheatmap/main'   addParams( options: modules['dt_plotheatmap_gene']   )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from '../modules/nf-core/software/deeptools/plotheatmap/main'   addParams( options: modules['dt_plotheatmap_peaks']  )
+include { SAMTOOLS_SORT                                            } from '../modules/nf-core/software/samtools/sort/main.nf'        addParams( options: modules['samtools_sort']         )
+include { SEACR_CALLPEAK                                           } from '../modules/nf-core/software/seacr/callpeak/main'          addParams( options: modules['seacr']                 )
+include { UCSC_BEDCLIP                                             } from '../modules/nf-core/software/ucsc/bedclip/main'            addParams( options: modules['ucsc_bedclip']          )
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
  */
-include { FASTQC_TRIMGALORE                                        } from '../subworkflows/nf-core/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
-include { MARK_DUPLICATES_PICARD                                   } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
-include { MARK_DUPLICATES_PICARD as DEDUP_PICARD                   } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup'], samtools_options: modules['picard_dedup_samtools'], control_only: dedup_control_only )
+include { FASTQC_TRIMGALORE                      } from '../subworkflows/nf-core/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
+include { MARK_DUPLICATES_PICARD                 } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
+include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup'], samtools_options: modules['picard_dedup_samtools'], control_only: dedup_control_only )
 
 /*
 ========================================================================================
@@ -393,7 +392,7 @@ workflow CUTANDRUN {
     // META-DATA example state:
     //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
     // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], [BAM]]
+    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], BAM]
     //ch_samtools_bam | view
     //EXPORT_META ( ch_annotated_meta.collect{ it[0] } )
 
@@ -587,89 +586,153 @@ workflow CUTANDRUN {
         /*
         * MODULE: DESeq2 QC Analysis
         */
-        // DESEQ2_DIFF (
-        //      ch_groups_no_igg,
-        //      ch_seacr_bed.collect{it[1]},
-        //      ch_samtools_bam.collect{it[1]}
-        // )
-        // ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
+        DESEQ2_DIFF (
+             ch_groups_no_igg,
+             ch_seacr_bed.collect{it[1]},
+             ch_samtools_bam.collect{it[1]}
+        )
+        ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
 
         /*
-        * MODULE: Compute DeepTools matrix used in heatmap plotting
+        * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
         */
         DEEPTOOLS_COMPUTEMATRIX_GENE (
             ch_bigwig_no_igg,
-            ch_gene_bed
+            PREPARE_GENOME.out.bed
         )
-        DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix | view
-    }
+        ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.version.first().ifEmpty(null))
+        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
+        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
+        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+        // scale_factor:10000], MATRIX]
+        //DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix | view
 
+        /*
+        * MODULE: Calculate DeepTools heatmap
+        */
+        DEEPTOOLS_PLOTHEATMAP_GENE (
+            DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
+        )
 
+        /*
+        * MODULE: Extract max signal from peak beds
+        */
+        AWK_EDIT_PEAK_BED (
+            ch_seacr_bed
+        )
+        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
+        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
+        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+        // scale_factor:10000], TEXT]
+        //AWK_EDIT_PEAK_BED.out.file | view
 
+        /*
+         * CHANNEL: Structure output for join on id
+         */
+        AWK_EDIT_PEAK_BED.out.file
+            .map { row -> [row[0].id, row ].flatten()}
+            .set { ch_seacr_bed_id }
+        //ch_seacr_bed_id | view
 
+        /*
+         * CHANNEL: Join beds and bigwigs on id
+         */
+        ch_bigwig_no_igg
+            .map { row -> [row[0].id, row ].flatten()}
+            .join ( ch_seacr_bed_id )
+            .set { ch_dt_peaks }
+        //ch_dt_peaks | view
 
+        ch_dt_peaks
+            .map { row -> row[1,2] }
+            .set { ch_ordered_bigwig }
+        //ch_ordered_bigwig | view
 
+        ch_dt_peaks
+            .map { row -> row[-1] }
+            .set { ch_ordered_seacr_max }
+        //ch_ordered_seacr_max | view
 
-
-
-
-
-
-
-
-
-    //DEEPTOOLS HEATMAPS
-    //HEATMAP OVER TRANSCRIPTION UNITS
-
-
-    // DEEPTOOLS_PLOTHEATMAP_GENE (
-    //     DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
-    // )
-
-    //HEATMAP ON PEAKS
-    // extract max signal region from SEACR bed
-    // AWK_EDIT_PEAK_BED (
-    //     ch_seacr_bed
-    // )
-    // ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.version.first().ifEmpty(null))
-
-    // order bigwig and bed channels such that they match on id
-    // ch_bigwig_no_igg
-    //     .map { row -> [row[0].id, row ].flatten()}
-    //     .set { ch_bigwig_no_igg_id }
-
-    // AWK_EDIT_PEAK_BED.out.file
-    //     .map { row -> [row[0].id, row ].flatten()}
-    //     .set { ch_seacr_max_id }
-
-    // ch_bigwig_no_igg_id
-    //     .join ( ch_seacr_max_id )
-    //     .set { ch_dt_peaks }
+        /*
+        * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
+        */
+        DEEPTOOLS_COMPUTEMATRIX_PEAKS (
+            ch_ordered_bigwig,
+            ch_ordered_seacr_max
+        )
+        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
+        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
+        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+        // scale_factor:10000], MATRIX]
+        //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
     
-    // ch_dt_peaks
-    //     .map { row -> row[1,2] }
-    //     .set { ch_ordered_bigwig }
+        /*
+        * MODULE: Calculate DeepTools heatmap
+        */
+        DEEPTOOLS_PLOTHEATMAP_PEAKS (
+            DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
+        )
 
-    // ch_dt_peaks
-    //     .map { row -> row[-1] }
-    //     .set { ch_ordered_seacr_max }
+        /*
+        * SUBWORKFLOW: Annotate meta-data with duplication stats
+        */
+        ANNOTATE_DEDUP_META( 
+            ch_samtools_bam, 
+            ch_markduplicates_multiqc, 
+            ch_dummy_file.collect()
+        )
+        ch_samtools_bam = ANNOTATE_DEDUP_META.out.output
+        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
+        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
+        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+        // scale_factor:10000, dedup_library:unknown library, dedup_unpaired_reads_examined:0, dedup_read_pairs_examined:350, dedup_secondary_or_supplementary_rds:0, 
+        // dedup_unmapped_reads:0, dedup_unpaired_read_duplicates:0, dedup_read_pair_duplicates:0, dedup_read_pair_optical_duplicates:0, dedup_percent_duplication:0, 
+        // dedup_estimated_library_size:], BAM]
+        //ch_samtools_bam | view
 
-    // DEEPTOOLS_COMPUTEMATRIX_PEAKS (
-    //     ch_ordered_bigwig,
-    //     ch_ordered_seacr_max
-    // )
-    // ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.version.first().ifEmpty(null))
+        /*
+        * MODULE: Bin the fragments into 500bp bins ready for downstream reporting
+        */
+        AWK_FRAG_BIN( 
+            CALCULATE_FRAGMENTS.out.bed 
+        )
+        //AWK_FRAG_BIN.out.file | view
 
-    // DEEPTOOLS_PLOTHEATMAP_PEAKS (
-    //     DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
-    // )
+        /*
+        * MODULE: Calculate fragment lengths 
+        */
+         SAMTOOLS_CUSTOMVIEW (
+            ch_samtools_bam,
+            ch_samtools_bai
+        )
+        //SAMTOOLS_CUSTOMVIEW.out.tsv | view
 
-    /*
-     * MODULE: Reporting
-     */
-    //if (!params.skip_reporting) {
-        //ANNOTATE_DEDUP_META(ch_samtools_bam_meta, ch_markduplicates_multiqc, ch_dummy_file.collect())
-        //ANNOTATE_DEDUP_META.out.output | view
+        /*
+        * MODULE: Sort bams by mate pair ids (no position)
+        */
+        SAMTOOLS_SORT ( 
+            ch_samtools_bam 
+        )
+        //SAMTOOLS_SORT.out.bam | view
+
+        /*
+        * MODULE: Export meta-data to csv file
+        */
+        EXPORT_META (
+            ch_samtools_bam.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+        )
+
+        /*
+        * MODULE: Generate python reporting using mixture of meta-data and direct file processing
+        */
+        GENERATE_REPORTS(
+            EXPORT_META.out.csv, 
+            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]},
+            AWK_FRAG_BIN.out.file.collect{it[1]},
+            ch_seacr_bed.collect{it[1]},
+            SAMTOOLS_SORT.out.bam.collect{it[1]}
+        )
+        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
 
         // ch_samtools_bam
         //     .map { row -> [row[0].id, row[0], row[1] ] }
@@ -687,40 +750,14 @@ workflow CUTANDRUN {
         
         // DEEPTOOLS_BAMPEFRAGMENTSIZE(ch_samtools_bam_bai, ch_blacklist)
         // //DEEPTOOLS_BAMPEFRAGMENTSIZE.out.summary_csv | view
-
         // ANNOTATE_DT_FRAG_META( ANNOTATE_DEDUP_META.out.output, DEEPTOOLS_BAMPEFRAGMENTSIZE.out.summary_csv, ch_dt_frag_to_csv_awk)
         //ANNOTATE_DT_FRAG_META.out.output | view
 
-        // AWK_FRAG_BIN( CALCULATE_FRAGMENTS.out.bed )
-
-        // SAMTOOLS_CUSTOMVIEW (
-        //     ch_samtools_bam,
-        //     ch_samtools_bai
-        // )
-        //SAMTOOLS_CUSTOMVIEW.out.txt | view
-
-        // // Filter bam bai channels for non-igg only
+        //         // Filter bam bai channels for non-igg only
         // ch_samtools_bam_bai
         //     .filter { it[0].group != 'igg' }
         //     .set { ch_no_igg_bam_bai }
-
-        // Sort bams by mate pairs
-        // SAMTOOLS_SORT ( ch_samtools_bam )
-
-        // EXPORT_META (
-        //     ANNOTATE_DEDUP_META.out.output.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
-        //     //ch_samtools_bam_scale.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
-        // )
-
-        // GENERATE_REPORTS(
-        //     EXPORT_META.out.csv, 
-        //     SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]},
-        //     AWK_FRAG_BIN.out.file.collect{it[1]},
-        //     ch_seacr_bed.collect{it[1]},
-        //     SAMTOOLS_SORT.out.bam.collect{it[1]}
-        // )
-        // ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.first().ifEmpty(null))
-    //}
+    }
 
     /*
      * MODULE: Collect software versions used in pipeline
@@ -729,30 +766,30 @@ workflow CUTANDRUN {
         ch_software_versions.map { it }.collect()
     )
 
-    // /*
-    //  * MODULE: Multiqc
-    //  */
-    // if (!params.skip_multiqc) {
-    //     workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
-    //     ch_workflow_summary = Channel.value(workflow_summary)
+    /*
+     * MODULE: Multiqc
+     */
+    if (!params.skip_multiqc) {
+        workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
+        ch_workflow_summary = Channel.value(workflow_summary)
 
-    //     MULTIQC (
-    //         ch_multiqc_config,
-    //         ch_multiqc_custom_config.collect().ifEmpty([]),
-    //         GET_SOFTWARE_VERSIONS.out.yaml.collect(),
-    //         ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
-    //         FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-    //         FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-    //         FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
-    //         ch_bowtie2_log.collect{it[1]}.ifEmpty([]),
-    //         ch_bowtie2_spikein_log.collect{it[1]}.ifEmpty([]),
-    //         ch_samtools_stats.collect{it[1]}.ifEmpty([]),
-    //         ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
-    //         ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
-    //         ch_markduplicates_multiqc.collect{it[1]}.ifEmpty([])
-    //     )
-    //     multiqc_report = MULTIQC.out.report.toList()
-    // }
+        MULTIQC (
+            ch_multiqc_config,
+            ch_multiqc_custom_config.collect().ifEmpty([]),
+            GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+            ch_bowtie2_log.collect{it[1]}.ifEmpty([]),
+            ch_bowtie2_spikein_log.collect{it[1]}.ifEmpty([]),
+            ch_samtools_stats.collect{it[1]}.ifEmpty([]),
+            ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
+            ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
+            ch_markduplicates_multiqc.collect{it[1]}.ifEmpty([])
+        )
+        multiqc_report = MULTIQC.out.report.toList()
+    }
 }
 
 ////////////////////////////////////////////////////

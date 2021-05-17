@@ -338,7 +338,7 @@
             "type": "string"
         },
         "igg_control": {
-            "type": "string",
+            "type": "boolean",
             "default": "true"
         },
         "peak_threshold": {
