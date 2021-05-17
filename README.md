@@ -61,11 +61,24 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 4. Start running your own analysis!
 
-    <!-- TODO nf-core: Update the example "typical command" below used to run the pipeline -->
+    * Typical command for CUT&Run/CUT&Tag analysis:
 
-    ```bash
-    nextflow run nf-core/cutandrun -profile <docker/singularity/podman/conda/institute> --input samplesheet.csv --genome GRCh37
-    ```
+        ```bash
+        nextflow run nf-core/cutandrun \
+            -profile <docker/singularity/podman/conda/institute> \
+            --input samplesheet.csv \
+            --genome GRCh37
+        ```
+
+    * Typical command for downloading public data:
+
+        ```bash
+        nextflow run nf-core/cutandrun \
+            --public_data_ids ids.txt \
+            -profile <docker/singularity/podman/conda/institute>
+        ```
+
+    > **NB:** The commands to obtain public data and to run the main arm of the pipeline are completely independent. This is intentional because it allows you to download all of the raw data in an initial pipeline run (`results/public_data/`) and then to curate the auto-created samplesheet based on the available sample metadata before you run the pipeline again properly.    
 
 See [usage docs](https://nf-co.re/cutandrun/usage) for all of the available options when running the pipeline.
 
@@ -75,7 +88,9 @@ The nf-core/cutandrun pipeline comes with documentation about the pipeline: [usa
 
 ## Credits
 
-nf-core/cutandrun was originally written by Chris Cheshire and Charlotte West.
+nf-core/cutandrun was originally written by Chris Cheshire ([@chris-cheshire](https://github.com/chris-cheshire)) and Charlotte West ([@charlotte-west](https://github.com/charlotte-west)) from [Luscombe Lab](https://www.crick.ac.uk/research/labs/nicholas-luscombe) at [The Francis Crick Institute](https://www.crick.ac.uk/), London, UK.
+
+The pipeline structure and parts of the downstream analysis were adapted from the original CUT&Tag analysis [protocol](https://yezhengstat.github.io/CUTTag_tutorial/) from the [Henikoff Lab](https://research.fredhutch.org/henikoff/en.html).
 
 We thank the following people for their extensive assistance in the development
 of this pipeline:
