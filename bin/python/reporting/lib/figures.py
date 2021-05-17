@@ -568,6 +568,8 @@ class Figures:
         sns.set(font_scale=0.6)
         fig, ax = plt.subplots()
         plot_data = self.frag_bin500[self.frag_bin500.columns[-(len(self.frag_bin500.columns)-2):]]
+        plot_data = plot_data.fillna(0)
+        # print(plot_data.head(15))
         corr_mat = plot_data.corr()
         ax = sns.heatmap(corr_mat, annot=True)
         fig.suptitle("Replicate Reproducibility")
