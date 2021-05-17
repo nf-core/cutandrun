@@ -37,16 +37,11 @@ On release, automated continuous integration tests run the pipeline on a full-si
 9. Create bigWig coverage files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
 10. Peak calling specifically tailored for low background noise ([`SEACR`](https://github.com/FredHutch/SEACR))
 11. Quality control and analysis:
-    1. Alignment, fragment length and peak analysis and replicate reproducibility (`Python`)
-    2. Differential peak analysis [`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html)
-    3. Heatmap peak analysis [`Deeptools`]
-12. Genome browser session [`IGV`]
-13. Present QC for raw read, alignment and duplicate reads ([`MultiQC`](http://multiqc.info/)
-
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
-
-1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+    1. Alignment, fragment length and peak analysis and replicate reproducibility ([`Python`](https://www.python.org/))
+    2. Differential peak analysis ([`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
+    3. Heatmap peak analysis ([`deepTools`](https://github.com/deeptools/deepTools/))
+12. Genome browser session ([`IGV`](https://software.broadinstitute.org/software/igv/))
+13. Present QC for raw read, alignment and duplicate reads ([`MultiQC`](http://multiqc.info/))
 
 ## Quick Start
 
