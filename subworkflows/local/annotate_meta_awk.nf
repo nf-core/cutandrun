@@ -1,17 +1,15 @@
 /*
  * Annotate the pipeline meta data with the columns from a csv file
-   generated from processing a report text file with an awk script
-   
-   TODO: input is a passthrough and that is the thing that is annotated
-    */
+ * generated from processing a report text file with an awk script
+ */
 
-params.options = [:]
+params.options     = [:]
 params.meta_suffix = ''
 params.meta_prefix = ''
 params.script_mode = false
 
 include { AWK_SCRIPT } from '../../modules/local/awk_script' addParams( options: params.options )
-include { AWK } from '../../modules/local/awk' addParams( options: params.options )
+include { AWK } from '../../modules/local/awk'               addParams( options: params.options )
 
 workflow ANNOTATE_META_AWK {
     take: passthrough
@@ -24,6 +22,7 @@ workflow ANNOTATE_META_AWK {
     ch_paths = passthrough.map { row -> [row[0].id, row[0], row[1..-1]].flatten() }
 
     ch_annotated_meta = Channel.empty()
+    // Can run awk in script mode with a file from assets or with a setup of command line args
     if(params.script_mode) {
         AWK_SCRIPT ( report, script )
 
