@@ -7,10 +7,10 @@ params.spikein_align_options    = [:]
 params.samtools_options         = [:]
 params.samtools_spikein_options = [:]
 
-include { BOWTIE2_ALIGN                                  } from '../../modules/nf-core/software/bowtie2/align/main'              addParams( options: params.align_options, save_unaligned: params.save_unaligned )
-include { BOWTIE2_ALIGN as BOWTIE2_SPIKEIN_ALIGN         } from '../../modules/nf-core/software/bowtie2/align/main'              addParams( options: params.spikein_align_options, save_unaligned: false )
-include { BAM_SORT_SAMTOOLS                              } from '../nf-core/bam_sort_samtools' addParams( options: params.samtools_options )
-include { BAM_SORT_SAMTOOLS as BAM_SORT_SAMTOOLS_SPIKEIN } from '../nf-core/bam_sort_samtools' addParams( options: params.samtools_spikein_options )
+include { BOWTIE2_ALIGN                                  } from '../../modules/nf-core/software/bowtie2/align/main' addParams( options: params.align_options, save_unaligned: params.save_unaligned )
+include { BOWTIE2_ALIGN as BOWTIE2_SPIKEIN_ALIGN         } from '../../modules/nf-core/software/bowtie2/align/main' addParams( options: params.spikein_align_options, save_unaligned: false         )
+include { BAM_SORT_SAMTOOLS                              } from '../nf-core/bam_sort_samtools'                      addParams( options: params.samtools_options                                     )
+include { BAM_SORT_SAMTOOLS as BAM_SORT_SAMTOOLS_SPIKEIN } from '../nf-core/bam_sort_samtools'                      addParams( options: params.samtools_spikein_options                             )
 
 workflow ALIGN_BOWTIE2 {
     take:
@@ -37,13 +37,13 @@ workflow ALIGN_BOWTIE2 {
 
     emit:
     bowtie2_version     = BOWTIE2_ALIGN.out.version              // path: *.version.txt
-    samtools_version    = BAM_SORT_SAMTOOLS.out.version           //    path: *.version.txt
+    samtools_version    = BAM_SORT_SAMTOOLS.out.version          // path: *.version.txt
     
-    orig_bam            = BOWTIE2_ALIGN.out.bam                  // channel: [ val(meta), bam            ]
-    orig_spikein_bam    = BOWTIE2_SPIKEIN_ALIGN.out.bam          // channel: [ val(meta), bam            ]
+    orig_bam            = BOWTIE2_ALIGN.out.bam                  // channel: [ val(meta), bam ]
+    orig_spikein_bam    = BOWTIE2_SPIKEIN_ALIGN.out.bam          // channel: [ val(meta), bam ]
     
-    bowtie2_log         = BOWTIE2_ALIGN.out.log                  // channel: [ val(meta), log_final      ]
-    bowtie2_spikein_log = BOWTIE2_SPIKEIN_ALIGN.out.log          // channel: [ val(meta), log_final      ]
+    bowtie2_log         = BOWTIE2_ALIGN.out.log                  // channel: [ val(meta), log_final ]
+    bowtie2_spikein_log = BOWTIE2_SPIKEIN_ALIGN.out.log          // channel: [ val(meta), log_final ]
     
     bam                 = BAM_SORT_SAMTOOLS.out.bam              // channel: [ val(meta), [ bam ] ]
     bai                 = BAM_SORT_SAMTOOLS.out.bai              // channel: [ val(meta), [ bai ] ]
