@@ -574,7 +574,7 @@ class Figures:
 
         return fig, self.frag_bin500
 
-    # ---------- Plot 6 - Replicate Reproducibility Heatmap --------- #
+    # ---------- Plot 6 - Scale Factor Comparison --------- #
     def scale_factor_summary(self):
         fig, scale_summary = plt.subplots(1,2)
         fig.suptitle("Scaling Factor")
