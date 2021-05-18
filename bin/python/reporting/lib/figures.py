@@ -618,6 +618,7 @@ class Figures:
         self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs()
 
         ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate", palette = "viridis")
+        ax.set_ylabel("Peak Width")
         fig.suptitle("Peak Width Distribution")
 
         return fig, self.seacr_beds
@@ -629,6 +630,7 @@ class Figures:
 
         # plot
         ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate", palette = "viridis")
+        ax.set_ylabel("Peaks Reproduced (%)")
         fig.suptitle("Peak Reprodducibility")
 
         return fig, self.reprod_peak_stats
@@ -638,6 +640,7 @@ class Figures:
         fig, ax = plt.subplots()
 
         ax = sns.boxplot(data=self.frip, x='group', y='percentage_frags_in_peaks', palette = "magma")
+        ax.set_ylabel("Fragments within Peaks (%)")
         fig.suptitle("Aligned Fragments within Peaks")
 
         return fig, self.frip
