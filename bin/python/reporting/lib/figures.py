@@ -466,7 +466,7 @@ class Figures:
     # ---------- Plot 1 - Alignment Summary --------- #
     def alignment_summary(self):
         sns.color_palette("magma", as_cmap=True)
-
+        sns.set(font_scale=0.6)
         # Subset data 
         df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
@@ -494,7 +494,7 @@ class Figures:
         seq_summary[1,1].set_title("Alignment Rate (Spike-in)")
         seq_summary[1,1].set_ylabel("Percent of Fragments Aligned")
 
-        plt.subplots_adjust(wspace=0.5, hspace=0.5)
+        plt.subplots_adjust(wspace=0.4, hspace=0.45)
         
         return fig, df_data
 
@@ -565,7 +565,6 @@ class Figures:
 
     # ---------- Plot 5 - Replicate Reproducibility Heatmap --------- #
     def replicate_heatmap(self):
-        sns.set(font_scale=0.6)
         fig, ax = plt.subplots()
         plot_data = self.frag_bin500[self.frag_bin500.columns[-(len(self.frag_bin500.columns)-2):]]
         plot_data = plot_data.fillna(0)
