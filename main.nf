@@ -11,53 +11,34 @@
 
 nextflow.enable.dsl = 2
 
-////////////////////////////////////////////////////
-/* --               PRINT HELP                 -- */
-////////////////////////////////////////////////////
+/*
+========================================================================================
+    GENOME PARAMETER VALUES
+========================================================================================
+*/
 
-def json_schema = "$projectDir/nextflow_schema.json"
-if (params.help) {
-    def command = "nextflow run nf-core/cutandrun --input samplesheet.csv -profile docker"
-    log.info Schema.params_help(workflow, params, json_schema, command)
-    exit 0
-}
+params.fasta     = WorkflowMain.getGenomeAttribute(params, 'fasta')
+params.gtf       = WorkflowMain.getGenomeAttribute(params, 'gtf')
+params.gene_bed  = WorkflowMain.getGenomeAttribute(params, 'bed12')
+params.blacklist = WorkflowMain.getGenomeAttribute(params, 'blacklist')
+params.bowtie2   = WorkflowMain.getGenomeAttribute(params, 'bowtie2')
 
-////////////////////////////////////////////////////
-/* --        GENOME PARAMETER VALUES           -- */
-////////////////////////////////////////////////////
+/*
+========================================================================================
+    SPIKEIN GENOME PARAMETER VALUES
+========================================================================================
+*/
 
-params.fasta        = Checks.get_genome_attribute(params, 'fasta')
-params.gtf          = Checks.get_genome_attribute(params, 'gtf')
-params.blacklist    = Checks.get_genome_attribute(params, 'blacklist')
-params.gene_bed     = Checks.get_genome_attribute(params, 'bed12')
+params.spikein_fasta   = WorkflowMain.getGenomeAttributeSpikeIn(params, 'fasta')
+params.spikein_bowtie2 = WorkflowMain.getGenomeAttributeSpikeIn(params, 'bowtie2')
 
-log.info 'test-' + params.blacklist
+/*
+========================================================================================
+    VALIDATE & PRINT PARAMETER SUMMARY
+========================================================================================
+*/
 
-////////////////////////////////////////////////////
-/* --         PRINT PARAMETER SUMMARY          -- */
-////////////////////////////////////////////////////
-
-def summary_params = Schema.params_summary_map(workflow, params, json_schema)
-log.info Schema.params_summary_log(workflow, params, json_schema)
-
-////////////////////////////////////////////////////
-/* --          PARAMETER CHECKS                -- */
-////////////////////////////////////////////////////
-
-// Check that conda channels are set-up correctly
-if (params.enable_conda) {
-    Checks.check_conda_channels(log)
-}
-
-// Check AWS batch settings
-Checks.aws_batch(workflow, params)
-
-// Check the hostnames against configured profiles
-Checks.hostname(workflow, params, log)
-
-// Check genome key exists if provided
-Checks.genome_exists(params, log)
-
+WorkflowMain.initialise(workflow, params, log)
 
 /*
 ========================================================================================
@@ -77,7 +58,7 @@ workflow NFCORE_CUTANDRUN {
      * WORKFLOW: Run main nf-core/cutandrun analysis pipeline
      */
     } else {
-        include { CUTANDRUN } from './workflows/cutandrun' addParams( summary_params: summary_params )
+        include { CUTANDRUN } from './workflows/cutandrun'
         CUTANDRUN ()
     }
 }
@@ -97,6 +78,8 @@ workflow {
     NFCORE_CUTANDRUN ()
 }
 
-////////////////////////////////////////////////////
-/* --                  THE END                 -- */
-////////////////////////////////////////////////////
+/*
+========================================================================================
+    THE END
+========================================================================================
+*/

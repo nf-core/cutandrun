@@ -123,6 +123,8 @@ for(file in file_list) {
     file_count = file_count + 1
 }
 
+
+
 # Create replicate counts and names
 group_count = length(groups)
 rep_count = file_count / group_count
@@ -132,7 +134,7 @@ expected_rep_str = paste0("_R", 1:rep_count)
 # Create peak table and count matrix
 masterPeak = reduce(mPeak)
 countMat = matrix(NA, length(masterPeak), file_count)
-colnames(countMat) = paste(rep(groups, 2), rep(reps, each = group_count, sep = "_"))
+colnames(countMat) = paste(rep(groups, rep_count), rep(reps, each = group_count, sep = "_"))
 
 # Read in bam files that match the control or treatment group
 for(i in seq_along(groups)){
@@ -160,7 +162,7 @@ if (file.exists(opt$outdir) == FALSE) {
     dir.create(opt$outdir,recursive=TRUE)
 }
 setwd(opt$outdir)
-
+#if (FALSE) {
 ## Create index list for peak count filter
 selectR = which(rowSums(countMat) > opt$count_thresh) 
 dataS = countMat[selectR,] ## Select data from filter
@@ -510,7 +512,7 @@ if (file.exists(RLogFile) == FALSE) {
     print(a)
     sink()
 }
-
+#}
 ################################################
 ################################################
 ################################################

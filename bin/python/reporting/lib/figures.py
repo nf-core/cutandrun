@@ -338,14 +338,14 @@ class Figures:
             sample_id = group_i + "_" + rep_i
             pyr_bam_dict = {sample_id : pyr_bam}
             frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)  # pr.count_overlaps(pyr_bam_dict, pyr_seacr)
-            print(frag_count_pyr)
+            # print(frag_count_pyr)
             # frag_counts = frag_count_pyr.NumberOverlaps.sum()    
             frag_counts = np.count_nonzero(frag_count_pyr.NumberOverlaps)
 
             self.frip.at[i,'frags_in_peaks'] = frag_counts
 
         self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
-        print(self.frip)
+        # print(self.frip)
 
     def annotate_data(self):
         # Make new perctenage alignment columns
@@ -568,13 +568,15 @@ class Figures:
         sns.set(font_scale=0.6)
         fig, ax = plt.subplots()
         plot_data = self.frag_bin500[self.frag_bin500.columns[-(len(self.frag_bin500.columns)-2):]]
+        plot_data = plot_data.fillna(0)
+        # print(plot_data.head(15))
         corr_mat = plot_data.corr()
         ax = sns.heatmap(corr_mat, annot=True)
         fig.suptitle("Replicate Reproducibility")
 
         return fig, self.frag_bin500
 
-    # ---------- Plot 6 - Replicate Reproducibility Heatmap --------- #
+    # ---------- Plot 6 - Scale Factor Comparison --------- #
     def scale_factor_summary(self):
         fig, scale_summary = plt.subplots(1,2)
         fig.suptitle("Scaling Factor")
