@@ -15,7 +15,6 @@ checkPathParamList = [
     params.fasta,
     params.gtf,
     params.blacklist,
-    params.gene_bed,
     params.bowtie2,
     params.spikein_fasta,
     params.spikein_bowtie2
@@ -596,23 +595,28 @@ workflow CUTANDRUN {
         /*
         * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
         */
-        DEEPTOOLS_COMPUTEMATRIX_GENE (
-            ch_bigwig_no_igg,
-            PREPARE_GENOME.out.bed
-        )
-        ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.version.first().ifEmpty(null))
+        if (params.gene_bed){
+            DEEPTOOLS_COMPUTEMATRIX_GENE (
+                ch_bigwig_no_igg,
+                PREPARE_GENOME.out.bed
+            )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.version.first().ifEmpty(null))
+        
+        /*
+        * MODULE: Calculate DeepTools heatmap
+        */
+            DEEPTOOLS_PLOTHEATMAP_GENE (
+                DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
+            )
+        }
+
+
         //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
         // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
         // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
         // scale_factor:10000], MATRIX]
         //DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix | view
 
-        /*
-        * MODULE: Calculate DeepTools heatmap
-        */
-        DEEPTOOLS_PLOTHEATMAP_GENE (
-            DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
-        )
 
         /*
         * MODULE: Extract max signal from peak beds
