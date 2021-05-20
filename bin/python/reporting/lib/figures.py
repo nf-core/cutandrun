@@ -382,9 +382,10 @@ class Figures:
         data["frag_hist"] = data4
 
         # Plot 5
-        plot5, data5 = self.replicate_heatmap()
-        plots["replicate_heatmap"] = plot5
-        data["replicate_heatmap"] = data5
+        if self.replicate_number > 1:
+            plot5, data5 = self.replicate_heatmap()
+            plots["replicate_heatmap"] = plot5
+            data["replicate_heatmap"] = data5
 
         # Plot 6
         plot6, data6 = self.scale_factor_summary()
@@ -466,7 +467,7 @@ class Figures:
     # ---------- Plot 1 - Alignment Summary --------- #
     def alignment_summary(self):
         sns.color_palette("magma", as_cmap=True)
-
+        sns.set(font_scale=0.6)
         # Subset data 
         df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
@@ -494,7 +495,7 @@ class Figures:
         seq_summary[1,1].set_title("Alignment Rate (Spike-in)")
         seq_summary[1,1].set_ylabel("Percent of Fragments Aligned")
 
-        plt.subplots_adjust(wspace=0.5, hspace=0.5)
+        plt.subplots_adjust(wspace=0.4, hspace=0.45)
         
         return fig, df_data
 
@@ -565,7 +566,6 @@ class Figures:
 
     # ---------- Plot 5 - Replicate Reproducibility Heatmap --------- #
     def replicate_heatmap(self):
-        sns.set(font_scale=0.6)
         fig, ax = plt.subplots()
         plot_data = self.frag_bin500[self.frag_bin500.columns[-(len(self.frag_bin500.columns)-2):]]
         plot_data = plot_data.fillna(0)
@@ -618,6 +618,7 @@ class Figures:
         self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs()
 
         ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate", palette = "viridis")
+        ax.set_ylabel("Peak Width")
         fig.suptitle("Peak Width Distribution")
 
         return fig, self.seacr_beds
@@ -629,6 +630,7 @@ class Figures:
 
         # plot
         ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate", palette = "viridis")
+        ax.set_ylabel("Peaks Reproduced (%)")
         fig.suptitle("Peak Reprodducibility")
 
         return fig, self.reprod_peak_stats
@@ -638,6 +640,7 @@ class Figures:
         fig, ax = plt.subplots()
 
         ax = sns.boxplot(data=self.frip, x='group', y='percentage_frags_in_peaks', palette = "magma")
+        ax.set_ylabel("Fragments within Peaks (%)")
         fig.suptitle("Aligned Fragments within Peaks")
 
         return fig, self.frip

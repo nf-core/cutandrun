@@ -16,9 +16,29 @@ The directories listed below will be created in the results directory after the 
 
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data using the following steps:
 
-* [FastQC](#fastqc) - Raw read QC
+* [Preprocessing](#preprocessing)
+    * [cat](#cat) - Merge re-sequenced FastQ files
+    * [FastQC](#fastqc) - Raw read QC
+    * [TrimGalore](#trimgalore) - Adapter and quality trimming    
+* [Alignment](#alignment)
+    * [Bowtie 2](#bowtie-2) - Align reads to target and spike-in genomes
+* [Alignment post-processing](#alignment-post-processing)
+    * [SAMtools](#samtools) - Quality filter, sort and index alignments
+    * [picard MarkDuplicates](#picard-markduplicates) - Duplicate read marking
+* [Other steps](#other-steps)
+    * [Calculate scale factor](#scale-factor) - Normalise between samples
+    * [BEDTools and bedGraphToBigWig](#bedtools-and-bedgraphtobigwig) - Create bigWig coverage files
+* [Peak calling](#peak-calling)
+    * [SEACR](#seacr) - Peak calling for high signal-noise data
+* [Summary and quality control](#summary-and-quality-control)
+    * [DESeq2](#deseq2) - PCA plot and differential peak analysis
+    * [MultiQC](#multiqc) - Present QC for raw reads, alignment, read counting and sample similiarity  
+    * [IGV](#igv) - Genome browser for viewing bigWigs in relation to genes 
+
+
+<!-- * [FastQC](#fastqc) - Raw read QC
 * [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline
-* [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
+* [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution -->
 
 ### FastQC
 
