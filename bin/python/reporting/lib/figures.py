@@ -382,9 +382,10 @@ class Figures:
         data["frag_hist"] = data4
 
         # Plot 5
-        plot5, data5 = self.replicate_heatmap()
-        plots["replicate_heatmap"] = plot5
-        data["replicate_heatmap"] = data5
+        if self.replicate_number > 1:
+            plot5, data5 = self.replicate_heatmap()
+            plots["replicate_heatmap"] = plot5
+            data["replicate_heatmap"] = data5
 
         # Plot 6
         plot6, data6 = self.scale_factor_summary()
