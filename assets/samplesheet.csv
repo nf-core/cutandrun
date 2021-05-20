@@ -1,7 +1,0 @@
-group,replicate,fastq_1,fastq_2
-h3k27me3,1,/path/to/fastq/files/H3K27me3_S1_L001_R1.fastq.gz,/path/to/fastq/files/H3K27me3_S1_L001_R2.fastq.gz
-h3k27me3,2,/path/to/fastq/files/H3K27me3_S2_L001_R1.fastq.gz,/path/to/fastq/files/H3K27me3_S2_L001_R2.fastq.gz
-h3k4me3,1,/path/to/fastq/files/H3K4me3_S1_L001_R1.fastq.gz,/path/to/fastq/files/H3K4me3_S1_L001_R2.fastq.gz
-h3k4me3,2,/path/to/fastq/files/H3K4me3_S2_L001_R1.fastq.gz,/path/to/fastq/files/H3K4me3_S2_L001_R2.fastq.gz
-igg,1,/path/to/fastq/files/IGG_S1_L001_R1.fastq.gz,/path/to/fastq/files/IGG_S1_L001_R2.fastq.gz
-igg,2,/path/to/fastq/files/IGG_S2_L001_R1.fastq.gz,/path/to/fastq/files/IGG_S2_L001_R2.fastq.gz

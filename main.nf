@@ -9,7 +9,7 @@
 ----------------------------------------------------------------------------------------
 */
 
-nextflow.enable.dsl = 2
+log.info Headers.nf_core(workflow, params.monochrome_logs)
 
 /*
 ========================================================================================
@@ -61,6 +61,14 @@ workflow NFCORE_CUTANDRUN {
         include { CUTANDRUN } from './workflows/cutandrun'
         CUTANDRUN ()
     }
+
+    if (workflow.success) {
+        log.info "-${c_purple}[nf-core/cutandrun]${c_green} Pipeline completed successfully${c_reset}-"
+    } else {
+        checkHostname()
+        log.info "-${c_purple}[nf-core/cutandrun]${c_red} Pipeline completed with errors${c_reset}-"
+    }
+
 }
 
 
