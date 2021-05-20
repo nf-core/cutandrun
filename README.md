@@ -31,7 +31,7 @@ On release, automated continuous integration tests run the pipeline on a full-si
 3. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 4. Adapter and quality trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
 5. Alignment to both target and spike-in genomes ([`Bowtie 2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
-6. Sort and index alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+6. Filter on quality, sort and index alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
 7. Duplicate read marking ([`picard MarkDuplicates`](https://broadinstitute.github.io/picard/))
 8. Create bedGraph files ([`BEDTools`](https://github.com/arq5x/bedtools2/)
 9. Create bigWig coverage files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
