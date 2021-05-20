@@ -4,10 +4,6 @@
 
 > _Documentation of pipeline parameters is generated automatically from the pipeline schema and can no longer be found in markdown files._
 
-## Introduction
-
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
-
 ## Samplesheet input
 
 You will need to create a samplesheet file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row as shown in the examples below.
@@ -17,47 +13,51 @@ You will need to create a samplesheet file with information about the samples in
 ```
 
 ### Multiple replicates
-
-The `group` identifier is the same when you have multiple replicates from the same experimental group, just increment the `replicate` identifier appropriately. The first replicate value for any given experimental group must be 1. Below is an example for a single experimental group in triplicate:
+The `group` identifier is the same when you have multiple biological replicates from the same experimental group, just increment the `replicate` identifier appropriately. A special case for `group` is if you have non-specific IgG antibody control data that can be used for normalising your experimental CUT&Run (OR CUT&Tag) data. In this case, the `group` name for the IgG control data _must_ be set to `igg`. Below is an example for a single target group in triplicate, complemented by an IgG control duplicate:
 
 ```bash
 group,replicate,fastq_1,fastq_2
-control,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-control,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-control,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
+target,1,H3K27me3_S1_L001_R1.fastq.gz,H3K27me3_S1_L001_R2.fastq.gz
+target,2,H3K27me3_S2_L001_R1.fastq.gz,H3K27me3_S2_L001_R2.fastq.gz
+target,3,H3K27me3_S3_L001_R1.fastq.gz,H3K27me3_S3_L001_R2.fastq.gz
+igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
+igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
 ```
+
+It is _recommended_ to have an IgG control for normalising your experimental data and this is the default action for the pipeline. However, if you run the pipeline without IgG control data you must supply `--igg_control false`
 
 ### Multiple runs of the same library
 
-The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth). The pipeline will concatenate the raw reads before alignment. Below is an example for two samples sequenced across multiple lanes:
+The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth), or if you would like to merge technical replicates. The pipeline will concatenate the raw reads before alignment. Below is an example for two samples, one experimental and one control, sequenced across multiple lanes:
 
 ```bash
 group,replicate,fastq_1,fastq_2
-control,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-control,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
-treatment,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz
-treatment,1,AEG588A4_S4_L004_R1_001.fastq.gz,AEG588A4_S4_L004_R2_001.fastq.gz
+target,1,H3K27me3_S1_L001_R1.fastq.gz,H3K27me3_S1_L001_R2.fastq.gz
+target,1,H3K27me3_S1_L002_R1.fastq.gz,H3K27me3_S1_L002_R2.fastq.gz
+igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
+igg,1,IGG_S1_L002_R1.fastq.gz,IGG_S1_L002_R2.fastq.gz
 ```
 
 ### Full design
 
-A final design file consisting of both single- and paired-end data may look something like the one below. This is for two experimental groups in triplicate, where the last replicate of the `treatment` group has been sequenced twice.
+ A final design file may look something like the one below. This is for one experimental group in triplicate where the last replicate of the `treatment` group has been sequenced twice, another experimental group in duplicate, and one IgG control group.
 
 ```bash
 group,replicate,fastq_1,fastq_2
-control,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-control,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-control,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
-treatment,1,AEG588A4_S4_L003_R1_001.fastq.gz,
-treatment,2,AEG588A5_S5_L003_R1_001.fastq.gz,
-treatment,3,AEG588A6_S6_L003_R1_001.fastq.gz,
-treatment,3,AEG588A6_S6_L004_R1_001.fastq.gz,
+h3k27me3,1,H3K27me3_S1_L001_R1.fastq.gz,H3K27me3_S1_L001_R2.fastq.gz
+h3k27me3,2,H3K27me3_S2_L001_R1.fastq.gz,H3K27me3_S2_L001_R2.fastq.gz
+h3k27me3,3,H3K27me3_S3_L001_R1.fastq.gz,H3K27me3_S3_L001_R2.fastq.gz
+h3k27me3,3,H3K27me3_S3_L002_R1.fastq.gz,H3K27me3_S3_L002_R2.fastq.gz
+h3k4me3,1,H3K4me3_S1_L001_R1.fastq.gz,H3K4me3_S1_L001_R2.fastq.gz
+h3k4me3,2,H3K4me3_S2_L001_R1.fastq.gz,H3K4me3_S2_L001_R2.fastq.gz
+igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
+igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
 ```
 
 | Column         | Description                                                                                                 |
 |----------------|-------------------------------------------------------------------------------------------------------------|
 | `group`        | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
-| `replicate`    | Integer representing replicate number. Must start from `1..<number of replicates>`.                         |
+| `replicate`    | Integer representing replicate number.                                                                      |
 | `fastq_1`      | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
 | `fastq_2`      | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
 
@@ -68,7 +68,7 @@ An [example samplesheet](../assets/samplesheet.csv) has been provided with the p
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run nf-core/cutandrun --input samplesheet.csv -profile docker
+nextflow run nf-core/cutandrun --input samplesheet.csv --genome GRCh37 -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
