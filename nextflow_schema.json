@@ -309,7 +309,7 @@
             "type": "string"
         },
         "publish_align_intermed": {
-            "type": "string"
+            "type": "boolean"
         },
         "skip_markduplicates": {
             "type": "string"
