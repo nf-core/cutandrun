@@ -177,11 +177,6 @@ class NfcoreSchema {
         }
     }
 
-    static String dashed_line(monochrome_logs) {
-        Map colors = NfcoreTemplate.logColours(monochrome_logs)
-        return "-${colors.dim}----------------------------------------------------${colors.reset}-"
-    }
-
     /*
     Method to actually read in JSON file using Groovy.
     Group (as Key), values are all parameters
@@ -261,7 +256,7 @@ class NfcoreSchema {
     /*
      * Beautify parameters for --help
      */
-    private static String params_help(workflow, params, json_schema, command) {
+    private static String params_help(workflow, params, command, schema_filename='nextflow_schema.json') {
         Map colors = NfcoreTemplate.logColours(params.monochrome_logs)
         Integer num_hidden = 0
         String output  = ''
@@ -387,7 +382,7 @@ class NfcoreSchema {
     /*
      * Beautify parameters for summary and return as string
      */
-    private static String params_summary_log(workflow, params, json_schema) {
+    private static String paramsSummaryLog(workflow, params) {
         Map colors = NfcoreTemplate.logColours(params.monochrome_logs)
         String output  = ''
         def params_map = paramsSummaryMap(workflow, params)
@@ -402,9 +397,9 @@ class NfcoreSchema {
                 output += '\n'
             }
         }
-        output += dashed_line(params.monochrome_logs)
+        output += NfcoreTemplate.dashedLine(params.monochrome_logs)
         output += colors.dim + "\n Only displaying parameters that differ from defaults.\n" + colors.reset
-        output += dashed_line(params.monochrome_logs)
+        output += NfcoreTemplate.dashedLine(params.monochrome_logs)
         return output
     }
 
