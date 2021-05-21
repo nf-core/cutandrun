@@ -332,10 +332,10 @@
             "type": "boolean"
         },
         "skip_markduplicates": {
-            "type": "string"
+            "type": "boolean"
         },
         "skip_removeduplicates": {
-            "type": "string"
+            "type": "boolean"
         },
         "dedup_target_reads": {
             "type": "string"
