@@ -29,10 +29,10 @@ process GENERATE_REPORTS {
 
     script:  // This script is bundled with the pipeline, in nf-core/cutandrun/bin/
     """
-    reporting.py genimg \\
+    reporting.py gen_reports \\
         --meta $meta_data \\
         --raw_frag "*.frag_len.txt" \\
-        --bed_frag "*bin500.awk.bed" \\
+        --bin_frag "*bin500.awk.bed" \\
         --seacr_bed "*bed.*.bed" \\
         --bams "*.bam" \\
         --output . \\
