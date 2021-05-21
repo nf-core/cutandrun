@@ -15,7 +15,6 @@ checkPathParamList = [
     params.fasta,
     params.gtf,
     params.blacklist,
-    params.gene_bed,
     params.bowtie2,
     params.spikein_fasta,
     params.spikein_bowtie2
@@ -596,23 +595,28 @@ workflow CUTANDRUN {
         /*
         * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
         */
-        DEEPTOOLS_COMPUTEMATRIX_GENE (
-            ch_bigwig_no_igg,
-            PREPARE_GENOME.out.bed
-        )
-        ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.version.first().ifEmpty(null))
+        if (params.gene_bed){
+            DEEPTOOLS_COMPUTEMATRIX_GENE (
+                ch_bigwig_no_igg,
+                PREPARE_GENOME.out.bed
+            )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.version.first().ifEmpty(null))
+        
+        /*
+        * MODULE: Calculate DeepTools heatmap
+        */
+            DEEPTOOLS_PLOTHEATMAP_GENE (
+                DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
+            )
+        }
+
+
         //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
         // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
         // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
         // scale_factor:10000], MATRIX]
         //DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix | view
 
-        /*
-        * MODULE: Calculate DeepTools heatmap
-        */
-        DEEPTOOLS_PLOTHEATMAP_GENE (
-            DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
-        )
 
         /*
         * MODULE: Extract max signal from peak beds
@@ -719,18 +723,18 @@ workflow CUTANDRUN {
         * MODULE: Export meta-data to csv file
         */
         EXPORT_META (
-            ch_samtools_bam.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+            ch_samtools_bam.collect{it[0]}.ifEmpty([])
         )
 
         /*
         * MODULE: Generate python reporting using mixture of meta-data and direct file processing
         */
         GENERATE_REPORTS(
-            EXPORT_META.out.csv, 
-            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]},
-            AWK_FRAG_BIN.out.file.collect{it[1]},
-            ch_seacr_bed.collect{it[1]},
-            SAMTOOLS_SORT.out.bam.collect{it[1]}
+            EXPORT_META.out.csv,                        // meta-data report stats
+            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
+            AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
+            ch_seacr_bed.collect{it[1]},                // peak beds
+            SAMTOOLS_SORT.out.bam.collect{it[1]}        // bam files sorted by mate pair ids
         )
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
 

@@ -98,6 +98,13 @@
                         "move"
                     ]
                 },
+                "validate_params": {
+                    "type": "boolean",
+                    "description": "Boolean whether to validate parameters against the schema at runtime",
+                    "default": true,
+                    "fa_icon": "fas fa-check-square",
+                    "hidden": true
+                },
                 "email_on_fail": {
                     "type": "string",
                     "description": "Email address for completion summary, only when pipeline fails.",
@@ -140,6 +147,13 @@
                     "default": "${params.outdir}/pipeline_info",
                     "fa_icon": "fas fa-cogs",
                     "hidden": true
+                },
+                "show_hidden_params": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-eye-slash",
+                    "description": "Show all params when using `--help`",
+                    "hidden": true,
+                    "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
                 }
             }
         },
@@ -204,6 +218,12 @@
                 "hostnames": {
                     "type": "string",
                     "description": "Institutional configs hostname.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "config_profile_name": {
+                    "type": "string",
+                    "description": "Institutional config name.",
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
                 },
@@ -328,15 +348,6 @@
             "type": "integer",
             "default": 10000
         },
-        "skip_coverage": {
-            "type": "string"
-        },
-        "skip_igv": {
-            "type": "string"
-        },
-        "skip_reporting": {
-            "type": "string"
-        },
         "igg_control": {
             "type": "boolean",
             "default": "true"
@@ -345,20 +356,24 @@
             "type": "number",
             "default": 0.05
         },
-        "enable_conda": {
+        "skip_peakcalling": {
             "type": "string"
         },
-        "clusterOptions": {
-            "type": "string",
-            "default": "null"
+        "skip_igv": {
+            "type": "string"
+        },
+        "skip_reporting": {
+            "type": "string"
         },
         "multiqc_title": {
             "type": "string",
-            "default": "This is a test title"
+            "default": "null"
+        },
+        "enable_conda": {
+            "type": "string"
         },
         "singularity_pull_docker_container": {
-            "type": "string",
-            "default": "true"
+            "type": "string"
         },
         "gtf": {
             "type": "string"

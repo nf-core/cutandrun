@@ -28,6 +28,6 @@ process GET_SOFTWARE_VERSIONS {
     """
     echo $workflow.manifest.version > pipeline.version.txt
     echo $workflow.nextflow.version > nextflow.version.txt
-    $baseDir/bin/python/scrape_software_versions.py &> software_versions_mqc.yaml
+    scrape_software_versions.py &> software_versions_mqc.yaml
     """
 }

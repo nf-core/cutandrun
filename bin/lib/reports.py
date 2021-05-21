@@ -10,12 +10,11 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import FuncFormatter
 import seaborn as sns
-import plotly.express as px
 import pyranges as pr
 import pysam
 import time
 
-class Figures:
+class Reports:
     data_table = None
     frag_hist = None
     frag_violin = None
@@ -23,10 +22,10 @@ class Figures:
     seacr_beds = None
     bams = None
 
-    def __init__(self, logger, meta, frags, bin_frag, seacr_bed, bams):
+    def __init__(self, logger, meta, raw_frags, bin_frag, seacr_bed, bams):
         self.logger = logger
         self.meta_path = meta
-        self.frag_path = frags
+        self.raw_frag_path = raw_frags
         self.bin_frag_path = bin_frag
         self.seacr_bed_path = seacr_bed
         self.bam_path = bams
@@ -34,6 +33,12 @@ class Figures:
         sns.set()
         sns.set_theme()
         sns.set_context("paper")
+
+    #*
+    #========================================================================================
+    # UTIL
+    #========================================================================================
+    #*/
 
     def format_millions(self, x, pos):
         #the two args are the value and tick position
@@ -43,13 +48,19 @@ class Figures:
         #the two args are the value and tick position
         return '%1.1fK' % (x * 1e-3)
 
+    #*
+    #========================================================================================
+    # LOAD DATA
+    #========================================================================================
+    #*/
+
     def load_data(self):
         # ---------- Data - data_table --------- #
         self.data_table = pd.read_csv(self.meta_path, sep=',')
 
-        # ---------- Data - frag_hist --------- #
+        # ---------- Data - Raw frag histogram --------- #
         # Create list of deeptools raw fragment files
-        dt_frag_list = glob.glob(self.frag_path)
+        dt_frag_list = glob.glob(self.raw_frag_path)
 
         for i in list(range(len(dt_frag_list))):
             # create dataframe from csv file for each file and save to a list
@@ -86,33 +97,9 @@ class Figures:
 
         self.frag_hist['group'] = group_short
         self.frag_hist['replicate'] = rep_short
-        # print(self.frag_hist.head(10))
-        # self.frag_hist[['group','replicate']] = self.frag_hist['Sample'].str.split('.', 1)[:,0].str.split('_', 1, expand=True)
-        # print(self.frag_hist.head(10))
-
-        # ---------- Data - frag_violin --------- #
-        # create hue array using regex pattern matching
-        # for i in list(range(0,len(sample_arr))):
-        #     sample_i = sample_arr[i]
-        #     # sample_exp = re.findall("^[^_]*", sample_i)
-        #     sample_exp = sample_i.split(".")[0]
-        #     group_exp = sample_exp.split("_")[0]
-        #     rep_exp = sample_exp.split("_")[1]
-
-
-        #     if i==0:
-        #         # sample_exp_arr = np.array(sample_exp[0])
-        #         group_arr = np.array(group_exp)
-        #         rep_arr = np.array(rep_exp)
-        #     else:
-        #         # sample_exp_arr = np.append(sample_exp_arr, sample_exp[0])
-        #         group_arr = np.append(group_arr, group_exp)
-        #         rep_arr = np.append(rep_arr, rep_exp)
-
         self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr} ) #, index = np.arange(len(frags_arr)))
-        # self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "sample" : sample_arr , "histone_mark": sample_exp_arr}, index = np.arange(len(frags_arr)))
-        # print(self.frag_violin.head(10))
-        # ---------- Data - frag_bin500 --------- #
+
+        # ---------- Data - Binned frags --------- #
         # create full join data frame for count data
         # start by creating list of bin500 files
         dt_bin_frag_list = glob.glob(self.bin_frag_path)
@@ -132,7 +119,7 @@ class Figures:
         chrom_bin_cols = self.frag_bin500[['chrom','bin']]
         self.frag_bin500 = pd.concat([chrom_bin_cols,log2_counts], axis=1)
 
-        # ---------- Data - seacr_bed --------- #
+        # ---------- Data - Peaks --------- #
         # create dataframe for seacr peaks
         seacr_bed_list = glob.glob(self.seacr_bed_path)
 
@@ -231,15 +218,10 @@ class Figures:
             self.frip.at[k, 'mapped_frags'] = bam_now.shape[0]
             k=k+1
 
-        # ---------- Data - New frag_hist --------- #
-        # print(self.bam_df_list)
-        
+        # ---------- Data - New frag_hist --------- #   
         for i in list(range(len(self.bam_df_list))):
             df_i = self.bam_df_list[i]
             widths_i = (df_i['End'] - df_i['Start']).abs()
-            # print(df_i)
-            # print(widths_i[1:20,])
-            # print(np.max(widths_i))
             unique_i, counts_i = np.unique(widths_i, return_counts=True)
             group_i = np.repeat(self.frip.at[i, 'group'], len(unique_i))
             rep_i = np.repeat(self.frip.at[i, 'replicate'], len(unique_i))
@@ -256,13 +238,9 @@ class Figures:
                 rep_arr = np.append(rep_arr, rep_i)
 
         self.frag_series = pd.DataFrame({'group' : group_arr, 'replicate' : rep_arr, 'frag_len' : frag_lens, 'occurences' : frag_counts})
-        # print(self.frag_series.head(10))
-            # print(self.frip.at[i, 'group'])
-            # print(self.frip.at[i, 'replicate'])
-
 
         # ---------- Data - Peak stats --------- #
-        ## create number of peaks df
+        # create number of peaks df
         unique_groups = self.seacr_beds.group.unique()
         unique_replicates = self.seacr_beds.replicate.unique()
         self.df_no_peaks = pd.DataFrame(index=range(0,(len(unique_groups)*len(unique_replicates))), columns=['group','replicate','all_peaks'])
@@ -275,9 +253,8 @@ class Figures:
                 self.df_no_peaks.at[k,'replicate'] = unique_replicates[j]
                 k=k+1
 
-
         # ---------- Data - Reproducibility of peaks between replicates --------- #
-        ## empty dataframe to fill in loop
+        # empty dataframe to fill in loop
         self.reprod_peak_stats = self.df_no_peaks
         self.reprod_peak_stats = self.reprod_peak_stats.reindex(columns=self.reprod_peak_stats.columns.tolist() + ['no_peaks_reproduced','peak_reproduced_rate'])
 
@@ -292,7 +269,7 @@ class Figures:
                 loop_list = i_list
             return out_list
 
-        ## create pyranges objects and fill df
+        # create pyranges objects and fill df
         unique_groups = self.seacr_beds.group.unique()
         unique_replicates = self.seacr_beds.replicate.unique()
         rep_permutations = array_permutate(range(len(unique_replicates)))
@@ -326,7 +303,6 @@ class Figures:
             self.reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
 
         # ---------- Data - Percentage of fragments in peaks --------- #
-
         for i in range(len(self.bam_df_list)):
             bam_i = self.bam_df_list[i]
             self.frip.at[i,'mapped_frags'] = bam_i.shape[0]
@@ -336,21 +312,23 @@ class Figures:
             pyr_seacr = pr.PyRanges(chromosomes=seacr_bed_i['chrom'], starts=seacr_bed_i['start'], ends=seacr_bed_i['end'])
             pyr_bam = pr.PyRanges(df=bam_i)
             sample_id = group_i + "_" + rep_i
-            pyr_bam_dict = {sample_id : pyr_bam}
-            frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)  # pr.count_overlaps(pyr_bam_dict, pyr_seacr)
-            # print(frag_count_pyr)
-            # frag_counts = frag_count_pyr.NumberOverlaps.sum()    
+            frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)  
             frag_counts = np.count_nonzero(frag_count_pyr.NumberOverlaps)
 
             self.frip.at[i,'frags_in_peaks'] = frag_counts
 
         self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
-        # print(self.frip)
 
-    def annotate_data(self):
+    def annotate_data_table(self):
         # Make new perctenage alignment columns
         self.data_table['target_alignment_rate'] = self.data_table.loc[:, ('bt2_total_aligned_target')] / self.data_table.loc[:, ('bt2_total_reads_target')] * 100
         self.data_table['spikein_alignment_rate'] = self.data_table.loc[:, ('bt2_total_aligned_spikein')] / self.data_table.loc[:, ('bt2_total_reads_spikein')] * 100
+
+    #*
+    #========================================================================================
+    # GEN REPORTS
+    #========================================================================================
+    #*/
 
     def generate_plots(self):
         # Init
@@ -359,7 +337,7 @@ class Figures:
 
         # Get Data
         self.load_data()
-        self.annotate_data()
+        self.annotate_data_table()
 
         # Plot 1
         plot1, data1 = self.alignment_summary()
@@ -415,22 +393,6 @@ class Figures:
 
         return (plots, data)
 
-    def generate_dash_plots(self):
-        # Init
-        plots = dict()
-        data = dict()
-
-        # Get Data
-        self.load_data()
-        self.annotate_data()
-
-        # Plot 1
-        plot1, data1 = self.alignment_summary_ex()
-        plots["alignment_summary"] = plot1
-        data["alignment_summary"] = data1
-
-        return (plots, data)
-
     def gen_plots_to_folder(self, output_path):
         # Init
         abs_path = os.path.abspath(output_path)
@@ -460,9 +422,11 @@ class Figures:
             # d['CreationDate'] = datetime.datetime(2009, 11, 13)
             # d['ModDate'] = datetime.datetime.today()
 
-    ##### PLOTS #####
-
-    # TODO: Add group ordering -  order=['h3k27me3', 'h3k4me3', 'igg']
+    #*
+    #========================================================================================
+    # PLOTS
+    #========================================================================================
+    #*/
 
     # ---------- Plot 1 - Alignment Summary --------- #
     def alignment_summary(self):

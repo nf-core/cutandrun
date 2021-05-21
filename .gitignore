@@ -14,22 +14,7 @@ testing*
 
 R_sessionInfo.log
 
-dev/docker/static_reports/test_output/alignment_summary.csv
-dev/docker/static_reports/test_output/alignment_summary.png
-dev/docker/static_reports/test_output/report.pdf
-dev/docker/static_reports/test_output/log.txt
-dev/docker/static_reports/test_output/duplication_summary.csv
-
-dev/docker/static_reports/test_output/duplication_summary.png
-
-dev/docker/static_reports/test_output/frag_hist.csv
-
-dev/docker/static_reports/test_output/frag_hist.png
-
-dev/docker/static_reports/test_output/frag_violin.csv
-
-dev/docker/static_reports/test_output/frag_violin.png
-
-dev/docker/static_reports/test_data/tmp_dir/*
-
+dev/docker/static_reports/test_data/*
 dev/docker/static_reports/test_output/*
+!dev/docker/static_reports/test_data/_dummy.txt
+!dev/docker/static_reports/test_output/_dummy.txt

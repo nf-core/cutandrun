@@ -55,10 +55,12 @@ workflow PREPARE_GENOME {
      * Uncompress BED annotation file
      */
     ch_gene_bed = Channel.empty()
-    if (params.gene_bed.endsWith('.gz')) {
-        ch_gene_bed = GUNZIP_BED ( params.gene_bed ).gunzip
-    } else {
-        ch_gene_bed = file(params.gene_bed)
+    if (params.gene_bed){
+        if (params.gene_bed.endsWith('.gz')) {
+            ch_gene_bed = GUNZIP_BED ( params.gene_bed ).gunzip
+        } else {
+            ch_gene_bed = file(params.gene_bed)
+        }
     }
 
     /*

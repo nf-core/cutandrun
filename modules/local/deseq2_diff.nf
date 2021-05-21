@@ -41,7 +41,7 @@ process DESEQ2_DIFF {
     String str_bams = bams.join(",")
     
     """
-    Rscript $baseDir/bin/r/deseq2_diff.r \\
+    deseq2_diff.r \\
         --groups $str_groups \\
         --bed $str_beds \\
         --bam $str_bams \\
