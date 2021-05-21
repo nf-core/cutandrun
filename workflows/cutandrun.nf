@@ -77,41 +77,82 @@ if (params.save_trimmed) { trimgalore_options.publish_files.put('fq.gz','') }
 
 // Alignment dedup and filtering
 def prepareToolIndices             = ['bowtie2']
-def bowtie2_align_options          = modules['bowtie2_align']
 def bowtie2_spikein_align_options  = modules['bowtie2_spikein_align']
+def samtools_spikein_sort_options = modules['samtools_spikein_sort']
+def dedup_control_only = true
+if(params.dedup_target_reads) { dedup_control_only = false }
+
+def bowtie2_align_options                       = null
+def samtools_sort_options                       = null      
+def samtools_view_options                       = null
+def samtools_qfilter_options                    = null
+def picard_markduplicates_options               = null
+def picard_markduplicates_samtools_options      = null
+def picard_deduplicates_options                 = null
+def picard_deduplicates_samtools_options        = null
+
+if (!params.skip_markduplicates && params.skip_removeduplicates) {
+    picard_markduplicates_options               = modules['picard_markduplicates_final']
+    picard_markduplicates_samtools_options      = modules['picard_markduplicates_samtools_final']
+    if (params.publish_align_intermed) {
+        bowtie2_align_options                   = modules['bowtie2_align_intermed']
+        samtools_sort_options                   = modules['samtools_sort_intermed']       
+        samtools_view_options                   = modules['samtools_view_qfilter_intermed']
+        samtools_qfilter_options                = modules['samtools_qfilter_intermed']
+        picard_deduplicates_options             = modules['picard_dedup_intermed']
+        picard_deduplicates_samtools_options    = modules['picard_dedup_samtools_intermed']
+    } else {
+        bowtie2_align_options                   = modules['bowtie2_align']
+        samtools_sort_options                   = modules['samtools_sort']       
+        samtools_view_options                   = modules['samtools_view_qfilter']
+        samtools_qfilter_options                = modules['samtools_qfilter']
+        picard_deduplicates_options             = modules['picard_dedup']
+        picard_deduplicates_samtools_options    = modules['picard_dedup_samtools']
+    }
+} else if (!params.skip_markduplicates && !params.skip_removeduplicates) {
+    picard_deduplicates_options                 = modules['picard_dedup_final']
+    picard_deduplicates_samtools_options        = modules['picard_dedup_samtools_final']
+    if (params.publish_align_intermed) {
+        bowtie2_align_options                   = modules['bowtie2_align_intermed']
+        samtools_sort_options                   = modules['samtools_sort_intermed']       
+        samtools_view_options                   = modules['samtools_view_qfilter_intermed']
+        samtools_qfilter_options                = modules['samtools_qfilter_intermed']
+        picard_markduplicates_options           = modules['picard_markduplicates_intermed']
+        picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools_intermed']   
+    } else {
+        bowtie2_align_options                   = modules['bowtie2_align']
+        samtools_sort_options                   = modules['samtools_sort']       
+        samtools_view_options                   = modules['samtools_view_qfilter']
+        samtools_qfilter_options                = modules['samtools_qfilter']
+        picard_markduplicates_options           = modules['picard_markduplicates']
+        picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools']      
+    }
+} else {
+    samtools_view_options                       = modules['samtools_view_qfilter_final']
+    samtools_qfilter_options                    = modules['samtools_qfilter_final']
+    if (params.publish_align_intermed ) {
+        bowtie2_align_options                   = modules['bowtie2_align_intermed']
+        samtools_sort_options                   = modules['samtools_sort_intermed']
+        picard_markduplicates_options           = modules['picard_markduplicates_intermed']
+        picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools_intermed']
+        picard_deduplicates_options             = modules['picard_dedup_intermed']
+        picard_deduplicates_samtools_options    = modules['picard_dedup_samtools_intermed']
+    } else {
+        bowtie2_align_options                   = modules['bowtie2_align']
+        samtools_sort_options                   = modules['samtools_sort']       
+        picard_markduplicates_options           = modules['picard_markduplicates']
+        picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools']
+        picard_deduplicates_options             = modules['picard_dedup']
+        picard_deduplicates_samtools_options    = modules['picard_dedup_samtools'] 
+    }
+}
 
 if (params.save_unaligned)         { bowtie2_align_options.publish_files.put('.gz','') }
 if (params.save_unaligned)         { bowtie2_spikein_align_options.publish_files.put('.gz','') }
-if (params.publish_align_intermed) { bowtie2_align_options.publish_files.put('.bam','') }
-if (params.publish_align_intermed) { bowtie2_spikein_align_options.publish_files.put('.bam','') }
 
-def samtools_sort_options         = modules['samtools_sort']
-def samtools_spikein_sort_options = modules['samtools_spikein_sort']
-if (params.publish_align_intermed || params.skip_markduplicates) {
-    samtools_sort_options.publish_files.put('bam','')
-    samtools_sort_options.publish_files.put('bai','')
-    samtools_spikein_sort_options.publish_files.put('bam','')
-    samtools_spikein_sort_options.publish_files.put('bai','')
-}
-
-def samtools_view_options    = modules['samtools_view_qfilter']
-def samtools_qfilter_options = modules['samtools_qfilter']
 if (params.minimum_alignment_q_score > 0) {
     samtools_view_options.args = "-b -q " + params.minimum_alignment_q_score
 }
-if (params.publish_align_intermed) {
-    samtools_view_options.publish_files = ['bam':'']
-    samtools_qfilter_options.publish_files.put('bai','')
-}
-
-def picard_markduplicates_options          = modules['picard_markduplicates']
-def picard_markduplicates_samtools_options = modules['picard_markduplicates_samtools']
-if (params.publish_align_intermed) {
-    picard_markduplicates_options.publish_files.put('bam','')
-    picard_markduplicates_samtools_options.publish_files.put('bai','')
-}
-def dedup_control_only = true
-if(params.dedup_target_reads) { dedup_control_only = false }
 
 // Meta annotation options
 def awk_bt2_options         = modules['awk_bt2']
@@ -205,7 +246,7 @@ include { UCSC_BEDCLIP                                             } from '../mo
  */
 include { FASTQC_TRIMGALORE                      } from '../subworkflows/nf-core/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
 include { MARK_DUPLICATES_PICARD                 } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
-include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: modules['picard_dedup'], samtools_options: modules['picard_dedup_samtools'], control_only: dedup_control_only )
+include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: picard_deduplicates_options, samtools_options: picard_deduplicates_samtools_options, control_only: dedup_control_only )
 
 /*
 ========================================================================================
@@ -723,7 +764,7 @@ workflow CUTANDRUN {
         * MODULE: Export meta-data to csv file
         */
         EXPORT_META (
-            ch_samtools_bam.collect{it[0]}.ifEmpty([])
+            ch_samtools_bam.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
         )
 
         /*
