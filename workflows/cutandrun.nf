@@ -730,11 +730,11 @@ workflow CUTANDRUN {
         * MODULE: Generate python reporting using mixture of meta-data and direct file processing
         */
         GENERATE_REPORTS(
-            EXPORT_META.out.csv, 
-            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]},
-            AWK_FRAG_BIN.out.file.collect{it[1]},
-            ch_seacr_bed.collect{it[1]},
-            SAMTOOLS_SORT.out.bam.collect{it[1]}
+            EXPORT_META.out.csv,                        // meta-data report stats
+            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
+            AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
+            ch_seacr_bed.collect{it[1]},                // peak beds
+            SAMTOOLS_SORT.out.bam.collect{it[1]}        // bam files sorted by mate pair ids
         )
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
 
