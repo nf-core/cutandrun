@@ -22,8 +22,8 @@ checkPathParamList = [
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters that cannot be checked in the groovy lib as we want a channel for them
-if (params.input)     { ch_input     = file(params.input)     } else { exit 1, 'Input samplesheet not specified!'     }
-if (params.blacklist) { ch_blacklist = file(params.blacklist) } else { exit 1, 'Genome blacklist file not specified!' }
+if (params.input)     { ch_input     = file(params.input)     } else { exit 1, "Input samplesheet not specified!"     }
+if (params.blacklist) { ch_blacklist = file(params.blacklist) } else { exit 1, "Genome blacklist file not specified!" }
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
@@ -54,31 +54,31 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 ========================================================================================
 */
 
-// Don't overwrite global params.modules, create a copy instead and use that within the main script.
+// Don"t overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
 // Genome
-def genome_options                = params.save_reference ? [publish_dir: 'genome/target']        : [publish_files: false]
-def spikein_genome_options        = params.save_reference ? [publish_dir: 'genome/spikein']       : [publish_files: false]
-def bowtie2_index_options         = params.save_reference ? [publish_dir: 'genome/target/index']  : [publish_files: false]
-def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: 'genome/spikein/index'] : [publish_files: false]
+def genome_options                = params.save_reference ? [publish_dir: "genome/target"]        : [publish_files: false]
+def spikein_genome_options        = params.save_reference ? [publish_dir: "genome/spikein"]       : [publish_files: false]
+def bowtie2_index_options         = params.save_reference ? [publish_dir: "genome/target/index"]  : [publish_files: false]
+def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "genome/spikein/index"] : [publish_files: false]
 
 // QC
-def cat_fastq_options = modules['cat_fastq']
-if (!params.save_merged_fastq) { cat_fastq_options['publish_files'] = false }
+def cat_fastq_options = modules["cat_fastq"]
+if (!params.save_merged_fastq) { cat_fastq_options["publish_files"] = false }
 
-def multiqc_options = modules['multiqc']
-multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ''
+def multiqc_options = modules["multiqc"]
+multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ""
 
 // Trimming
-def trimgalore_options = modules['trimgalore']
-trimgalore_options.args  += params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ''
-if (params.save_trimmed) { trimgalore_options.publish_files.put('fq.gz','') }
+def trimgalore_options = modules["trimgalore"]
+trimgalore_options.args  += params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ""
+if (params.save_trimmed) { trimgalore_options.publish_files.put("fq.gz","") }
 
 // Alignment dedup and filtering
-def prepareToolIndices             = ['bowtie2']
-def bowtie2_spikein_align_options  = modules['bowtie2_spikein_align']
-def samtools_spikein_sort_options = modules['samtools_spikein_sort']
+def prepareToolIndices             = ["bowtie2"]
+def bowtie2_spikein_align_options  = modules["bowtie2_spikein_align"]
+def samtools_spikein_sort_options = modules["samtools_spikein_sort"]
 def dedup_control_only = true
 if(params.dedup_target_reads) { dedup_control_only = false }
 
@@ -93,55 +93,55 @@ def picard_deduplicates_samtools_options        = null
 
 // if (!params.skip_markduplicates && params.skip_removeduplicates) {
 if (!params.skip_markduplicates) {
-    picard_markduplicates_options               = modules['picard_markduplicates_final']
-    picard_markduplicates_samtools_options      = modules['picard_markduplicates_samtools_final']
+    picard_markduplicates_options               = modules["picard_markduplicates_final"]
+    picard_markduplicates_samtools_options      = modules["picard_markduplicates_samtools_final"]
     if (params.publish_align_intermed) {
-        bowtie2_align_options                   = modules['bowtie2_align_intermed']
-        samtools_sort_options                   = modules['samtools_sort_intermed']       
-        samtools_view_options                   = modules['samtools_view_qfilter_intermed']
-        samtools_qfilter_options                = modules['samtools_qfilter_intermed']
-        picard_deduplicates_options             = modules['picard_dedup_intermed']
-        picard_deduplicates_samtools_options    = modules['picard_dedup_samtools_intermed']
+        bowtie2_align_options                   = modules["bowtie2_align_intermed"]
+        samtools_sort_options                   = modules["samtools_sort_intermed"]       
+        samtools_view_options                   = modules["samtools_view_qfilter_intermed"]
+        samtools_qfilter_options                = modules["samtools_qfilter_intermed"]
+        picard_deduplicates_options             = modules["picard_dedup_intermed"]
+        picard_deduplicates_samtools_options    = modules["picard_dedup_samtools_intermed"]
     } else {
-        bowtie2_align_options                   = modules['bowtie2_align']
-        samtools_sort_options                   = modules['samtools_sort']       
-        samtools_view_options                   = modules['samtools_view_qfilter']
-        samtools_qfilter_options                = modules['samtools_qfilter']
-        picard_deduplicates_options             = modules['picard_dedup']
-        picard_deduplicates_samtools_options    = modules['picard_dedup_samtools']
+        bowtie2_align_options                   = modules["bowtie2_align"]
+        samtools_sort_options                   = modules["samtools_sort"]       
+        samtools_view_options                   = modules["samtools_view_qfilter"]
+        samtools_qfilter_options                = modules["samtools_qfilter"]
+        picard_deduplicates_options             = modules["picard_dedup"]
+        picard_deduplicates_samtools_options    = modules["picard_dedup_samtools"]
     }
 } else {
-    samtools_view_options                       = modules['samtools_view_qfilter_final']
-    samtools_qfilter_options                    = modules['samtools_qfilter_final']
+    samtools_view_options                       = modules["samtools_view_qfilter_final"]
+    samtools_qfilter_options                    = modules["samtools_qfilter_final"]
     if (params.publish_align_intermed ) {
-        bowtie2_align_options                   = modules['bowtie2_align_intermed']
-        samtools_sort_options                   = modules['samtools_sort_intermed']
-        picard_markduplicates_options           = modules['picard_markduplicates_intermed']
-        picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools_intermed']
-        picard_deduplicates_options             = modules['picard_dedup_intermed']
-        picard_deduplicates_samtools_options    = modules['picard_dedup_samtools_intermed']
+        bowtie2_align_options                   = modules["bowtie2_align_intermed"]
+        samtools_sort_options                   = modules["samtools_sort_intermed"]
+        picard_markduplicates_options           = modules["picard_markduplicates_intermed"]
+        picard_markduplicates_samtools_options  = modules["picard_markduplicates_samtools_intermed"]
+        picard_deduplicates_options             = modules["picard_dedup_intermed"]
+        picard_deduplicates_samtools_options    = modules["picard_dedup_samtools_intermed"]
     } else {
-        bowtie2_align_options                   = modules['bowtie2_align']
-        samtools_sort_options                   = modules['samtools_sort']       
-        picard_markduplicates_options           = modules['picard_markduplicates']
-        picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools']
-        picard_deduplicates_options             = modules['picard_dedup']
-        picard_deduplicates_samtools_options    = modules['picard_dedup_samtools'] 
+        bowtie2_align_options                   = modules["bowtie2_align"]
+        samtools_sort_options                   = modules["samtools_sort"]       
+        picard_markduplicates_options           = modules["picard_markduplicates"]
+        picard_markduplicates_samtools_options  = modules["picard_markduplicates_samtools"]
+        picard_deduplicates_options             = modules["picard_dedup"]
+        picard_deduplicates_samtools_options    = modules["picard_dedup_samtools"] 
     }
 }
 
-if (params.save_unaligned)         { bowtie2_align_options.publish_files.put('.gz','') }
-if (params.save_unaligned)         { bowtie2_spikein_align_options.publish_files.put('.gz','') }
+if (params.save_unaligned)         { bowtie2_align_options.publish_files.put(".gz","") }
+if (params.save_unaligned)         { bowtie2_spikein_align_options.publish_files.put(".gz","") }
 
 if (params.minimum_alignment_q_score > 0) {
     samtools_view_options.args = "-b -q " + params.minimum_alignment_q_score
 }
 
 // Meta annotation options
-def awk_bt2_options         = modules['awk_bt2']
-def awk_bt2_spikein_options = modules['awk_bt2_spikein']
-def awk_dedup_options       = modules['awk_dedup']
-def awk_dt_frag_options     = modules['awk_dt_frag']
+def awk_bt2_options         = modules["awk_bt2"]
+def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
+def awk_dedup_options       = modules["awk_dedup"]
+def awk_dt_frag_options     = modules["awk_dt_frag"]
 
 /*
 ========================================================================================
@@ -152,58 +152,58 @@ def awk_dt_frag_options     = modules['awk_dt_frag']
 /*
  * MODULES
  */
-include { GET_SOFTWARE_VERSIONS          } from '../modules/local/get_software_versions'                     addParams( options: [publish_files : ['csv':'']]               )
-include { MULTIQC                        } from '../modules/local/multiqc'                                   addParams( options: multiqc_options                            )
-include { INPUT_CHECK                    } from '../subworkflows/local/input_check'                          addParams( options: [:]                                        )
-include { CAT_FASTQ                      } from '../modules/local/cat_fastq'                                 addParams( options: cat_fastq_options                          )
-include { BEDTOOLS_GENOMECOV_SCALE       } from '../modules/local/bedtools_genomecov_scale'                  addParams( options: modules['bedtools_genomecov_bedgraph']     )
-include { IGV_SESSION                    } from '../modules/local/igv_session'                               addParams( options: modules['igv']                             )
-include { EXPORT_META                    } from '../modules/local/export_meta'                               addParams( options: modules['export_meta']                     )
-include { GENERATE_REPORTS               } from '../modules/local/generate_reports'                          addParams( options: modules['generate_reports']                )
-include { DEEPTOOLS_BAMPEFRAGMENTSIZE    } from '../modules/local/software/deeptools/bamPEFragmentSize/main' addParams( options: modules['deeptools_fragmentsize']          )
-include { AWK as AWK_FRAG_BIN            } from '../modules/local/awk'                                       addParams( options: modules['awk_frag_bin']                    )
-include { AWK as AWK_EDIT_PEAK_BED       } from '../modules/local/awk'                                       addParams( options: modules['awk_edit_peak_bed']               )
-include { DESEQ2_DIFF                    } from '../modules/local/deseq2_diff'                               addParams( options: modules['deseq2'],  multiqc_label: 'deseq2')
-include { SAMTOOLS_CUSTOMVIEW            } from '../modules/local/software/samtools/custom_view/main'        addParams( options: modules['samtools_frag_len']               )
-include { SEACR_CALLPEAK as SEACR_NO_IGG } from '../modules/local/seacr_no_igg'                              addParams( options: modules['seacr']                           )
+include { GET_SOFTWARE_VERSIONS          } from "../modules/local/get_software_versions"                     addParams( options: [publish_files : ["csv":""]]               )
+include { MULTIQC                        } from "../modules/local/multiqc"                                   addParams( options: multiqc_options                            )
+include { INPUT_CHECK                    } from "../subworkflows/local/input_check"                          addParams( options: [:]                                        )
+include { CAT_FASTQ                      } from "../modules/local/cat_fastq"                                 addParams( options: cat_fastq_options                          )
+include { BEDTOOLS_GENOMECOV_SCALE       } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
+include { IGV_SESSION                    } from "../modules/local/igv_session"                               addParams( options: modules["igv"]                             )
+include { EXPORT_META                    } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
+include { GENERATE_REPORTS               } from "../modules/local/generate_reports"                          addParams( options: modules["generate_reports"]                )
+include { DEEPTOOLS_BAMPEFRAGMENTSIZE    } from "../modules/local/software/deeptools/bamPEFragmentSize/main" addParams( options: modules["deeptools_fragmentsize"]          )
+include { AWK as AWK_FRAG_BIN            } from "../modules/local/awk"                                       addParams( options: modules["awk_frag_bin"]                    )
+include { AWK as AWK_EDIT_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_edit_peak_bed"]               )
+include { DESEQ2_DIFF                    } from "../modules/local/deseq2_diff"                               addParams( options: modules["deseq2"],  multiqc_label: "deseq2")
+include { SAMTOOLS_CUSTOMVIEW            } from "../modules/local/software/samtools/custom_view/main"        addParams( options: modules["samtools_frag_len"]               )
+include { SEACR_CALLPEAK as SEACR_NO_IGG } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
-include { PREPARE_GENOME } from '../subworkflows/local/prepare_genome' addParams( genome_options:            genome_options,
+include { PREPARE_GENOME } from "../subworkflows/local/prepare_genome" addParams( genome_options:            genome_options,
                                                                                   spikein_genome_options:    spikein_genome_options,
                                                                                   bt2_index_options:         bowtie2_index_options,
                                                                                   bt2_spikein_index_options: bowtie2_spikein_index_options )
                                                                               
-include { ALIGN_BOWTIE2 } from '../subworkflows/local/align_bowtie2' addParams( align_options:            bowtie2_align_options, 
+include { ALIGN_BOWTIE2 } from "../subworkflows/local/align_bowtie2" addParams( align_options:            bowtie2_align_options, 
                                                                                 spikein_align_options:    bowtie2_spikein_align_options, 
                                                                                 samtools_options:         samtools_sort_options,
                                                                                 samtools_spikein_options: samtools_spikein_sort_options )
 
-include { SAMTOOLS_VIEW_SORT_STATS } from '../subworkflows/local/samtools_view_sort_stats' addParams( samtools_options:      samtools_qfilter_options, 
+include { SAMTOOLS_VIEW_SORT_STATS } from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options:      samtools_qfilter_options, 
                                                                                                       samtools_view_options: samtools_view_options )
                                                                                                       
-include { CALCULATE_FRAGMENTS } from '../subworkflows/local/calculate_fragments' addParams( samtools_options: modules['calc_frag_samtools'], 
-                                                                                            samtools_view_options: modules['calc_frag_samtools_view'], 
-                                                                                            bamtobed_options: modules['calc_frag_bamtobed'], 
-                                                                                            awk_options: modules['calc_frag_awk'], 
-                                                                                            cut_options: modules['calc_frag_cut'] )
+include { CALCULATE_FRAGMENTS } from "../subworkflows/local/calculate_fragments" addParams( samtools_options: modules["calc_frag_samtools"], 
+                                                                                            samtools_view_options: modules["calc_frag_samtools_view"], 
+                                                                                            bamtobed_options: modules["calc_frag_bamtobed"], 
+                                                                                            awk_options: modules["calc_frag_awk"], 
+                                                                                            cut_options: modules["calc_frag_cut"] )
 
-include { ANNOTATE_META_AWK as ANNOTATE_BT2_META } from '../subworkflows/local/annotate_meta_awk' addParams( options: awk_bt2_options, 
-                                                                                                             meta_suffix: '_target', 
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_META } from "../subworkflows/local/annotate_meta_awk" addParams( options: awk_bt2_options, 
+                                                                                                             meta_suffix: "_target", 
                                                                                                              script_mode: true)
 
-include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from '../subworkflows/local/annotate_meta_awk' addParams( options: awk_bt2_spikein_options, 
-                                                                                                                     meta_suffix: '_spikein', 
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from "../subworkflows/local/annotate_meta_awk" addParams( options: awk_bt2_spikein_options, 
+                                                                                                                     meta_suffix: "_spikein", 
                                                                                                                      script_mode: true)
 
-include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META } from '../subworkflows/local/annotate_meta_awk' addParams( options: awk_dedup_options, meta_suffix: '',
-                                                                                                               meta_prefix: 'dedup_', 
+include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META } from "../subworkflows/local/annotate_meta_awk" addParams( options: awk_dedup_options, meta_suffix: "",
+                                                                                                               meta_prefix: "dedup_", 
                                                                                                                script_mode: false )
 
-include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from '../subworkflows/local/annotate_meta_awk' addParams( options: awk_dt_frag_options, 
-                                                                                                                 meta_suffix: '', 
-                                                                                                                 meta_prefix: '', 
+include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from "../subworkflows/local/annotate_meta_awk" addParams( options: awk_dt_frag_options, 
+                                                                                                                 meta_suffix: "", 
+                                                                                                                 meta_prefix: "", 
                                                                                                                  script_mode: true)     
                                                                
 /*
@@ -215,21 +215,21 @@ include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from '../subworkflows/loc
 /*
  * MODULES
  */
-include { UCSC_BEDGRAPHTOBIGWIG                                    } from '../modules/nf-core/software/ucsc/bedgraphtobigwig/main'   addParams( options: modules['ucsc_bedgraphtobigwig'] )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from '../modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_gene']   )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from '../modules/nf-core/software/deeptools/computematrix/main' addParams( options: modules['dt_compute_mat_peaks']  )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from '../modules/nf-core/software/deeptools/plotheatmap/main'   addParams( options: modules['dt_plotheatmap_gene']   )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from '../modules/nf-core/software/deeptools/plotheatmap/main'   addParams( options: modules['dt_plotheatmap_peaks']  )
-include { SAMTOOLS_SORT                                            } from '../modules/nf-core/software/samtools/sort/main.nf'        addParams( options: modules['samtools_sort']         )
-include { SEACR_CALLPEAK                                           } from '../modules/nf-core/software/seacr/callpeak/main'          addParams( options: modules['seacr']                 )
-include { UCSC_BEDCLIP                                             } from '../modules/nf-core/software/ucsc/bedclip/main'            addParams( options: modules['ucsc_bedclip']          )
+include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/software/ucsc/bedgraphtobigwig/main"   addParams( options: modules["ucsc_bedgraphtobigwig"] )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/software/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_gene"]   )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/software/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]  )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]   )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]  )
+include { SAMTOOLS_SORT                                            } from "../modules/nf-core/software/samtools/sort/main.nf"        addParams( options: modules["samtools_sort"]         )
+include { SEACR_CALLPEAK                                           } from "../modules/nf-core/software/seacr/callpeak/main"          addParams( options: modules["seacr"]                 )
+include { UCSC_BEDCLIP                                             } from "../modules/nf-core/software/ucsc/bedclip/main"            addParams( options: modules["ucsc_bedclip"]          )
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
  */
-include { FASTQC_TRIMGALORE                      } from '../subworkflows/nf-core/fastqc_trimgalore'      addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
-include { MARK_DUPLICATES_PICARD                 } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
-include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard' addParams( markduplicates_options: picard_deduplicates_options, samtools_options: picard_deduplicates_samtools_options, control_only: dedup_control_only )
+include { FASTQC_TRIMGALORE                      } from "../subworkflows/nf-core/fastqc_trimgalore"      addParams( fastqc_options: modules["fastqc"], trimgalore_options: trimgalore_options )
+include { MARK_DUPLICATES_PICARD                 } from "../subworkflows/nf-core/mark_duplicates_picard" addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
+include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard" addParams( markduplicates_options: picard_deduplicates_options, samtools_options: picard_deduplicates_samtools_options, control_only: dedup_control_only )
 
 /*
 ========================================================================================
@@ -259,7 +259,7 @@ workflow CUTANDRUN {
     )
     .map {
         meta, fastq ->
-            meta.id = meta.id.split('_')[0..-2].join('_')
+            meta.id = meta.id.split("_")[0..-2].join("_")
             [ meta, fastq ] }
     .groupTuple(by: [0])
     .branch {
@@ -313,7 +313,7 @@ workflow CUTANDRUN {
     ch_samtools_spikein_stats     = Channel.empty()
     ch_samtools_spikein_flagstat  = Channel.empty()
     ch_samtools_spikein_idxstats  = Channel.empty()
-    if (params.aligner == 'bowtie2') {
+    if (params.aligner == "bowtie2") {
         ALIGN_BOWTIE2 (
             ch_trimmed_reads,
             PREPARE_GENOME.out.bowtie2_index,
@@ -398,7 +398,7 @@ workflow CUTANDRUN {
      * SUBWORKFLOW: Annotate meta-data with aligner stats for target and spike-in
      * the meta-data is annotated additivley so we only need to track the final channel output
      */
-    if (params.aligner == 'bowtie2') {
+    if (params.aligner == "bowtie2") {
         ANNOTATE_BT2_META ( 
             ch_samtools_bam, 
             ch_bowtie2_log, 
@@ -437,7 +437,7 @@ workflow CUTANDRUN {
         .join ( ch_scale_factor )
         .map { row -> row[1..(row.size() - 1)] }
         .map { row -> 
-            row[0].put('scale_factor', row[2])
+            row[0].put("scale_factor", row[2])
             [ row[0], row[1], row[2] ] }
         .set { ch_samtools_bam_scale }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
@@ -515,8 +515,8 @@ workflow CUTANDRUN {
          * CHANNEL: Separate bedgraphs into target/control pairings for each replicate
          */
          BEDTOOLS_GENOMECOV_SCALE.out.bedgraph.branch { it ->
-            target: it[0].group != 'igg'
-            control: it[0].group == 'igg'
+            target: it[0].group != "igg"
+            control: it[0].group == "igg"
         }
         .set { ch_bedgraph_split }
         //EXAMPLE CHANNEL STRUCT: NO CHANGE
@@ -602,7 +602,7 @@ workflow CUTANDRUN {
          * CHANNEL: Remove IgG from bigwig channel
          */
         UCSC_BEDGRAPHTOBIGWIG.out.bigwig
-            .filter { it[0].group != 'igg' }
+            .filter { it[0].group != "igg" }
             .set { ch_bigwig_no_igg }
         //ch_bigwig_no_igg | view
 
@@ -749,7 +749,7 @@ workflow CUTANDRUN {
         * MODULE: Export meta-data to csv file
         */
         EXPORT_META (
-            ch_samtools_bam.collect{it[0]}.ifEmpty(['{{NO-DATA}}'])
+            ch_samtools_bam.collect{it[0]}.ifEmpty(["{{NO-DATA}}"])
         )
 
         /*
@@ -785,7 +785,7 @@ workflow CUTANDRUN {
 
         //         // Filter bam bai channels for non-igg only
         // ch_samtools_bam_bai
-        //     .filter { it[0].group != 'igg' }
+        //     .filter { it[0].group != "igg" }
         //     .set { ch_no_igg_bam_bai }
     }
 
@@ -807,7 +807,7 @@ workflow CUTANDRUN {
             ch_multiqc_config,
             ch_multiqc_custom_config.collect().ifEmpty([]),
             GET_SOFTWARE_VERSIONS.out.yaml.collect(),
-            ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'),
+            ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml"),
             FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
@@ -827,11 +827,11 @@ workflow CUTANDRUN {
 ////////////////////////////////////////////////////
 
 workflow.onComplete {
-    NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report, fail_percent_mapped)
-    NfcoreTemplate.summary(workflow, params, log, fail_percent_mapped, pass_percent_mapped)
-    // NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)
-    // NfcoreTemplate.summary(workflow, params, log)
-    }
+    // NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report, fail_percent_mapped)
+    // NfcoreTemplate.summary(workflow, params, log, fail_percent_mapped, pass_percent_mapped)
+    NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)
+    NfcoreTemplate.summary(workflow, params, log)
+}
 
 ////////////////////////////////////////////////////
 /* --                  THE END                 -- */
