@@ -4,12 +4,12 @@
  */
 
 params.options     = [:]
-params.meta_suffix = ''
-params.meta_prefix = ''
+params.meta_suffix = ""
+params.meta_prefix = ""
 params.script_mode = false
 
-include { AWK_SCRIPT } from '../../modules/local/awk_script' addParams( options: params.options )
-include { AWK } from '../../modules/local/awk'               addParams( options: params.options )
+include { AWK_SCRIPT } from "../../modules/local/awk_script" addParams( options: params.options )
+include { AWK } from "../../modules/local/awk"               addParams( options: params.options )
 
 workflow ANNOTATE_META_AWK {
     take: passthrough
