@@ -170,41 +170,14 @@ include { SEACR_CALLPEAK as SEACR_NO_IGG } from "../modules/local/seacr_no_igg" 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
-include { PREPARE_GENOME } from "../subworkflows/local/prepare_genome" addParams( genome_options:            genome_options,
-                                                                                  spikein_genome_options:    spikein_genome_options,
-                                                                                  bt2_index_options:         bowtie2_index_options,
-                                                                                  bt2_spikein_index_options: bowtie2_spikein_index_options )
-                                                                              
-include { ALIGN_BOWTIE2 } from "../subworkflows/local/align_bowtie2" addParams( align_options:            bowtie2_align_options, 
-                                                                                spikein_align_options:    bowtie2_spikein_align_options, 
-                                                                                samtools_options:         samtools_sort_options,
-                                                                                samtools_spikein_options: samtools_spikein_sort_options )
-
-include { SAMTOOLS_VIEW_SORT_STATS } from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options:      samtools_qfilter_options, 
-                                                                                                      samtools_view_options: samtools_view_options )
-                                                                                                      
-include { CALCULATE_FRAGMENTS } from "../subworkflows/local/calculate_fragments" addParams( samtools_options: modules["calc_frag_samtools"], 
-                                                                                            samtools_view_options: modules["calc_frag_samtools_view"], 
-                                                                                            bamtobed_options: modules["calc_frag_bamtobed"], 
-                                                                                            awk_options: modules["calc_frag_awk"], 
-                                                                                            cut_options: modules["calc_frag_cut"] )
-
-include { ANNOTATE_META_AWK as ANNOTATE_BT2_META } from "../subworkflows/local/annotate_meta_awk" addParams( options: awk_bt2_options, 
-                                                                                                             meta_suffix: "_target", 
-                                                                                                             script_mode: true)
-
-include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from "../subworkflows/local/annotate_meta_awk" addParams( options: awk_bt2_spikein_options, 
-                                                                                                                     meta_suffix: "_spikein", 
-                                                                                                                     script_mode: true)
-
-include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META } from "../subworkflows/local/annotate_meta_awk" addParams( options: awk_dedup_options, meta_suffix: "",
-                                                                                                               meta_prefix: "dedup_", 
-                                                                                                               script_mode: false )
-
-include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META } from "../subworkflows/local/annotate_meta_awk" addParams( options: awk_dt_frag_options, 
-                                                                                                                 meta_suffix: "", 
-                                                                                                                 meta_prefix: "", 
-                                                                                                                 script_mode: true)     
+include { PREPARE_GENOME }                                  from "../subworkflows/local/prepare_genome"           addParams( genome_options: genome_options, spikein_genome_options: spikein_genome_options, bt2_index_options: bowtie2_index_options, bt2_spikein_index_options: bowtie2_spikein_index_options )
+include { ALIGN_BOWTIE2 }                                   from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options )
+include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options )
+include { CALCULATE_FRAGMENTS }                             from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
+include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META }        from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "",meta_prefix: "dedup_", script_mode: false )
+include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META }      from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dt_frag_options, meta_suffix: "", meta_prefix: "", script_mode: true )     
                                                                
 /*
 ========================================================================================
