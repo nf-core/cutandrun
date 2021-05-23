@@ -110,24 +110,6 @@ if (!params.skip_markduplicates) {
         picard_deduplicates_options             = modules['picard_dedup']
         picard_deduplicates_samtools_options    = modules['picard_dedup_samtools']
     }
-// } else if (!params.skip_markduplicates && !params.skip_removeduplicates) {
-//     picard_deduplicates_options                 = modules['picard_dedup_final']
-//     picard_deduplicates_samtools_options        = modules['picard_dedup_samtools_final']
-//     if (params.publish_align_intermed) {
-//         bowtie2_align_options                   = modules['bowtie2_align_intermed']
-//         samtools_sort_options                   = modules['samtools_sort_intermed']       
-//         samtools_view_options                   = modules['samtools_view_qfilter_intermed']
-//         samtools_qfilter_options                = modules['samtools_qfilter_intermed']
-//         picard_markduplicates_options           = modules['picard_markduplicates_intermed']
-//         picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools_intermed']   
-//     } else {
-//         bowtie2_align_options                   = modules['bowtie2_align']
-//         samtools_sort_options                   = modules['samtools_sort']       
-//         samtools_view_options                   = modules['samtools_view_qfilter']
-//         samtools_qfilter_options                = modules['samtools_qfilter']
-//         picard_markduplicates_options           = modules['picard_markduplicates']
-//         picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools']      
-//     }
 } else {
     samtools_view_options                       = modules['samtools_view_qfilter_final']
     samtools_qfilter_options                    = modules['samtools_qfilter_final']
@@ -170,20 +152,20 @@ def awk_dt_frag_options     = modules['awk_dt_frag']
 /*
  * MODULES
  */
-include { GET_SOFTWARE_VERSIONS          } from '../modules/local/get_software_versions'                     addParams( options: [publish_files : ['csv':'']]           )
-include { MULTIQC                        } from '../modules/local/multiqc'                                   addParams( options: multiqc_options                        )
-include { INPUT_CHECK                    } from '../subworkflows/local/input_check'                          addParams( options: [:]                                    )
-include { CAT_FASTQ                      } from '../modules/local/cat_fastq'                                 addParams( options: cat_fastq_options                      )
-include { BEDTOOLS_GENOMECOV_SCALE       } from '../modules/local/bedtools_genomecov_scale'                  addParams( options: modules['bedtools_genomecov_bedgraph'] )
-include { IGV_SESSION                    } from '../modules/local/igv_session'                               addParams( options: modules['igv']                         )
-include { EXPORT_META                    } from '../modules/local/export_meta'                               addParams( options: modules['export_meta']                 )
-include { GENERATE_REPORTS               } from '../modules/local/generate_reports'                          addParams( options: modules['generate_reports']            )
-include { DEEPTOOLS_BAMPEFRAGMENTSIZE    } from '../modules/local/software/deeptools/bamPEFragmentSize/main' addParams( options: modules['deeptools_fragmentsize']      )
-include { AWK as AWK_FRAG_BIN            } from '../modules/local/awk'                                       addParams( options: modules['awk_frag_bin']                )
-include { AWK as AWK_EDIT_PEAK_BED       } from '../modules/local/awk'                                       addParams( options: modules['awk_edit_peak_bed']           )
-include { DESEQ2_DIFF                    } from '../modules/local/deseq2_diff'                               addParams( options: [:],  multiqc_label: 'deseq2'          )
-include { SAMTOOLS_CUSTOMVIEW            } from '../modules/local/software/samtools/custom_view/main'        addParams( options: modules['samtools_frag_len']           )
-include { SEACR_CALLPEAK as SEACR_NO_IGG } from '../modules/local/seacr_no_igg'                              addParams( options: modules['seacr']                       )
+include { GET_SOFTWARE_VERSIONS          } from '../modules/local/get_software_versions'                     addParams( options: [publish_files : ['csv':'']]               )
+include { MULTIQC                        } from '../modules/local/multiqc'                                   addParams( options: multiqc_options                            )
+include { INPUT_CHECK                    } from '../subworkflows/local/input_check'                          addParams( options: [:]                                        )
+include { CAT_FASTQ                      } from '../modules/local/cat_fastq'                                 addParams( options: cat_fastq_options                          )
+include { BEDTOOLS_GENOMECOV_SCALE       } from '../modules/local/bedtools_genomecov_scale'                  addParams( options: modules['bedtools_genomecov_bedgraph']     )
+include { IGV_SESSION                    } from '../modules/local/igv_session'                               addParams( options: modules['igv']                             )
+include { EXPORT_META                    } from '../modules/local/export_meta'                               addParams( options: modules['export_meta']                     )
+include { GENERATE_REPORTS               } from '../modules/local/generate_reports'                          addParams( options: modules['generate_reports']                )
+include { DEEPTOOLS_BAMPEFRAGMENTSIZE    } from '../modules/local/software/deeptools/bamPEFragmentSize/main' addParams( options: modules['deeptools_fragmentsize']          )
+include { AWK as AWK_FRAG_BIN            } from '../modules/local/awk'                                       addParams( options: modules['awk_frag_bin']                    )
+include { AWK as AWK_EDIT_PEAK_BED       } from '../modules/local/awk'                                       addParams( options: modules['awk_edit_peak_bed']               )
+include { DESEQ2_DIFF                    } from '../modules/local/deseq2_diff'                               addParams( options: modules['deseq2'],  multiqc_label: 'deseq2')
+include { SAMTOOLS_CUSTOMVIEW            } from '../modules/local/software/samtools/custom_view/main'        addParams( options: modules['samtools_frag_len']               )
+include { SEACR_CALLPEAK as SEACR_NO_IGG } from '../modules/local/seacr_no_igg'                              addParams( options: modules['seacr']                           )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -844,10 +826,10 @@ workflow CUTANDRUN {
 /* --              COMPLETION EMAIL            -- */
 ////////////////////////////////////////////////////
 
-// workflow.onComplete {
-//     Completion.email(workflow, params, params.summary_params, projectDir, log, multiqc_report, fail_percent_mapped)
-//     Completion.summary(workflow, params, log, fail_percent_mapped, pass_percent_mapped)
-// }
+workflow.onComplete {
+    NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)
+    NfcoreTemplate.summary(workflow, params, log)
+    }
 
 ////////////////////////////////////////////////////
 /* --                  THE END                 -- */
