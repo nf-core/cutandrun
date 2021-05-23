@@ -91,7 +91,8 @@ def picard_markduplicates_samtools_options      = null
 def picard_deduplicates_options                 = null
 def picard_deduplicates_samtools_options        = null
 
-if (!params.skip_markduplicates && params.skip_removeduplicates) {
+// if (!params.skip_markduplicates && params.skip_removeduplicates) {
+if (!params.skip_markduplicates) {
     picard_markduplicates_options               = modules['picard_markduplicates_final']
     picard_markduplicates_samtools_options      = modules['picard_markduplicates_samtools_final']
     if (params.publish_align_intermed) {
@@ -109,24 +110,24 @@ if (!params.skip_markduplicates && params.skip_removeduplicates) {
         picard_deduplicates_options             = modules['picard_dedup']
         picard_deduplicates_samtools_options    = modules['picard_dedup_samtools']
     }
-} else if (!params.skip_markduplicates && !params.skip_removeduplicates) {
-    picard_deduplicates_options                 = modules['picard_dedup_final']
-    picard_deduplicates_samtools_options        = modules['picard_dedup_samtools_final']
-    if (params.publish_align_intermed) {
-        bowtie2_align_options                   = modules['bowtie2_align_intermed']
-        samtools_sort_options                   = modules['samtools_sort_intermed']       
-        samtools_view_options                   = modules['samtools_view_qfilter_intermed']
-        samtools_qfilter_options                = modules['samtools_qfilter_intermed']
-        picard_markduplicates_options           = modules['picard_markduplicates_intermed']
-        picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools_intermed']   
-    } else {
-        bowtie2_align_options                   = modules['bowtie2_align']
-        samtools_sort_options                   = modules['samtools_sort']       
-        samtools_view_options                   = modules['samtools_view_qfilter']
-        samtools_qfilter_options                = modules['samtools_qfilter']
-        picard_markduplicates_options           = modules['picard_markduplicates']
-        picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools']      
-    }
+// } else if (!params.skip_markduplicates && !params.skip_removeduplicates) {
+//     picard_deduplicates_options                 = modules['picard_dedup_final']
+//     picard_deduplicates_samtools_options        = modules['picard_dedup_samtools_final']
+//     if (params.publish_align_intermed) {
+//         bowtie2_align_options                   = modules['bowtie2_align_intermed']
+//         samtools_sort_options                   = modules['samtools_sort_intermed']       
+//         samtools_view_options                   = modules['samtools_view_qfilter_intermed']
+//         samtools_qfilter_options                = modules['samtools_qfilter_intermed']
+//         picard_markduplicates_options           = modules['picard_markduplicates_intermed']
+//         picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools_intermed']   
+//     } else {
+//         bowtie2_align_options                   = modules['bowtie2_align']
+//         samtools_sort_options                   = modules['samtools_sort']       
+//         samtools_view_options                   = modules['samtools_view_qfilter']
+//         samtools_qfilter_options                = modules['samtools_qfilter']
+//         picard_markduplicates_options           = modules['picard_markduplicates']
+//         picard_markduplicates_samtools_options  = modules['picard_markduplicates_samtools']      
+//     }
 } else {
     samtools_view_options                       = modules['samtools_view_qfilter_final']
     samtools_qfilter_options                    = modules['samtools_qfilter_final']
@@ -721,12 +722,14 @@ workflow CUTANDRUN {
         /*
         * SUBWORKFLOW: Annotate meta-data with duplication stats
         */
-        ANNOTATE_DEDUP_META( 
-            ch_samtools_bam, 
-            ch_markduplicates_multiqc, 
-            ch_dummy_file.collect()
-        )
-        ch_samtools_bam = ANNOTATE_DEDUP_META.out.output
+        if (!params.skip_markduplicates) {
+            ANNOTATE_DEDUP_META( 
+                ch_samtools_bam, 
+                ch_markduplicates_multiqc, 
+                ch_dummy_file.collect()
+            )
+            ch_samtools_bam = ANNOTATE_DEDUP_META.out.output
+        }
         //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
         // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
         // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
