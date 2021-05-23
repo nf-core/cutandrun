@@ -26,6 +26,7 @@ and processes data using the following steps:
     * [BEDTools and bedGraphToBigWig](#bedtools-and-bedgraphtobigwig) - Create bigWig coverage files
 * [Peak calling](#peak-calling)
     * [SEACR](#seacr) - Peak calling for high signal-noise data
+    * [Deeptools](#deeptools) - Analysis of peaks
 * [Summary and quality control](#summary-and-quality-control)
     * [DESeq2](#deseq2) - PCA plot and differential peak analysis
     * [Python report](#python-report)
@@ -188,6 +189,21 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 
 [SEACR](https://github.com/FredHutch/SEACR) is a peak caller for data with low background-noise, so is well suited to CUT&Run/CUT&Tag data. SEACR can take in IgG control bedGraph files in order to avoid calling peaks in regions of the experimental data for which the IgG control is enriched. If `--igg_control false` is specified, SEACR calls enriched regions in target data by selecting the top 5% of regions by AUC by default. This threshold can be overwritten using `--peak_threshold`. 
 
+### Deeptools
+
+<details markdown="1">
+<summary>Output files</summary>
+
+* `deeptools/heatmaps/`
+    * `.plotHeatmap.pdf`: heatmap PDF.
+    * `.computeMatrix.mat.gz`: heatmap matrix.
+    * `*.mat.tab`: matrix and heatmap configs.
+
+
+</details>
+
+[Deeptools](https://github.com/deeptools/deepTools/) subtools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks. 
+
 ## Summary and quality control
 
 ### DESeq2
@@ -212,9 +228,10 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 
 The script included in the pipeline uses DESeq2 to normalise read counts across all of the provided samples in order to create a PCA plot and a clustered heatmap showing pairwise Euclidean distances between the samples in the experiment. These help to show the similarity between groups of samples and can reveal batch effects and other potential issues with the experiment.
 
-## Python report
+### Python report
 
-**Output files:**
+<details markdown="1">
+<summary>Output files</summary>
 
 * `reports/`
     * `report.pdf`: PDF report of all plots.
@@ -225,7 +242,7 @@ The script included in the pipeline uses DESeq2 to normalise read counts across 
 
 Additional QC and analysis pertaining particularly to CUT&Run and CUT&Tag data are reported in this module. This report was adapted in python from the original CUT&Tag analysis [protocol](https://yezhengstat.github.io/CUTTag_tutorial/) from the [Henikoff Lab](https://research.fredhutch.org/henikoff/en.html).
 
-## MultiQC
+### MultiQC
 
 [MultiQC](http://multiqc.info) is a visualization tool that generates a single HTML report summarizing all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available in the report data directory.
 
@@ -233,12 +250,29 @@ The pipeline has special steps which also allow the software versions to be repo
 
 For more information about how to use MultiQC reports, see [https://multiqc.info](https://multiqc.info).
 
-**Output files:**
+<details markdown="1">
+<summary>Output files</summary>
 
 * `multiqc/`
   * `multiqc_report.html`: a standalone HTML file that can be viewed in your web browser.
   * `multiqc_data/`: directory containing parsed statistics from the different tools used in the pipeline.
   * `multiqc_plots/`: directory containing static images from the report in various formats.
+
+### IGV 
+
+<details markdown="1">
+<summary>Output files</summary>
+
+* `igv/`
+    * `igv_session.xml`: IGV session.
+    * `*.txt`: IGV input file configurations.
+
+
+</details>
+
+An IGV session file will be created at the end of the pipeline containing the normalised bigWig tracks, per-sample peaks, target genome fasta and annotation GTF. Once installed, open IGV, go to File > Open Session and select the igv_session.xml file for loading.
+
+> **NB:** If you are not using an in-built genome provided by IGV you will need to load the annotation yourself e.g. in .gtf and/or .bed format.
 
 ## Workflow reporting and genomes
 
