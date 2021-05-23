@@ -84,7 +84,9 @@ If multiple libraries/runs have been provided for the same sample in the input s
 
 [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your sequenced reads. It provides information about the quality score distribution across your reads, per base sequence content (%A/T/G/C), adapter contamination and overrepresented sequences. For further reading and documentation see the [FastQC help pages](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
 
-<!-- multiqc plots -->
+![MultiQC - FastQC sequence counts plot](images/mqc_fastqc_counts.png)
+
+![MultiQC - FastQC mean quality scores plot](images/mqc_fastqc_quality.png)
 
 ### TrimGalore
 
@@ -104,7 +106,7 @@ If multiple libraries/runs have been provided for the same sample in the input s
 
 > **NB:** TrimGalore! will only run using multiple cores if you are able to use more than > 5 and > 6 CPUs for single- and paired-end data, respectively. The total cores available to TrimGalore! will also be capped at 4 (7 and 8 CPUs in total for single- and paired-end data, respectively) because there is no longer a run-time benefit. See [release notes](https://github.com/FelixKrueger/TrimGalore/blob/master/Changelog.md#version-060-release-on-1-mar-2019) and [discussion whilst adding this logic to the nf-core/atacseq pipeline](https://github.com/nf-core/atacseq/pull/65).
 
-<!-- multiqc plot -->
+![MultiQC - cutadapt trimmed sequence length plot](images/mqc_cutadapt_trimmed.png)
 
 ## Alignment
 
@@ -127,6 +129,8 @@ If multiple libraries/runs have been provided for the same sample in the input s
 </details>
 
 Adapter-trimmed reads are mapped to the target and spike-in genomes using [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml). A genome index is required to run Bowtie2 which is created automatically from the genome fasta input. By default, the only alignment files output are the quality filtered, marked and/or deduplicated alignment files. To output all alignment files inlcuding those directly from the aligner, set `--publish_align_intermed true`.
+
+![MultiQC - Bowtie2 paired-end mapping stats](images/mqc_bowtie2_pe.png)
 
 ## Alignment post-processing
 
@@ -159,7 +163,9 @@ BAM files are filtered for a minimum quality score of 0 using [SAMtools](http://
 
 </details>
 
-By default, the pipeline uses [picard MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates) to *mark* the duplicate reads identified amongst the alignments to allow you to guage the overall level of duplication in your samples. If your data includes IgG controls, these will additionally be deduplicated. You can skip this step via the `--skip_markduplicates` parameter. By default, this is the final processing step for the target BAM files and will appear in `aligner/bowtie2/`. However, if `--skip_markduplicates true` is set, this step will be skipped. 
+By default, the pipeline uses [picard MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates) to *mark* the duplicate reads identified amongst the alignments to allow you to guage the overall level of duplication in your samples. If your data includes IgG controls, these will additionally be deduplicated. You can skip this step via the `--skip_markduplicates` parameter. By default, this is the final processing step for the target BAM files and will appear in `aligner/bowtie2/`. However, if `--skip_markduplicates true` is set, this step will be skipped.
+
+![MultiQC - Picard MarkDuplicates metrics plot](images/mqc_picard_markduplicates.png)
 
 ## Other steps
 
@@ -189,6 +195,9 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 
 [SEACR](https://github.com/FredHutch/SEACR) is a peak caller for data with low background-noise, so is well suited to CUT&Run/CUT&Tag data. SEACR can take in IgG control bedGraph files in order to avoid calling peaks in regions of the experimental data for which the IgG control is enriched. If `--igg_control false` is specified, SEACR calls enriched regions in target data by selecting the top 5% of regions by AUC by default. This threshold can be overwritten using `--peak_threshold`. 
 
+![Python report - peaks reproduced](images/py_reproduced_peaks.png)
+![Python report - aligned fragments within peaks](images/py_frags_in_peaks.png)
+
 ### Deeptools
 
 <details markdown="1">
@@ -202,7 +211,8 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 
 </details>
 
-[Deeptools](https://github.com/deeptools/deepTools/) subtools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks. 
+[Deeptools](https://github.com/deeptools/deepTools/) subtools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks.
+
 
 ## Summary and quality control
 
@@ -241,6 +251,8 @@ The script included in the pipeline uses DESeq2 to normalise read counts across 
 </details>
 
 Additional QC and analysis pertaining particularly to CUT&Run and CUT&Tag data are reported in this module. This report was adapted in python from the original CUT&Tag analysis [protocol](https://yezhengstat.github.io/CUTTag_tutorial/) from the [Henikoff Lab](https://research.fredhutch.org/henikoff/en.html).
+
+![Python report - fragment length distribution](images/py_frag_hist.png)
 
 ### MultiQC
 
