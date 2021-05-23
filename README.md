@@ -12,7 +12,6 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Write a 1-2 sentence summary of what data the pipeline is for and what it does -->
 **nf-core/cutandrun** is a bioinformatics best-practise analysis pipeline for CUT&Run and CUT&Tag sequencing data analysis to study protein-DNA interactions and epigenomic profiling.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It comes with docker containers making installation trivial and results highly reproducible.
