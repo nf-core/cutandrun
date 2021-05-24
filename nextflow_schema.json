@@ -347,7 +347,7 @@
         },
         "igg_control": {
             "type": "boolean",
-            "default": "true"
+            "default": true
         },
         "peak_threshold": {
             "type": "number",
