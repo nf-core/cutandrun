@@ -10,9 +10,6 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": [
-                "input"
-            ],
             "properties": {
                 "input": {
                     "type": "string",
@@ -329,13 +326,13 @@
             "type": "string"
         },
         "publish_align_intermed": {
-            "type": "string"
+            "type": "boolean"
         },
         "skip_markduplicates": {
-            "type": "string"
+            "type": "boolean"
         },
         "skip_removeduplicates": {
-            "type": "string"
+            "type": "boolean"
         },
         "dedup_target_reads": {
             "type": "string"
@@ -350,7 +347,7 @@
         },
         "igg_control": {
             "type": "boolean",
-            "default": "true"
+            "default": true
         },
         "peak_threshold": {
             "type": "number",

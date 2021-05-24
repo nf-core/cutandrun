@@ -57,6 +57,9 @@ class Reports:
     def load_data(self):
         # ---------- Data - data_table --------- #
         self.data_table = pd.read_csv(self.meta_path, sep=',')
+        self.duplicate_info = False
+        if 'dedup_percent_duplication' in self.data_table.columns:
+            self.duplicate_info = True
 
         # ---------- Data - Raw frag histogram --------- #
         # Create list of deeptools raw fragment files
@@ -65,7 +68,6 @@ class Reports:
         for i in list(range(len(dt_frag_list))):
             # create dataframe from csv file for each file and save to a list
             dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None, names=['Size','Occurrences'])
-            # print(dt_frag_i.shape[0])
             frag_base_i = os.path.basename(dt_frag_list[i])
             sample_id = frag_base_i.split(".")[0]
             [group_i,rep_i] = sample_id.split("_")
@@ -111,6 +113,7 @@ class Reports:
 
             if i==0:
                 self.frag_bin500 = dt_bin_frag_i
+
             else:
                 self.frag_bin500 = pd.merge(self.frag_bin500, dt_bin_frag_i, on=['chrom','bin'], how='outer')
 
@@ -205,10 +208,7 @@ class Reports:
 
         
         for bam in bam_list:
-            # bam_now = pr.read_bam(bam, as_df=True, filter_flag=0) # no frags filtered
-            # print(bam_now)
             bam_now = pe_bam_to_df(bam)
-            # print(bam_now.head(10))
             self.bam_df_list.append(bam_now)
             bam_base = os.path.basename(bam)
             sample_id = bam_base.split(".")[0]
@@ -345,9 +345,10 @@ class Reports:
         data["alignment_summary"] = data1
 
         # Plot 2
-        plot2, data2 = self.duplication_summary()
-        plots["duplication_summary"] = plot2
-        data["duplication_summary"] = data2
+        if self.duplicate_info == True:
+            plot2, data2 = self.duplication_summary()
+            plots["duplication_summary"] = plot2
+            data["duplication_summary"] = data2
 
         # Plot 3
         plot3, data3 = self.fraglen_summary_violin()
@@ -532,9 +533,8 @@ class Reports:
     def replicate_heatmap(self):
         fig, ax = plt.subplots()
         plot_data = self.frag_bin500[self.frag_bin500.columns[-(len(self.frag_bin500.columns)-2):]]
-        plot_data = plot_data.fillna(0)
-        # print(plot_data.head(15))
-        corr_mat = plot_data.corr()
+        # plot_data = plot_data.fillna(0)
+        corr_mat = plot_data.corr(method='pearson')
         ax = sns.heatmap(corr_mat, annot=True)
         fig.suptitle("Replicate Reproducibility")
 

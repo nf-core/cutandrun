@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-# TODO nf-core: Update the script to check the samplesheet
 # This script is based on the example at: https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/design.csv
 
 
@@ -40,7 +39,6 @@ def print_error(error, context="Line", context_str=""):
     sys.exit(1)
 
 
-# TODO nf-core: Update the check_samplesheet function
 def check_samplesheet(file_in, file_out, igg_control):
     """
     This function checks that the samplesheet follows the following structure:
@@ -59,7 +57,6 @@ def check_samplesheet(file_in, file_out, igg_control):
 
         ## Check header
         MIN_COLS = 3
-        # TODO nf-core: Update the column names for the input samplesheet
         HEADER = ["group", "replicate", "fastq_1", "fastq_2"]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
