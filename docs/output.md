@@ -30,7 +30,7 @@ and processes data using the following steps:
 * [Summary and quality control](#summary-and-quality-control)
     * [DESeq2](#deseq2) - PCA plot and differential peak analysis
     * [Python reporting](#python-reporting)
-    * [MultiQC](#multiqc) - Present QC for raw reads, alignment, read counting and sample similiarity  
+    * [MultiQC](#multiqc) - Present QC for raw reads, alignment, read counting and sample similarity  
     * [IGV](#igv) - Genome browser for viewing bigWigs in relation to genes
 * [Workflow reporting and genomes](#workflow-reporting-and-genomes)
     * [Reference genome files](#reference-genome-files) - Saving reference genome indices/files
@@ -102,7 +102,7 @@ If multiple libraries/runs have been provided for the same sample in the input s
 
 </details>
 
-[Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) is a wrapper tool around Cutadapt and FastQC to peform quality and adapter trimming on FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence.
+[Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) is a wrapper tool around Cutadapt and FastQC to perform quality and adapter trimming on FastQ files. By default, Trim Galore! will automatically detect and trim the appropriate adapter sequence.
 
 > **NB:** TrimGalore! will only run using multiple cores if you are able to use more than > 5 and > 6 CPUs for single- and paired-end data, respectively. The total cores available to TrimGalore! will also be capped at 4 (7 and 8 CPUs in total for single- and paired-end data, respectively) because there is no longer a run-time benefit. See [release notes](https://github.com/FelixKrueger/TrimGalore/blob/master/Changelog.md#version-060-release-on-1-mar-2019) and [discussion whilst adding this logic to the nf-core/atacseq pipeline](https://github.com/nf-core/atacseq/pull/65).
 
@@ -128,7 +128,7 @@ If multiple libraries/runs have been provided for the same sample in the input s
 
 </details>
 
-Adapter-trimmed reads are mapped to the target and spike-in genomes using [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml). A genome index is required to run Bowtie2 which is created automatically from the genome fasta input. By default, the only alignment files output are the quality filtered, marked and/or deduplicated alignment files. To output all alignment files inlcuding those directly from the aligner, set `--publish_align_intermed true`.
+Adapter-trimmed reads are mapped to the target and spike-in genomes using [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml). A genome index is required to run Bowtie2 which is created automatically from the genome fasta input. By default, the only alignment files output are the quality filtered, marked and/or deduplicated alignment files. To output all alignment files including those directly from the aligner, set `--publish_align_intermed true`.
 
 ![MultiQC - Bowtie2 paired-end mapping stats](images/mqc_bowtie2_pe.png)
 
@@ -163,7 +163,7 @@ BAM files are filtered for a minimum quality score of 0 using [SAMtools](http://
 
 </details>
 
-By default, the pipeline uses [picard MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates) to *mark* the duplicate reads identified amongst the alignments to allow you to guage the overall level of duplication in your samples. If your data includes IgG controls, these will additionally be deduplicated. You can skip this step via the `--skip_markduplicates` parameter. By default, this is the final processing step for the target BAM files and will appear in `aligner/bowtie2/`. However, if `--skip_markduplicates true` is set, this step will be skipped.
+By default, the pipeline uses [picard MarkDuplicates](https://broadinstitute.github.io/picard/command-line-overview.html#MarkDuplicates) to *mark* the duplicate reads identified amongst the alignments to allow you to gauge the overall level of duplication in your samples. If your data includes IgG controls, these will additionally be deduplicated. You can skip this step via the `--skip_markduplicates` parameter. By default, this is the final processing step for the target BAM files and will appear in `aligner/bowtie2/`. However, if `--skip_markduplicates true` is set, this step will be skipped.
 
 ![MultiQC - Picard MarkDuplicates metrics plot](images/mqc_picard_markduplicates.png)
 
@@ -208,10 +208,9 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
     * `.computeMatrix.mat.gz`: heatmap matrix.
     * `*.mat.tab`: matrix and heatmap configs.
 
-
 </details>
 
-[Deeptools](https://github.com/deeptools/deepTools/) subtools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks.
+[Deeptools](https://github.com/deeptools/deepTools/) sub-tools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks.
 
 
 ## Summary and quality control
