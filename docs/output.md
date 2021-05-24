@@ -29,7 +29,7 @@ and processes data using the following steps:
     * [Deeptools](#deeptools) - Analysis of peaks
 * [Summary and quality control](#summary-and-quality-control)
     * [DESeq2](#deseq2) - PCA plot and differential peak analysis
-    * [Python report](#python-report)
+    * [Python reporting](#python-reporting)
     * [MultiQC](#multiqc) - Present QC for raw reads, alignment, read counting and sample similiarity  
     * [IGV](#igv) - Genome browser for viewing bigWigs in relation to genes
 * [Workflow reporting and genomes](#workflow-reporting-and-genomes)
@@ -195,8 +195,8 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 
 [SEACR](https://github.com/FredHutch/SEACR) is a peak caller for data with low background-noise, so is well suited to CUT&Run/CUT&Tag data. SEACR can take in IgG control bedGraph files in order to avoid calling peaks in regions of the experimental data for which the IgG control is enriched. If `--igg_control false` is specified, SEACR calls enriched regions in target data by selecting the top 5% of regions by AUC by default. This threshold can be overwritten using `--peak_threshold`. 
 
-![Python report - peaks reproduced](images/py_reproduced_peaks.png)
-![Python report - aligned fragments within peaks](images/py_frags_in_peaks.png)
+![Python reporting - peaks reproduced](images/py_reproduced_peaks.png)
+![Python reporting - aligned fragments within peaks](images/py_frags_in_peaks.png)
 
 ### Deeptools
 
@@ -238,7 +238,7 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 
 The script included in the pipeline uses DESeq2 to normalise read counts across all of the provided samples in order to create a PCA plot and a clustered heatmap showing pairwise Euclidean distances between the samples in the experiment. These help to show the similarity between groups of samples and can reveal batch effects and other potential issues with the experiment.
 
-### Python report
+### Python reporting
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -252,7 +252,7 @@ The script included in the pipeline uses DESeq2 to normalise read counts across 
 
 Additional QC and analysis pertaining particularly to CUT&Run and CUT&Tag data are reported in this module. This report was adapted in python from the original CUT&Tag analysis [protocol](https://yezhengstat.github.io/CUTTag_tutorial/) from the [Henikoff Lab](https://research.fredhutch.org/henikoff/en.html).
 
-![Python report - fragment length distribution](images/py_frag_hist.png)
+![Python reporting - fragment length distribution](images/py_frag_hist.png)
 
 ### MultiQC
 
