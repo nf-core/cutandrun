@@ -765,6 +765,15 @@ workflow CUTANDRUN {
     /*
      * MODULE: Collect software versions used in pipeline
      */
+
+    ch_software_versions
+        .map { it -> if (it) [ it.baseName, it ] }
+        .groupTuple()
+        .map { it[1][0] }
+        .flatten()
+        .collect()
+        .set { ch_software_versions }
+    
     GET_SOFTWARE_VERSIONS ( 
         ch_software_versions.map { it }.collect()
     )
