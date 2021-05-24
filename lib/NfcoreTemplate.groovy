@@ -82,8 +82,8 @@ class NfcoreTemplate {
         email_fields['commandLine']         = workflow.commandLine
         email_fields['projectDir']          = workflow.projectDir
         email_fields['summary']             = summary << misc_fields
-        email_fields['fail_percent_mapped'] = fail_percent_mapped.keySet()
-        email_fields['min_mapped_reads']    = params.min_mapped_reads
+        // email_fields['fail_percent_mapped'] = fail_percent_mapped.keySet()
+        // email_fields['min_mapped_reads']    = params.min_mapped_reads
 
         // On success try attach the multiqc report
         def mqc_report = null
