@@ -64,7 +64,7 @@ igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
-# Direct download of public repository data
+## Direct download of public repository data
 
 > **NB:** This is an experimental feature but should work beautifully when it does! :)
 
