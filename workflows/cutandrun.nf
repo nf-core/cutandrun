@@ -720,7 +720,7 @@ workflow CUTANDRUN {
         * MODULE: Export meta-data to csv file
         */
         EXPORT_META (
-            ch_samtools_bam.collect{it[0]}.ifEmpty(["{{NO-DATA}}"])
+            ch_samtools_bam.collect{it[0]}.ifEmpty(["{NO-DATA}"])
         )
 
         /*
