@@ -13,6 +13,7 @@ You will need to create a samplesheet file with information about the samples in
 ```
 
 ### Multiple replicates
+
 The `group` identifier is the same when you have multiple biological replicates from the same experimental group, just increment the `replicate` identifier appropriately. A special case for `group` is if you have non-specific IgG antibody control data that can be used for normalising your experimental CUT&Run (OR CUT&Tag) data. In this case, the `group` name for the IgG control data _must_ be set to `igg`. Below is an example for a single target group in triplicate, complemented by an IgG control duplicate:
 
 ```bash
