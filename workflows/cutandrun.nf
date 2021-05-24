@@ -607,13 +607,11 @@ workflow CUTANDRUN {
             )
         }
 
-
         //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
         // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
         // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
         // scale_factor:10000], MATRIX]
         //DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix | view
-
 
         /*
         * MODULE: Extract max signal from peak beds
@@ -736,30 +734,6 @@ workflow CUTANDRUN {
             SAMTOOLS_SORT.out.bam.collect{it[1]}        // bam files sorted by mate pair ids
         )
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
-
-        // ch_samtools_bam
-        //     .map { row -> [row[0].id, row[0], row[1] ] }
-        //     .set { ch_samtools_bam_id }
-
-        // ch_samtools_bai
-        //     .map { row -> [row[0].id, row[0], row[1] ] }
-        //     .set { ch_samtools_bai_id }
-
-        // ch_samtools_bam_id
-        //     .join( ch_samtools_bai_id )
-        //     .map { row -> [row[1], row[2], row[4] ] }
-        //     .set { ch_samtools_bam_bai }
-        // ch_samtools_bam_bai | view
-        
-        // DEEPTOOLS_BAMPEFRAGMENTSIZE(ch_samtools_bam_bai, ch_blacklist)
-        // //DEEPTOOLS_BAMPEFRAGMENTSIZE.out.summary_csv | view
-        // ANNOTATE_DT_FRAG_META( ANNOTATE_DEDUP_META.out.output, DEEPTOOLS_BAMPEFRAGMENTSIZE.out.summary_csv, ch_dt_frag_to_csv_awk)
-        //ANNOTATE_DT_FRAG_META.out.output | view
-
-        //         // Filter bam bai channels for non-igg only
-        // ch_samtools_bam_bai
-        //     .filter { it[0].group != "igg" }
-        //     .set { ch_no_igg_bam_bai }
     }
 
     /*
