@@ -12,29 +12,29 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/)
 and processes data using the following steps:
 
 * [Preprocessing](#preprocessing)
-  * [ENA FTP](#ena-ftp) - Download FastQ files via SRA / ENA / GEO ids
-  * [cat](#cat) - Merge re-sequenced FastQ files
-  * [FastQC](#fastqc) - Raw read QC
-  * [TrimGalore](#trimgalore) - Adapter and quality trimming
+    * [ENA FTP](#ena-ftp) - Download FastQ files via SRA / ENA / GEO ids
+    * [cat](#cat) - Merge re-sequenced FastQ files
+    * [FastQC](#fastqc) - Raw read QC
+    * [TrimGalore](#trimgalore) - Adapter and quality trimming
 * [Alignment](#alignment)
-  * [Bowtie 2](#bowtie-2) - Align reads to target and spike-in genomes
+    * [Bowtie 2](#bowtie-2) - Align reads to target and spike-in genomes
 * [Alignment post-processing](#alignment-post-processing)
-  * [SAMtools](#samtools) - Quality filter, sort and index alignments
-  * [picard MarkDuplicates](#picard-markduplicates) - Duplicate read marking
+    * [SAMtools](#samtools) - Quality filter, sort and index alignments
+    * [picard MarkDuplicates](#picard-markduplicates) - Duplicate read marking
 * [Other steps](#other-steps)
-  * [Calculate scale factor](#scale-factor) - Normalise between samples
-  * [BEDTools and bedGraphToBigWig](#bedtools-and-bedgraphtobigwig) - Create bigWig coverage files
+    * [Calculate scale factor](#scale-factor) - Normalise between samples
+    * [BEDTools and bedGraphToBigWig](#bedtools-and-bedgraphtobigwig) - Create bigWig coverage files
 * [Peak calling](#peak-calling)
-  * [SEACR](#seacr) - Peak calling for high signal-noise data
-  * [Deeptools](#deeptools) - Analysis of peaks
+    * [SEACR](#seacr) - Peak calling for high signal-noise data
+    * [Deeptools](#deeptools) - Analysis of peaks
 * [Summary and quality control](#summary-and-quality-control)
-  * [DESeq2](#deseq2) - PCA plot and differential peak analysis
-  * [Python reporting](#python-reporting)
-  * [MultiQC](#multiqc) - Present QC for raw reads, alignment, read counting and sample similarity  
-  * [IGV](#igv) - Genome browser for viewing bigWigs in relation to genes
+    * [DESeq2](#deseq2) - PCA plot and differential peak analysis
+    * [Python reporting](#python-reporting)
+    * [MultiQC](#multiqc) - Present QC for raw reads, alignment, read counting and sample similarity  
+    * [IGV](#igv) - Genome browser for viewing bigWigs in relation to genes
 * [Workflow reporting and genomes](#workflow-reporting-and-genomes)
-  * [Reference genome files](#reference-genome-files) - Saving reference genome indices/files
-  * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
+    * [Reference genome files](#reference-genome-files) - Saving reference genome indices/files
+    * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
 ## Preprocessing
 
@@ -44,13 +44,13 @@ and processes data using the following steps:
 <summary>Output files</summary>
 
 * `public_data/`
-  * `samplesheet.csv`: Auto-created samplesheet that can be used to run the pipeline.
-  * `*.fastq.gz`: Paired-end/single-end reads downloaded from the ENA / SRA.
+    * `samplesheet.csv`: Auto-created samplesheet that can be used to run the pipeline.
+    * `*.fastq.gz`: Paired-end/single-end reads downloaded from the ENA / SRA.
 * `public_data/md5/`
-  * `*.md5`: Files containing `md5` sum for FastQ files downloaded from the ENA / SRA.
+    * `*.md5`: Files containing `md5` sum for FastQ files downloaded from the ENA / SRA.
 * `public_data/runinfo/`
-  * `*.runinfo.tsv`: Original metadata file downloaded from the ENA
-  * `*.runinfo_ftp.tsv`: Re-formatted metadata file downloaded from the ENA
+    * `*.runinfo.tsv`: Original metadata file downloaded from the ENA
+    * `*.runinfo_ftp.tsv`: Re-formatted metadata file downloaded from the ENA
 
 </details>
 
@@ -62,7 +62,7 @@ Please see the [usage documentation](https://nf-co.re/cutandrun/usage#direct-dow
 <summary>Output files</summary>
 
 * `fastq/`
-  * `*.merged.fastq.gz`: If `--save_merged_fastq` is specified, concatenated FastQ files will be placed in this directory.
+    * `*.merged.fastq.gz`: If `--save_merged_fastq` is specified, concatenated FastQ files will be placed in this directory.
 
 </details>
 
@@ -74,8 +74,8 @@ If multiple libraries/runs have been provided for the same sample in the input s
 <summary>Output files</summary>
 
 * `fastqc/`
-  * `*_fastqc.html`: FastQC report containing quality metrics.
-  * `*_fastqc.zip`: Zip archive containing the FastQC report, tab-delimited data file and plot images.
+    * `*_fastqc.html`: FastQC report containing quality metrics.
+    * `*_fastqc.zip`: Zip archive containing the FastQC report, tab-delimited data file and plot images.
 
 > **NB:** The FastQC plots in this directory are generated relative to the raw, input reads. They may contain adapter sequence and regions of low quality. To see how your reads look after adapter and quality trimming please refer to the FastQC reports in the `trimgalore/fastqc/` directory.
 
@@ -93,11 +93,11 @@ If multiple libraries/runs have been provided for the same sample in the input s
 <summary>Output files</summary>
 
 * `trimgalore/`
-  * `*.fq.gz`: If `--save_trimmed` is specified, FastQ files **after** adapter trimming will be placed in this directory.
-  * `*_trimming_report.txt`: Log file generated by Trim Galore!.
+    * `*.fq.gz`: If `--save_trimmed` is specified, FastQ files **after** adapter trimming will be placed in this directory.
+    * `*_trimming_report.txt`: Log file generated by Trim Galore!.
 * `trimgalore/fastqc/`
-  * `*_fastqc.html`: FastQC report containing quality metrics for read 1 (*and read2 if paired-end*) **after** adapter trimming.
-  * `*_fastqc.zip`: Zip archive containing the FastQC report, tab-delimited data file and plot images.
+    * `*_fastqc.html`: FastQC report containing quality metrics for read 1 (*and read2 if paired-end*) **after** adapter trimming.
+    * `*_fastqc.zip`: Zip archive containing the FastQC report, tab-delimited data file and plot images.
 
 </details>
 
@@ -115,15 +115,15 @@ If multiple libraries/runs have been provided for the same sample in the input s
 <summary>Output files</summary>
 
 * `aligner/bowtie2/intermediate/`
-  * `.bam`: If `--publish_align_intermeds` is specified the original BAM file containing read alignments to the target genome will be placed in this directory.
-  * `.bam.bai`: BAI file for BAM.
+    * `.bam`: If `--publish_align_intermeds` is specified the original BAM file containing read alignments to the target genome will be placed in this directory.
+    * `.bam.bai`: BAI file for BAM.
 * `aligner/bowtie2/intermediate/samtools_stats`
-  * `.bam.*stats`: various statistics regarding the BAM files.
+    * `.bam.*stats`: various statistics regarding the BAM files.
 * `aligner/bowtie2/spikein/`
-  * `.bam`: BAM file of reads aligned to the spike-in genome
-  * `.bam.bai`: BAI file for spike-in BAM.
+    * `.bam`: BAM file of reads aligned to the spike-in genome
+    * `.bam.bai`: BAI file for spike-in BAM.
 * `aligner/bowtie2/spikein/samtools_stats`
-  * `.bam.*stats`: various statistics regarding the spike-in BAM files.
+    * `.bam.*stats`: various statistics regarding the spike-in BAM files.
 
 </details>
 
@@ -139,10 +139,10 @@ Adapter-trimmed reads are mapped to the target and spike-in genomes using [Bowti
 <summary>Output files</summary>
 
 * `aligner/bowtie2/intermediate/`
-  * `.filtered.bam`: If `--publish_align_intermeds` is specified the original BAM file containing read alignments to the target genome will be placed in this directory.
-  * `.filtered.bam.bai`: BAI file for BAM.
+    * `.filtered.bam`: If `--publish_align_intermeds` is specified the original BAM file containing read alignments to the target genome will be placed in this directory.
+    * `.filtered.bam.bai`: BAI file for BAM.
 * `aligner/bowtie2/intermediate/samtools_stats`
-  * `.filtered.bam.*stats`: various statistics regarding the BAM files.
+    * `.filtered.bam.*stats`: various statistics regarding the BAM files.
 
 </details>
 
@@ -154,10 +154,10 @@ BAM files are filtered for a minimum quality score of 0 using [SAMtools](http://
 <summary>Output files</summary>
 
 * `aligner/bowtie2/`
-  * `.markdup.bam`: Coordinate sorted BAM file after duplicate marking. This is the final post-processed BAM file and so will be saved by default in the results directory.
-  * `.markdup.bam.bai`: BAI index file for coordinate sorted BAM file after duplicate marking. This is the final post-processed BAM index file and so will be saved by default in the results directory.
+    * `.markdup.bam`: Coordinate sorted BAM file after duplicate marking. This is the final post-processed BAM file and so will be saved by default in the results directory.
+    * `.markdup.bam.bai`: BAI index file for coordinate sorted BAM file after duplicate marking. This is the final post-processed BAM index file and so will be saved by default in the results directory.
 * `aligner/bowtie2/picard_metrics`
-  * `.markdup.MarkDuplicates.metrics.txt`: Metrics file from MarkDuplicates.
+    * `.markdup.MarkDuplicates.metrics.txt`: Metrics file from MarkDuplicates.
 
 </details>
 
@@ -173,7 +173,7 @@ By default, the pipeline uses [picard MarkDuplicates](https://broadinstitute.git
 <summary>Output files</summary>
 
 * `ucsc/`
-  * `*.bigWig`: bigWig coverage file.
+    * `*.bigWig`: bigWig coverage file.
 
 </details>
 
@@ -187,7 +187,7 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 <summary>Output files</summary>
 
 * `seacr/`
-  * `.peaks*.bed`: BED file containing peak coordinates and peak signal.
+    * `.peaks*.bed`: BED file containing peak coordinates and peak signal.
 
 </details>
 
@@ -203,9 +203,9 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 <summary>Output files</summary>
 
 * `deeptools/heatmaps/`
-  * `.plotHeatmap.pdf`: heatmap PDF.
-  * `.computeMatrix.mat.gz`: heatmap matrix.
-  * `*.mat.tab`: matrix and heatmap configs.
+    * `.plotHeatmap.pdf`: heatmap PDF.
+    * `.computeMatrix.mat.gz`: heatmap matrix.
+    * `*.mat.tab`: matrix and heatmap configs.
 
 </details>
 
@@ -219,15 +219,15 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 <summary>Output files</summary>
 
 * `deseq2_qc/`
-  * `*.plots.pdf`: File containing PCA and hierarchical clustering plots.
-  * `*.dds.RData`: File containing R `DESeqDataSet` object  generated
+    * `*.plots.pdf`: File containing PCA and hierarchical clustering plots.
+    * `*.dds.RData`: File containing R `DESeqDataSet` object  generated
         by DESeq2, with either an rlog or vst `assay` storing the
         variance-stabilised data.
-  * `*pca.vals.txt`: Matrix of values for the first 2 principal components.
-  * `*sample.dists.txt`: Sample distance matrix.
-  * `R_sessionInfo.log`: File containing information about R, the OS and attached or loaded packages.
+    * `*pca.vals.txt`: Matrix of values for the first 2 principal components.
+    * `*sample.dists.txt`: Sample distance matrix.
+    * `R_sessionInfo.log`: File containing information about R, the OS and attached or loaded packages.
 * `deseq2_qc/size_factors/`
-  * `*.txt`, `*.RData`: Files containing DESeq2 sizeFactors per sample.
+    * `*.txt`, `*.RData`: Files containing DESeq2 sizeFactors per sample.
 
 </details>
 
@@ -241,9 +241,9 @@ The script included in the pipeline uses DESeq2 to normalise read counts across 
 <summary>Output files</summary>
 
 * `reports/`
-  * `report.pdf`: PDF report of all plots.
-  * `*.png`: individual plots featured in the PDF report.
-  * `*.csv`: corresponding data used to produce the plot.
+    * `report.pdf`: PDF report of all plots.
+    * `*.png`: individual plots featured in the PDF report.
+    * `*.csv`: corresponding data used to produce the plot.
 
 </details>
 
@@ -263,9 +263,9 @@ For more information about how to use MultiQC reports, see [https://multiqc.info
 <summary>Output files</summary>
 
 * `multiqc/`
-  * `multiqc_report.html`: a standalone HTML file that can be viewed in your web browser.
-  * `multiqc_data/`: directory containing parsed statistics from the different tools used in the pipeline.
-  * `multiqc_plots/`: directory containing static images from the report in various formats.
+    * `multiqc_report.html`: a standalone HTML file that can be viewed in your web browser.
+    * `multiqc_data/`: directory containing parsed statistics from the different tools used in the pipeline.
+    * `multiqc_plots/`: directory containing static images from the report in various formats.
 
 ### IGV
 
@@ -273,8 +273,8 @@ For more information about how to use MultiQC reports, see [https://multiqc.info
 <summary>Output files</summary>
 
 * `igv/`
-  * `igv_session.xml`: IGV session.
-  * `*.txt`: IGV input file configurations.
+    * `igv_session.xml`: IGV session.
+    * `*.txt`: IGV input file configurations.
 
 </details>
 
@@ -290,11 +290,11 @@ An IGV session file will be created at the end of the pipeline containing the no
 <summary>Output files</summary>
 
 * `genome/`
-  * `*.fa`: If the `--save_reference` parameter is provided then all of the genome reference files will be placed in this directory.
+    * `*.fa`: If the `--save_reference` parameter is provided then all of the genome reference files will be placed in this directory.
 * `genome/index/`
-  * `bowtie2`: Directory containing target Bowtie2 indices.
+    * `bowtie2`: Directory containing target Bowtie2 indices.
 * `genome/spikein_index/`
-  * `bowtie2`: Directory containing spike-in Bowtie2 indices.
+    * `bowtie2`: Directory containing spike-in Bowtie2 indices.
 
 </details>
 
@@ -306,9 +306,9 @@ A number of genome-specific files are generated by the pipeline because they are
 <summary>Output files</summary>
 
 * `pipeline_info/`
-  * Reports generated by Nextflow: `execution_report.html`, `execution_timeline.html`, `execution_trace.txt` and `pipeline_dag.dot`/`pipeline_dag.svg`.
-  * Reports generated by the pipeline: `pipeline_report.html`, `pipeline_report.txt` and `software_versions.csv`.
-  * Reformatted samplesheet files used as input to the pipeline: `samplesheet.valid.csv`.
+    * Reports generated by Nextflow: `execution_report.html`, `execution_timeline.html`, `execution_trace.txt` and `pipeline_dag.dot`/`pipeline_dag.svg`.
+    * Reports generated by the pipeline: `pipeline_report.html`, `pipeline_report.txt` and `software_versions.csv`.
+    * Reformatted samplesheet files used as input to the pipeline: `samplesheet.valid.csv`.
 
 </details>
 
