@@ -71,7 +71,7 @@ On release, automated continuous integration tests run the pipeline on a full-si
             -profile <docker/singularity/podman/conda/institute>
         ```
 
-    > **NB:** The commands to obtain public data and to run the main arm of the pipeline are completely independent. This is intentional because it allows you to download all of the raw data in an initial pipeline run (`results/public_data/`) and then to curate the auto-created samplesheet based on the available sample metadata before you run the pipeline again properly.    
+    > **NB:** The commands to obtain public data and to run the main arm of the pipeline are completely independent. This is intentional because it allows you to download all of the raw data in an initial pipeline run (`results/public_data/`) and then to curate the auto-created samplesheet based on the available sample metadata before you run the pipeline again properly.
 
 See [usage docs](https://nf-co.re/cutandrun/usage) for all of the available options when running the pipeline.
 
