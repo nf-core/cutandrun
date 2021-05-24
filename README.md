@@ -85,10 +85,7 @@ nf-core/cutandrun was originally written by Chris Cheshire ([@chris-cheshire](ht
 
 The pipeline structure and parts of the downstream analysis were adapted from the original CUT&Tag analysis [protocol](https://yezhengstat.github.io/CUTTag_tutorial/) from the [Henikoff Lab](https://research.fredhutch.org/henikoff/en.html).
 
-We thank the following people for their extensive assistance in the development
-of this pipeline:
-
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+We thank Harshil Patel ([@drpatelh](https://github.com/drpatelh)) and everyone in the Luscombe Lab ([@luslab](https://github.com/luslab)) for their extensive assistance in the development of this pipeline.
 
 ## Contributions and Support
 
