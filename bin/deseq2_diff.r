@@ -235,13 +235,13 @@ if (file.exists(PlotFile) == FALSE) {
     colnames(pca.vals) <- paste(colnames(pca.vals),paste(percentVar,'% variance',sep=""), sep=": ")
     pca.vals <- cbind(sample = rownames(pca.vals), pca.vals)
     write.table(pca.vals,file=paste(opt$outprefix,".pca.vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
-    
+
     ## SAMPLE CORRELATION HEATMAP
     sampleDists <- dist(t(assay(rld)))
     sampleDistMatrix <- as.matrix(sampleDists)
     colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
     pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists,clustering_distance_cols=sampleDists,col=colors)
-    
+
     ## WRITE SAMPLE DISTANCES TO FILE
     write.table(cbind(sample = rownames(sampleDistMatrix), sampleDistMatrix),file=paste(opt$outprefix,".sample.dists.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=FALSE)
 
@@ -262,7 +262,7 @@ if (file.exists(PlotFile) == FALSE) {
 ##' stored. Copied from DESeq2::plotPCA, but with additional ability to
 ##' say which assay to run the PCA on, and adds an assessment of how well
 ##' each PC explains the experimental grouping of the data.
-##' 
+##'
 ##' @param object The DESeq2DataSet object.
 ##' @param intgroup interesting groups: a character vector of names in 'colData(x)' to use for grouping.
 ##' @param ntop number of top genes to use for principla components, selected by highest row variance.
@@ -298,7 +298,7 @@ plotPCA_vst <- function (object, intgroup = "condition", ntop = 500, assay=lengt
 PlotFile <- paste(opt$outprefix,".plots.pdf",sep="")
 if (file.exists(PlotFile) == FALSE) {
     pdf(file=PlotFile,onefile=TRUE,width=7,height=7)
-    
+
     ## PCA
     ntop <- c(500, Inf)
     for (n_top_var in ntop) {
@@ -309,14 +309,14 @@ if (file.exists(PlotFile) == FALSE) {
             geom_point(size=3) +
             xlab(paste0("PC1: ",percentVar[1],"% variance")) +
             ylab(paste0("PC2: ",percentVar[2],"% variance")) +
-            labs(title = paste0("First PCs on ", vst_name, "-transformed data"), subtitle = plot_subtitle) + 
+            labs(title = paste0("First PCs on ", vst_name, "-transformed data"), subtitle = plot_subtitle) +
             theme(legend.position="top",
                     panel.grid.major = element_blank(),
                     panel.grid.minor = element_blank(),
                     panel.background = element_blank(),
                     panel.border = element_rect(colour = "black", fill=NA, size=1))
         print(pl)
-        
+
         pl <- ggplot(attr(pca.data, "percentVar"), aes(x=PC, y=percentVar)) +
             geom_line(aes(colour="explained by PC")) +
             geom_line(aes(y=groupR, colour="of PC explained by condition")) +
@@ -331,7 +331,7 @@ if (file.exists(PlotFile) == FALSE) {
             geom_point(size=3) +
             xlab(paste0("PC", pc_r[1], ": ",percentVar[pc_r[1]],"% variance")) +
             ylab(paste0("PC", pc_r[2], ": ",percentVar[pc_r[2]],"% variance")) +
-            labs(title = paste0("Group-Explanatory PCs of ", vst_name, "-tranformed data"), subtitle = plot_subtitle) + 
+            labs(title = paste0("Group-Explanatory PCs of ", vst_name, "-tranformed data"), subtitle = plot_subtitle) +
             theme(legend.position="top",
                   panel.grid.major = element_blank(),
                   panel.grid.minor = element_blank(),
@@ -348,7 +348,7 @@ if (file.exists(PlotFile) == FALSE) {
     colnames(pca.vals) <- paste0(colnames(pca.vals), ": ", percentVar[1:2], '% variance')
     pca.vals           <- cbind(sample = rownames(pca.vals), pca.vals)
     write.table(pca.vals,file=paste(opt$outprefix,".pca.vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
-    
+
     ## SAMPLE CORRELATION HEATMAP
     sampleDists      <- dist(t(assay(dds, vst_name)))
     sampleDistMatrix <- as.matrix(sampleDists)
@@ -388,7 +388,7 @@ if (FALSE) {
             treat.group <- comparisons[2,idx]
             CompPrefix <- paste(control.group,treat.group,sep="vs")
             cat("Saving results for ",CompPrefix," ...\n",sep="")
-        
+
             CompOutDir <- paste(CompPrefix,'/',sep="")
             if (file.exists(CompOutDir) == FALSE) {
                 dir.create(CompOutDir,recursive=TRUE)
@@ -416,7 +416,7 @@ if (FALSE) {
                     #pass.fdr.table <- subset(comp.table, padj < MIN_FDR)
                     #pass.fdr.up.table <- subset(comp.table, padj < MIN_FDR & log2FoldChange > 0)
                     #pass.fdr.down.table <- subset(comp.table, padj < MIN_FDR & log2FoldChange < 0)
-                
+
                     ## SUBSET RESULTS BY FDR AND LOGFC
                     #pass.fdr.logFC.table <- subset(comp.table, padj < MIN_FDR & abs(log2FoldChange) >= 1)
                     #pass.fdr.logFC.up.table <- subset(comp.table, padj < MIN_FDR & abs(log2FoldChange) >= 1 & log2FoldChange > 0)
@@ -427,7 +427,7 @@ if (FALSE) {
                     #CompBEDFile <- paste(CompOutDir,CompPrefix,opt$outsuffix,".deseq2.FDR",MIN_FDR,".results.bed",sep="")
                     #write.table(pass.fdr.table, file=CompResultsFile, col.names=TRUE, row.names=FALSE, sep='\t', quote=FALSE)
                     #write.table(pass.fdr.table[,c("Chr","Start","End","Geneid","log2FoldChange","Strand")], file=CompBEDFile, col.names=FALSE, row.names=FALSE, sep='\t', quote=FALSE)
-                
+
                     ## MA PLOT & VOLCANO PLOT
                     DESeq2::plotMA(comp.results, main=paste("MA plot FDR <= ",MIN_FDR,sep=""), ylim=c(-2,2),alpha=MIN_FDR)
                     #plot(comp.table$log2FoldChange, -1*log10(comp.table$padj), col=ifelse(comp.table$padj<=MIN_FDR, "red", "black"), xlab="logFC", ylab="-1*log10(FDR)", main=paste("Volcano plot FDR <=",MIN_FDR,sep=" "), pch=20)
@@ -446,7 +446,7 @@ if (FALSE) {
             sampleDistMatrix <- as.matrix(sampleDists)
             colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
             pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists,clustering_distance_cols=sampleDists,col=colors)
-        
+
             ## SCATTER PLOT FOR RLOG COUNTS
             combs <- combn(comp.samples,2,simplify=FALSE)
             clabels <- sapply(combs,function(x){paste(x,collapse=' & ')})
@@ -485,7 +485,7 @@ NormFactorsFile <- paste(SizeFactorsDir,opt$outprefix,".size_factors.RData",sep=
 if (file.exists(NormFactorsFile) == FALSE) {
     normFactors <- sizeFactors(dds)
     save(normFactors,file=NormFactorsFile)
-    
+
     for (name in names(sizeFactors(dds))) {
         sizeFactorFile <- paste(SizeFactorsDir,name,".txt",sep="")
         if (file.exists(sizeFactorFile) == FALSE) {
