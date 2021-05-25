@@ -1,4 +1,3 @@
-//https://github.com/editorconfig-checker/editorconfig-checker#configuration
 {
     "Exclude": ["README.md", "\\.bed$"]
 }
