@@ -333,10 +333,10 @@ if (file.exists(PlotFile) == FALSE) {
             ylab(paste0("PC", pc_r[2], ": ",percentVar[pc_r[2]],"% variance")) +
             labs(title = paste0("Group-Explanatory PCs of ", vst_name, "-tranformed data"), subtitle = plot_subtitle) +
             theme(legend.position="top",
-                  panel.grid.major = element_blank(),
-                  panel.grid.minor = element_blank(),
-                  panel.background = element_blank(),
-                  panel.border = element_rect(colour = "black", fill=NA, size=1))
+                panel.grid.major = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.background = element_blank(),
+                panel.border = element_rect(colour = "black", fill=NA, size=1))
         print(pl)
     } # at end of loop, we'll be using the user-defined ntop if any, else all peaks
 
@@ -452,11 +452,11 @@ if (FALSE) {
             clabels <- sapply(combs,function(x){paste(x,collapse=' & ')})
             plotdat <- data.frame(x=unlist(lapply(combs, function(x){rld.subset[, x[1] ]})),y=unlist(lapply(combs, function(y){rld.subset[, y[2] ]})),comp=rep(clabels, each=nrow(rld.subset)))
             plot <- xyplot(y~x|comp,plotdat,
-                       panel=function(...){
-                           panel.xyplot(...)
-                           panel.abline(0,1,col="red")
-                       },
-                       par.strip.text=list(cex=0.5))
+                    panel=function(...){
+                        panel.xyplot(...)
+                        panel.abline(0,1,col="red")
+                    },
+                    par.strip.text=list(cex=0.5))
             print(plot)
             dev.off()
 

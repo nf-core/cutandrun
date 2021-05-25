@@ -187,7 +187,7 @@ class Reports:
                     start_pos = min(read1.reference_start, read2.reference_start)
                     end_pos = max(read1.reference_end, read2.reference_end) - 1
                     chrom = read.reference_name
-                    
+
                     start_arr[k] = start_pos
                     end_arr[k] = end_pos
                     chrom_arr[k] = chrom
@@ -206,7 +206,6 @@ class Reports:
             bam_df = pd.DataFrame({ "Chromosome" : chrom_arr, "Start" : start_arr, "End" : end_arr })
             return(bam_df)
 
-        
         for bam in bam_list:
             bam_now = pe_bam_to_df(bam)
             self.bam_df_list.append(bam_now)
@@ -218,7 +217,7 @@ class Reports:
             self.frip.at[k, 'mapped_frags'] = bam_now.shape[0]
             k=k+1
 
-        # ---------- Data - New frag_hist --------- #   
+        # ---------- Data - New frag_hist --------- #
         for i in list(range(len(self.bam_df_list))):
             df_i = self.bam_df_list[i]
             widths_i = (df_i['End'] - df_i['Start']).abs()
@@ -290,7 +289,7 @@ class Reports:
                             pyr_overlap = pyr_query.join(pyr_subject)
                             pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
                             pyr_query = pyr_overlap
-                            
+
                         else:
                             pyr_query = pyr_subject
 
@@ -312,7 +311,7 @@ class Reports:
             pyr_seacr = pr.PyRanges(chromosomes=seacr_bed_i['chrom'], starts=seacr_bed_i['start'], ends=seacr_bed_i['end'])
             pyr_bam = pr.PyRanges(df=bam_i)
             sample_id = group_i + "_" + rep_i
-            frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)  
+            frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)
             frag_counts = np.count_nonzero(frag_count_pyr.NumberOverlaps)
 
             self.frip.at[i,'frags_in_peaks'] = frag_counts
@@ -370,8 +369,8 @@ class Reports:
         plot6, data6 = self.scale_factor_summary()
         plots["scale_factor_summary"] = plot6
         data["scale_factor_summary"] = data6
-        
-        # Plot 7a 
+
+        # Plot 7a
         plot7a, data7a = self.no_of_peaks()
         plots["no_of_peaks"] = plot7a
         data["no_of_peaks"] = data7a
@@ -381,7 +380,7 @@ class Reports:
         plots["peak_widths"] = plot7b
         data["peak_widths"] = data7b
 
-        # Plot 7c 
+        # Plot 7c
         if self.replicate_number > 1:
             plot7c, data7c = self.reproduced_peaks()
             plots["reproduced_peaks"] = plot7c
@@ -433,7 +432,7 @@ class Reports:
     def alignment_summary(self):
         sns.color_palette("magma", as_cmap=True)
         sns.set(font_scale=0.6)
-        # Subset data 
+        # Subset data
         df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
         ## Construct quad plot
@@ -470,7 +469,7 @@ class Reports:
         k_formatter = FuncFormatter(self.format_thousands)
         m_formatter = FuncFormatter(self.format_millions)
 
-        # Subset data 
+        # Subset data
         df_data = self.data_table.loc[:, ('id', 'group', 'dedup_percent_duplication', 'dedup_estimated_library_size', 'dedup_read_pairs_examined')]
         df_data['dedup_percent_duplication'] *= 100
         df_data['unique_frag_num'] = df_data['dedup_read_pairs_examined'] * (1-df_data['dedup_percent_duplication']/100)
@@ -491,7 +490,7 @@ class Reports:
         seq_summary[1].yaxis.set_major_formatter(m_formatter)
         seq_summary[1].xaxis.set_tick_params(labelrotation=45)
 
-        # No. of unique fragments 
+        # No. of unique fragments
         sns.boxplot(data=df_data, x='group', y='unique_frag_num', ax=seq_summary[2], palette = "magma")
         seq_summary[2].set_ylabel("No. of Unique Fragments")
         seq_summary[2].yaxis.set_major_formatter(k_formatter)
@@ -499,7 +498,7 @@ class Reports:
 
         # Set the plot sizing
         plt.subplots_adjust(top = 0.9, bottom = 0.2, right = 0.9, left = 0.1, hspace = 0.7, wspace = 0.7)
-        
+
         return fig, df_data
 
 
