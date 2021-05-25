@@ -4,7 +4,7 @@
         // set these options to true to disable specific checks
         "EndOfLine": true,
         "Indentation": false,
-        "InsertFinalNewline": false,
+        "InsertFinalNewline": true,
         "TrimTrailingWhitespace": false,
         "IndentSize": false,
         "MaxLineLength": false
