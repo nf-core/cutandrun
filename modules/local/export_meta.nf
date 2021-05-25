@@ -18,20 +18,20 @@ process EXPORT_META {
 
     input:
     val meta
-    
+
     output:
     path "meta_table.csv", emit: csv
-    
+
     script:
     def header = [:]
 
     // Find the header key set
     for (int i = 0; i < meta.size(); i++) {
         meta[i].each {
-            entry -> 
+            entry ->
                 if(!header.containsKey(entry.key)) {
                     header.put(entry.key, null)
-                } 
+                }
         }
     }
 
@@ -41,12 +41,12 @@ process EXPORT_META {
     // Map the values and write row
     for (int i = 0; i < meta.size(); i++) {
         header.each {
-            entry -> 
+            entry ->
                 entry.value = null
         }
 
         meta[i].each {
-            entry -> 
+            entry ->
                 header[entry.key] = entry.value
         }
         sample_str = header.values().join(",")

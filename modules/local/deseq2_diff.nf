@@ -39,7 +39,7 @@ process DESEQ2_DIFF {
     String str_groups = groups.join(",")
     String str_beds = peak_beds.join(",")
     String str_bams = bams.join(",")
-    
+
     """
     deseq2_diff.r \\
         --groups $str_groups \\

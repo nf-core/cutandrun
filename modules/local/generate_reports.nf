@@ -20,7 +20,7 @@ process GENERATE_REPORTS {
     path bed_fragments
     path seacr_beds
     path bam_bais
-    
+
     output:
     path '*.pdf', emit: pdf
     path '*.csv', emit: csv

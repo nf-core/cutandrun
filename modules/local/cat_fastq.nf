@@ -20,10 +20,10 @@ process CAT_FASTQ {
     } else {
         container "biocontainers/biocontainers:v1.2.0_cv1"
     }
-    
+
     input:
     tuple val(meta), path(reads)
-    
+
     output:
     tuple val(meta), path("*.merged.fastq.gz"), emit: reads
 
