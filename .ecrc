@@ -1,19 +1,4 @@
 {
     "Verbose": true,
-    "Debug": false,
-    "IgnoreDefaults": false,
-    "SpacesAftertabs": false,
-    "NoColor": false,
-    "Exclude": [],
-    "AllowedContentTypes": [],
-    "PassedFiles": [],
-    "Disable": {
-        // set these options to true to disable specific checks
-        "EndOfLine": false,
-        "Indentation": false,
-        "InsertFinalNewline": false,
-        "TrimTrailingWhitespace": false,
-        "IndentSize": false,
-        "MaxLineLength": false
-  }
+    "Exclude": ["README.md", "\\.bed$"]
 }
