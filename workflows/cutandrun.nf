@@ -382,8 +382,8 @@ workflow CUTANDRUN {
             ANNOTATE_BT2_META.out.output,
             ch_bowtie2_spikein_log,
             ch_bt2_to_csv_awk
-       )
-       ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
+        )
+        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
     }
     // META-DATA example state:
     //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
@@ -423,8 +423,8 @@ workflow CUTANDRUN {
      * CHANNEL: Add the scale factor values to the main meta-data stream
      */
     ch_samtools_bam_scale
-         .map { row -> [ row[0], row[1] ] }
-         .set { ch_samtools_bam_sf }
+        .map { row -> [ row[0], row[1] ] }
+        .set { ch_samtools_bam_sf }
     ch_samtools_bam = ch_samtools_bam_sf
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
     // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
@@ -487,7 +487,7 @@ workflow CUTANDRUN {
         /*
          * CHANNEL: Separate bedgraphs into target/control pairings for each replicate
          */
-         BEDTOOLS_GENOMECOV_SCALE.out.bedgraph.branch { it ->
+        BEDTOOLS_GENOMECOV_SCALE.out.bedgraph.branch { it ->
             target: it[0].group != "igg"
             control: it[0].group == "igg"
         }
@@ -583,9 +583,9 @@ workflow CUTANDRUN {
         * MODULE: DESeq2 QC Analysis
         */
         DESEQ2_DIFF (
-             ch_groups_no_igg,
-             ch_seacr_bed.collect{it[1]},
-             ch_samtools_bam.collect{it[1]}
+            ch_groups_no_igg,
+            ch_seacr_bed.collect{it[1]},
+            ch_samtools_bam.collect{it[1]}
         )
         ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
 
@@ -702,7 +702,7 @@ workflow CUTANDRUN {
         /*
         * MODULE: Calculate fragment lengths
         */
-         SAMTOOLS_CUSTOMVIEW (
+        SAMTOOLS_CUSTOMVIEW (
             ch_samtools_bam,
             ch_samtools_bai
         )
