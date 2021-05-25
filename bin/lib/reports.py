@@ -146,7 +146,7 @@ class Reports:
         self.bam_df_list = list()
         self.frip = pd.DataFrame(data=None, index=range(len(bam_list)), columns=['group','replicate','mapped_frags','frags_in_peaks','percentage_frags_in_peaks'])
         k = 0 #counter
-        
+
         def pe_bam_to_df(bam_path):
             bamfile = pysam.AlignmentFile(bam_path, "rb")
             # Iterate through reads.
@@ -193,7 +193,7 @@ class Reports:
                     chrom_arr[k] = chrom
 
                     k +=1
-                    
+
             bamfile.close()
 
             # remove zeros and empty elements. The indicies for these are always the same from end_arr and chrom_arr
@@ -274,7 +274,7 @@ class Reports:
         unique_replicates = self.seacr_beds.replicate.unique()
         rep_permutations = array_permutate(range(len(unique_replicates)))
         self.replicate_number = len(unique_replicates)
-        
+
         if self.replicate_number > 1:
             idx_count=0
             for i in list(range(len(unique_groups))):
@@ -461,7 +461,7 @@ class Reports:
         seq_summary[1,1].set_ylabel("Percent of Fragments Aligned")
 
         plt.subplots_adjust(wspace=0.4, hspace=0.45)
-        
+
         return fig, df_data
 
     # ---------- Plot 2 - Duplication Summary --------- #
@@ -502,7 +502,7 @@ class Reports:
         
         return fig, df_data
 
-    
+
     # ---------- Plot 3 - Fragment Distribution Violin --------- #
     def fraglen_summary_violin(self):
         fig, ax = plt.subplots()
@@ -561,7 +561,7 @@ class Reports:
         scale_summary[1].set_ylabel('Normalised Fragment Count')
 
         return fig, df_data_scale
-    
+
     # ---------- Plot 7 - Peak Analysis --------- #
     def no_of_peaks(self):
     # 7a - Number of peaks

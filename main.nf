@@ -3,7 +3,7 @@
 ========================================================================================
     nf-core/cutandrun
 ========================================================================================
-    Github : https://github.com/nf-core/cutandrun 
+    Github : https://github.com/nf-core/cutandrun
     Website: https://nf-co.re/cutandrun
     Slack  : https://nfcore.slack.com/channels/cutandrun
 ----------------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ workflow NFCORE_CUTANDRUN {
     if (params.public_data_ids) {
         include { SRA_DOWNLOAD } from './workflows/sra_download'
         SRA_DOWNLOAD ()
-    
+
     /*
      * WORKFLOW: Run main nf-core/cutandrun analysis pipeline
      */
