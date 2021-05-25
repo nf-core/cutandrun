@@ -41,7 +41,7 @@ igg,1,IGG_S1_L002_R1.fastq.gz,IGG_S1_L002_R2.fastq.gz
 
 ### Full design
 
- A final design file may look something like the one below. This is for one experimental group in triplicate where the last replicate of the `treatment` group has been sequenced twice, another experimental group in duplicate, and one IgG control group.
+A final design file may look something like the one below. This is for one experimental group in triplicate where the last replicate of the `treatment` group has been sequenced twice, another experimental group in duplicate, and one IgG control group.
 
 ```bash
 group,replicate,fastq_1,fastq_2
@@ -189,9 +189,9 @@ Whilst these default requirements will hopefully work for most people with most 
 
 ```nextflow
 process {
-  withName: star {
-    memory = 32.GB
-  }
+    withName: star {
+        memory = 32.GB
+    }
 }
 ```
 

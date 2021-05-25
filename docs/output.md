@@ -30,7 +30,7 @@ and processes data using the following steps:
 * [Summary and quality control](#summary-and-quality-control)
     * [DESeq2](#deseq2) - PCA plot and differential peak analysis
     * [Python reporting](#python-reporting)
-    * [MultiQC](#multiqc) - Present QC for raw reads, alignment, read counting and sample similarity  
+    * [MultiQC](#multiqc) - Present QC for raw reads, alignment, read counting and sample similarity
     * [IGV](#igv) - Genome browser for viewing bigWigs in relation to genes
 * [Workflow reporting and genomes](#workflow-reporting-and-genomes)
     * [Reference genome files](#reference-genome-files) - Saving reference genome indices/files
