@@ -1,3 +1,12 @@
 {
     "Exclude": ["README.md", "\\.bed$", "conf/igenomes.config"]
+    "Disable": {
+        // set these options to true to disable specific checks
+        "EndOfLine": true,
+        "Indentation": false,
+        "InsertFinalNewline": false,
+        "TrimTrailingWhitespace": false,
+        "IndentSize": false,
+        "MaxLineLength": false
+    }
 }
