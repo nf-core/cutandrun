@@ -16,7 +16,7 @@ workflow ANNOTATE_META_AWK {
     take: report
     take: script
     main:
-    
+
     main:
     // Strip out the sample id from the meta in the passthrough
     ch_paths = passthrough.map { row -> [row[0].id, row[0], row[1..-1]].flatten() }
@@ -28,7 +28,7 @@ workflow ANNOTATE_META_AWK {
 
         AWK_SCRIPT.out.file
             .splitCsv(header:true)
-            .map { row -> 
+            .map { row ->
                 new_meta = [:]
                 row[1].each{ k, v -> new_meta.put(params.meta_prefix + k + params.meta_suffix, v) }
                 [row[0].id, new_meta]
@@ -42,7 +42,7 @@ workflow ANNOTATE_META_AWK {
 
         AWK.out.file
             .splitCsv(header:true)
-            .map { row -> 
+            .map { row ->
                 new_meta = [:]
                 row[1].each{ k, v -> new_meta.put(params.meta_prefix + k + params.meta_suffix, v) }
                 [row[0].id, new_meta]

@@ -38,7 +38,7 @@ workflow CALCULATE_FRAGMENTS {
     stats            = SAMTOOLS_VIEW_SORT_STATS.out.stats      // channel: [ val(meta), [ stats ] ]
     flagstat         = SAMTOOLS_VIEW_SORT_STATS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
     idxstats         = SAMTOOLS_VIEW_SORT_STATS.out.idxstats   // channel: [ val(meta), [ idxstats ] ]
-    
+
     samtools_version = SAMTOOLS_VIEW_SORT_STATS.out.samtools_version //    path: *.version.txt
     bedtools_version = BEDTOOLS_BAMTOBED.out.version                 //    path: *.version.txt
     awk_version      = AWK.out.version                               //    path: *.version.txt
