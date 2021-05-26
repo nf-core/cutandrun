@@ -24,8 +24,8 @@ workflow PREPARE_GENOME {
 
     main:
     /*
-     * Uncompress genome fasta file if required
-     */
+    * Uncompress genome fasta file if required
+    */
     if (params.fasta.endsWith(".gz")) {
         ch_fasta = GUNZIP_FASTA ( params.fasta ).gunzip
     } else {
@@ -33,8 +33,8 @@ workflow PREPARE_GENOME {
     }
 
     /*
-     * Uncompress spike-in genome fasta file if required
-     */
+    * Uncompress spike-in genome fasta file if required
+    */
     if (params.spikein_fasta.endsWith(".gz")) {
         ch_spikein_fasta = GUNZIP_SPIKEIN_FASTA ( params.spikein_fasta ).gunzip
     } else {
@@ -42,8 +42,8 @@ workflow PREPARE_GENOME {
     }
 
     /*
-     * Uncompress GTF annotation file
-     */
+    * Uncompress GTF annotation file
+    */
     ch_gtf = Channel.empty()
     if (params.gtf.endsWith(".gz")) {
         ch_gtf = GUNZIP_GTF ( params.gtf ).gunzip
@@ -52,8 +52,8 @@ workflow PREPARE_GENOME {
     }
 
     /*
-     * Uncompress BED annotation file
-     */
+    * Uncompress BED annotation file
+    */
     ch_gene_bed = Channel.empty()
     if (params.gene_bed){
         if (params.gene_bed.endsWith(".gz")) {
@@ -64,18 +64,18 @@ workflow PREPARE_GENOME {
     }
 
     /*
-     * Create chromosome sizes file
-     */
+    * Create chromosome sizes file
+    */
     ch_chrom_sizes = GET_CHROM_SIZES ( ch_fasta ).sizes
 
     /*
-     * Create chromosome sizes file for spike_in
-     */
+    * Create chromosome sizes file for spike_in
+    */
     ch_spikein_chrom_sizes = GET_SPIKEIN_CHROM_SIZES ( ch_spikein_fasta ).sizes
 
     /*
-     * Uncompress Bowtie2 index or generate from scratch if required for both genomes
-     */
+    * Uncompress Bowtie2 index or generate from scratch if required for both genomes
+    */
     ch_bt2_index         = Channel.empty()
     ch_bt2_spikein_index = Channel.empty()
     ch_bt2_version       = Channel.empty()
