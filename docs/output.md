@@ -15,7 +15,7 @@ and processes data using the following steps:
     * [ENA FTP](#ena-ftp) - Download FastQ files via SRA / ENA / GEO ids
     * [cat](#cat) - Merge re-sequenced FastQ files
     * [FastQC](#fastqc) - Raw read QC
-    * [TrimGalore](#trimgalore) - Adapter and quality trimming    
+    * [TrimGalore](#trimgalore) - Adapter and quality trimming
 * [Alignment](#alignment)
     * [Bowtie 2](#bowtie-2) - Align reads to target and spike-in genomes
 * [Alignment post-processing](#alignment-post-processing)
@@ -30,12 +30,11 @@ and processes data using the following steps:
 * [Summary and quality control](#summary-and-quality-control)
     * [DESeq2](#deseq2) - PCA plot and differential peak analysis
     * [Python reporting](#python-reporting)
-    * [MultiQC](#multiqc) - Present QC for raw reads, alignment, read counting and sample similarity  
+    * [MultiQC](#multiqc) - Present QC for raw reads, alignment, read counting and sample similarity
     * [IGV](#igv) - Genome browser for viewing bigWigs in relation to genes
 * [Workflow reporting and genomes](#workflow-reporting-and-genomes)
     * [Reference genome files](#reference-genome-files) - Saving reference genome indices/files
     * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
-
 
 ## Preprocessing
 
@@ -110,7 +109,7 @@ If multiple libraries/runs have been provided for the same sample in the input s
 
 ## Alignment
 
-### Bowtie 2
+### Bowtie 2
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -134,7 +133,7 @@ Adapter-trimmed reads are mapped to the target and spike-in genomes using [Bowti
 
 ## Alignment post-processing
 
-### SAMtools
+###  SAMtools
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -159,7 +158,6 @@ BAM files are filtered for a minimum quality score of 0 using [SAMtools](http://
     * `.markdup.bam.bai`: BAI index file for coordinate sorted BAM file after duplicate marking. This is the final post-processed BAM index file and so will be saved by default in the results directory.
 * `aligner/bowtie2/picard_metrics`
     * `.markdup.MarkDuplicates.metrics.txt`: Metrics file from MarkDuplicates.
-
 
 </details>
 
@@ -193,9 +191,10 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 
 </details>
 
-[SEACR](https://github.com/FredHutch/SEACR) is a peak caller for data with low background-noise, so is well suited to CUT&Run/CUT&Tag data. SEACR can take in IgG control bedGraph files in order to avoid calling peaks in regions of the experimental data for which the IgG control is enriched. If `--igg_control false` is specified, SEACR calls enriched regions in target data by selecting the top 5% of regions by AUC by default. This threshold can be overwritten using `--peak_threshold`. 
+[SEACR](https://github.com/FredHutch/SEACR) is a peak caller for data with low background-noise, so is well suited to CUT&Run/CUT&Tag data. SEACR can take in IgG control bedGraph files in order to avoid calling peaks in regions of the experimental data for which the IgG control is enriched. If `--igg_control false` is specified, SEACR calls enriched regions in target data by selecting the top 5% of regions by AUC by default. This threshold can be overwritten using `--peak_threshold`.
 
 ![Python reporting - peaks reproduced](images/py_reproduced_peaks.png)
+
 ![Python reporting - aligned fragments within peaks](images/py_frags_in_peaks.png)
 
 ### Deeptools
@@ -212,10 +211,9 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 
 [Deeptools](https://github.com/deeptools/deepTools/) sub-tools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks.
 
+##  Summary and quality control
 
-## Summary and quality control
-
-### DESeq2
+###  DESeq2
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -265,11 +263,11 @@ For more information about how to use MultiQC reports, see [https://multiqc.info
 <summary>Output files</summary>
 
 * `multiqc/`
-  * `multiqc_report.html`: a standalone HTML file that can be viewed in your web browser.
-  * `multiqc_data/`: directory containing parsed statistics from the different tools used in the pipeline.
-  * `multiqc_plots/`: directory containing static images from the report in various formats.
+    * `multiqc_report.html`: a standalone HTML file that can be viewed in your web browser.
+    * `multiqc_data/`: directory containing parsed statistics from the different tools used in the pipeline.
+    * `multiqc_plots/`: directory containing static images from the report in various formats.
 
-### IGV 
+### IGV
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -277,7 +275,6 @@ For more information about how to use MultiQC reports, see [https://multiqc.info
 * `igv/`
     * `igv_session.xml`: IGV session.
     * `*.txt`: IGV input file configurations.
-
 
 </details>
 
@@ -316,5 +313,3 @@ A number of genome-specific files are generated by the pipeline because they are
 </details>
 
 [Nextflow](https://www.nextflow.io/docs/latest/tracing.html) provides excellent functionality for generating various reports relevant to the running and execution of the pipeline. This will allow you to troubleshoot errors with the running of the pipeline, and also provide you with other information such as launch commands, run times and resource usage.
-
-

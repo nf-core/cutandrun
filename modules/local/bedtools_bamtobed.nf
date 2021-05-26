@@ -17,10 +17,10 @@ process BEDTOOLS_BAMTOBED {
     } else {
         container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
     }
-    
+
     input:
     tuple val(meta), path(bam)
-    
+
     output:
     tuple val(meta), path("*.bed"), emit: bed
     path "*.version.txt"               , emit: version

@@ -19,11 +19,11 @@ process UCSC_BEDCLIP {
     } else {
         container "quay.io/biocontainers/ucsc-bedclip:377--h446ed27_1"
     }
-    
+
     input:
     tuple val(meta), path(bedgraph)
     path  sizes
-    
+
     output:
     tuple val(meta), path("*.bedGraph"), emit: bedgraph
     path "*.version.txt"               , emit: version

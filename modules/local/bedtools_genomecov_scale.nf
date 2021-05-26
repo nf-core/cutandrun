@@ -17,10 +17,10 @@ process BEDTOOLS_GENOMECOV_SCALE {
     } else {
         container "quay.io/biocontainers/bedtools:2.29.2--hc088bd4_0"
     }
-    
+
     input:
     tuple val(meta), path(bam), val(scale)
-    
+
     output:
     tuple val(meta), path("*.bedGraph"), emit: bedgraph
     path "*.version.txt"               , emit: version

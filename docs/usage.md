@@ -13,6 +13,7 @@ You will need to create a samplesheet file with information about the samples in
 ```
 
 ### Multiple replicates
+
 The `group` identifier is the same when you have multiple biological replicates from the same experimental group, just increment the `replicate` identifier appropriately. A special case for `group` is if you have non-specific IgG antibody control data that can be used for normalising your experimental CUT&Run (OR CUT&Tag) data. In this case, the `group` name for the IgG control data _must_ be set to `igg`. Below is an example for a single target group in triplicate, complemented by an IgG control duplicate:
 
 ```bash
@@ -40,7 +41,7 @@ igg,1,IGG_S1_L002_R1.fastq.gz,IGG_S1_L002_R2.fastq.gz
 
 ### Full design
 
- A final design file may look something like the one below. This is for one experimental group in triplicate where the last replicate of the `treatment` group has been sequenced twice, another experimental group in duplicate, and one IgG control group.
+A final design file may look something like the one below. This is for one experimental group in triplicate where the last replicate of the `treatment` group has been sequenced twice, another experimental group in duplicate, and one IgG control group.
 
 ```bash
 group,replicate,fastq_1,fastq_2
@@ -63,7 +64,7 @@ igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
-# Direct download of public repository data
+## Direct download of public repository data
 
 > **NB:** This is an experimental feature but should work beautifully when it does! :)
 
@@ -148,27 +149,27 @@ They are loaded in sequence, so later profiles can overwrite earlier profiles.
 If `-profile` is not specified, the pipeline will run locally and expect all software to be installed and available on the `PATH`. This is _not_ recommended.
 
 * `docker`
-  * A generic configuration profile to be used with [Docker](https://docker.com/)
-  * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
+    * A generic configuration profile to be used with [Docker](https://docker.com/)
+    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
 * `singularity`
-  * A generic configuration profile to be used with [Singularity](https://sylabs.io/docs/)
-  * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
+    * A generic configuration profile to be used with [Singularity](https://sylabs.io/docs/)
+    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
 * `podman`
-  * A generic configuration profile to be used with [Podman](https://podman.io/)
-  * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
+    * A generic configuration profile to be used with [Podman](https://podman.io/)
+    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
 * `shifter`
-  * A generic configuration profile to be used with [Shifter](https://nersc.gitlab.io/development/shifter/how-to-use/)
-  * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
+    * A generic configuration profile to be used with [Shifter](https://nersc.gitlab.io/development/shifter/how-to-use/)
+    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
 * `charliecloud`
-  * A generic configuration profile to be used with [Charliecloud](https://hpc.github.io/charliecloud/)
-  * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
+    * A generic configuration profile to be used with [Charliecloud](https://hpc.github.io/charliecloud/)
+    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
 * `conda`
-  * Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter or Charliecloud.
-  * A generic configuration profile to be used with [Conda](https://conda.io/docs/)
-  * Pulls most software from [Bioconda](https://bioconda.github.io/)
+    * Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter or Charliecloud.
+    * A generic configuration profile to be used with [Conda](https://conda.io/docs/)
+    * Pulls most software from [Bioconda](https://bioconda.github.io/)
 * `test`
-  * A profile with a complete configuration for automated testing
-  * Includes links to test data so needs no other parameters
+    * A profile with a complete configuration for automated testing
+    * Includes links to test data so needs no other parameters
 
 ### `-resume`
 
@@ -188,9 +189,9 @@ Whilst these default requirements will hopefully work for most people with most 
 
 ```nextflow
 process {
-  withName: star {
-    memory = 32.GB
-  }
+    withName: star {
+        memory = 32.GB
+    }
 }
 ```
 

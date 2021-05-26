@@ -6,7 +6,7 @@
 
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
-// Validate input parameters in specialised library 
+// Validate input parameters in specialised library
 WorkflowCutandrun.initialise(params, log)
 
 // Check input path parameters to see if the files exist if they have been specified
@@ -83,7 +83,7 @@ def dedup_control_only = true
 if(params.dedup_target_reads) { dedup_control_only = false }
 
 def bowtie2_align_options                       = null
-def samtools_sort_options                       = null      
+def samtools_sort_options                       = null
 def samtools_view_options                       = null
 def samtools_qfilter_options                    = null
 def picard_markduplicates_options               = null
@@ -97,14 +97,14 @@ if (!params.skip_markduplicates) {
     picard_markduplicates_samtools_options      = modules["picard_markduplicates_samtools_final"]
     if (params.publish_align_intermed) {
         bowtie2_align_options                   = modules["bowtie2_align_intermed"]
-        samtools_sort_options                   = modules["samtools_sort_intermed"]       
+        samtools_sort_options                   = modules["samtools_sort_intermed"]
         samtools_view_options                   = modules["samtools_view_qfilter_intermed"]
         samtools_qfilter_options                = modules["samtools_qfilter_intermed"]
         picard_deduplicates_options             = modules["picard_dedup_intermed"]
         picard_deduplicates_samtools_options    = modules["picard_dedup_samtools_intermed"]
     } else {
         bowtie2_align_options                   = modules["bowtie2_align"]
-        samtools_sort_options                   = modules["samtools_sort"]       
+        samtools_sort_options                   = modules["samtools_sort"]
         samtools_view_options                   = modules["samtools_view_qfilter"]
         samtools_qfilter_options                = modules["samtools_qfilter"]
         picard_deduplicates_options             = modules["picard_dedup"]
@@ -122,11 +122,11 @@ if (!params.skip_markduplicates) {
         picard_deduplicates_samtools_options    = modules["picard_dedup_samtools_intermed"]
     } else {
         bowtie2_align_options                   = modules["bowtie2_align"]
-        samtools_sort_options                   = modules["samtools_sort"]       
+        samtools_sort_options                   = modules["samtools_sort"]
         picard_markduplicates_options           = modules["picard_markduplicates"]
         picard_markduplicates_samtools_options  = modules["picard_markduplicates_samtools"]
         picard_deduplicates_options             = modules["picard_dedup"]
-        picard_deduplicates_samtools_options    = modules["picard_dedup_samtools"] 
+        picard_deduplicates_samtools_options    = modules["picard_dedup_samtools"]
     }
 }
 
@@ -177,8 +177,8 @@ include { CALCULATE_FRAGMENTS }                             from "../subworkflow
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
 include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META }        from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "",meta_prefix: "dedup_", script_mode: false )
-include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META }      from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dt_frag_options, meta_suffix: "", meta_prefix: "", script_mode: true )     
-                                                               
+include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META }      from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dt_frag_options, meta_suffix: "", meta_prefix: "", script_mode: true )
+
 /*
 ========================================================================================
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -227,7 +227,7 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Read in samplesheet, validate and stage input files
      */
-    INPUT_CHECK ( 
+    INPUT_CHECK (
         ch_input
     )
     .map {
@@ -247,7 +247,7 @@ workflow CUTANDRUN {
     /*
      * MODULE: Concatenate FastQ files from same sample if required
      */
-    CAT_FASTQ ( 
+    CAT_FASTQ (
         ch_fastq.multiple
     )
     .mix(ch_fastq.single)
@@ -305,7 +305,7 @@ workflow CUTANDRUN {
         ch_samtools_idxstats          = ALIGN_BOWTIE2.out.idxstats
 
         ch_samtools_spikein_bam       = ALIGN_BOWTIE2.out.spikein_bam
-        ch_samtools_spikein_bai       = ALIGN_BOWTIE2.out.spikein_bai 
+        ch_samtools_spikein_bai       = ALIGN_BOWTIE2.out.spikein_bai
         ch_samtools_spikein_stats     = ALIGN_BOWTIE2.out.spikein_stats
         ch_samtools_spikein_flagstat  = ALIGN_BOWTIE2.out.spikein_flagstat
         ch_samtools_spikein_idxstats  = ALIGN_BOWTIE2.out.spikein_idxstats
@@ -372,28 +372,28 @@ workflow CUTANDRUN {
      * the meta-data is annotated additivley so we only need to track the final channel output
      */
     if (params.aligner == "bowtie2") {
-        ANNOTATE_BT2_META ( 
-            ch_samtools_bam, 
-            ch_bowtie2_log, 
+        ANNOTATE_BT2_META (
+            ch_samtools_bam,
+            ch_bowtie2_log,
             ch_bt2_to_csv_awk
         )
 
-        ANNOTATE_BT2_SPIKEIN_META ( 
-            ANNOTATE_BT2_META.out.output, 
-            ch_bowtie2_spikein_log, 
-            ch_bt2_to_csv_awk 
-       )
-       ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
+        ANNOTATE_BT2_SPIKEIN_META (
+            ANNOTATE_BT2_META.out.output,
+            ch_bowtie2_spikein_log,
+            ch_bt2_to_csv_awk
+        )
+        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
     }
     // META-DATA example state:
-    //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+    //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
     // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], BAM]
     //ch_samtools_bam | view
     //EXPORT_META ( ch_annotated_meta.collect{ it[0] } )
 
     /*
-     * CHANNEL: Calculate scale factor for each sample based on a constant devided by the number 
+     * CHANNEL: Calculate scale factor for each sample based on a constant devided by the number
      *          of reads aligned to the spike-in genome
      */
     ch_samtools_bam
@@ -409,37 +409,37 @@ workflow CUTANDRUN {
         .map { row -> [row[0].id, row ].flatten()}
         .join ( ch_scale_factor )
         .map { row -> row[1..(row.size() - 1)] }
-        .map { row -> 
+        .map { row ->
             row[0].put("scale_factor", row[2])
             [ row[0], row[1], row[2] ] }
         .set { ch_samtools_bam_scale }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
     // scale_factor:10000], BAM, SCALE_FACTOR]
     //ch_samtools_bam_scale | view
 
     /*
-     * CHANNEL: Add the scale factor values to the main meta-data stream 
+     * CHANNEL: Add the scale factor values to the main meta-data stream
      */
     ch_samtools_bam_scale
-         .map { row -> [ row[0], row[1] ] }
-         .set { ch_samtools_bam_sf }
+        .map { row -> [ row[0], row[1] ] }
+        .set { ch_samtools_bam_sf }
     ch_samtools_bam = ch_samtools_bam_sf
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
     // scale_factor:10000], BAM]
     //ch_samtools_bam | view
 
     /*
-     * SUBWORKFLOW: Calculate fragment bed from bams 
+     * SUBWORKFLOW: Calculate fragment bed from bams
      * - Filter for mapped reads
      * - Convert to bed file
      * - Keep the read pairs that are on the same chromosome and fragment length less than 1000bp
      * - Only extract the fragment related columns using cut
      */
-    CALCULATE_FRAGMENTS ( 
+    CALCULATE_FRAGMENTS (
         ch_samtools_bam
     )
     ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.bedtools_version.first().ifEmpty(null))
@@ -452,9 +452,9 @@ workflow CUTANDRUN {
     BEDTOOLS_GENOMECOV_SCALE (
         ch_samtools_bam_scale
     )
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
     // scale_factor:10000], BEDGRAPH]
     //BEDTOOLS_GENOMECOV_SCALE.out.bedgraph | view
 
@@ -476,9 +476,9 @@ workflow CUTANDRUN {
         PREPARE_GENOME.out.chrom_sizes
     )
     ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.version.first().ifEmpty(null))
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
     // scale_factor:10000], BIGWIG]
     //UCSC_BEDGRAPHTOBIGWIG.out.bigwig | view
 
@@ -487,7 +487,7 @@ workflow CUTANDRUN {
         /*
          * CHANNEL: Separate bedgraphs into target/control pairings for each replicate
          */
-         BEDTOOLS_GENOMECOV_SCALE.out.bedgraph.branch { it ->
+        BEDTOOLS_GENOMECOV_SCALE.out.bedgraph.branch { it ->
             target: it[0].group != "igg"
             control: it[0].group == "igg"
         }
@@ -505,11 +505,11 @@ workflow CUTANDRUN {
                 .filter { row -> row[0].replicate == row[2].replicate }
                 .map { row -> [ row[0], row[1], row[3] ] }
                 .set { ch_bedgraph_combined }
-            //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-            // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-            // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+            //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+            // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+            // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
             // scale_factor:10000], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
-            //ch_bedgraph_combined | view   
+            //ch_bedgraph_combined | view
 
             /*
              * MODULE: Call peaks with IgG control
@@ -519,9 +519,9 @@ workflow CUTANDRUN {
             )
             ch_seacr_bed = SEACR_CALLPEAK.out.bed
             ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
-            //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-            // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-            // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+            //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+            // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+            // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
             // scale_factor:10000], BED]
             //SEACR_CALLPEAK.out.bed | view
         }
@@ -540,9 +540,9 @@ workflow CUTANDRUN {
             )
             ch_seacr_bed = SEACR_NO_IGG.out.bed
             ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.version.first().ifEmpty(null))
-            //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-            // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-            // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+            //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+            // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+            // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
             // scale_factor:10000], BED]
             //SEACR_NO_IGG.out.bed | view
         }
@@ -583,9 +583,9 @@ workflow CUTANDRUN {
         * MODULE: DESeq2 QC Analysis
         */
         DESEQ2_DIFF (
-             ch_groups_no_igg,
-             ch_seacr_bed.collect{it[1]},
-             ch_samtools_bam.collect{it[1]}
+            ch_groups_no_igg,
+            ch_seacr_bed.collect{it[1]},
+            ch_samtools_bam.collect{it[1]}
         )
         ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
 
@@ -598,7 +598,7 @@ workflow CUTANDRUN {
                 PREPARE_GENOME.out.bed
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.version.first().ifEmpty(null))
-        
+
         /*
         * MODULE: Calculate DeepTools heatmap
         */
@@ -607,9 +607,9 @@ workflow CUTANDRUN {
             )
         }
 
-        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
         // scale_factor:10000], MATRIX]
         //DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix | view
 
@@ -619,9 +619,9 @@ workflow CUTANDRUN {
         AWK_EDIT_PEAK_BED (
             ch_seacr_bed
         )
-        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
         // scale_factor:10000], TEXT]
         //AWK_EDIT_PEAK_BED.out.file | view
 
@@ -659,12 +659,12 @@ workflow CUTANDRUN {
             ch_ordered_bigwig,
             ch_ordered_seacr_max
         )
-        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
+        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
         // scale_factor:10000], MATRIX]
         //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
-    
+
         /*
         * MODULE: Calculate DeepTools heatmap
         */
@@ -676,33 +676,33 @@ workflow CUTANDRUN {
         * SUBWORKFLOW: Annotate meta-data with duplication stats
         */
         if (!params.skip_markduplicates) {
-            ANNOTATE_DEDUP_META( 
-                ch_samtools_bam, 
-                ch_markduplicates_multiqc, 
+            ANNOTATE_DEDUP_META(
+                ch_samtools_bam,
+                ch_markduplicates_multiqc,
                 ch_dummy_file.collect()
             )
             ch_samtools_bam = ANNOTATE_DEDUP_META.out.output
         }
-        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, 
-        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764, 
-        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1, 
-        // scale_factor:10000, dedup_library:unknown library, dedup_unpaired_reads_examined:0, dedup_read_pairs_examined:350, dedup_secondary_or_supplementary_rds:0, 
-        // dedup_unmapped_reads:0, dedup_unpaired_read_duplicates:0, dedup_read_pair_duplicates:0, dedup_read_pair_optical_duplicates:0, dedup_percent_duplication:0, 
+        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
+        // scale_factor:10000, dedup_library:unknown library, dedup_unpaired_reads_examined:0, dedup_read_pairs_examined:350, dedup_secondary_or_supplementary_rds:0,
+        // dedup_unmapped_reads:0, dedup_unpaired_read_duplicates:0, dedup_read_pair_duplicates:0, dedup_read_pair_optical_duplicates:0, dedup_percent_duplication:0,
         // dedup_estimated_library_size:], BAM]
         //ch_samtools_bam | view
 
         /*
         * MODULE: Bin the fragments into 500bp bins ready for downstream reporting
         */
-        AWK_FRAG_BIN( 
-            CALCULATE_FRAGMENTS.out.bed 
+        AWK_FRAG_BIN(
+            CALCULATE_FRAGMENTS.out.bed
         )
         //AWK_FRAG_BIN.out.file | view
 
         /*
-        * MODULE: Calculate fragment lengths 
+        * MODULE: Calculate fragment lengths
         */
-         SAMTOOLS_CUSTOMVIEW (
+        SAMTOOLS_CUSTOMVIEW (
             ch_samtools_bam,
             ch_samtools_bai
         )
@@ -711,8 +711,8 @@ workflow CUTANDRUN {
         /*
         * MODULE: Sort bams by mate pair ids (no position)
         */
-        SAMTOOLS_SORT ( 
-            ch_samtools_bam 
+        SAMTOOLS_SORT (
+            ch_samtools_bam
         )
         //SAMTOOLS_SORT.out.bam | view
 
@@ -747,8 +747,8 @@ workflow CUTANDRUN {
         .flatten()
         .collect()
         .set { ch_software_versions }
-    
-    GET_SOFTWARE_VERSIONS ( 
+
+    GET_SOFTWARE_VERSIONS (
         ch_software_versions.map { it }.collect()
     )
 

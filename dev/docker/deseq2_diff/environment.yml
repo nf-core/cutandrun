@@ -24,4 +24,3 @@ dependencies:
     # - bioconda::bioconductor-genomicranges=1.42.0
     # - bioconda::bioconductor-chromvar=1.12.0
     # - bioconda::bioconductor-deseq2=1.30.0
-    

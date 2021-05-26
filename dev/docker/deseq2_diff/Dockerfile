@@ -2,7 +2,7 @@
 FROM rocker/rstudio:4.0.3
 
 LABEL authors="chris.cheshire@crick.ac.uk" \
-      description="Docker image containing Rstudio and a conda env for the deseq2_diff.r script"
+        description="Docker image containing Rstudio and a conda env for the deseq2_diff.r script"
 
 #Install conda
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8

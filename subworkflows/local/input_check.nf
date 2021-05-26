@@ -11,7 +11,7 @@ include {
 workflow INPUT_CHECK {
     take:
     samplesheet // file: /path/to/samplesheet.csv
-    
+
     main:
     SAMPLESHEET_CHECK ( samplesheet )
         .splitCsv ( header:true, sep:"," )

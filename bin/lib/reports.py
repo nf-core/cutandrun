@@ -70,7 +70,9 @@ class Reports:
             dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None, names=['Size','Occurrences'])
             frag_base_i = os.path.basename(dt_frag_list[i])
             sample_id = frag_base_i.split(".")[0]
-            [group_i,rep_i] = sample_id.split("_")
+            sample_id_split = sample_id.split("_")
+            rep_i = sample_id_split[len(sample_id_split)-1]
+            group_i ="_".join(sample_id_split[0:(len(sample_id_split)-1)])
 
             # create long forms of fragment histograms
             dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
@@ -131,7 +133,9 @@ class Reports:
             seacr_bed_i = pd.read_csv(seacr_bed_list[i], sep='\t', header=None, usecols=[0,1,2,3,4], names=['chrom','start','end','total_signal','max_signal'])
             bed_base_i = os.path.basename(seacr_bed_list[i])
             sample_id = bed_base_i.split(".")[0]
-            [group_i,rep_i] = sample_id.split("_")
+            sample_id_split = sample_id.split("_")
+            rep_i = sample_id_split[len(sample_id_split)-1]
+            group_i ="_".join(sample_id_split[0:(len(sample_id_split)-1)])
             seacr_bed_i['group'] = np.repeat(group_i, seacr_bed_i.shape[0])
             seacr_bed_i['replicate'] = np.repeat(rep_i, seacr_bed_i.shape[0])
 
@@ -146,7 +150,7 @@ class Reports:
         self.bam_df_list = list()
         self.frip = pd.DataFrame(data=None, index=range(len(bam_list)), columns=['group','replicate','mapped_frags','frags_in_peaks','percentage_frags_in_peaks'])
         k = 0 #counter
-        
+
         def pe_bam_to_df(bam_path):
             bamfile = pysam.AlignmentFile(bam_path, "rb")
             # Iterate through reads.
@@ -187,13 +191,13 @@ class Reports:
                     start_pos = min(read1.reference_start, read2.reference_start)
                     end_pos = max(read1.reference_end, read2.reference_end) - 1
                     chrom = read.reference_name
-                    
+
                     start_arr[k] = start_pos
                     end_arr[k] = end_pos
                     chrom_arr[k] = chrom
 
                     k +=1
-                    
+
             bamfile.close()
 
             # remove zeros and empty elements. The indicies for these are always the same from end_arr and chrom_arr
@@ -206,7 +210,6 @@ class Reports:
             bam_df = pd.DataFrame({ "Chromosome" : chrom_arr, "Start" : start_arr, "End" : end_arr })
             return(bam_df)
 
-        
         for bam in bam_list:
             bam_now = pe_bam_to_df(bam)
             self.bam_df_list.append(bam_now)
@@ -218,7 +221,7 @@ class Reports:
             self.frip.at[k, 'mapped_frags'] = bam_now.shape[0]
             k=k+1
 
-        # ---------- Data - New frag_hist --------- #   
+        # ---------- Data - New frag_hist --------- #
         for i in list(range(len(self.bam_df_list))):
             df_i = self.bam_df_list[i]
             widths_i = (df_i['End'] - df_i['Start']).abs()
@@ -274,7 +277,7 @@ class Reports:
         unique_replicates = self.seacr_beds.replicate.unique()
         rep_permutations = array_permutate(range(len(unique_replicates)))
         self.replicate_number = len(unique_replicates)
-        
+
         if self.replicate_number > 1:
             idx_count=0
             for i in list(range(len(unique_groups))):
@@ -290,7 +293,7 @@ class Reports:
                             pyr_overlap = pyr_query.join(pyr_subject)
                             pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
                             pyr_query = pyr_overlap
-                            
+
                         else:
                             pyr_query = pyr_subject
 
@@ -312,7 +315,7 @@ class Reports:
             pyr_seacr = pr.PyRanges(chromosomes=seacr_bed_i['chrom'], starts=seacr_bed_i['start'], ends=seacr_bed_i['end'])
             pyr_bam = pr.PyRanges(df=bam_i)
             sample_id = group_i + "_" + rep_i
-            frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)  
+            frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)
             frag_counts = np.count_nonzero(frag_count_pyr.NumberOverlaps)
 
             self.frip.at[i,'frags_in_peaks'] = frag_counts
@@ -370,8 +373,8 @@ class Reports:
         plot6, data6 = self.scale_factor_summary()
         plots["scale_factor_summary"] = plot6
         data["scale_factor_summary"] = data6
-        
-        # Plot 7a 
+
+        # Plot 7a
         plot7a, data7a = self.no_of_peaks()
         plots["no_of_peaks"] = plot7a
         data["no_of_peaks"] = data7a
@@ -381,7 +384,7 @@ class Reports:
         plots["peak_widths"] = plot7b
         data["peak_widths"] = data7b
 
-        # Plot 7c 
+        # Plot 7c
         if self.replicate_number > 1:
             plot7c, data7c = self.reproduced_peaks()
             plots["reproduced_peaks"] = plot7c
@@ -433,7 +436,7 @@ class Reports:
     def alignment_summary(self):
         sns.color_palette("magma", as_cmap=True)
         sns.set(font_scale=0.6)
-        # Subset data 
+        # Subset data
         df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
         ## Construct quad plot
@@ -461,7 +464,7 @@ class Reports:
         seq_summary[1,1].set_ylabel("Percent of Fragments Aligned")
 
         plt.subplots_adjust(wspace=0.4, hspace=0.45)
-        
+
         return fig, df_data
 
     # ---------- Plot 2 - Duplication Summary --------- #
@@ -470,7 +473,7 @@ class Reports:
         k_formatter = FuncFormatter(self.format_thousands)
         m_formatter = FuncFormatter(self.format_millions)
 
-        # Subset data 
+        # Subset data
         df_data = self.data_table.loc[:, ('id', 'group', 'dedup_percent_duplication', 'dedup_estimated_library_size', 'dedup_read_pairs_examined')]
         df_data['dedup_percent_duplication'] *= 100
         df_data['unique_frag_num'] = df_data['dedup_read_pairs_examined'] * (1-df_data['dedup_percent_duplication']/100)
@@ -491,7 +494,7 @@ class Reports:
         seq_summary[1].yaxis.set_major_formatter(m_formatter)
         seq_summary[1].xaxis.set_tick_params(labelrotation=45)
 
-        # No. of unique fragments 
+        # No. of unique fragments
         sns.boxplot(data=df_data, x='group', y='unique_frag_num', ax=seq_summary[2], palette = "magma")
         seq_summary[2].set_ylabel("No. of Unique Fragments")
         seq_summary[2].yaxis.set_major_formatter(k_formatter)
@@ -499,10 +502,10 @@ class Reports:
 
         # Set the plot sizing
         plt.subplots_adjust(top = 0.9, bottom = 0.2, right = 0.9, left = 0.1, hspace = 0.7, wspace = 0.7)
-        
+
         return fig, df_data
 
-    
+
     # ---------- Plot 3 - Fragment Distribution Violin --------- #
     def fraglen_summary_violin(self):
         fig, ax = plt.subplots()
@@ -561,7 +564,7 @@ class Reports:
         scale_summary[1].set_ylabel('Normalised Fragment Count')
 
         return fig, df_data_scale
-    
+
     # ---------- Plot 7 - Peak Analysis --------- #
     def no_of_peaks(self):
     # 7a - Number of peaks

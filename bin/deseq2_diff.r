@@ -116,7 +116,7 @@ for(group in groups){
         stop(paste("group", group, "was not found amongst bed files"))
     }
     file_list <- bed_list[search_res] %>% append(file_list, .)
-}    
+}
 for(file in file_list) {
     peakRes = read.table(file, header = FALSE, fill = TRUE)
     mPeak = GRanges(seqnames = peakRes$V1, IRanges(start = peakRes$V2, end = peakRes$V3), strand = "*") %>% append(mPeak, .)
@@ -143,7 +143,7 @@ for(i in seq_along(groups)){
         stop(paste("group", i, "was not found amongst bam files"))
     }
     file_list <- bam_list[search_res]
-    
+
     for(j in seq_along(file_list)) {
         rep_search <- str_detect(file_list, expected_rep_str[j])
         file_now <- file_list[rep_search]
@@ -164,7 +164,7 @@ if (file.exists(opt$outdir) == FALSE) {
 setwd(opt$outdir)
 #if (FALSE) {
 ## Create index list for peak count filter
-selectR = which(rowSums(countMat) > opt$count_thresh) 
+selectR = which(rowSums(countMat) > opt$count_thresh)
 dataS = countMat[selectR,] ## Select data from filter
 condition = factor(rep(groups, each = length(reps)))
 
@@ -216,7 +216,7 @@ if (FALSE) {
 PlotFile <- paste(opt$outprefix,".plots.pdf",sep="")
 if (file.exists(PlotFile) == FALSE) {
     pdf(file=PlotFile,onefile=TRUE,width=7,height=7)
-    
+
     ## PCA
     pca.data <- DESeq2::plotPCA(rld,intgroup=c("condition"),returnData=TRUE)
     percentVar <- round(100 * attr(pca.data, "percentVar"))
@@ -225,26 +225,26 @@ if (file.exists(PlotFile) == FALSE) {
         xlab(paste0("PC1: ",percentVar[1],"% variance")) +
         ylab(paste0("PC2: ",percentVar[2],"% variance")) +
         theme(panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(),
-              panel.background = element_blank(),
-              panel.border = element_rect(colour = "black", fill=NA, size=1))
+                panel.grid.minor = element_blank(),
+                panel.background = element_blank(),
+                panel.border = element_rect(colour = "black", fill=NA, size=1))
     print(plot)
-    
+
     ## WRITE PC1 vs PC2 VALUES TO FILE
     pca.vals <- pca.data[,1:2]
     colnames(pca.vals) <- paste(colnames(pca.vals),paste(percentVar,'% variance',sep=""), sep=": ")
     pca.vals <- cbind(sample = rownames(pca.vals), pca.vals)
     write.table(pca.vals,file=paste(opt$outprefix,".pca.vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
-    
+
     ## SAMPLE CORRELATION HEATMAP
     sampleDists <- dist(t(assay(rld)))
     sampleDistMatrix <- as.matrix(sampleDists)
     colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
     pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists,clustering_distance_cols=sampleDists,col=colors)
-    
+
     ## WRITE SAMPLE DISTANCES TO FILE
     write.table(cbind(sample = rownames(sampleDistMatrix), sampleDistMatrix),file=paste(opt$outprefix,".sample.dists.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=FALSE)
-    
+
     dev.off()
 }
 }
@@ -262,7 +262,7 @@ if (file.exists(PlotFile) == FALSE) {
 ##' stored. Copied from DESeq2::plotPCA, but with additional ability to
 ##' say which assay to run the PCA on, and adds an assessment of how well
 ##' each PC explains the experimental grouping of the data.
-##' 
+##'
 ##' @param object The DESeq2DataSet object.
 ##' @param intgroup interesting groups: a character vector of names in 'colData(x)' to use for grouping.
 ##' @param ntop number of top genes to use for principla components, selected by highest row variance.
@@ -298,7 +298,7 @@ plotPCA_vst <- function (object, intgroup = "condition", ntop = 500, assay=lengt
 PlotFile <- paste(opt$outprefix,".plots.pdf",sep="")
 if (file.exists(PlotFile) == FALSE) {
     pdf(file=PlotFile,onefile=TRUE,width=7,height=7)
-    
+
     ## PCA
     ntop <- c(500, Inf)
     for (n_top_var in ntop) {
@@ -309,14 +309,14 @@ if (file.exists(PlotFile) == FALSE) {
             geom_point(size=3) +
             xlab(paste0("PC1: ",percentVar[1],"% variance")) +
             ylab(paste0("PC2: ",percentVar[2],"% variance")) +
-            labs(title = paste0("First PCs on ", vst_name, "-transformed data"), subtitle = plot_subtitle) + 
+            labs(title = paste0("First PCs on ", vst_name, "-transformed data"), subtitle = plot_subtitle) +
             theme(legend.position="top",
-                  panel.grid.major = element_blank(),
-                  panel.grid.minor = element_blank(),
-                  panel.background = element_blank(),
-                  panel.border = element_rect(colour = "black", fill=NA, size=1))
+                    panel.grid.major = element_blank(),
+                    panel.grid.minor = element_blank(),
+                    panel.background = element_blank(),
+                    panel.border = element_rect(colour = "black", fill=NA, size=1))
         print(pl)
-        
+
         pl <- ggplot(attr(pca.data, "percentVar"), aes(x=PC, y=percentVar)) +
             geom_line(aes(colour="explained by PC")) +
             geom_line(aes(y=groupR, colour="of PC explained by condition")) +
@@ -325,30 +325,30 @@ if (file.exists(PlotFile) == FALSE) {
             theme_bw() +
             theme(legend.position="top")
         print(pl)
-        
+
         pc_r <- order(attr(pca.data, "percentVar")$groupR, decreasing=TRUE)
         pl <- ggplot(pca.data, aes_string(paste0("PC", pc_r[1]), paste0("PC", pc_r[2]), color="condition")) +
             geom_point(size=3) +
             xlab(paste0("PC", pc_r[1], ": ",percentVar[pc_r[1]],"% variance")) +
             ylab(paste0("PC", pc_r[2], ": ",percentVar[pc_r[2]],"% variance")) +
-            labs(title = paste0("Group-Explanatory PCs of ", vst_name, "-tranformed data"), subtitle = plot_subtitle) + 
+            labs(title = paste0("Group-Explanatory PCs of ", vst_name, "-tranformed data"), subtitle = plot_subtitle) +
             theme(legend.position="top",
-                  panel.grid.major = element_blank(),
-                  panel.grid.minor = element_blank(),
-                  panel.background = element_blank(),
-                  panel.border = element_rect(colour = "black", fill=NA, size=1))
+                panel.grid.major = element_blank(),
+                panel.grid.minor = element_blank(),
+                panel.background = element_blank(),
+                panel.border = element_rect(colour = "black", fill=NA, size=1))
         print(pl)
     } # at end of loop, we'll be using the user-defined ntop if any, else all peaks
-    
+
     ## VOLCANO PLOT
     plotMA(dds)
-    
+
     ## WRITE PC1 vs PC2 VALUES TO FILE
     pca.vals           <- pca.data[,1:2]
     colnames(pca.vals) <- paste0(colnames(pca.vals), ": ", percentVar[1:2], '% variance')
     pca.vals           <- cbind(sample = rownames(pca.vals), pca.vals)
     write.table(pca.vals,file=paste(opt$outprefix,".pca.vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
-    
+
     ## SAMPLE CORRELATION HEATMAP
     sampleDists      <- dist(t(assay(dds, vst_name)))
     sampleDistMatrix <- as.matrix(sampleDists)
@@ -360,10 +360,10 @@ if (file.exists(PlotFile) == FALSE) {
         col=colors,
         main=paste("Euclidean distance between", vst_name, "of samples")
     )
-    
+
     ## WRITE SAMPLE DISTANCES TO FILE
     write.table(cbind(sample = rownames(sampleDistMatrix), sampleDistMatrix),file=paste(opt$outprefix,".sample.dists.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=FALSE)
-    
+
     dev.off()
 }
 
@@ -374,105 +374,100 @@ if (file.exists(PlotFile) == FALSE) {
 ################################################
 
 if (FALSE) {
+    ResultsFile <- paste(opt$outprefix,".results.txt",sep="")
+    if (file.exists(ResultsFile) == FALSE) {
+        raw.counts <- counts(dds,normalized=FALSE)
+        colnames(raw.counts) <- paste(colnames(raw.counts),'raw',sep='.')
+        pseudo.counts <- counts(dds,normalized=TRUE)
+        colnames(pseudo.counts) <- paste(colnames(pseudo.counts),'pseudo',sep='.')
 
-ResultsFile <- paste(opt$outprefix,".results.txt",sep="")
-if (file.exists(ResultsFile) == FALSE) {
-    
-    raw.counts <- counts(dds,normalized=FALSE)
-    colnames(raw.counts) <- paste(colnames(raw.counts),'raw',sep='.')
-    pseudo.counts <- counts(dds,normalized=TRUE)
-    colnames(pseudo.counts) <- paste(colnames(pseudo.counts),'pseudo',sep='.')
-    
-    deseq2_results_list <- list()
-    comparisons <- combn(unique(groups),2)
-    for (idx in 1:ncol(comparisons)) {
-        
-        control.group <- comparisons[1,idx]
-        treat.group <- comparisons[2,idx]
-        CompPrefix <- paste(control.group,treat.group,sep="vs")
-        cat("Saving results for ",CompPrefix," ...\n",sep="")
-        
-        CompOutDir <- paste(CompPrefix,'/',sep="")
-        if (file.exists(CompOutDir) == FALSE) {
-            dir.create(CompOutDir,recursive=TRUE)
-        }
-        
-        control.samples <- samples.vec[which(groups == control.group)]
-        treat.samples <- samples.vec[which(groups == treat.group)]
-        comp.samples <- c(control.samples,treat.samples)
-        
-        comp.results <- results(dds,contrast=c("condition",c(control.group,treat.group)))
-        comp.df <- as.data.frame(comp.results)
-        #comp.table <- cbind(interval.table, as.data.frame(comp.df), raw.counts[,paste(comp.samples,'raw',sep='.')], pseudo.counts[,paste(comp.samples,'pseudo',sep='.')])
-        comp.table <- cbind(as.data.frame(comp.df), raw.counts[,paste(comp.samples,'raw',sep='.')], pseudo.counts[,paste(comp.samples,'pseudo',sep='.')])
-        
-        ## WRITE RESULTS FILE
-        CompResultsFile <- paste(CompOutDir,CompPrefix,opt$outsuffix,".deseq2.results.txt",sep="")
-        write.table(comp.table, file=CompResultsFile, col.names=TRUE, row.names=FALSE, sep='\t', quote=FALSE)
-        
-        ## FILTER RESULTS BY FDR & LOGFC AND WRITE RESULTS FILE
-        pdf(file=paste(CompOutDir,CompPrefix,opt$outsuffix,".deseq2.plots.pdf",sep=""),width=10,height=8)
-        if (length(comp.samples) > 2) {
-            for (MIN_FDR in c(0.01,0.05)) {
-                
-                ## SUBSET RESULTS BY FDR
-                #pass.fdr.table <- subset(comp.table, padj < MIN_FDR)
-                #pass.fdr.up.table <- subset(comp.table, padj < MIN_FDR & log2FoldChange > 0)
-                #pass.fdr.down.table <- subset(comp.table, padj < MIN_FDR & log2FoldChange < 0)
-                
-                ## SUBSET RESULTS BY FDR AND LOGFC
-                #pass.fdr.logFC.table <- subset(comp.table, padj < MIN_FDR & abs(log2FoldChange) >= 1)
-                #pass.fdr.logFC.up.table <- subset(comp.table, padj < MIN_FDR & abs(log2FoldChange) >= 1 & log2FoldChange > 0)
-                #pass.fdr.logFC.down.table <- subset(comp.table, padj < MIN_FDR & abs(log2FoldChange) >= 1 & log2FoldChange < 0)
-                
-                ## WRITE RESULTS FILE
-                #CompResultsFile <- paste(CompOutDir,CompPrefix,opt$outsuffix,".deseq2.FDR",MIN_FDR,".results.txt",sep="")
-                #CompBEDFile <- paste(CompOutDir,CompPrefix,opt$outsuffix,".deseq2.FDR",MIN_FDR,".results.bed",sep="")
-                #write.table(pass.fdr.table, file=CompResultsFile, col.names=TRUE, row.names=FALSE, sep='\t', quote=FALSE)
-                #write.table(pass.fdr.table[,c("Chr","Start","End","Geneid","log2FoldChange","Strand")], file=CompBEDFile, col.names=FALSE, row.names=FALSE, sep='\t', quote=FALSE)
-                
-                ## MA PLOT & VOLCANO PLOT
-                DESeq2::plotMA(comp.results, main=paste("MA plot FDR <= ",MIN_FDR,sep=""), ylim=c(-2,2),alpha=MIN_FDR)
-                #plot(comp.table$log2FoldChange, -1*log10(comp.table$padj), col=ifelse(comp.table$padj<=MIN_FDR, "red", "black"), xlab="logFC", ylab="-1*log10(FDR)", main=paste("Volcano plot FDR <=",MIN_FDR,sep=" "), pch=20)
-                
-                ## ADD COUNTS TO LOGFILE
-                #cat(CompPrefix," genes with FDR <= ",MIN_FDR,": ",nrow(pass.fdr.table)," (up=",nrow(pass.fdr.up.table),", down=",nrow(pass.fdr.down.table),")","\n",file=LogFile,append=TRUE,sep="")
-                #cat(CompPrefix," genes with FDR <= ",MIN_FDR," & FC > 2: ",nrow(pass.fdr.logFC.table)," (up=",nrow(pass.fdr.logFC.up.table),", down=",nrow(pass.fdr.logFC.down.table),")","\n",file=LogFile,append=TRUE,sep="")
-                
+        deseq2_results_list <- list()
+        comparisons <- combn(unique(groups),2)
+        for (idx in 1:ncol(comparisons)) {
+            control.group <- comparisons[1,idx]
+            treat.group <- comparisons[2,idx]
+            CompPrefix <- paste(control.group,treat.group,sep="vs")
+            cat("Saving results for ",CompPrefix," ...\n",sep="")
+
+            CompOutDir <- paste(CompPrefix,'/',sep="")
+            if (file.exists(CompOutDir) == FALSE) {
+                dir.create(CompOutDir,recursive=TRUE)
             }
-            cat("\n",file=LogFile,append=TRUE,sep="")
+
+            control.samples <- samples.vec[which(groups == control.group)]
+            treat.samples <- samples.vec[which(groups == treat.group)]
+            comp.samples <- c(control.samples,treat.samples)
+
+            comp.results <- results(dds,contrast=c("condition",c(control.group,treat.group)))
+            comp.df <- as.data.frame(comp.results)
+            #comp.table <- cbind(interval.table, as.data.frame(comp.df), raw.counts[,paste(comp.samples,'raw',sep='.')], pseudo.counts[,paste(comp.samples,'pseudo',sep='.')])
+            comp.table <- cbind(as.data.frame(comp.df), raw.counts[,paste(comp.samples,'raw',sep='.')], pseudo.counts[,paste(comp.samples,'pseudo',sep='.')])
+
+            ## WRITE RESULTS FILE
+            CompResultsFile <- paste(CompOutDir,CompPrefix,opt$outsuffix,".deseq2.results.txt",sep="")
+            write.table(comp.table, file=CompResultsFile, col.names=TRUE, row.names=FALSE, sep='\t', quote=FALSE)
+
+            ## FILTER RESULTS BY FDR & LOGFC AND WRITE RESULTS FILE
+            pdf(file=paste(CompOutDir,CompPrefix,opt$outsuffix,".deseq2.plots.pdf",sep=""),width=10,height=8)
+            if (length(comp.samples) > 2) {
+                for (MIN_FDR in c(0.01,0.05)) {
+
+                    ## SUBSET RESULTS BY FDR
+                    #pass.fdr.table <- subset(comp.table, padj < MIN_FDR)
+                    #pass.fdr.up.table <- subset(comp.table, padj < MIN_FDR & log2FoldChange > 0)
+                    #pass.fdr.down.table <- subset(comp.table, padj < MIN_FDR & log2FoldChange < 0)
+
+                    ## SUBSET RESULTS BY FDR AND LOGFC
+                    #pass.fdr.logFC.table <- subset(comp.table, padj < MIN_FDR & abs(log2FoldChange) >= 1)
+                    #pass.fdr.logFC.up.table <- subset(comp.table, padj < MIN_FDR & abs(log2FoldChange) >= 1 & log2FoldChange > 0)
+                    #pass.fdr.logFC.down.table <- subset(comp.table, padj < MIN_FDR & abs(log2FoldChange) >= 1 & log2FoldChange < 0)
+
+                    ## WRITE RESULTS FILE
+                    #CompResultsFile <- paste(CompOutDir,CompPrefix,opt$outsuffix,".deseq2.FDR",MIN_FDR,".results.txt",sep="")
+                    #CompBEDFile <- paste(CompOutDir,CompPrefix,opt$outsuffix,".deseq2.FDR",MIN_FDR,".results.bed",sep="")
+                    #write.table(pass.fdr.table, file=CompResultsFile, col.names=TRUE, row.names=FALSE, sep='\t', quote=FALSE)
+                    #write.table(pass.fdr.table[,c("Chr","Start","End","Geneid","log2FoldChange","Strand")], file=CompBEDFile, col.names=FALSE, row.names=FALSE, sep='\t', quote=FALSE)
+
+                    ## MA PLOT & VOLCANO PLOT
+                    DESeq2::plotMA(comp.results, main=paste("MA plot FDR <= ",MIN_FDR,sep=""), ylim=c(-2,2),alpha=MIN_FDR)
+                    #plot(comp.table$log2FoldChange, -1*log10(comp.table$padj), col=ifelse(comp.table$padj<=MIN_FDR, "red", "black"), xlab="logFC", ylab="-1*log10(FDR)", main=paste("Volcano plot FDR <=",MIN_FDR,sep=" "), pch=20)
+
+                    ## ADD COUNTS TO LOGFILE
+                    #cat(CompPrefix," genes with FDR <= ",MIN_FDR,": ",nrow(pass.fdr.table)," (up=",nrow(pass.fdr.up.table),", down=",nrow(pass.fdr.down.table),")","\n",file=LogFile,append=TRUE,sep="")
+                    #cat(CompPrefix," genes with FDR <= ",MIN_FDR," & FC > 2: ",nrow(pass.fdr.logFC.table)," (up=",nrow(pass.fdr.logFC.up.table),", down=",nrow(pass.fdr.logFC.down.table),")","\n",file=LogFile,append=TRUE,sep="")
+
+                }
+                cat("\n",file=LogFile,append=TRUE,sep="")
+            }
+
+            ## SAMPLE CORRELATION HEATMAP
+            rld.subset <- assay(rld)[,comp.samples]
+            sampleDists <- dist(t(rld.subset))
+            sampleDistMatrix <- as.matrix(sampleDists)
+            colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+            pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists,clustering_distance_cols=sampleDists,col=colors)
+
+            ## SCATTER PLOT FOR RLOG COUNTS
+            combs <- combn(comp.samples,2,simplify=FALSE)
+            clabels <- sapply(combs,function(x){paste(x,collapse=' & ')})
+            plotdat <- data.frame(x=unlist(lapply(combs, function(x){rld.subset[, x[1] ]})),y=unlist(lapply(combs, function(y){rld.subset[, y[2] ]})),comp=rep(clabels, each=nrow(rld.subset)))
+            plot <- xyplot(y~x|comp,plotdat,
+                    panel=function(...){
+                        panel.xyplot(...)
+                        panel.abline(0,1,col="red")
+                    },
+                    par.strip.text=list(cex=0.5))
+            print(plot)
+            dev.off()
+
+            colnames(comp.df) <- paste(CompPrefix,".",colnames(comp.df),sep="")
+            deseq2_results_list[[idx]] <- comp.df
         }
-        
-        ## SAMPLE CORRELATION HEATMAP
-        rld.subset <- assay(rld)[,comp.samples]
-        sampleDists <- dist(t(rld.subset))
-        sampleDistMatrix <- as.matrix(sampleDists)
-        colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
-        pheatmap(sampleDistMatrix,clustering_distance_rows=sampleDists,clustering_distance_cols=sampleDists,col=colors)
-        
-        ## SCATTER PLOT FOR RLOG COUNTS
-        combs <- combn(comp.samples,2,simplify=FALSE)
-        clabels <- sapply(combs,function(x){paste(x,collapse=' & ')})
-        plotdat <- data.frame(x=unlist(lapply(combs, function(x){rld.subset[, x[1] ]})),y=unlist(lapply(combs, function(y){rld.subset[, y[2] ]})),comp=rep(clabels, each=nrow(rld.subset)))
-        plot <- xyplot(y~x|comp,plotdat,
-                       panel=function(...){
-                           panel.xyplot(...)
-                           panel.abline(0,1,col="red")
-                       },
-                       par.strip.text=list(cex=0.5))
-        print(plot)
-        dev.off()
-        
-        colnames(comp.df) <- paste(CompPrefix,".",colnames(comp.df),sep="")
-        deseq2_results_list[[idx]] <- comp.df
-        
+
+        ## WRITE RESULTS FROM ALL COMPARISONS TO FILE
+        deseq2_results_table <- cbind(do.call(cbind, deseq2_results_list),raw.counts,pseudo.counts)
+        write.table(deseq2_results_table, file=ResultsFile, col.names=TRUE, row.names=FALSE, sep='\t', quote=FALSE)
     }
-    
-    ## WRITE RESULTS FROM ALL COMPARISONS TO FILE
-    deseq2_results_table <- cbind(do.call(cbind, deseq2_results_list),raw.counts,pseudo.counts)
-    write.table(deseq2_results_table, file=ResultsFile, col.names=TRUE, row.names=FALSE, sep='\t', quote=FALSE)
-    
-}
 }
 
 ################################################
@@ -490,7 +485,7 @@ NormFactorsFile <- paste(SizeFactorsDir,opt$outprefix,".size_factors.RData",sep=
 if (file.exists(NormFactorsFile) == FALSE) {
     normFactors <- sizeFactors(dds)
     save(normFactors,file=NormFactorsFile)
-    
+
     for (name in names(sizeFactors(dds))) {
         sizeFactorFile <- paste(SizeFactorsDir,name,".txt",sep="")
         if (file.exists(sizeFactorFile) == FALSE) {

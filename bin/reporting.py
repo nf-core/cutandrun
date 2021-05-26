@@ -36,14 +36,14 @@ def gen_png(parsed_args):
     bin_frag_path = parsed_args.bin_frag
     seacr_bed_path = parsed_args.seacr_bed
     bams_path = parsed_args.bams
-    
+
     logger.info('Generating plots to output folder')
-    fig = Reports(logger, meta_path, frag_path, bin_frag_path, seacr_bed_path, bams_path) 
+    fig = Reports(logger, meta_path, frag_path, bin_frag_path, seacr_bed_path, bams_path)
     fig.gen_plots_to_folder(output_path)
 
     logger.info('Completed')
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     # Create command args
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='sub-command help')

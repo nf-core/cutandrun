@@ -17,7 +17,7 @@ workflow ALIGN_BOWTIE2 {
     reads         // channel: [ val(meta), [ reads ] ]
     index         // channel: /path/to/bowtie2/target/index/
     spikein_index // channel: /path/to/bowtie2/spikein/index/
-    
+
     main:
     /*
      * Map reads with BOWTIE2 to target genome
@@ -38,13 +38,13 @@ workflow ALIGN_BOWTIE2 {
     emit:
     bowtie2_version     = BOWTIE2_ALIGN.out.version              // path: *.version.txt
     samtools_version    = BAM_SORT_SAMTOOLS.out.version          // path: *.version.txt
-    
+
     orig_bam            = BOWTIE2_ALIGN.out.bam                  // channel: [ val(meta), bam ]
     orig_spikein_bam    = BOWTIE2_SPIKEIN_ALIGN.out.bam          // channel: [ val(meta), bam ]
-    
+
     bowtie2_log         = BOWTIE2_ALIGN.out.log                  // channel: [ val(meta), log_final ]
     bowtie2_spikein_log = BOWTIE2_SPIKEIN_ALIGN.out.log          // channel: [ val(meta), log_final ]
-    
+
     bam                 = BAM_SORT_SAMTOOLS.out.bam              // channel: [ val(meta), [ bam ] ]
     bai                 = BAM_SORT_SAMTOOLS.out.bai              // channel: [ val(meta), [ bai ] ]
     stats               = BAM_SORT_SAMTOOLS.out.stats            // channel: [ val(meta), [ stats ] ]
