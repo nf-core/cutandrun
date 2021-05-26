@@ -4,7 +4,7 @@
 
 [![GitHub Actions CI Status](https://github.com/nf-core/cutandrun/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/cutandrun/actions)
 [![GitHub Actions Linting Status](https://github.com/nf-core/cutandrun/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/cutandrun/actions)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.04.0-brightgreen.svg)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A521.04.0-brightgreen.svg)](https://www.nextflow.io/)
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](https://bioconda.github.io/)
 [![Docker](https://img.shields.io/docker/automated/nfcore/cutandrun.svg)](https://hub.docker.com/r/nfcore/cutandrun)
@@ -12,10 +12,31 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Write a 1-2 sentence summary of what data the pipeline is for and what it does -->
-**nf-core/cutandrun** is a bioinformatics best-practise analysis pipeline for
+**nf-core/cutandrun** is a bioinformatics best-practise analysis pipeline for CUT&Run and CUT&Tag sequencing data analysis to study protein-DNA interactions and epigenomic profiling.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It comes with docker containers making installation trivial and results highly reproducible.
+
+<!-- TODO nf-core: Add full-sized test dataset and amend the paragraph below if applicable -->
+On release, automated continuous integration tests run the pipeline on a full-sized dataset on the AWS cloud infrastructure. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources. The results obtained from the full-sized test can be viewed on the [nf-core website](https://nf-co.re/cutandrun/results).
+
+## Pipeline summary
+
+1. Download FastQ files via SRA, ENA or GEO ids and auto-create input samplesheet ([`ENA FTP`](https://ena-docs.readthedocs.io/en/latest/retrieval/file-download.html); *if required*)
+2. Merge re-sequenced FastQ files ([`cat`](http://www.linfo.org/cat.html))
+3. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
+4. Adapter and quality trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
+5. Alignment to both target and spike-in genomes ([`Bowtie 2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
+6. Filter on quality, sort and index alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+7. Duplicate read marking ([`picard MarkDuplicates`](https://broadinstitute.github.io/picard/))
+8. Create bedGraph files ([`BEDTools`](https://github.com/arq5x/bedtools2/)
+9. Create bigWig coverage files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+10. Peak calling specifically tailored for low background noise ([`SEACR`](https://github.com/FredHutch/SEACR))
+11. Quality control and analysis:
+    1. Alignment, fragment length and peak analysis and replicate reproducibility ([`Python`](https://www.python.org/))
+    2. Differential peak analysis ([`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
+    3. Heatmap peak analysis ([`deepTools`](https://github.com/deeptools/deepTools/))
+12. Genome browser session ([`IGV`](https://software.broadinstitute.org/software/igv/))
+13. Present QC for raw read, alignment and duplicate reads ([`MultiQC`](http://multiqc.info/))
 
 ## Quick Start
 
@@ -33,37 +54,38 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 4. Start running your own analysis!
 
-    <!-- TODO nf-core: Update the example "typical command" below used to run the pipeline -->
+    * Typical command for CUT&Run/CUT&Tag analysis:
 
-    ```bash
-    nextflow run nf-core/cutandrun -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> --input '*_R{1,2}.fastq.gz' --genome GRCh37
-    ```
+        ```bash
+        nextflow run nf-core/cutandrun \
+            -profile <docker/singularity/podman/conda/institute> \
+            --input samplesheet.csv \
+            --genome GRCh37
+        ```
+
+    * Typical command for downloading public data:
+
+        ```bash
+        nextflow run nf-core/cutandrun \
+            --public_data_ids ids.txt \
+            -profile <docker/singularity/podman/conda/institute>
+        ```
+
+    > **NB:** The commands to obtain public data and to run the main arm of the pipeline are completely independent. This is intentional because it allows you to download all of the raw data in an initial pipeline run (`results/public_data/`) and then to curate the auto-created samplesheet based on the available sample metadata before you run the pipeline again properly.
 
 See [usage docs](https://nf-co.re/cutandrun/usage) for all of the available options when running the pipeline.
-
-## Pipeline Summary
-
-By default, the pipeline currently performs the following:
-
-<!-- TODO nf-core: Fill in short bullet-pointed list of default steps of pipeline -->
-
-* Sequencing quality control (`FastQC`)
-* Overall pipeline run summaries (`MultiQC`)
 
 ## Documentation
 
 The nf-core/cutandrun pipeline comes with documentation about the pipeline: [usage](https://nf-co.re/cutandrun/usage) and [output](https://nf-co.re/cutandrun/output).
 
-<!-- TODO nf-core: Add a brief overview of what the pipeline does and how it works -->
-
 ## Credits
 
-nf-core/cutandrun was originally written by Chris Cheshire and Charlotte West.
+nf-core/cutandrun was originally written by Chris Cheshire ([@chris-cheshire](https://github.com/chris-cheshire)) and Charlotte West ([@charlotte-west](https://github.com/charlotte-west)) from [Luscombe Lab](https://www.crick.ac.uk/research/labs/nicholas-luscombe) at [The Francis Crick Institute](https://www.crick.ac.uk/), London, UK.
 
-We thank the following people for their extensive assistance in the development
-of this pipeline:
+The pipeline structure and parts of the downstream analysis were adapted from the original CUT&Tag analysis [protocol](https://yezhengstat.github.io/CUTTag_tutorial/) from the [Henikoff Lab](https://research.fredhutch.org/henikoff/en.html).
 
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+We thank Harshil Patel ([@drpatelh](https://github.com/drpatelh)) and everyone in the Luscombe Lab ([@luslab](https://github.com/luslab)) for their extensive assistance in the development of this pipeline.
 
 ## Contributions and Support
 
@@ -76,6 +98,8 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 <!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi. -->
 <!-- If you use  nf-core/cutandrun for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
 
+An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
+
 You can cite the `nf-core` publication as follows:
 
 > **The nf-core framework for community-curated bioinformatics pipelines.**
@@ -83,7 +107,3 @@ You can cite the `nf-core` publication as follows:
 > Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
 >
 > _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
-
-In addition, references of tools and data used in this pipeline are as follows:
-
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->

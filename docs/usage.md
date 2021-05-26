@@ -4,16 +4,102 @@
 
 > _Documentation of pipeline parameters is generated automatically from the pipeline schema and can no longer be found in markdown files._
 
-## Introduction
+## Samplesheet input
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+You will need to create a samplesheet file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row as shown in the examples below.
+
+```bash
+--input '[path to samplesheet file]'
+```
+
+### Multiple replicates
+
+The `group` identifier is the same when you have multiple biological replicates from the same experimental group, just increment the `replicate` identifier appropriately. A special case for `group` is if you have non-specific IgG antibody control data that can be used for normalising your experimental CUT&Run (OR CUT&Tag) data. In this case, the `group` name for the IgG control data _must_ be set to `igg`. Below is an example for a single target group in triplicate, complemented by an IgG control duplicate:
+
+```bash
+group,replicate,fastq_1,fastq_2
+target,1,H3K27me3_S1_L001_R1.fastq.gz,H3K27me3_S1_L001_R2.fastq.gz
+target,2,H3K27me3_S2_L001_R1.fastq.gz,H3K27me3_S2_L001_R2.fastq.gz
+target,3,H3K27me3_S3_L001_R1.fastq.gz,H3K27me3_S3_L001_R2.fastq.gz
+igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
+igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
+```
+
+It is _recommended_ to have an IgG control for normalising your experimental data and this is the default action for the pipeline. However, if you run the pipeline without IgG control data you must supply `--igg_control false`
+
+### Multiple runs of the same library
+
+The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth), or if you would like to merge technical replicates. The pipeline will concatenate the raw reads before alignment. Below is an example for two samples, one experimental and one control, sequenced across multiple lanes:
+
+```bash
+group,replicate,fastq_1,fastq_2
+target,1,H3K27me3_S1_L001_R1.fastq.gz,H3K27me3_S1_L001_R2.fastq.gz
+target,1,H3K27me3_S1_L002_R1.fastq.gz,H3K27me3_S1_L002_R2.fastq.gz
+igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
+igg,1,IGG_S1_L002_R1.fastq.gz,IGG_S1_L002_R2.fastq.gz
+```
+
+### Full design
+
+A final design file may look something like the one below. This is for one experimental group in triplicate where the last replicate of the `treatment` group has been sequenced twice, another experimental group in duplicate, and one IgG control group.
+
+```bash
+group,replicate,fastq_1,fastq_2
+h3k27me3,1,H3K27me3_S1_L001_R1.fastq.gz,H3K27me3_S1_L001_R2.fastq.gz
+h3k27me3,2,H3K27me3_S2_L001_R1.fastq.gz,H3K27me3_S2_L001_R2.fastq.gz
+h3k27me3,3,H3K27me3_S3_L001_R1.fastq.gz,H3K27me3_S3_L001_R2.fastq.gz
+h3k27me3,3,H3K27me3_S3_L002_R1.fastq.gz,H3K27me3_S3_L002_R2.fastq.gz
+h3k4me3,1,H3K4me3_S1_L001_R1.fastq.gz,H3K4me3_S1_L001_R2.fastq.gz
+h3k4me3,2,H3K4me3_S2_L001_R1.fastq.gz,H3K4me3_S2_L001_R2.fastq.gz
+igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
+igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
+```
+
+| Column         | Description                                                                                                 |
+|----------------|-------------------------------------------------------------------------------------------------------------|
+| `group`        | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
+| `replicate`    | Integer representing replicate number.                                                                      |
+| `fastq_1`      | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `fastq_2`      | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+
+An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+
+## Direct download of public repository data
+
+> **NB:** This is an experimental feature but should work beautifully when it does! :)
+
+The pipeline has been set-up to automatically download and process the raw FastQ files from public repositories. Identifiers can be provided in a file, one-per-line via the `--public_data_ids` parameter. Currently, the following identifiers are supported:
+
+| `SRA`        | `ENA`        | `GEO`      |
+|--------------|--------------|------------|
+| SRR11605097  | ERR4007730   | GSM4432381 |
+| SRX8171613   | ERX4009132   | GSE147507  |
+| SRS6531847   | ERS4399630   |            |
+| SAMN14689442 | SAMEA6638373 |            |
+| SRP256957    | ERP120836    |            |
+| SRA1068758   | ERA2420837   |            |
+| PRJNA625551  | PRJEB37513   |            |
+
+If `SRR`/`ERR` run ids are provided then these will be resolved back to their appropriate `SRX`/`ERX` ids to be able to merge multiple runs from the same experiment. This is conceptually the same as merging multiple libraries sequenced from the same sample.
+
+The final sample information for all identifiers is obtained from the ENA which provides direct download links for FastQ files as well as their associated md5 sums. If download links exist, the files will be downloaded in parallel by FTP otherwise they will NOT be downloaded. This is intentional because the tools such as `parallel-fastq-dump`, `fasterq-dump`, `prefetch` etc require pre-existing configuration files in the users home directory which makes automation tricky across different platforms and containerisation.
+
+As a bonus, the pipeline will also generate a valid samplesheet with paths to the downloaded data that can be used with the `--input` parameter, however, it is highly recommended that you double-check that all of the identifiers you defined using `--public_data_ids` are represented in the samplesheet. Also, public databases don't reliably hold information such as strandedness information so you may need to amend these entries too. All of the sample metadata obtained from the ENA has been appended as additional columns to help you manually curate the samplesheet before you run the pipeline.
+
+If you have a GEO accession (found in the data availability section of published papers) you can directly download a text file containing the appropriate SRA ids to pass to the pipeline:
+
+* Search for your GEO accession on [GEO](https://www.ncbi.nlm.nih.gov/geo)
+* Click `SRA Run Selector` at the bottom of the GEO accession page
+* Select the desired samples in the `SRA Run Selector` and then download the `Accession List`
+
+This downloads a text file called `SRR_Acc_List.txt` which can be directly provided to the pipeline e.g. `--public_data_ids SRR_Acc_List.txt`.
 
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run nf-core/cutandrun --input '*_R{1,2}.fastq.gz' -profile docker
+nextflow run nf-core/cutandrun --input samplesheet.csv --genome GRCh37 -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -63,27 +149,27 @@ They are loaded in sequence, so later profiles can overwrite earlier profiles.
 If `-profile` is not specified, the pipeline will run locally and expect all software to be installed and available on the `PATH`. This is _not_ recommended.
 
 * `docker`
-  * A generic configuration profile to be used with [Docker](https://docker.com/)
-  * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
+    * A generic configuration profile to be used with [Docker](https://docker.com/)
+    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
 * `singularity`
-  * A generic configuration profile to be used with [Singularity](https://sylabs.io/docs/)
-  * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
+    * A generic configuration profile to be used with [Singularity](https://sylabs.io/docs/)
+    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
 * `podman`
-  * A generic configuration profile to be used with [Podman](https://podman.io/)
-  * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
+    * A generic configuration profile to be used with [Podman](https://podman.io/)
+    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
 * `shifter`
-  * A generic configuration profile to be used with [Shifter](https://nersc.gitlab.io/development/shifter/how-to-use/)
-  * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
+    * A generic configuration profile to be used with [Shifter](https://nersc.gitlab.io/development/shifter/how-to-use/)
+    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
 * `charliecloud`
-  * A generic configuration profile to be used with [Charliecloud](https://hpc.github.io/charliecloud/)
-  * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
+    * A generic configuration profile to be used with [Charliecloud](https://hpc.github.io/charliecloud/)
+    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
 * `conda`
-  * Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter or Charliecloud.
-  * A generic configuration profile to be used with [Conda](https://conda.io/docs/)
-  * Pulls most software from [Bioconda](https://bioconda.github.io/)
+    * Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter or Charliecloud.
+    * A generic configuration profile to be used with [Conda](https://conda.io/docs/)
+    * Pulls most software from [Bioconda](https://bioconda.github.io/)
 * `test`
-  * A profile with a complete configuration for automated testing
-  * Includes links to test data so needs no other parameters
+    * A profile with a complete configuration for automated testing
+    * Includes links to test data so needs no other parameters
 
 ### `-resume`
 
@@ -103,9 +189,9 @@ Whilst these default requirements will hopefully work for most people with most 
 
 ```nextflow
 process {
-  withName: star {
-    memory = 32.GB
-  }
+    withName: star {
+        memory = 32.GB
+    }
 }
 ```
 

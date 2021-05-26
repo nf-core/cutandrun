@@ -1,0 +1,8 @@
+{
+    "python.pythonPath": "/usr/local/Caskroom/miniconda/base/envs/cutrun/bin/python",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "editor.renderWhitespace": "all",
+    "editor.renderFinalNewline": true
+}

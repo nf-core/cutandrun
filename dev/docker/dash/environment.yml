@@ -1,0 +1,19 @@
+# conda env create -f environment.yml
+name: dash
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+    # python version
+    - python=3.9.1
+
+    # conda packages
+    - numpy=1.20.*
+    - pandas=1.2.*
+    - seaborn=0.11.*
+
+    # pip packages
+    - pip
+    - pip:
+      - -r file:requirements.txt
