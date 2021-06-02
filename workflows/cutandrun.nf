@@ -536,7 +536,7 @@ workflow CUTANDRUN {
             */
             SEACR_NO_IGG (
                 ch_bedgraph_split.target,
-                ch_peak_threshold.collect()
+                ch_peak_threshold
             )
             ch_seacr_bed = SEACR_NO_IGG.out.bed
             ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.version.first().ifEmpty(null))
