@@ -30,6 +30,6 @@ process AWK_SCRIPT {
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     awk $options.args -f $script $input > ${prefix}.awk.txt
-    echo \$(awk --version 2>&1) | sed 's/^.*version //;' > ${software}.version.txt
+    awk -W version | head -n 1 | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}" > ${software}.version.txt
     """
 }
