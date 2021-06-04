@@ -397,7 +397,10 @@ workflow CUTANDRUN {
      *          of reads aligned to the spike-in genome
      */
     ch_samtools_bam
-        .map { row -> [ row[0].id, params.normalisation_c / (row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()) ] }
+        .map { row ->
+            def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
+            [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
+        }
         .set { ch_scale_factor }
     // EXAMPLE CHANNEL STRUCT: [id, scale_factor]
     //ch_scale_factor | view
