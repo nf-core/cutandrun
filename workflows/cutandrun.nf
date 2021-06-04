@@ -398,10 +398,8 @@ workflow CUTANDRUN {
      */
     ch_samtools_bam
         .map { row ->
-            def Integer denominator = 1
-            if ( row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger() != 0 ) {
-                denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
-            }
+            def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
+            denominator = (denominator != 0 ? denominator : 1)
             [ row[0].id, params.normalisation_c / denominator ]
         }
         .set { ch_scale_factor }
