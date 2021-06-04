@@ -399,8 +399,7 @@ workflow CUTANDRUN {
     ch_samtools_bam
         .map { row ->
             def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
-            denominator = (denominator != 0 ? denominator : 1)
-            [ row[0].id, params.normalisation_c / denominator ]
+            [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
         }
         .set { ch_scale_factor }
     // EXAMPLE CHANNEL STRUCT: [id, scale_factor]
