@@ -497,6 +497,37 @@ workflow CUTANDRUN {
         //ch_bedgraph_split.control | view
 
         if (params.igg_control) {
+
+
+            // Collect all experimental replicate and igg replicate numbers separately, then merge
+            ch_bedgraph_split.target
+                .combine(ch_bedgraph_split.control)
+                .map { row -> [ row[0].replicate ] }
+                .collect()
+                .set { ch_experimental_reps }
+
+            ch_experimental_reps | view
+
+            ch_bedgraph_split.target
+                .combine(ch_bedgraph_split.control)
+                .map { row -> [ row[2].replicate ] }
+                .collect()
+                .set { ch_control_reps }
+
+            ch_control_reps | view
+
+            ch_experimental_reps
+                .combine( ch_control_reps )
+                .set{ ch_replicate_numbers }
+
+            ch_replicate_numbers | view
+
+            // Make channels [[exp_rep_number,igg_rep_number],[meta],[experimental_bedgraph],[igg_bedgraph]]
+
+
+            // Emit relevant channel elements based on replicate numbers
+
+
             /*
              * CHANNEL: Recombines and maps igg control replicates to the target replicate
              */
