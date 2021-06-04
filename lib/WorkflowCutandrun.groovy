@@ -102,7 +102,7 @@ class WorkflowCutandrun {
             "==================================================================================="
     }
 
-    private static void varryingReplicateNumbers(log) {
+    private static void varryingReplicateNumbersError(log) {
         log.error "=============================================================================\n" +
             "  There are varrying numbers of replicates across experiemental and IgG samples.\n" +
             "  Options:\n" +
@@ -114,7 +114,7 @@ class WorkflowCutandrun {
         System.exit(1)
     }
 
-    private static void ucscGenomeWarn(log) {
+    private static void varryingReplicateNumbersWarn(log) {
         log.warn "=============================================================================\n" +
             "  The number of replicates for IgG control does not match the number of replicates \n" +
             "  of experimental data. Only the first IgG replicate will be used for SEACR \n" +
