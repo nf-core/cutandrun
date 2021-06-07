@@ -33,6 +33,6 @@ process AWK {
     def ext   = options.ext ? "${options.ext}" : "txt"
     """
     awk $options.args $options.command $input $options.command2 > ${prefix}.awk.${ext}
-    echo \$(awk --version 2>&1) | sed 's/^.*version //;' > ${software}.version.txt
+    awk -W version | head -n 1 | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}" > ${software}.version.txt
     """
 }
