@@ -504,32 +504,74 @@ workflow CUTANDRUN {
 
             // Collect all experimental replicate and igg replicate numbers separately, then merge
             ch_bedgraph_split.target
-                .combine(ch_bedgraph_split.control)
+                .combine( ch_bedgraph_split.control )
                 .map { row -> [ row[0].replicate ] }
                 .collect()
+                .map { row -> [ row ] }
                 .set { ch_experimental_reps }
 
-            ch_experimental_reps | view
+            // ch_experimental_reps | view
 
             ch_bedgraph_split.target
                 .combine(ch_bedgraph_split.control)
                 .map { row -> [ row[2].replicate ] }
                 .collect()
+                .map { row -> [ row ] }
                 .set { ch_control_reps }
 
-            ch_control_reps | view
+            // ch_control_reps | view
 
-            ch_experimental_reps
-                .combine( ch_control_reps )
+            ch_control_reps
+                .combine( ch_experimental_reps )
                 .set{ ch_replicate_numbers }
 
-            ch_replicate_numbers | view
+            // ch_replicate_numbers | view
 
-            // Make channels [[exp_rep_number,igg_rep_number],[meta],[experimental_bedgraph],[igg_bedgraph]]
+            // Make channels [[exp_rep,igg_rep][meta],[experimental_bedgraph],[igg_bedgraph],[exp_rep_number],[igg_rep_number]]
+            ch_bedgraph_split.target
+                .combine( ch_bedgraph_split.control )
+                .map { row -> [ [row[0].replicate, row[2].replicate], [row[0], row[1], row[3]] ] }
+                .combine( ch_replicate_numbers )
+                .set { ch_exp_control_reps }
 
+            ch_exp_control_reps | view
 
             // Emit relevant channel elements based on replicate numbers
+            ch_exp_control_reps
+                .map { row ->
+                    def exp_reps = row[-2]
+                    def igg_reps = row[-1]
+                    def current_reps = row[0]
+                    def unique_exp_reps = exp_reps.unique()
+                    def unique_igg_reps = igg_reps.unique()
+                    def exp_rep_freq = [0] * unique_exp_reps.size()
+                    def output = row[1..-2]
+                    def final_output = []
+                    // check if exp rep numbers are occuring an equal number of times
+                    for (i=0; i<unique_exp_reps.size(); i++) {
+                       i_freq = exp_reps.count(unique_exp_reps[i])
+                       exp_rep_freq[i] = i_freq
+                    }
+                    all_same = exp_rep_freq.every{ it ==  exp_rep_freq[0] }
 
+                    // check cases and assign if criteria is met
+                    if ( all_same && (unique_exp_reps.sort() ==  unique_igg_reps.sort()) && (current_reps[0] == current_reps[1]) ) {
+                        final_output = output
+                    } else if ( all_same && (unique_igg_reps.size() == 1) ) {
+                        final_output = output
+                    } else if ( all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == min(unique_igg_reps)) ) {
+                        WorkflowCutandrun.varryingReplicateNumbersWarn()
+                        final_output = output
+                    } else if ( !all_same &&  (unique_igg_reps.size() != 1) ) {
+                        WorkflowCutandrun.varryingReplicateNumbersError()
+                    }
+
+                    final_output
+                }
+                .filter { !it.isEmpty() }
+                .set { ch_igg_flow_ready }
+
+            // ch_igg_flow_ready | view
 
             /*
              * CHANNEL: Recombines and maps igg control replicates to the target replicate
@@ -616,12 +658,14 @@ workflow CUTANDRUN {
         /*
         * MODULE: DESeq2 QC Analysis
         */
-        DESEQ2_DIFF (
-            ch_groups_no_igg,
-            ch_seacr_bed.collect{it[1]},
-            ch_samtools_bam.collect{it[1]}
-        )
-        ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
+        if (false){
+            DESEQ2_DIFF (
+                ch_groups_no_igg,
+                ch_seacr_bed.collect{it[1]},
+                ch_samtools_bam.collect{it[1]}
+            )
+            ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
+        }
 
         /*
         * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
