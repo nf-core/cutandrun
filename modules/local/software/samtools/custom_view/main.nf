@@ -23,7 +23,7 @@ process SAMTOOLS_CUSTOMVIEW {
     tuple val(meta), path(bai)
 
     output:
-    tuple val(meta), path("*.txt"), emit: tsv
+    tuple val(meta), path("*.txt") , emit: tsv
     path  "*.version.log"          , emit: version
 
     script:
