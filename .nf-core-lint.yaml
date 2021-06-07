@@ -1,0 +1,10 @@
+files_unchanged:
+  - .github/workflows/linting.yml
+  - assets/multiqc_config.yaml
+  - assets/sendmail_template.txt
+  - lib/NfcoreSchema.groovy
+  - docs/README.md
+  - bin/markdown_to_html.py
+files_exist:
+  - .github/markdownlint.yml
+actions_awsfulltest: False

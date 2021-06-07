@@ -16,8 +16,8 @@ workflow MARK_DUPLICATES_PICARD {
 
     main:
     /*
-     * Picard MarkDuplicates
-     */
+    * Picard MarkDuplicates
+    */
     out_bam = Channel.empty()
     metrics = Channel.empty()
     version = Channel.empty()
@@ -41,10 +41,10 @@ workflow MARK_DUPLICATES_PICARD {
 
         out_bam = out_bam.mix ( ch_split.target )
     }
-    
+
     /*
-     * Index BAM file and run samtools stats, flagstat and idxstats
-     */
+    * Index BAM file and run samtools stats, flagstat and idxstats
+    */
     SAMTOOLS_INDEX     ( out_bam )
     BAM_STATS_SAMTOOLS ( out_bam.join(SAMTOOLS_INDEX.out.bai, by: [0]) )
 

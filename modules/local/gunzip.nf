@@ -17,14 +17,14 @@ process GUNZIP {
     } else {
         container "biocontainers/biocontainers:v1.2.0_cv1"
     }
-    
+
     input:
     path archive
-    
+
     output:
     path "$gunzip",       emit: gunzip
     path "*.version.txt", emit: version
-    
+
     script:
     def software = getSoftwareName(task.process)
     gunzip       = archive.toString() - '.gz'

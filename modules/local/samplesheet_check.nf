@@ -18,7 +18,7 @@ process SAMPLESHEET_CHECK {
 
     input:
     path samplesheet
-    
+
     output:
     path '*.csv'
 
@@ -49,5 +49,5 @@ def get_samplesheet_paths(LinkedHashMap row) {
         }
         array = [ meta, [ file(row.fastq_1), file(row.fastq_2) ] ]
     }
-    return array    
+    return array
 }

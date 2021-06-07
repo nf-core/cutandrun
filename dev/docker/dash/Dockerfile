@@ -1,6 +1,6 @@
 FROM continuumio/miniconda3:4.9.2
 LABEL authors="chris.cheshire@crick.ac.uk" \
-      description="Docker image containing all requirements plotly dash"
+        description="Docker image containing all requirements plotly dash"
 
 # Init
 RUN mkdir /app

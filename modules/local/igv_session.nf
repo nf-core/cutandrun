@@ -16,13 +16,13 @@ process IGV_SESSION {
     container "quay.io/biocontainers/python:3.8.3"
 
     input:
-      path genome
-      path gtf
-      path beds
-      path bigwig
-    
+    path genome
+    path gtf
+    path beds
+    path bigwig
+
     output:
-      path('*.{txt,xml,bed,bigWig,fa,gtf}', includeInputs:true)
+    path('*.{txt,xml,bed,bigWig,fa,gtf}', includeInputs:true)
 
     script:
     output = ''
