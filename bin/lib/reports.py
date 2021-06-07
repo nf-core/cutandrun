@@ -71,8 +71,8 @@ class Reports:
             frag_base_i = os.path.basename(dt_frag_list[i])
             sample_id = frag_base_i.split(".")[0]
             sample_id_split = sample_id.rsplit("_", 1)
-            rep_i = sample_id_split[len(sample_id_split)-1]
-            group_i ="_".join(sample_id_split[0:(len(sample_id_split)-1)])
+            rep_i = sample_id_split[1]
+            group_i = sample_id_split[0]
 
             # create long forms of fragment histograms
             dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
@@ -134,8 +134,8 @@ class Reports:
             bed_base_i = os.path.basename(seacr_bed_list[i])
             sample_id = bed_base_i.split(".")[0]
             sample_id_split = sample_id.rsplit("_", 1)
-            rep_i = sample_id_split[len(sample_id_split)-1]
-            group_i ="_".join(sample_id_split[0:(len(sample_id_split)-1)])
+            rep_i = sample_id_split[1]
+            group_i = sample_id_split[0]
             seacr_bed_i['group'] = np.repeat(group_i, seacr_bed_i.shape[0])
             seacr_bed_i['replicate'] = np.repeat(rep_i, seacr_bed_i.shape[0])
 
