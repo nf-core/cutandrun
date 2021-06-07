@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Run workflow tests
+    name: Run standard pipeline test
     # Only run on push if this is the nf-core dev branch (merged PRs)
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
@@ -33,14 +33,19 @@ jobs:
       - name: Run pipeline with test data
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile test,docker
-
-  sra_download:
-    name: Test downloading of public data
-    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/rnaseq') }}
+# ---------------------------------------------------------------------
+  test_no_igg:
+    name: Run pipeline test with no IgG
+    # Only run on push if this is the nf-core dev branch (merged PRs)
+    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
       NXF_VER: ${{ matrix.nxf_ver }}
       NXF_ANSI_LOG: false
+    strategy:
+      matrix:
+        # Nextflow versions: check pipeline minimum and current latest
+        nxf_ver: ["21.04.0", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -50,6 +55,6 @@ jobs:
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
 
-      - name: Run pipeline to download public data
+      - name: Run pipeline with test data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test_sra,docker
+          nextflow run ${GITHUB_WORKSPACE} -profile test_no_igg,docker
