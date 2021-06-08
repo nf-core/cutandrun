@@ -117,7 +117,7 @@ class WorkflowCutandrun {
     private static void varryingReplicateNumbersWarn(log) {
         log.warn "=============================================================================\n" +
             "  The number of replicates for IgG control does not match the number of replicates \n" +
-            "  of experimental data. Only the first IgG replicate will be used for SEACR \n" +
+            "  for experimental data. Only the first IgG replicate will be used for SEACR \n" +
             "  peak-caller normalisation and downstream analysis.\n" +
             "==================================================================================="
     }

@@ -501,105 +501,89 @@ workflow CUTANDRUN {
 
         if (params.igg_control) {
 
-
-            // Collect all experimental replicate and igg replicate numbers separately, then merge
+            /*
+            * CHANNEL: Collect experimental replicate numbers
+            */
             ch_bedgraph_split.target
                 .combine( ch_bedgraph_split.control )
                 .map { row -> [ row[0].replicate ] }
                 .collect()
                 .map { row -> [ 0, row ] }
                 .set { ch_experimental_reps }
+                // ch_experimental_reps | view
 
-            // ch_experimental_reps | view
-
+            /*
+            * CHANNEL: Collect IgG control replicate numbers
+            */
             ch_bedgraph_split.target
                 .combine(ch_bedgraph_split.control)
                 .map { row -> [ row[2].replicate ] }
                 .collect()
                 .map { row -> [ 0, row ] }
                 .set { ch_control_reps }
+                // ch_control_reps | view
 
-            // ch_control_reps | view
-
-            // ch_control_reps
-            //     .combine( ch_experimental_reps )
-            //     .set{ ch_replicate_numbers }
-
+            /*
+            * CHANNEL: Combine experimental and control replicate numbers, each nested separately in array
+            */
             ch_control_reps
                 .combine( ch_experimental_reps, by: 0 )
                 .map { row -> row[1..-1] }
                 .set{ ch_replicate_numbers }
-
             // ch_replicate_numbers | view
 
-            // Make channels [[exp_rep,igg_rep][meta],[experimental_bedgraph],[igg_bedgraph],[[exp_rep_number],[igg_rep_number]]]
+            /*
+            * CHANNEL: Create channel with elements of the following structure
+            */
+            // Make channels [[exp_rep,igg_rep][meta],[experimental_bedgraph],[igg_bedgraph],[[igg_rep_number],[exp_rep_number]]]
             ch_bedgraph_split.target
                 .combine( ch_bedgraph_split.control )
                 .map { row -> [ [row[0].replicate, row[2].replicate], [row[0], row[1], row[3]] ] }
                 .combine( ch_replicate_numbers )
                 .set { ch_exp_control_reps }
+            // ch_exp_control_reps | view
 
-            ch_exp_control_reps | view
-
-            // Emit relevant channel elements based on replicate numbers
+            /*
+            * CHANNEL: Emit relevant channel elements based on replicate numbers
+            */
             ch_exp_control_reps
                 .map { row ->
-                    // def sample_arr = row
-                    // def current_reps = sample_arr[0]
-                    // def exp_reps = sample_arr[sample_arr.size() -2]
-                    // def igg_reps = sample_arr.last()
-                    // exp_reps = row[-2]//row[-1][1]
-                    // igg_reps = row[-1]//row[-1][0]
                     def exp_reps = row.last()
                     def igg_reps = row[row.size() - 2]
-                    log.warn("full")
-                    log.warn(exp_reps.toString())
-                    log.warn(igg_reps.toString())
                     def current_reps = row[0]
-                    def unique_exp_reps = exp_reps.unique()
-                    def unique_igg_reps = igg_reps.unique()
-                    log.warn("unique")
-                    log.warn(unique_exp_reps.toString())
-                    log.warn(unique_igg_reps.toString())
+                    def unique_exp_reps = exp_reps.unique(false)
+                    def unique_igg_reps = igg_reps.unique(false)
                     def exp_rep_freq = [0] * unique_exp_reps.size()
-                    def output = row[1]//[ row[1][0], row[1][1..-1] ] //row[1..-3].flatten()
+                    def output = row[1]
                     def final_output = []
                     def all_same = false
                     def i_freq = 0
+
                     // check if exp rep numbers are occuring an equal number of times
                     for (i=0; i<unique_exp_reps.size(); i++) {
                        i_freq = exp_reps.count(unique_exp_reps[i])
                        exp_rep_freq[i] = i_freq
                     }
                     all_same = exp_rep_freq.every{ it ==  exp_rep_freq[0] }
-                    log.warn(exp_rep_freq.toString())
-                    log.warn(all_same.toString())
-
-                    log.warn ("hereeeeeeeeeeeeeeeeee")
 
                     // check cases and assign if criteria is met
                     if ( all_same && (unique_exp_reps.sort() ==  unique_igg_reps.sort()) && (current_reps[0] == current_reps[1]) ) {
                         final_output = output
-                        log.warn("case1")
-                    } else if ( all_same && (unique_igg_reps.size() == 1) ) {
+                    } else if ( unique_igg_reps.size() == 1 ) {
                         final_output = output
-                        log.warn("case2")
-                    } else if ( all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == min(unique_igg_reps)) ) {
-                        log.warn("case3")
-                        WorkflowCutandrun.varryingReplicateNumbersWarn()
+                    } else if ( all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == unique_igg_reps.min()) ) {
+                        WorkflowCutandrun.varryingReplicateNumbersWarn(log)
                         final_output = output
                     } else if ( !all_same && (unique_igg_reps.size() != 1) ) {
-                        log.error("case4")
-                        WorkflowCutandrun.varryingReplicateNumbersError()
+                        WorkflowCutandrun.varryingReplicateNumbersError(log)
                     }
 
                     final_output
                 }
                 .filter { !it.isEmpty() }
-                .set { ch_bedgraph_combined }// ch_igg_flow_ready }
+                .set { ch_bedgraph_combined }
 
             ch_bedgraph_combined | view
-            // ch_igg_flow_ready | view
 
             /*
              * CHANNEL: Recombines and maps igg control replicates to the target replicate
