@@ -245,10 +245,6 @@
                     "type": "string",
                     "description": "Skip FastQC."
                 },
-                "skip_sra_fastq_download": {
-                    "type": "string",
-                    "description": "Only download metadata for public data database ids and don't download the FastQ files."
-                },
                 "skip_multiqc": {
                     "type": "string",
                     "description": "Skip MultiQC."
