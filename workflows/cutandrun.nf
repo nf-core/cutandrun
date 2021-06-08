@@ -527,10 +527,10 @@ workflow CUTANDRUN {
 
             ch_control_reps
                 .combine( ch_experimental_reps, by: 0 )
-                .map { row -> [ row[1..-1] ] }
+                .map { row -> row[1..-1] }
                 .set{ ch_replicate_numbers }
 
-            ch_replicate_numbers | view
+            // ch_replicate_numbers | view
 
             // Make channels [[exp_rep,igg_rep][meta],[experimental_bedgraph],[igg_bedgraph],[[exp_rep_number],[igg_rep_number]]]
             ch_bedgraph_split.target
@@ -544,20 +544,36 @@ workflow CUTANDRUN {
             // Emit relevant channel elements based on replicate numbers
             ch_exp_control_reps
                 .map { row ->
-                    def exp_reps = row[-1][1]//row[-2]
-                    def igg_reps = row[-1][0]//row[-1]
+                    // def sample_arr = row
+                    // def current_reps = sample_arr[0]
+                    // def exp_reps = sample_arr[sample_arr.size() -2]
+                    // def igg_reps = sample_arr.last()
+                    // exp_reps = row[-2]//row[-1][1]
+                    // igg_reps = row[-1]//row[-1][0]
+                    def exp_reps = row.last()
+                    def igg_reps = row[row.size() - 2]
+                    log.warn("full")
+                    log.warn(exp_reps.toString())
+                    log.warn(igg_reps.toString())
                     def current_reps = row[0]
                     def unique_exp_reps = exp_reps.unique()
                     def unique_igg_reps = igg_reps.unique()
+                    log.warn("unique")
+                    log.warn(unique_exp_reps.toString())
+                    log.warn(unique_igg_reps.toString())
                     def exp_rep_freq = [0] * unique_exp_reps.size()
                     def output = row[1]//[ row[1][0], row[1][1..-1] ] //row[1..-3].flatten()
                     def final_output = []
+                    def all_same = false
+                    def i_freq = 0
                     // check if exp rep numbers are occuring an equal number of times
                     for (i=0; i<unique_exp_reps.size(); i++) {
                        i_freq = exp_reps.count(unique_exp_reps[i])
                        exp_rep_freq[i] = i_freq
                     }
                     all_same = exp_rep_freq.every{ it ==  exp_rep_freq[0] }
+                    log.warn(exp_rep_freq.toString())
+                    log.warn(all_same.toString())
 
                     log.warn ("hereeeeeeeeeeeeeeeeee")
 
@@ -582,6 +598,7 @@ workflow CUTANDRUN {
                 .filter { !it.isEmpty() }
                 .set { ch_bedgraph_combined }// ch_igg_flow_ready }
 
+            ch_bedgraph_combined | view
             // ch_igg_flow_ready | view
 
             /*
