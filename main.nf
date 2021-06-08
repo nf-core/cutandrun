@@ -52,10 +52,6 @@ WorkflowMain.initialise(workflow, params, log)
 
 workflow NFCORE_CUTANDRUN {
     /*
-     * WORKFLOW: Get SRA run information for public database ids, download and md5sum check FastQ files, auto-create samplesheet
-     */
-
-    /*
      * WORKFLOW: Run main nf-core/cutandrun analysis pipeline
      */
 
