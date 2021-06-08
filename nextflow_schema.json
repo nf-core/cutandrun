@@ -30,11 +30,6 @@
                     "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 },
-                "public_data_ids": {
-                    "type": "string",
-                    "default": "null",
-                    "description": "File containing SRA/ENA/GEO identifiers one per line in order to download their associated FastQ files."
-                },
                 "save_merged_fastq": {
                     "type": "string",
                     "description": "Save FastQ files after merging re-sequenced libraries in the results directory."
@@ -244,10 +239,6 @@
                 "skip_fastqc": {
                     "type": "string",
                     "description": "Skip FastQC."
-                },
-                "skip_sra_fastq_download": {
-                    "type": "string",
-                    "description": "Only download metadata for public data database ids and don't download the FastQ files."
                 },
                 "skip_multiqc": {
                     "type": "string",
