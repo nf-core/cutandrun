@@ -521,7 +521,7 @@ workflow CUTANDRUN {
                 .collect()
                 .map { row -> [ 0, row ] }
                 .set { ch_control_reps }
-                // ch_control_reps | view
+            // ch_control_reps | view
 
             /*
             * CHANNEL: Combine experimental and control replicate numbers, each nested separately in array
@@ -547,38 +547,38 @@ workflow CUTANDRUN {
             * CHANNEL: Emit relevant channel elements based on replicate numbers
             */
             ch_exp_control_reps
-                .map { row -> WorkflowCutandrun.checkReplicateNumbers(row)
-                    // def exp_reps = row.last()
-                    // def igg_reps = row[row.size() - 2]
-                    // def current_reps = row[0]
-                    // def unique_exp_reps = exp_reps.unique(false)
-                    // def unique_igg_reps = igg_reps.unique(false)
-                    // def exp_rep_freq = [0] * unique_exp_reps.size()
-                    // def output = row[1]
-                    // def final_output = []
-                    // def all_same = false
-                    // def i_freq = 0
+                .map { row ->
+                    def exp_reps = row.last()
+                    def igg_reps = row[row.size() - 2]
+                    def current_reps = row[0]
+                    def unique_exp_reps = exp_reps.unique(false)
+                    def unique_igg_reps = igg_reps.unique(false)
+                    def exp_rep_freq = [0] * unique_exp_reps.size()
+                    def output = row[1]
+                    def final_output = []
+                    def all_same = false
+                    def i_freq = 0
 
-                    // // check if exp rep numbers are occuring an equal number of times
-                    // for (i=0; i<unique_exp_reps.size(); i++) {
-                    //    i_freq = exp_reps.count(unique_exp_reps[i])
-                    //    exp_rep_freq[i] = i_freq
-                    // }
-                    // all_same = exp_rep_freq.every{ it ==  exp_rep_freq[0] }
+                    // check if exp rep numbers are occuring an equal number of times
+                    for (i=0; i<unique_exp_reps.size(); i++) {
+                       i_freq = exp_reps.count(unique_exp_reps[i])
+                       exp_rep_freq[i] = i_freq
+                    }
+                    all_same = exp_rep_freq.every{ it ==  exp_rep_freq[0] }
 
-                    // // check cases and assign if criteria is met
-                    // if ( all_same && (unique_exp_reps.sort() ==  unique_igg_reps.sort()) && (current_reps[0] == current_reps[1]) ) {
-                    //     final_output = output
-                    // } else if ( unique_igg_reps.size() == 1 ) {
-                    //     final_output = output
-                    // } else if ( all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == unique_igg_reps.min()) ) {
-                    //     WorkflowCutandrun.varryingReplicateNumbersWarn(log)
-                    //     final_output = output
-                    // } else if ( !all_same && (unique_igg_reps.size() != 1) ) {
-                    //     WorkflowCutandrun.varryingReplicateNumbersError(log)
-                    // }
+                    // check cases and assign if criteria is met
+                    if ( all_same && (unique_exp_reps.sort() ==  unique_igg_reps.sort()) && (current_reps[0] == current_reps[1]) ) {
+                        final_output = output
+                    } else if ( unique_igg_reps.size() == 1 ) {
+                        final_output = output
+                    } else if ( all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == unique_igg_reps.min()) ) {
+                        WorkflowCutandrun.varryingReplicateNumbersWarn(log)
+                        final_output = output
+                    } else if ( !all_same && (unique_igg_reps.size() != 1) ) {
+                        WorkflowCutandrun.varryingReplicateNumbersError(log)
+                    }
 
-                    // final_output
+                    final_output
                 }
                 .filter { !it.isEmpty() }
                 .set { ch_bedgraph_combined }
