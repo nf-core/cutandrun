@@ -25,7 +25,12 @@ igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
 igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
 ```
 
-It is _recommended_ to have an IgG control for normalising your experimental data and this is the default action for the pipeline. However, if you run the pipeline without IgG control data you must supply `--igg_control false`
+There are 4 use-cases for various combinations of experimental and IgG control replicate numbers that are note-worthy:
+
+One-to-one:
+
+
+It is _recommended_ to have an IgG control for normalising your experimental data and this is the default action for the pipeline. However, if you run the pipeline without IgG control data you must supply `--igg_control false`.
 
 ### Multiple runs of the same library
 
