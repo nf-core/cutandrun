@@ -507,7 +507,7 @@ workflow CUTANDRUN {
                 .combine( ch_bedgraph_split.control )
                 .map { row -> [ row[0].replicate ] }
                 .collect()
-                .map { row -> [ row ] }
+                .map { row -> [ 0, row ] }
                 .set { ch_experimental_reps }
 
             // ch_experimental_reps | view
@@ -516,18 +516,23 @@ workflow CUTANDRUN {
                 .combine(ch_bedgraph_split.control)
                 .map { row -> [ row[2].replicate ] }
                 .collect()
-                .map { row -> [ row ] }
+                .map { row -> [ 0, row ] }
                 .set { ch_control_reps }
 
             // ch_control_reps | view
 
+            // ch_control_reps
+            //     .combine( ch_experimental_reps )
+            //     .set{ ch_replicate_numbers }
+
             ch_control_reps
-                .combine( ch_experimental_reps )
+                .combine( ch_experimental_reps, by: 0 )
+                .map { row -> [ row[1..-1] ] }
                 .set{ ch_replicate_numbers }
 
-            // ch_replicate_numbers | view
+            ch_replicate_numbers | view
 
-            // Make channels [[exp_rep,igg_rep][meta],[experimental_bedgraph],[igg_bedgraph],[exp_rep_number],[igg_rep_number]]
+            // Make channels [[exp_rep,igg_rep][meta],[experimental_bedgraph],[igg_bedgraph],[[exp_rep_number],[igg_rep_number]]]
             ch_bedgraph_split.target
                 .combine( ch_bedgraph_split.control )
                 .map { row -> [ [row[0].replicate, row[2].replicate], [row[0], row[1], row[3]] ] }
@@ -539,13 +544,13 @@ workflow CUTANDRUN {
             // Emit relevant channel elements based on replicate numbers
             ch_exp_control_reps
                 .map { row ->
-                    def exp_reps = row[-2]
-                    def igg_reps = row[-1]
+                    def exp_reps = row[-1][1]//row[-2]
+                    def igg_reps = row[-1][0]//row[-1]
                     def current_reps = row[0]
                     def unique_exp_reps = exp_reps.unique()
                     def unique_igg_reps = igg_reps.unique()
                     def exp_rep_freq = [0] * unique_exp_reps.size()
-                    def output = row[1..-2]
+                    def output = row[1]//[ row[1][0], row[1][1..-1] ] //row[1..-3].flatten()
                     def final_output = []
                     // check if exp rep numbers are occuring an equal number of times
                     for (i=0; i<unique_exp_reps.size(); i++) {
@@ -554,33 +559,39 @@ workflow CUTANDRUN {
                     }
                     all_same = exp_rep_freq.every{ it ==  exp_rep_freq[0] }
 
+                    log.warn ("hereeeeeeeeeeeeeeeeee")
+
                     // check cases and assign if criteria is met
                     if ( all_same && (unique_exp_reps.sort() ==  unique_igg_reps.sort()) && (current_reps[0] == current_reps[1]) ) {
                         final_output = output
+                        log.warn("case1")
                     } else if ( all_same && (unique_igg_reps.size() == 1) ) {
                         final_output = output
+                        log.warn("case2")
                     } else if ( all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == min(unique_igg_reps)) ) {
+                        log.warn("case3")
                         WorkflowCutandrun.varryingReplicateNumbersWarn()
                         final_output = output
-                    } else if ( !all_same &&  (unique_igg_reps.size() != 1) ) {
+                    } else if ( !all_same && (unique_igg_reps.size() != 1) ) {
+                        log.error("case4")
                         WorkflowCutandrun.varryingReplicateNumbersError()
                     }
 
                     final_output
                 }
                 .filter { !it.isEmpty() }
-                .set { ch_igg_flow_ready }
+                .set { ch_bedgraph_combined }// ch_igg_flow_ready }
 
             // ch_igg_flow_ready | view
 
             /*
              * CHANNEL: Recombines and maps igg control replicates to the target replicate
              */
-            ch_bedgraph_split.target
-                .combine(ch_bedgraph_split.control)
-                .filter { row -> row[0].replicate == row[2].replicate }
-                .map { row -> [ row[0], row[1], row[3] ] }
-                .set { ch_bedgraph_combined }
+            // ch_bedgraph_split.target
+            //     .combine(ch_bedgraph_split.control)
+            //     .filter { row -> row[0].replicate == row[2].replicate }
+            //     .map { row -> [ row[0], row[1], row[3] ] }
+            //     .set { ch_bedgraph_combined }
             //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
             // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
             // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
