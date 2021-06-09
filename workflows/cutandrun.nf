@@ -582,17 +582,6 @@ workflow CUTANDRUN {
                 }
                 .filter { !it.isEmpty() }
                 .set { ch_bedgraph_combined }
-
-            ch_bedgraph_combined | view
-
-            /*
-             * CHANNEL: Recombines and maps igg control replicates to the target replicate
-             */
-            // ch_bedgraph_split.target
-            //     .combine(ch_bedgraph_split.control)
-            //     .filter { row -> row[0].replicate == row[2].replicate }
-            //     .map { row -> [ row[0], row[1], row[3] ] }
-            //     .set { ch_bedgraph_combined }
             //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
             // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
             // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
@@ -670,14 +659,12 @@ workflow CUTANDRUN {
         /*
         * MODULE: DESeq2 QC Analysis
         */
-        if (false){
-            DESEQ2_DIFF (
-                ch_groups_no_igg,
-                ch_seacr_bed.collect{it[1]},
-                ch_samtools_bam.collect{it[1]}
-            )
-            ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
-        }
+        DESEQ2_DIFF (
+            ch_groups_no_igg,
+            ch_seacr_bed.collect{it[1]},
+            ch_samtools_bam.collect{it[1]}
+        )
+        ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
 
         /*
         * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
