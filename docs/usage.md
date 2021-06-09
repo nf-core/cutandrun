@@ -75,36 +75,6 @@ igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
-## Direct download of public repository data
-
-> **NB:** This is an experimental feature but should work beautifully when it does! :)
-
-The pipeline has been set-up to automatically download and process the raw FastQ files from public repositories. Identifiers can be provided in a file, one-per-line via the `--public_data_ids` parameter. Currently, the following identifiers are supported:
-
-| `SRA`        | `ENA`        | `GEO`      |
-|--------------|--------------|------------|
-| SRR11605097  | ERR4007730   | GSM4432381 |
-| SRX8171613   | ERX4009132   | GSE147507  |
-| SRS6531847   | ERS4399630   |            |
-| SAMN14689442 | SAMEA6638373 |            |
-| SRP256957    | ERP120836    |            |
-| SRA1068758   | ERA2420837   |            |
-| PRJNA625551  | PRJEB37513   |            |
-
-If `SRR`/`ERR` run ids are provided then these will be resolved back to their appropriate `SRX`/`ERX` ids to be able to merge multiple runs from the same experiment. This is conceptually the same as merging multiple libraries sequenced from the same sample.
-
-The final sample information for all identifiers is obtained from the ENA which provides direct download links for FastQ files as well as their associated md5 sums. If download links exist, the files will be downloaded in parallel by FTP otherwise they will NOT be downloaded. This is intentional because the tools such as `parallel-fastq-dump`, `fasterq-dump`, `prefetch` etc require pre-existing configuration files in the users home directory which makes automation tricky across different platforms and containerisation.
-
-As a bonus, the pipeline will also generate a valid samplesheet with paths to the downloaded data that can be used with the `--input` parameter, however, it is highly recommended that you double-check that all of the identifiers you defined using `--public_data_ids` are represented in the samplesheet. Also, public databases don't reliably hold information such as strandedness information so you may need to amend these entries too. All of the sample metadata obtained from the ENA has been appended as additional columns to help you manually curate the samplesheet before you run the pipeline.
-
-If you have a GEO accession (found in the data availability section of published papers) you can directly download a text file containing the appropriate SRA ids to pass to the pipeline:
-
-* Search for your GEO accession on [GEO](https://www.ncbi.nlm.nih.gov/geo)
-* Click `SRA Run Selector` at the bottom of the GEO accession page
-* Select the desired samples in the `SRA Run Selector` and then download the `Accession List`
-
-This downloads a text file called `SRR_Acc_List.txt` which can be directly provided to the pipeline e.g. `--public_data_ids SRR_Acc_List.txt`.
-
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:
