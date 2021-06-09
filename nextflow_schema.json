@@ -233,11 +233,11 @@
             "default": "",
             "properties": {
                 "skip_qc": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip all QC steps except for MultiQC."
                 },
                 "skip_fastqc": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip FastQC."
                 },
                 "skip_multiqc": {
@@ -253,19 +253,19 @@
                     "description": "Skip picard deduplication. By default, only IgG data is deduplicated."
                 },
                 "skip_peakcalling": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip peak-calling."
                 },
                 "skip_reporting": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip python reporting."
                 },
                 "skip_trimming": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip the adapter trimming step."
                 },
                 "skip_igv": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip the IGV session creation step."
                 }
             }
