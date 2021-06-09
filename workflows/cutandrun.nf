@@ -561,8 +561,8 @@ workflow CUTANDRUN {
 
                     // check if exp rep numbers are occuring an equal number of times
                     for (i=0; i<unique_exp_reps.size(); i++) {
-                       i_freq = exp_reps.count(unique_exp_reps[i])
-                       exp_rep_freq[i] = i_freq
+                        i_freq = exp_reps.count(unique_exp_reps[i])
+                        exp_rep_freq[i] = i_freq
                     }
                     all_same = exp_rep_freq.every{ it ==  exp_rep_freq[0] }
 
