@@ -277,6 +277,8 @@ class Reports:
         unique_replicates = self.seacr_beds.replicate.unique()
         rep_permutations = array_permutate(range(len(unique_replicates)))
         self.replicate_number = len(unique_replicates)
+        # print("this is rep_permutations")
+        # print(rep_permutations)
 
         if self.replicate_number > 1:
             idx_count=0
@@ -297,9 +299,13 @@ class Reports:
                         else:
                             pyr_query = pyr_subject
 
-                    pyr_starts = pyr_overlap.values()[0]['Start']
-                    unique_pyr_starts = pyr_starts.unique()
-                    self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
+                    if (pyr_query.empty):
+                        self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = 0
+                    else :
+                        pyr_starts = pyr_query.values()[0]['Start']
+                        unique_pyr_starts = pyr_starts.unique()
+                        self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
+
                     idx_count = idx_count + 1
 
             fill_reprod_rate = (self.reprod_peak_stats['no_peaks_reproduced'] / self.reprod_peak_stats['all_peaks'])*100
