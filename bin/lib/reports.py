@@ -277,8 +277,8 @@ class Reports:
         unique_replicates = self.seacr_beds.replicate.unique()
         rep_permutations = array_permutate(range(len(unique_replicates)))
         self.replicate_number = len(unique_replicates)
-        print("this is rep_permutations")
-        print(rep_permutations)
+        # print("this is rep_permutations")
+        # print(rep_permutations)
 
         if self.replicate_number > 1:
             idx_count=0
