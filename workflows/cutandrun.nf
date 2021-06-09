@@ -500,13 +500,87 @@ workflow CUTANDRUN {
         //ch_bedgraph_split.control | view
 
         if (params.igg_control) {
+
             /*
-             * CHANNEL: Recombines and maps igg control replicates to the target replicate
-             */
+            * CHANNEL: Collect experimental replicate numbers
+            */
+            ch_bedgraph_split.target
+                .combine( ch_bedgraph_split.control )
+                .map { row -> [ row[0].replicate ] }
+                .collect()
+                .map { row -> [ 0, row ] }
+                .set { ch_experimental_reps }
+                // ch_experimental_reps | view
+
+            /*
+            * CHANNEL: Collect IgG control replicate numbers
+            */
             ch_bedgraph_split.target
                 .combine(ch_bedgraph_split.control)
-                .filter { row -> row[0].replicate == row[2].replicate }
-                .map { row -> [ row[0], row[1], row[3] ] }
+                .map { row -> [ row[2].replicate ] }
+                .collect()
+                .map { row -> [ 0, row ] }
+                .set { ch_control_reps }
+            // ch_control_reps | view
+
+            /*
+            * CHANNEL: Combine experimental and control replicate numbers, each nested separately in array
+            */
+            ch_control_reps
+                .combine( ch_experimental_reps, by: 0 )
+                .map { row -> row[1..-1] }
+                .set{ ch_replicate_numbers }
+            // ch_replicate_numbers | view
+
+            /*
+            * CHANNEL: Create channel with elements of the following structure
+            */
+            // Make channels [[exp_rep,igg_rep][meta],[experimental_bedgraph],[igg_bedgraph],[[igg_rep_number],[exp_rep_number]]]
+            ch_bedgraph_split.target
+                .combine( ch_bedgraph_split.control )
+                .map { row -> [ [row[0].replicate, row[2].replicate], [row[0], row[1], row[3]] ] }
+                .combine( ch_replicate_numbers )
+                .set { ch_exp_control_reps }
+            // ch_exp_control_reps | view
+
+            /*
+            * CHANNEL: Emit relevant channel elements based on replicate numbers
+            */
+            ch_exp_control_reps
+                .map { row ->
+                    def exp_reps = row.last()
+                    def igg_reps = row[row.size() - 2]
+                    def current_reps = row[0]
+                    def unique_exp_reps = exp_reps.unique(false)
+                    def unique_igg_reps = igg_reps.unique(false)
+                    def exp_rep_freq = [0] * unique_exp_reps.size()
+                    def output = row[1]
+                    def final_output = []
+                    def all_same = false
+                    def i_freq = 0
+
+                    // check if exp rep numbers are occuring an equal number of times
+                    for (i=0; i<unique_exp_reps.size(); i++) {
+                       i_freq = exp_reps.count(unique_exp_reps[i])
+                       exp_rep_freq[i] = i_freq
+                    }
+                    all_same = exp_rep_freq.every{ it ==  exp_rep_freq[0] }
+
+                    // check cases and assign if criteria is met
+                    if ( all_same && (unique_exp_reps.sort() ==  unique_igg_reps.sort()) && (current_reps[0] == current_reps[1]) ) {
+                        final_output = output
+                    } else if ( unique_igg_reps.size() == 1 ) {
+                        final_output = output
+                    } else if ( all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == unique_igg_reps.min()) ) {
+                        WorkflowCutandrun.varryingReplicateNumbersWarn(log)
+                        final_output = output
+                    } else if ( !all_same && (unique_igg_reps.size() != 1) ) {
+                        WorkflowCutandrun.varryingReplicateNumbersError(log)
+                    }
+
+                    final_output
+                }
+                .filter { !it.isEmpty() }
                 .set { ch_bedgraph_combined }
             //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
             // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
