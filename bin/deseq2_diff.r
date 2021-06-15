@@ -42,7 +42,7 @@ option_list <- list(
     make_option(c("-e", "--exclude"), type="character", default=NULL    , metavar="string"   , help="experimental groups to exclude in analysis"),
     make_option(c("-o", "--outdir"        ), type="character", default='./'    , metavar="path"   , help="Output directory."  ),
     make_option(c("-p", "--outprefix"     ), type="character", default='deseq2', metavar="string" , help="Output prefix."     ),
-    make_option(c("-s", "--count_thresh"     ), type="integer", default='5', metavar="string" , help="TODO"     ),
+    make_option(c("-s", "--count_thresh"     ), type="integer", default='1', metavar="string" , help="TODO"     ),
     make_option(c("-v", "--vst"           ), type="logical"  , default=FALSE   , metavar="boolean", help="Run vst transform instead of rlog." ),
     make_option(c("-@", "--cores"         ), type="integer"  , default=1       , metavar="integer", help="Number of cores."   )
 )
@@ -106,8 +106,8 @@ if (!is.null(opt$exclude)) {
 }
 
 ################ redo from here #######################
-print(groups)
-print(bed_list)
+#print(groups)
+#print(bed_list)
 
 # Init
 mPeak = GRanges()
@@ -127,7 +127,6 @@ for(file in file_list) {
     peakRes = read.table(file, header = FALSE, fill = TRUE)
     mPeak = GRanges(seqnames = peakRes$V1, IRanges(start = peakRes$V2, end = peakRes$V3), strand = "*") %>% append(mPeak, .)
     file_count = file_count + 1
-    print(file)
     file_name = basename(file)
     file_name = strsplit(file_name, "[.]")[[1]][1]
     file_split = strsplit(file_name, "[_]")[[1]]
@@ -145,7 +144,6 @@ masterPeak = reduce(mPeak)
 countMat = matrix(NA, length(masterPeak), file_count)
 sample_list = paste(sample_mat[,1], sample_mat[,2], sep = "_R")
 colnames(countMat) = sample_list
-print(sample_list)
 # Read in bam files that match the control or treatment group
 for(i in seq_along(groups)){
     search_res <-  str_detect(bam_list, groups[i])
@@ -161,7 +159,6 @@ for(j in seq_along(bam_list)) {
     countMat[,j] = counts(fragment_counts)[,1]
 }
 
-print(countMat)
 #################################################################
 
 # # Init
@@ -224,14 +221,14 @@ if (file.exists(opt$outdir) == FALSE) {
     dir.create(opt$outdir,recursive=TRUE)
 }
 setwd(opt$outdir)
-#if (FALSE) {
+
 ## Create index list for peak count filter
 selectR = which(rowSums(countMat) > opt$count_thresh)
 dataS = countMat[selectR,] ## Select data from filter
-#condition = factor(rep(groups, each = length(reps)))
 condition = factor(sample_mat[,1])
 
 samples.vec <- sort(colnames(countMat))
+
 #groups      <- sub("_[^_]+$", "", samples.vec)
 if (length(unique(groups)) == 1 || length(unique(groups)) == length(samples.vec)) {
     quit(save = "no", status = 0, runLast = FALSE)
