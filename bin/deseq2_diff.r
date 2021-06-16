@@ -246,6 +246,13 @@ if (length(unique(groups)) == length(samples.vec)) {
 
 DDSFile <- paste(opt$outprefix,".dds.RData",sep="")
 if (file.exists(DDSFile) == FALSE) {
+    tryCatch (
+        expr = DESeqDataSetFromMatrix(countData = dataS,colData = DataFrame(condition),design = ~ condition),
+        error = function(cond){
+            message("failed to create DESeqDataSet object. DESEQ2 module will be skipped")
+            quit(save = "no", status = 0, runLast = FALSE)
+        }
+    )
     dds = DESeqDataSetFromMatrix(countData = dataS,colData = DataFrame(condition),design = ~ condition)
     dds     <- DESeq(dds, parallel=TRUE, BPPARAM=MulticoreParam(opt$cores))
     if (!opt$vst) {
