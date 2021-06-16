@@ -574,6 +574,10 @@ workflow CUTANDRUN {
                     } else if ( all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == unique_igg_reps.min()) ) {
                         WorkflowCutandrun.varryingReplicateNumbersWarn(log)
                         final_output = output
+                    // } else if ( !all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == unique_igg_reps.min()) ) {
+                    //     WorkflowCutandrun.varryingReplicateNumbersWarn(log)
+                    //     final_output = output
+                    // }
                     } else if ( !all_same && (unique_igg_reps.size() != 1) ) {
                         WorkflowCutandrun.varryingReplicateNumbersError(log)
                     }
