@@ -105,7 +105,7 @@ if (!is.null(opt$exclude)) {
     groups = groups[!matching]
 }
 
-if (length(unique(groups)) == 1 || length(unique(groups)) == length(samples.vec)) {
+if (length(unique(groups)) == 1) {
     quit(save = "no", status = 0, runLast = FALSE)
 }
 
@@ -232,6 +232,10 @@ dataS = countMat[selectR,] ## Select data from filter
 condition = factor(sample_mat[,1])
 
 samples.vec <- sort(colnames(countMat))
+
+if (length(unique(groups)) == length(samples.vec)) {
+    quit(save = "no", status = 0, runLast = FALSE)
+}
 
 #groups      <- sub("_[^_]+$", "", samples.vec)
 #if (length(unique(groups)) == 1 || length(unique(groups)) == length(samples.vec)) {
