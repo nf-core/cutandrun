@@ -106,6 +106,7 @@ if (!is.null(opt$exclude)) {
 }
 
 if (length(unique(groups)) == 1) {
+    message("WARN: Only one experimental group identified, so differential analysis cannot be executed. DESEQ2 will be skipped.")
     quit(save = "no", status = 0, runLast = FALSE)
 }
 
@@ -234,6 +235,7 @@ condition = factor(sample_mat[,1])
 samples.vec <- sort(colnames(countMat))
 
 if (length(unique(groups)) == length(samples.vec)) {
+    message("WARN: Only one experimental replicate per group was identified, so differential analysis cannot be executed. DESEQ2 will be skipped.")
     quit(save = "no", status = 0, runLast = FALSE)
 }
 
