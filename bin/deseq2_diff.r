@@ -42,7 +42,7 @@ option_list <- list(
     make_option(c("-e", "--exclude"), type="character", default=NULL    , metavar="string"   , help="experimental groups to exclude in analysis"),
     make_option(c("-o", "--outdir"        ), type="character", default='./'    , metavar="path"   , help="Output directory."  ),
     make_option(c("-p", "--outprefix"     ), type="character", default='deseq2', metavar="string" , help="Output prefix."     ),
-    make_option(c("-s", "--count_thresh"     ), type="integer", default='1', metavar="string" , help="TODO"     ),
+    make_option(c("-s", "--count_thresh"     ), type="integer", default='5', metavar="string" , help="TODO"     ),
     make_option(c("-v", "--vst"           ), type="logical"  , default=FALSE   , metavar="boolean", help="Run vst transform instead of rlog." ),
     make_option(c("-@", "--cores"         ), type="integer"  , default=1       , metavar="integer", help="Number of cores."   )
 )
@@ -103,6 +103,10 @@ if (!is.null(opt$exclude)) {
     exclude_vec = unlist(strsplit(opt$exclude, split=","))
     matching = match(groups, exclude_vec)
     groups = groups[!matching]
+}
+
+if (length(unique(groups)) == 1 || length(unique(groups)) == length(samples.vec)) {
+    quit(save = "no", status = 0, runLast = FALSE)
 }
 
 ################ redo from here #######################
@@ -230,9 +234,9 @@ condition = factor(sample_mat[,1])
 samples.vec <- sort(colnames(countMat))
 
 #groups      <- sub("_[^_]+$", "", samples.vec)
-if (length(unique(groups)) == 1 || length(unique(groups)) == length(samples.vec)) {
-    quit(save = "no", status = 0, runLast = FALSE)
-}
+#if (length(unique(groups)) == 1 || length(unique(groups)) == length(samples.vec)) {
+#    quit(save = "no", status = 0, runLast = FALSE)
+#}
 
 DDSFile <- paste(opt$outprefix,".dds.RData",sep="")
 if (file.exists(DDSFile) == FALSE) {
