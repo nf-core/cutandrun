@@ -661,12 +661,20 @@ workflow CUTANDRUN {
         //ch_bigwig_no_igg | view
 
         /*
+         * CHANNEL: Remove IgG from bam channel
+         */
+        ch_samtools_bam
+            .filter { it[0].group != "igg" }
+            .set { ch_samtools_bam_no_igg }
+
+        /*
         * MODULE: DESeq2 QC Analysis
         */
         DESEQ2_DIFF (
             ch_groups_no_igg,
             ch_seacr_bed.collect{it[1]},
-            ch_samtools_bam.collect{it[1]}
+            ch_samtools_bam_no_igg.collect{it[1]}
+            // ch_samtools_bam.collect{it[1]}
         )
         ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
 
