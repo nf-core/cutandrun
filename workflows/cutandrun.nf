@@ -571,17 +571,12 @@ workflow CUTANDRUN {
                         final_output = output
                     } else if ( unique_igg_reps.size() == 1 ) {
                         final_output = output
-                    } else if ( all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == unique_igg_reps.min()) ) {
+                    } else if ( all_same && (unique_igg_reps.size() != 1) && (unique_exp_reps.sort() !=  unique_igg_reps.sort()) && (current_reps[1] == unique_igg_reps.min()) ) {
                         WorkflowCutandrun.varryingReplicateNumbersWarn(log)
                         final_output = output
-                    // } else if ( !all_same && (unique_igg_reps.size() != 1) && (current_reps[1] == unique_igg_reps.min()) ) {
-                    //     WorkflowCutandrun.varryingReplicateNumbersWarn(log)
-                    //     final_output = output
-                    // }
                     } else if ( !all_same && (unique_igg_reps.size() != 1) ) {
                         WorkflowCutandrun.varryingReplicateNumbersError(log)
                     }
-
                     final_output
                 }
                 .filter { !it.isEmpty() }
@@ -590,7 +585,7 @@ workflow CUTANDRUN {
             // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
             // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
             // scale_factor:10000], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
-            //ch_bedgraph_combined | view
+            // ch_bedgraph_combined | view
 
             /*
              * MODULE: Call peaks with IgG control
