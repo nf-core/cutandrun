@@ -628,7 +628,6 @@ workflow CUTANDRUN {
         /*
         * MODULE: Add sample identifier column to peak beds
         */
-
         AWK_NAME_PEAK_BED ( ch_seacr_bed )
 
         /*
@@ -652,7 +651,6 @@ workflow CUTANDRUN {
         /*
         * SUBWORKFLOW: Construct group consensus peaks
         */
-
         CONSENSUS_PEAKS ( ch_seacr_bed_group.multiple )
 
     }
