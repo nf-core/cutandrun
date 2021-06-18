@@ -178,6 +178,7 @@ include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflow
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
 include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META }        from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "",meta_prefix: "dedup_", script_mode: false )
 include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META }      from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dt_frag_options, meta_suffix: "", meta_prefix: "", script_mode: true )
+include { CONSENSUS_PEAKS }                                 from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: , sort_options: )
 
 /*
 ========================================================================================
