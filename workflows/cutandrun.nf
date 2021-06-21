@@ -143,6 +143,10 @@ def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
 def awk_dedup_options       = modules["awk_dedup"]
 def awk_dt_frag_options     = modules["awk_dt_frag"]
 
+// AWK options
+def awk_threshold           = modules["awk_threshold"]
+awk_threshold.command   = "' \$10 >= " + params.replicate_threshold.toString() + " {print \$0}'"
+
 /*
 ========================================================================================
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -179,7 +183,7 @@ include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflow
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
 include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META }        from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "",meta_prefix: "dedup_", script_mode: false )
 include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META }      from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dt_frag_options, meta_suffix: "", meta_prefix: "", script_mode: true )
-include { CONSENSUS_PEAKS }                                 from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"])
+include { CONSENSUS_PEAKS }                                 from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold)
 
 /*
 ========================================================================================
@@ -845,7 +849,8 @@ workflow CUTANDRUN {
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
             AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
             ch_seacr_bed.collect{it[1]},                // peak beds
-            SAMTOOLS_SORT.out.bam.collect{it[1]}        // bam files sorted by mate pair ids
+            SAMTOOLS_SORT.out.bam.collect{it[1]},        // bam files sorted by mate pair ids
+            CONSENSUS_PEAKS.out.filtered_bed.collect{it[1]}            // consensus peaks filtered for minimum replicates
         )
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
     }
