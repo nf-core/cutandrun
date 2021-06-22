@@ -4,7 +4,7 @@ params.options = [:]
 def options      = initOptions(params.options)
 
 process PLOT_CONSENSUS_PEAKS {
-    tag "$meta.id"
+    // tag "$meta.id"
     label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
