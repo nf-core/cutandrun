@@ -25,7 +25,7 @@ process PLOT_CONSENSUS_PEAKS {
     script:
     """
     consensus_peaks.py \\
-        --peaks $consensus_peaks \\
+        --peaks "*.peaks.bed" \\
         --outpath .
 
     python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\" > python.version.txt
