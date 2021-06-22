@@ -376,11 +376,11 @@
                     "hidden": true
                 },
                 "enable_conda": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Run this workflow with Conda. You can also use '-profile conda' instead of providing this parameter."
                 },
                 "singularity_pull_docker_container": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Instead of directly downloading Singularity images for use with Singularity, force the workflow to pull and convert Docker containers instead."
                 },
                 "show_hidden_params": {
@@ -398,6 +398,11 @@
             "description": "",
             "default": "",
             "properties": {
+                "replicate_threshold": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Minimum number of replicates contributing to a merged peak for it to be considered a consensus peak for that group"
+                },
                 "peak_threshold": {
                     "type": "number",
                     "default": 0.05,
