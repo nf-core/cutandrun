@@ -58,8 +58,8 @@ for i in list(range(len(peak_df_list))):
 for i in list(range(len(summary_peak_df_list))):
     df_i = summary_peak_df_list[i]
     # Get group name
-    sample_name = df_i.at[1,'sorted_samples'].split(',')[0]
-    group_name = sample_name.rsplit("_", 1)[0]
+    basename = os.path.basename(peak_file_list[i])
+    group_name = basename.rsplit(".", -1)[0]
     file_name = group_name + ".consensus_peaks.pdf"
     categories = df_i.shape[0]
     cat_list = []
@@ -69,7 +69,6 @@ for i in list(range(len(summary_peak_df_list))):
 
     # Plot
     peak_counts = upsetplot.from_memberships(cat_list, data = df_i['count'])
-    print(peak_counts)
     upsetplot.plot(peak_counts)
     plt.show()
     plt.savefig(os.path.join(args.outpath, file_name))
