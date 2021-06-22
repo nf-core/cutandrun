@@ -23,7 +23,7 @@ process SORT {
     }
 
     input:
-      tuple val(meta), path(input)
+        tuple val(meta), path(input)
 
     output:
         tuple val(meta), path("*.sort.*"), emit: file
