@@ -24,7 +24,7 @@ workflow CONSENSUS_PEAKS {
     AWK ( BEDTOOLS_MERGE.out.bed )
 
     // Plot consensus peak sets
-    PLOT_CONSENSUS_PEAKS ( BEDTOOLS_MERGE.out.bed ) //.collect().ifEmpty([]) )
+    PLOT_CONSENSUS_PEAKS ( BEDTOOLS_MERGE.out.bed.collect{it[1]}.ifEmpty([]) ) //.collect().ifEmpty([]) )
 
     emit:
     bed              = BEDTOOLS_MERGE.out.bed       // channel: [ val(meta), [ bed ] ]

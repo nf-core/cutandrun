@@ -15,7 +15,8 @@ process PLOT_CONSENSUS_PEAKS {
     container "luslab/cutandrun-dev-plot-consensus-peaks:latest"
 
     input:
-    tuple val(meta), path(consensus_peaks)
+    // tuple val(meta), path(consensus_peaks)
+    path(consensus_peaks)
 
     output:
     path ("*.pdf"), optional:true, emit: pdf
