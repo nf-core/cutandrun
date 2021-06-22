@@ -27,7 +27,7 @@ workflow CONSENSUS_PEAKS {
     PLOT_CONSENSUS_PEAKS ( BEDTOOLS_MERGE.out.bed.collect().ifEmpty([]) )
 
     emit:
-    bed              = BEDTOOLS_MERGE.out.bed // channel: [ val(meta), [ bed ] ]
-    filtered_bed     = AWK.out.file // channel: [ val(meta), [ bed ] ]
-    bedtools_version = BEDTOOLS_MERGE.out.version //    path: *.version.txt
+    bed              = BEDTOOLS_MERGE.out.bed       // channel: [ val(meta), [ bed ] ]
+    filtered_bed     = AWK.out.file                 // channel: [ val(meta), [ bed ] ]
+    bedtools_version = BEDTOOLS_MERGE.out.version   // path: *.version.txt
 }
