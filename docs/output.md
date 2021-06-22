@@ -26,6 +26,7 @@ and processes data using the following steps:
 * [Peak calling](#peak-calling)
     * [SEACR](#seacr) - Peak calling for high signal-noise data
     * [Deeptools](#deeptools) - Analysis of peaks
+    * [BEDTools](#bedtools) - merge peaks to create consensus peaks
 * [Summary and quality control](#summary-and-quality-control)
     * [DESeq2](#deseq2) - PCA plot and differential peak analysis
     * [Python reporting](#python-reporting)
@@ -191,6 +192,25 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 </details>
 
 [Deeptools](https://github.com/deeptools/deepTools/) sub-tools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks.
+
+### BEDtools
+
+<details markdown="1">
+<summary>Output files</summary>
+
+* `seacr/`
+    * `{group}.consensus_peaks.pdf`: schematic showing which consensus peaks are shared across replicates within groups
+    * `all_peaks.consensus_peaks.pdf`: schematic showing which consensus peaks are shared across all samples
+* `seacr/consensus_peaks`
+    * `{group}.consensus.peaks.bed`: BED containing consensus peaks for each group
+    * `all_peaks.consensus.peaks.bed`: BED containing consensus peaks across all samples
+
+</details>
+
+The merge function from [BEDtools](https://github.com/arq5x/bedtools2) is used to merge replicate peaks of the same experimental group to create a consensus peak set. This can then optionally be filtered for consensus peaks contributed to be a threshold number of replicates using `--replicate_threshold`. Additionally, the same workflow is run merging across all samples.
+
+![Peak calling - group consensus peak plot](images/consensus_peaks.png)
+![Peak calling - group consensus peak plot](images/all_consensus_peaks.png)
 
 ##  Summary and quality control
 
