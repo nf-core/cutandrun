@@ -143,6 +143,12 @@ def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
 def awk_dedup_options       = modules["awk_dedup"]
 def awk_dt_frag_options     = modules["awk_dt_frag"]
 
+// AWK options
+def awk_threshold           = modules["awk_threshold"]
+awk_threshold.command   = "' \$10 >= " + params.replicate_threshold.toString() + " {print \$0}'"
+def awk_all_threshold       = modules["awk_threshold"]
+awk_threshold.command   = "' \$10 >= 1 {print \$0}'"
+
 /*
 ========================================================================================
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -163,6 +169,7 @@ include { GENERATE_REPORTS               } from "../modules/local/generate_repor
 include { DEEPTOOLS_BAMPEFRAGMENTSIZE    } from "../modules/local/software/deeptools/bamPEFragmentSize/main" addParams( options: modules["deeptools_fragmentsize"]          )
 include { AWK as AWK_FRAG_BIN            } from "../modules/local/awk"                                       addParams( options: modules["awk_frag_bin"]                    )
 include { AWK as AWK_EDIT_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_edit_peak_bed"]               )
+include { AWK as AWK_NAME_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_name_peak_bed"]               )
 include { DESEQ2_DIFF                    } from "../modules/local/deseq2_diff"                               addParams( options: modules["deseq2"],  multiqc_label: "deseq2")
 include { SAMTOOLS_CUSTOMVIEW            } from "../modules/local/software/samtools/custom_view/main"        addParams( options: modules["samtools_frag_len"]               )
 include { SEACR_CALLPEAK as SEACR_NO_IGG } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
@@ -178,7 +185,8 @@ include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflow
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
 include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META }        from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "",meta_prefix: "dedup_", script_mode: false )
 include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META }      from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dt_frag_options, meta_suffix: "", meta_prefix: "", script_mode: true )
-
+include { CONSENSUS_PEAKS }                                 from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"])
+include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL}           from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"])
 /*
 ========================================================================================
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -622,6 +630,57 @@ workflow CUTANDRUN {
             // scale_factor:10000], BED]
             //SEACR_NO_IGG.out.bed | view
         }
+
+        /*
+        * MODULE: Add sample identifier column to peak beds
+        */
+        AWK_NAME_PEAK_BED ( ch_seacr_bed )
+
+        /*
+        * CHANNEL: Group samples based on group
+        */
+        AWK_NAME_PEAK_BED.out.file
+            .map { row -> [ row[0].group, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", row[0] )
+                [ new_meta, row[1].flatten() ]
+            }
+            .branch { it ->
+                    single : it[1].size() == 1
+                    multiple: it[1].size() > 1
+            }
+            .set { ch_seacr_bed_group }
+        // ch_seacr_bed_group | view
+
+        /*
+        * SUBWORKFLOW: Construct group consensus peaks
+        */
+        CONSENSUS_PEAKS ( ch_seacr_bed_group.multiple )
+
+        /*
+        * CHANNEL: Group all samples
+        */
+        AWK_NAME_PEAK_BED.out.file
+            .map { row -> [ 1, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", "all_peaks" )
+                [ new_meta, row[1].flatten() ]
+            }
+            .branch { it ->
+                    single : it[1].size() == 1
+                    multiple: it[1].size() > 1
+            }
+            .set { ch_seacr_bed_all }
+
+        /*
+        * SUBWORKFLOW: Construct group consensus peaks
+        */
+        CONSENSUS_PEAKS_ALL ( ch_seacr_bed_all.multiple )
+
     }
 
     if(!params.skip_igv) {

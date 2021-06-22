@@ -399,6 +399,11 @@
             "description": "",
             "default": "",
             "properties": {
+                "replicate_threshold": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Minimum number of replicates contributing to a merged peak for it to be considered a consensus peak for that group"
+                },
                 "peak_threshold": {
                     "type": "number",
                     "default": 0.05,
