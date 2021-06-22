@@ -381,7 +381,7 @@
                     "description": "Run this workflow with Conda. You can also use '-profile conda' instead of providing this parameter."
                 },
                 "singularity_pull_docker_container": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Instead of directly downloading Singularity images for use with Singularity, force the workflow to pull and convert Docker containers instead."
                 },
                 "show_hidden_params": {
