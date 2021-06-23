@@ -78,7 +78,15 @@ if (params.save_trimmed) { trimgalore_options.publish_files.put("fq.gz","") }
 // Alignment dedup and filtering
 def prepareToolIndices             = ["bowtie2"]
 def bowtie2_spikein_align_options  = modules["bowtie2_spikein_align"]
+if (params.save_spikein_aligned) {
+    bowtie2_spikein_align_options.publish_dir   = "aligner/${params.aligner}/spikein"
+    bowtie2_spikein_align_options.publish_files = ["bam":""]
+}
 def samtools_spikein_sort_options = modules["samtools_spikein_sort"]
+if (params.save_spikein_aligned) {
+    samtools_spikein_sort_options.publish_dir   = "aligner/${params.aligner}/spikein"
+    samtools_spikein_sort_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
 def dedup_control_only = true
 if(params.dedup_target_reads) { dedup_control_only = false }
 

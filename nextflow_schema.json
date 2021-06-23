@@ -130,7 +130,7 @@
                     "description": "iGenomes option for spike-in reference genome."
                 },
                 "save_spikein_aligned": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Save BAM files from alignment to spike-in genome."
                 },
                 "spikein_fasta": {
