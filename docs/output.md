@@ -12,7 +12,6 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/)
 and processes data using the following steps:
 
 * [Preprocessing](#preprocessing)
-    * [ENA FTP](#ena-ftp) - Download FastQ files via SRA / ENA / GEO ids
     * [cat](#cat) - Merge re-sequenced FastQ files
     * [FastQC](#fastqc) - Raw read QC
     * [TrimGalore](#trimgalore) - Adapter and quality trimming
@@ -27,6 +26,7 @@ and processes data using the following steps:
 * [Peak calling](#peak-calling)
     * [SEACR](#seacr) - Peak calling for high signal-noise data
     * [Deeptools](#deeptools) - Analysis of peaks
+    * [BEDTools](#bedtools) - merge peaks to create consensus peaks
 * [Summary and quality control](#summary-and-quality-control)
     * [DESeq2](#deseq2) - PCA plot and differential peak analysis
     * [Python reporting](#python-reporting)
@@ -37,24 +37,6 @@ and processes data using the following steps:
     * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
 ## Preprocessing
-
-### ENA FTP
-
-<details markdown="1">
-<summary>Output files</summary>
-
-* `public_data/`
-    * `samplesheet.csv`: Auto-created samplesheet that can be used to run the pipeline.
-    * `*.fastq.gz`: Paired-end/single-end reads downloaded from the ENA / SRA.
-* `public_data/md5/`
-    * `*.md5`: Files containing `md5` sum for FastQ files downloaded from the ENA / SRA.
-* `public_data/runinfo/`
-    * `*.runinfo.tsv`: Original metadata file downloaded from the ENA
-    * `*.runinfo_ftp.tsv`: Re-formatted metadata file downloaded from the ENA
-
-</details>
-
-Please see the [usage documentation](https://nf-co.re/cutandrun/usage#direct-download-of-public-repository-data) for a list of supported public repository identifiers and how to provide them to the pipeline. The final sample information for all identifiers is obtained from the ENA which provides direct download links for FastQ files as well as their associated md5sums. If download links exist, the files will be downloaded in parallel by FTP otherwise they will NOT be downloaded. This is intentional because the tools such as `parallel-fastq-dump`, `fasterq-dump`, `prefetch` etc require pre-existing configuration files in the users home directory which makes automation tricky across different platforms and containerisation.
 
 ### cat
 
@@ -210,6 +192,25 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 </details>
 
 [Deeptools](https://github.com/deeptools/deepTools/) sub-tools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks.
+
+### BEDtools
+
+<details markdown="1">
+<summary>Output files</summary>
+
+* `seacr/`
+    * `{group}.consensus_peaks.pdf`: schematic showing which consensus peaks are shared across replicates within groups
+    * `all_peaks.consensus_peaks.pdf`: schematic showing which consensus peaks are shared across all samples
+* `seacr/consensus_peaks`
+    * `{group}.consensus.peaks.bed`: BED containing consensus peaks for each group
+    * `all_peaks.consensus.peaks.bed`: BED containing consensus peaks across all samples
+
+</details>
+
+The merge function from [BEDtools](https://github.com/arq5x/bedtools2) is used to merge replicate peaks of the same experimental group to create a consensus peak set. This can then optionally be filtered for consensus peaks contributed to be a threshold number of replicates using `--replicate_threshold`. Additionally, the same workflow is run merging across all samples.
+
+![Peak calling - group consensus peak plot](images/consensus_peaks.png)
+![Peak calling - group consensus peak plot](images/all_consensus_peaks.png)
 
 ##  Summary and quality control
 

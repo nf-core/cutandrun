@@ -30,11 +30,6 @@
                     "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 },
-                "public_data_ids": {
-                    "type": "string",
-                    "default": "null",
-                    "description": "File containing SRA/ENA/GEO identifiers one per line in order to download their associated FastQ files."
-                },
                 "save_merged_fastq": {
                     "type": "string",
                     "description": "Save FastQ files after merging re-sequenced libraries in the results directory."
@@ -238,16 +233,12 @@
             "default": "",
             "properties": {
                 "skip_qc": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip all QC steps except for MultiQC."
                 },
                 "skip_fastqc": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip FastQC."
-                },
-                "skip_sra_fastq_download": {
-                    "type": "string",
-                    "description": "Only download metadata for public data database ids and don't download the FastQ files."
                 },
                 "skip_multiqc": {
                     "type": "string",
@@ -262,19 +253,19 @@
                     "description": "Skip picard deduplication. By default, only IgG data is deduplicated."
                 },
                 "skip_peakcalling": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip peak-calling."
                 },
                 "skip_reporting": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip python reporting."
                 },
                 "skip_trimming": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip the adapter trimming step."
                 },
                 "skip_igv": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip the IGV session creation step."
                 }
             }
@@ -386,11 +377,11 @@
                     "hidden": true
                 },
                 "enable_conda": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Run this workflow with Conda. You can also use '-profile conda' instead of providing this parameter."
                 },
                 "singularity_pull_docker_container": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Instead of directly downloading Singularity images for use with Singularity, force the workflow to pull and convert Docker containers instead."
                 },
                 "show_hidden_params": {
@@ -408,6 +399,11 @@
             "description": "",
             "default": "",
             "properties": {
+                "replicate_threshold": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Minimum number of replicates contributing to a merged peak for it to be considered a consensus peak for that group"
+                },
                 "peak_threshold": {
                     "type": "number",
                     "default": 0.05,

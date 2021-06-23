@@ -143,6 +143,12 @@ def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
 def awk_dedup_options       = modules["awk_dedup"]
 def awk_dt_frag_options     = modules["awk_dt_frag"]
 
+// AWK options
+def awk_threshold           = modules["awk_threshold"]
+awk_threshold.command   = "' \$10 >= " + params.replicate_threshold.toString() + " {print \$0}'"
+def awk_all_threshold       = modules["awk_threshold"]
+awk_threshold.command   = "' \$10 >= 1 {print \$0}'"
+
 /*
 ========================================================================================
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -163,6 +169,7 @@ include { GENERATE_REPORTS               } from "../modules/local/generate_repor
 include { DEEPTOOLS_BAMPEFRAGMENTSIZE    } from "../modules/local/software/deeptools/bamPEFragmentSize/main" addParams( options: modules["deeptools_fragmentsize"]          )
 include { AWK as AWK_FRAG_BIN            } from "../modules/local/awk"                                       addParams( options: modules["awk_frag_bin"]                    )
 include { AWK as AWK_EDIT_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_edit_peak_bed"]               )
+include { AWK as AWK_NAME_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_name_peak_bed"]               )
 include { DESEQ2_DIFF                    } from "../modules/local/deseq2_diff"                               addParams( options: modules["deseq2"],  multiqc_label: "deseq2")
 include { SAMTOOLS_CUSTOMVIEW            } from "../modules/local/software/samtools/custom_view/main"        addParams( options: modules["samtools_frag_len"]               )
 include { SEACR_CALLPEAK as SEACR_NO_IGG } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
@@ -178,7 +185,8 @@ include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflow
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
 include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META }        from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "",meta_prefix: "dedup_", script_mode: false )
 include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META }      from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dt_frag_options, meta_suffix: "", meta_prefix: "", script_mode: true )
-
+include { CONSENSUS_PEAKS }                                 from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"])
+include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL}           from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"])
 /*
 ========================================================================================
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -500,19 +508,92 @@ workflow CUTANDRUN {
         //ch_bedgraph_split.control | view
 
         if (params.igg_control) {
+
             /*
-             * CHANNEL: Recombines and maps igg control replicates to the target replicate
-             */
+            * CHANNEL: Collect experimental replicate numbers
+            */
+            ch_bedgraph_split.target
+                .combine( ch_bedgraph_split.control )
+                .map { row -> [ row[0].replicate ] }
+                .collect()
+                .map { row -> [ 0, row ] }
+                .set { ch_experimental_reps }
+                // ch_experimental_reps | view
+
+            /*
+            * CHANNEL: Collect IgG control replicate numbers
+            */
             ch_bedgraph_split.target
                 .combine(ch_bedgraph_split.control)
-                .filter { row -> row[0].replicate == row[2].replicate }
-                .map { row -> [ row[0], row[1], row[3] ] }
+                .map { row -> [ row[2].replicate ] }
+                .collect()
+                .map { row -> [ 0, row ] }
+                .set { ch_control_reps }
+            // ch_control_reps | view
+
+            /*
+            * CHANNEL: Combine experimental and control replicate numbers, each nested separately in array
+            */
+            ch_control_reps
+                .combine( ch_experimental_reps, by: 0 )
+                .map { row -> row[1..-1] }
+                .set{ ch_replicate_numbers }
+            // ch_replicate_numbers | view
+
+            /*
+            * CHANNEL: Create channel with elements of the following structure
+            */
+            // Make channels [[exp_rep,igg_rep][meta],[experimental_bedgraph],[igg_bedgraph],[[igg_rep_number],[exp_rep_number]]]
+            ch_bedgraph_split.target
+                .combine( ch_bedgraph_split.control )
+                .map { row -> [ [row[0].replicate, row[2].replicate], [row[0], row[1], row[3]] ] }
+                .combine( ch_replicate_numbers )
+                .set { ch_exp_control_reps }
+            // ch_exp_control_reps | view
+
+            /*
+            * CHANNEL: Emit relevant channel elements based on replicate numbers
+            */
+            ch_exp_control_reps
+                .map { row ->
+                    def exp_reps = row.last()
+                    def igg_reps = row[row.size() - 2]
+                    def current_reps = row[0]
+                    def unique_exp_reps = exp_reps.unique(false)
+                    def unique_igg_reps = igg_reps.unique(false)
+                    def exp_rep_freq = [0] * unique_exp_reps.size()
+                    def output = row[1]
+                    def final_output = []
+                    def all_same = false
+                    def i_freq = 0
+
+                    // check if exp rep numbers are occuring an equal number of times
+                    for (i=0; i<unique_exp_reps.size(); i++) {
+                        i_freq = exp_reps.count(unique_exp_reps[i])
+                        exp_rep_freq[i] = i_freq
+                    }
+                    all_same = exp_rep_freq.every{ it ==  exp_rep_freq[0] }
+
+                    // check cases and assign if criteria is met
+                    if ( all_same && (unique_exp_reps.sort() ==  unique_igg_reps.sort()) && (current_reps[0] == current_reps[1]) ) {
+                        final_output = output
+                    } else if ( unique_igg_reps.size() == 1 ) {
+                        final_output = output
+                    } else if ( all_same && (unique_igg_reps.size() != 1) && (unique_exp_reps.sort() !=  unique_igg_reps.sort()) && (current_reps[1] == unique_igg_reps.min()) ) {
+                        WorkflowCutandrun.varryingReplicateNumbersWarn(log)
+                        final_output = output
+                    } else if ( !all_same && (unique_igg_reps.size() != 1) ) {
+                        WorkflowCutandrun.varryingReplicateNumbersError(log)
+                    }
+                    final_output
+                }
+                .filter { !it.isEmpty() }
                 .set { ch_bedgraph_combined }
             //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
             // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
             // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
             // scale_factor:10000], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
-            //ch_bedgraph_combined | view
+            // ch_bedgraph_combined | view
 
             /*
              * MODULE: Call peaks with IgG control
@@ -539,7 +620,7 @@ workflow CUTANDRUN {
             */
             SEACR_NO_IGG (
                 ch_bedgraph_split.target,
-                ch_peak_threshold.collect()
+                ch_peak_threshold
             )
             ch_seacr_bed = SEACR_NO_IGG.out.bed
             ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.version.first().ifEmpty(null))
@@ -549,6 +630,57 @@ workflow CUTANDRUN {
             // scale_factor:10000], BED]
             //SEACR_NO_IGG.out.bed | view
         }
+
+        /*
+        * MODULE: Add sample identifier column to peak beds
+        */
+        AWK_NAME_PEAK_BED ( ch_seacr_bed )
+
+        /*
+        * CHANNEL: Group samples based on group
+        */
+        AWK_NAME_PEAK_BED.out.file
+            .map { row -> [ row[0].group, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", row[0] )
+                [ new_meta, row[1].flatten() ]
+            }
+            .branch { it ->
+                    single : it[1].size() == 1
+                    multiple: it[1].size() > 1
+            }
+            .set { ch_seacr_bed_group }
+        // ch_seacr_bed_group | view
+
+        /*
+        * SUBWORKFLOW: Construct group consensus peaks
+        */
+        CONSENSUS_PEAKS ( ch_seacr_bed_group.multiple )
+
+        /*
+        * CHANNEL: Group all samples
+        */
+        AWK_NAME_PEAK_BED.out.file
+            .map { row -> [ 1, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", "all_peaks" )
+                [ new_meta, row[1].flatten() ]
+            }
+            .branch { it ->
+                    single : it[1].size() == 1
+                    multiple: it[1].size() > 1
+            }
+            .set { ch_seacr_bed_all }
+
+        /*
+        * SUBWORKFLOW: Construct group consensus peaks
+        */
+        CONSENSUS_PEAKS_ALL ( ch_seacr_bed_all.multiple )
+
     }
 
     if(!params.skip_igv) {
@@ -583,12 +715,19 @@ workflow CUTANDRUN {
         //ch_bigwig_no_igg | view
 
         /*
+         * CHANNEL: Remove IgG from bam channel
+         */
+        ch_samtools_bam
+            .filter { it[0].group != "igg" }
+            .set { ch_samtools_bam_no_igg }
+
+        /*
         * MODULE: DESeq2 QC Analysis
         */
         DESEQ2_DIFF (
             ch_groups_no_igg,
             ch_seacr_bed.collect{it[1]},
-            ch_samtools_bam.collect{it[1]}
+            ch_samtools_bam_no_igg.collect{it[1]}
         )
         ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
 

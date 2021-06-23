@@ -18,17 +18,12 @@ nextflow.enable.dsl = 2
 */
 
 if (!params.fasta) {
-    params.bowtie2   = params.bowtie2 ?: WorkflowMain.getGenomeAttribute(params, 'bowtie2')
+    params.bowtie2 = params.bowtie2 ?: WorkflowMain.getGenomeAttribute(params, 'bowtie2')
 }
-params.fasta = params.fasta ?: WorkflowMain.getGenomeAttribute(params, 'fasta')
-params.gtf       = params.gtf ?: WorkflowMain.getGenomeAttribute(params, 'gtf')
-params.gene_bed  = params.gene_bed ?: WorkflowMain.getGenomeAttribute(params, 'bed12')
+params.fasta     = params.fasta     ?: WorkflowMain.getGenomeAttribute(params, 'fasta')
+params.gtf       = params.gtf       ?: WorkflowMain.getGenomeAttribute(params, 'gtf')
+params.gene_bed  = params.gene_bed  ?: WorkflowMain.getGenomeAttribute(params, 'bed12')
 params.blacklist = params.blacklist ?: WorkflowMain.getGenomeAttribute(params, 'blacklist')
-
-// params.fasta     = WorkflowMain.getGenomeAttribute(params, 'fasta')
-// params.gtf       = WorkflowMain.getGenomeAttribute(params, 'gtf')
-// params.gene_bed  = WorkflowMain.getGenomeAttribute(params, 'bed12')
-// params.blacklist = WorkflowMain.getGenomeAttribute(params, 'blacklist')
 
 /*
 ========================================================================================
@@ -57,19 +52,12 @@ WorkflowMain.initialise(workflow, params, log)
 
 workflow NFCORE_CUTANDRUN {
     /*
-     * WORKFLOW: Get SRA run information for public database ids, download and md5sum check FastQ files, auto-create samplesheet
-     */
-    if (params.public_data_ids) {
-        include { SRA_DOWNLOAD } from './workflows/sra_download'
-        SRA_DOWNLOAD ()
-
-    /*
      * WORKFLOW: Run main nf-core/cutandrun analysis pipeline
      */
-    } else {
-        include { CUTANDRUN } from './workflows/cutandrun'
-        CUTANDRUN ()
-    }
+
+    include { CUTANDRUN } from './workflows/cutandrun'
+    CUTANDRUN ()
+
 }
 
 /*

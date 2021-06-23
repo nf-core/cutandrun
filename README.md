@@ -21,22 +21,21 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 ## Pipeline summary
 
-1. Download FastQ files via SRA, ENA or GEO ids and auto-create input samplesheet ([`ENA FTP`](https://ena-docs.readthedocs.io/en/latest/retrieval/file-download.html); *if required*)
-2. Merge re-sequenced FastQ files ([`cat`](http://www.linfo.org/cat.html))
-3. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-4. Adapter and quality trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
-5. Alignment to both target and spike-in genomes ([`Bowtie 2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
-6. Filter on quality, sort and index alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
-7. Duplicate read marking ([`picard MarkDuplicates`](https://broadinstitute.github.io/picard/))
-8. Create bedGraph files ([`BEDTools`](https://github.com/arq5x/bedtools2/)
-9. Create bigWig coverage files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
-10. Peak calling specifically tailored for low background noise ([`SEACR`](https://github.com/FredHutch/SEACR))
-11. Quality control and analysis:
+1. Merge re-sequenced FastQ files ([`cat`](http://www.linfo.org/cat.html))
+2. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
+3. Adapter and quality trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
+4. Alignment to both target and spike-in genomes ([`Bowtie 2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
+5. Filter on quality, sort and index alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+6. Duplicate read marking ([`picard MarkDuplicates`](https://broadinstitute.github.io/picard/))
+7. Create bedGraph files ([`BEDTools`](https://github.com/arq5x/bedtools2/)
+8. Create bigWig coverage files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+9. Peak calling specifically tailored for low background noise ([`SEACR`](https://github.com/FredHutch/SEACR))
+10. Quality control and analysis:
     1. Alignment, fragment length and peak analysis and replicate reproducibility ([`Python`](https://www.python.org/))
     2. Differential peak analysis ([`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
     3. Heatmap peak analysis ([`deepTools`](https://github.com/deeptools/deepTools/))
-12. Genome browser session ([`IGV`](https://software.broadinstitute.org/software/igv/))
-13. Present QC for raw read, alignment and duplicate reads ([`MultiQC`](http://multiqc.info/))
+11. Genome browser session ([`IGV`](https://software.broadinstitute.org/software/igv/))
+12. Present QC for raw read, alignment and duplicate reads ([`MultiQC`](http://multiqc.info/))
 
 ## Quick Start
 
@@ -62,16 +61,6 @@ On release, automated continuous integration tests run the pipeline on a full-si
             --input samplesheet.csv \
             --genome GRCh37
         ```
-
-    * Typical command for downloading public data:
-
-        ```bash
-        nextflow run nf-core/cutandrun \
-            --public_data_ids ids.txt \
-            -profile <docker/singularity/podman/conda/institute>
-        ```
-
-    > **NB:** The commands to obtain public data and to run the main arm of the pipeline are completely independent. This is intentional because it allows you to download all of the raw data in an initial pipeline run (`results/public_data/`) and then to curate the auto-created samplesheet based on the available sample metadata before you run the pipeline again properly.
 
 See [usage docs](https://nf-co.re/cutandrun/usage) for all of the available options when running the pipeline.
 

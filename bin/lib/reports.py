@@ -70,9 +70,9 @@ class Reports:
             dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None, names=['Size','Occurrences'])
             frag_base_i = os.path.basename(dt_frag_list[i])
             sample_id = frag_base_i.split(".")[0]
-            sample_id_split = sample_id.split("_")
-            rep_i = sample_id_split[len(sample_id_split)-1]
-            group_i ="_".join(sample_id_split[0:(len(sample_id_split)-1)])
+            sample_id_split = sample_id.rsplit("_", 1)
+            rep_i = sample_id_split[1]
+            group_i = sample_id_split[0]
 
             # create long forms of fragment histograms
             dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
@@ -133,9 +133,9 @@ class Reports:
             seacr_bed_i = pd.read_csv(seacr_bed_list[i], sep='\t', header=None, usecols=[0,1,2,3,4], names=['chrom','start','end','total_signal','max_signal'])
             bed_base_i = os.path.basename(seacr_bed_list[i])
             sample_id = bed_base_i.split(".")[0]
-            sample_id_split = sample_id.split("_")
-            rep_i = sample_id_split[len(sample_id_split)-1]
-            group_i ="_".join(sample_id_split[0:(len(sample_id_split)-1)])
+            sample_id_split = sample_id.rsplit("_", 1)
+            rep_i = sample_id_split[1]
+            group_i = sample_id_split[0]
             seacr_bed_i['group'] = np.repeat(group_i, seacr_bed_i.shape[0])
             seacr_bed_i['replicate'] = np.repeat(rep_i, seacr_bed_i.shape[0])
 
@@ -215,7 +215,7 @@ class Reports:
             self.bam_df_list.append(bam_now)
             bam_base = os.path.basename(bam)
             sample_id = bam_base.split(".")[0]
-            [group_now,rep_now] = sample_id.split("_")
+            [group_now,rep_now] = sample_id.rsplit("_", 1)
             self.frip.at[k, 'group'] = group_now
             self.frip.at[k, 'replicate'] = rep_now
             self.frip.at[k, 'mapped_frags'] = bam_now.shape[0]
@@ -277,6 +277,8 @@ class Reports:
         unique_replicates = self.seacr_beds.replicate.unique()
         rep_permutations = array_permutate(range(len(unique_replicates)))
         self.replicate_number = len(unique_replicates)
+        # print("this is rep_permutations")
+        # print(rep_permutations)
 
         if self.replicate_number > 1:
             idx_count=0
@@ -297,9 +299,13 @@ class Reports:
                         else:
                             pyr_query = pyr_subject
 
-                    pyr_starts = pyr_overlap.values()[0]['Start']
-                    unique_pyr_starts = pyr_starts.unique()
-                    self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
+                    if (pyr_query.empty):
+                        self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = 0
+                    else :
+                        pyr_starts = pyr_query.values()[0]['Start']
+                        unique_pyr_starts = pyr_starts.unique()
+                        self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
+
                     idx_count = idx_count + 1
 
             fill_reprod_rate = (self.reprod_peak_stats['no_peaks_reproduced'] / self.reprod_peak_stats['all_peaks'])*100

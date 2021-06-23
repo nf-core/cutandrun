@@ -25,7 +25,18 @@ igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
 igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
 ```
 
-It is _recommended_ to have an IgG control for normalising your experimental data and this is the default action for the pipeline. However, if you run the pipeline without IgG control data you must supply `--igg_control false`
+There are 4 use-cases for various combinations of experimental and IgG control replicate numbers that are note-worthy:
+
+* One-to-one:
+Across all experimental groups and IgG control, the number of replicates are the same and numbered in a uniform fashion. In this case, IgG normalisation at the peak-calling level is done for matching replicate numbers.
+* Many experimental replicates, one IgG replicate:
+Each experimental replicate will be normalised by the given single IgG replicate.
+* Equal numbers of replicates across experimental groups and more than one IgG replicate:
+If the user puts forward groups with equal amounts of uniformly numbered replicates, but different to the multiple IgG replicates, then a warning will show informing the user that just the first IgG replicate will be used for normalisation.
+* Varying experimental and IgG replicates:
+If the user puts forward groups with varying, ununiform experimental replicate numbers and more than one IgG replicate, an error will be thrown up and the pipeline will hault. If you wish to merge the IgG control data in this case, see next steps.
+
+It is _recommended_ to have an IgG control for normalising your experimental data and this is the default action for the pipeline. However, if you run the pipeline without IgG control data you must supply `--igg_control false`.
 
 ### Multiple runs of the same library
 
@@ -63,36 +74,6 @@ igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
 | `fastq_2`      | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
-
-## Direct download of public repository data
-
-> **NB:** This is an experimental feature but should work beautifully when it does! :)
-
-The pipeline has been set-up to automatically download and process the raw FastQ files from public repositories. Identifiers can be provided in a file, one-per-line via the `--public_data_ids` parameter. Currently, the following identifiers are supported:
-
-| `SRA`        | `ENA`        | `GEO`      |
-|--------------|--------------|------------|
-| SRR11605097  | ERR4007730   | GSM4432381 |
-| SRX8171613   | ERX4009132   | GSE147507  |
-| SRS6531847   | ERS4399630   |            |
-| SAMN14689442 | SAMEA6638373 |            |
-| SRP256957    | ERP120836    |            |
-| SRA1068758   | ERA2420837   |            |
-| PRJNA625551  | PRJEB37513   |            |
-
-If `SRR`/`ERR` run ids are provided then these will be resolved back to their appropriate `SRX`/`ERX` ids to be able to merge multiple runs from the same experiment. This is conceptually the same as merging multiple libraries sequenced from the same sample.
-
-The final sample information for all identifiers is obtained from the ENA which provides direct download links for FastQ files as well as their associated md5 sums. If download links exist, the files will be downloaded in parallel by FTP otherwise they will NOT be downloaded. This is intentional because the tools such as `parallel-fastq-dump`, `fasterq-dump`, `prefetch` etc require pre-existing configuration files in the users home directory which makes automation tricky across different platforms and containerisation.
-
-As a bonus, the pipeline will also generate a valid samplesheet with paths to the downloaded data that can be used with the `--input` parameter, however, it is highly recommended that you double-check that all of the identifiers you defined using `--public_data_ids` are represented in the samplesheet. Also, public databases don't reliably hold information such as strandedness information so you may need to amend these entries too. All of the sample metadata obtained from the ENA has been appended as additional columns to help you manually curate the samplesheet before you run the pipeline.
-
-If you have a GEO accession (found in the data availability section of published papers) you can directly download a text file containing the appropriate SRA ids to pass to the pipeline:
-
-* Search for your GEO accession on [GEO](https://www.ncbi.nlm.nih.gov/geo)
-* Click `SRA Run Selector` at the bottom of the GEO accession page
-* Select the desired samples in the `SRA Run Selector` and then download the `Accession List`
-
-This downloads a text file called `SRR_Acc_List.txt` which can be directly provided to the pipeline e.g. `--public_data_ids SRR_Acc_List.txt`.
 
 ## Running the pipeline
 
