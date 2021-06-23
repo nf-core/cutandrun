@@ -263,7 +263,6 @@ class Reports:
 
         # create pyranges objects and fill df
         unique_groups = self.seacr_beds.group.unique()
-        print(unique_groups)
         unique_replicates = self.seacr_beds.replicate.unique()
         self.replicate_number = 1
         self.multiple_reps = True
@@ -275,7 +274,6 @@ class Reports:
             for i in list(range(len(unique_groups))):
                 group_i = unique_groups[i]
                 group_reps = len(self.seacr_beds_group_rep[self.seacr_beds_group_rep['group'] == group_i])
-                print(group_reps)
                 if group_reps < 2:
                     continue
                 rep_permutations = array_permutate(range(group_reps))
@@ -283,10 +281,9 @@ class Reports:
                     pyr_query = pr.PyRanges()
                     rep_perm = rep_permutations[k]
                     for j in rep_perm:
-                        rep_i = range(group_reps)[j]
+                        rep_i = "R" + str(range(group_reps)[j]+1)
                         peaks_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
                         pyr_subject = pr.PyRanges(chromosomes=peaks_i['chrom'], starts=peaks_i['start'], ends=peaks_i['end'])
-                        print("gothere")
                         if(len(pyr_query) > 0):
                             pyr_overlap = pyr_query.join(pyr_subject)
                             pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
@@ -297,6 +294,7 @@ class Reports:
 
                     if (pyr_query.empty):
                         self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = 0
+
                     else :
                         pyr_starts = pyr_query.values()[0]['Start']
                         unique_pyr_starts = pyr_starts.unique()
