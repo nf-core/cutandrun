@@ -870,14 +870,6 @@ workflow CUTANDRUN {
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
 
         /*
-        * MODULE: Sort bams by mate pair ids (no position)
-        */
-        SAMTOOLS_SORT (
-            ch_samtools_bam
-        )
-        //SAMTOOLS_SORT.out.bam | view
-
-        /*
         * MODULE: Export meta-data to csv file
         */
         EXPORT_META (
@@ -892,7 +884,7 @@ workflow CUTANDRUN {
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
             AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
             ch_seacr_bed.collect{it[1]},                // peak beds
-            SAMTOOLS_SORT.out.bam.collect{it[1]}        // bam files sorted by mate pair ids
+            ch_samtools_bam.collect{it[1]}              // bam files sorted by mate pair ids
         )
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
     }
