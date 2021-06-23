@@ -473,5 +473,14 @@
         {
             "$ref": "#/definitions/spike_in_options"
         }
-    ]
+    ],
+    "properties": {
+        "attribute": {
+            "type": "string"
+        },
+        "skip_scale": {
+            "type": "string",
+            "description": "Skip calculation of scale factor and do NOT normalise between samples based on spike-in alignment"
+        }
+    }
 }
