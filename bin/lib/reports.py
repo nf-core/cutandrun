@@ -243,28 +243,7 @@ class Reports:
         self.frag_series = pd.DataFrame({'group' : group_arr, 'replicate' : rep_arr, 'frag_len' : frag_lens, 'occurences' : frag_counts})
 
         # ---------- Data - Peak stats --------- #
-        # create number of peaks df
-        # unique_groups = self.seacr_beds.group.unique()
-        # unique_replicates = self.seacr_beds.replicate.unique()
-        # self.df_no_peaks = pd.DataFrame(index=range(0,(len(unique_groups)*len(unique_replicates))), columns=['group','replicate','all_peaks'])
-        # k=0 # counter
-
-        # for i in list(range(len(unique_groups))):
-        #     for j in list(range(len(unique_replicates))):
-        #         self.df_no_peaks.at[k,'all_peaks'] = self.seacr_beds[(self.seacr_beds['group']==unique_groups[i]) & (self.seacr_beds['replicate']==unique_replicates[j])].shape[0]
-        #         self.df_no_peaks.at[k,'group'] = unique_groups[i]
-        #         self.df_no_peaks.at[k,'replicate'] = unique_replicates[j]
-        #         k=k+1
-
-        # print(self.seacr_beds)
-        # print("peaks df")
-        # print(self.df_no_peaks)
-        # unique_groups = self.seacr_beds.group.unique()
-        # seacr_beds_group_rep = self.seacr_beds[['group','replicate']].groupby(['group','replicate']).size().reset_index()
         self.seacr_beds_group_rep = self.seacr_beds[['group','replicate']].groupby(['group','replicate']).size().reset_index().rename(columns={0:'all_peaks'})
-        # print("test df")
-        # print(test_df)
-        # self.df_no_peaks =
 
         # ---------- Data - Reproducibility of peaks between replicates --------- #
         # empty dataframe to fill in loop
@@ -286,23 +265,12 @@ class Reports:
         unique_groups = self.seacr_beds.group.unique()
         print(unique_groups)
         unique_replicates = self.seacr_beds.replicate.unique()
-        # print(unique_replicates)
-        # rep_permutations = array_permutate(range(len(unique_replicates)))
-        # test_permutations = array_permutate(range(5))
-        # print(test_permutations)
-        # print(rep_permutations)
-        # print("this is seacr bed")
-        # print(self.seacr_beds)
-        self.replicate_number = 1 #len(unique_replicates)
-        # print("this is rep_permutations")
-        # print(rep_permutations)
+        self.replicate_number = 1
+        self.multiple_reps = True
+        if (len(unique_groups) == self.seacr_beds_group_rep.shape[0]):
+            self.multiple_reps = False
 
-        # get replicate number for each group
-        # seacr_beds_group_rep_df = self.seacr_beds[['group','replicate']] #, as_index = False).sum()
-        # print(seacr_beds_group_rep_df)
-        print(self.seacr_beds_group_rep)
-
-        if self.replicate_number >= 1:
+        if self.multiple_reps:
             idx_count=0
             for i in list(range(len(unique_groups))):
                 group_i = unique_groups[i]
@@ -335,10 +303,7 @@ class Reports:
                         self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
 
                     idx_count = idx_count + 1
-            print("denominator")
-            print(self.reprod_peak_stats['all_peaks'])
-            print('numerator')
-            print(self.reprod_peak_stats['no_peaks_reproduced'])
+
             fill_reprod_rate = (self.reprod_peak_stats['no_peaks_reproduced'] / self.reprod_peak_stats['all_peaks'])*100
             self.reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
 
@@ -421,10 +386,10 @@ class Reports:
         data["peak_widths"] = data7b
 
         # Plot 7c
-        # if self.replicate_number > 1:
-        plot7c, data7c = self.reproduced_peaks()
-        plots["reproduced_peaks"] = plot7c
-        data["reproduced_peaks"] = data7c
+        if self.multiple_reps:
+            plot7c, data7c = self.reproduced_peaks()
+            plots["reproduced_peaks"] = plot7c
+            data["reproduced_peaks"] = data7c
 
         # Plot 7d
         plot7d, data7d = self.frags_in_peaks()
