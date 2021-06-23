@@ -6,8 +6,6 @@
 [![GitHub Actions Linting Status](https://github.com/nf-core/cutandrun/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/cutandrun/actions)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A521.04.0-brightgreen.svg)](https://www.nextflow.io/)
 
-[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](https://bioconda.github.io/)
-[![Docker](https://img.shields.io/docker/automated/nfcore/cutandrun.svg)](https://hub.docker.com/r/nfcore/cutandrun)
 [![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23cutandrun-4A154B?logo=slack)](https://nfcore.slack.com/channels/cutandrun)
 
 ## Introduction
