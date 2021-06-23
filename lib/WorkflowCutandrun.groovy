@@ -103,7 +103,7 @@ class WorkflowCutandrun {
     }
 
     private static void varryingReplicateNumbersError(log) {
-        log.error "=============================================================================\n" +
+        log.error "===================================================================================\n" +
             "  There are varrying numbers of replicates across experiemental and IgG samples.\n" +
             "  Options:\n" +
             "    - provide a consistent number of replicates across all experiments and control\n" +
@@ -115,7 +115,7 @@ class WorkflowCutandrun {
     }
 
     private static void varryingReplicateNumbersWarn(log) {
-        log.warn "=============================================================================\n" +
+        log.warn "===================================================================================\n" +
             "  The number of replicates for IgG control does not match the number of replicates \n" +
             "  for experimental data. Only the first IgG replicate will be used for SEACR \n" +
             "  peak-caller normalisation and downstream analysis.\n" +
