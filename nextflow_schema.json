@@ -270,7 +270,11 @@
                 },
                 "skip_scale": {
                     "type": "boolean",
-                    "description": "Skip calculation of scale factor and do NOT normalise between samples based on spike-in alignment"
+                    "description": "Skip calculation of scale factor and do NOT normalise between samples based on spike-in alignment."
+                },
+                "skip_deseq2": {
+                    "type": "boolean",
+                    "description": "Skip DESeq2 differential analysis."
                 }
             }
         },

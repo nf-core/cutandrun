@@ -733,12 +733,14 @@ workflow CUTANDRUN {
         /*
         * MODULE: DESeq2 QC Analysis
         */
-        DESEQ2_DIFF (
-            ch_groups_no_igg,
-            ch_seacr_bed.collect{it[1]},
-            ch_samtools_bam_no_igg.collect{it[1]}
-        )
-        ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
+        if (!params.skip_deseq2) {
+            DESEQ2_DIFF (
+                ch_groups_no_igg,
+                ch_seacr_bed.collect{it[1]},
+                ch_samtools_bam_no_igg.collect{it[1]}
+            )
+            ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
+        }
 
         /*
         * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
