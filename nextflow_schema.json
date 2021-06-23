@@ -267,6 +267,10 @@
                 "skip_igv": {
                     "type": "boolean",
                     "description": "Skip the IGV session creation step."
+                },
+                "skip_scale": {
+                    "type": "boolean",
+                    "description": "Skip calculation of scale factor and do NOT normalise between samples based on spike-in alignment"
                 }
             }
         },
@@ -390,6 +394,10 @@
                     "description": "Show all params when using `--help`",
                     "hidden": true,
                     "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
+                },
+                "attribute": {
+                    "type": "string",
+                    "hidden": true
                 }
             }
         },
@@ -473,14 +481,5 @@
         {
             "$ref": "#/definitions/spike_in_options"
         }
-    ],
-    "properties": {
-        "attribute": {
-            "type": "string"
-        },
-        "skip_scale": {
-            "type": "string",
-            "description": "Skip calculation of scale factor and do NOT normalise between samples based on spike-in alignment"
-        }
-    }
+    ]
 }
