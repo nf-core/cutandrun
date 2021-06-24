@@ -411,20 +411,20 @@ workflow CUTANDRUN {
      * CHANNEL: Calculate scale factor for each sample based on a constant devided by the number
      *          of reads aligned to the spike-in genome. Optionally skipped.
      */
-     if (!params.skip_scale) {
-        ch_samtools_bam
-            .map { row ->
-                def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
-                [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
-            }
-            .set { ch_scale_factor }
-     } else {
-        ch_samtools_bam
-            .map { row ->
-                [ row[0].id, 1 ]
-            }
-            .set { ch_scale_factor }
-     }
+    if (!params.skip_scale) {
+    ch_samtools_bam
+        .map { row ->
+            def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
+            [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
+        }
+        .set { ch_scale_factor }
+    } else {
+    ch_samtools_bam
+        .map { row ->
+            [ row[0].id, 1 ]
+        }
+        .set { ch_scale_factor }
+    }
 
     // EXAMPLE CHANNEL STRUCT: [id, scale_factor]
     //ch_scale_factor | view
