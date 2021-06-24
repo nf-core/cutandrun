@@ -62,7 +62,7 @@ jobs:
   test_all_exp_one_igg_small:
     name: Run pipeline test with 2 groups of 2 replicate and one replicate of igg
     # Only run on push if this is the luslab dev branch (merged PRs)
-    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'luslab/cutandrun') }}
+    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
       NXF_VER: ${{ matrix.nxf_ver }}
@@ -87,7 +87,7 @@ jobs:
   test_one_exp_all_igg_small:
     name: Run pipeline test with 2 groups of 2 replicate and one replicate of igg
     # Only run on push if this is the luslab dev branch (merged PRs)
-    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'luslab/cutandrun') }}
+    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
       NXF_VER: ${{ matrix.nxf_ver }}
