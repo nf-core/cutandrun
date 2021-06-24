@@ -243,22 +243,11 @@ class Reports:
         self.frag_series = pd.DataFrame({'group' : group_arr, 'replicate' : rep_arr, 'frag_len' : frag_lens, 'occurences' : frag_counts})
 
         # ---------- Data - Peak stats --------- #
-        # create number of peaks df
-        unique_groups = self.seacr_beds.group.unique()
-        unique_replicates = self.seacr_beds.replicate.unique()
-        self.df_no_peaks = pd.DataFrame(index=range(0,(len(unique_groups)*len(unique_replicates))), columns=['group','replicate','all_peaks'])
-        k=0 # counter
-
-        for i in list(range(len(unique_groups))):
-            for j in list(range(len(unique_replicates))):
-                self.df_no_peaks.at[k,'all_peaks'] = self.seacr_beds[(self.seacr_beds['group']==unique_groups[i]) & (self.seacr_beds['replicate']==unique_replicates[j])].shape[0]
-                self.df_no_peaks.at[k,'group'] = unique_groups[i]
-                self.df_no_peaks.at[k,'replicate'] = unique_replicates[j]
-                k=k+1
+        self.seacr_beds_group_rep = self.seacr_beds[['group','replicate']].groupby(['group','replicate']).size().reset_index().rename(columns={0:'all_peaks'})
 
         # ---------- Data - Reproducibility of peaks between replicates --------- #
         # empty dataframe to fill in loop
-        self.reprod_peak_stats = self.df_no_peaks
+        self.reprod_peak_stats = self.seacr_beds_group_rep #self.df_no_peaks
         self.reprod_peak_stats = self.reprod_peak_stats.reindex(columns=self.reprod_peak_stats.columns.tolist() + ['no_peaks_reproduced','peak_reproduced_rate'])
 
         # create permutations list
@@ -275,20 +264,24 @@ class Reports:
         # create pyranges objects and fill df
         unique_groups = self.seacr_beds.group.unique()
         unique_replicates = self.seacr_beds.replicate.unique()
-        rep_permutations = array_permutate(range(len(unique_replicates)))
-        self.replicate_number = len(unique_replicates)
-        # print("this is rep_permutations")
-        # print(rep_permutations)
+        self.replicate_number = 1
+        self.multiple_reps = True
+        if (len(unique_groups) == self.seacr_beds_group_rep.shape[0]):
+            self.multiple_reps = False
 
-        if self.replicate_number > 1:
+        if self.multiple_reps:
             idx_count=0
             for i in list(range(len(unique_groups))):
                 group_i = unique_groups[i]
-                for k in list(range(len(unique_replicates))):
+                group_reps = len(self.seacr_beds_group_rep[self.seacr_beds_group_rep['group'] == group_i])
+                if group_reps < 2:
+                    continue
+                rep_permutations = array_permutate(range(group_reps))
+                for k in list(range(group_reps)):
                     pyr_query = pr.PyRanges()
                     rep_perm = rep_permutations[k]
                     for j in rep_perm:
-                        rep_i = unique_replicates[j]
+                        rep_i = "R" + str(range(group_reps)[j]+1)
                         peaks_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
                         pyr_subject = pr.PyRanges(chromosomes=peaks_i['chrom'], starts=peaks_i['start'], ends=peaks_i['end'])
                         if(len(pyr_query) > 0):
@@ -301,6 +294,7 @@ class Reports:
 
                     if (pyr_query.empty):
                         self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = 0
+
                     else :
                         pyr_starts = pyr_query.values()[0]['Start']
                         unique_pyr_starts = pyr_starts.unique()
@@ -370,10 +364,9 @@ class Reports:
         data["frag_hist"] = data4
 
         # Plot 5
-        if self.replicate_number > 1:
-            plot5, data5 = self.replicate_heatmap()
-            plots["replicate_heatmap"] = plot5
-            data["replicate_heatmap"] = data5
+        plot5, data5 = self.replicate_heatmap()
+        plots["replicate_heatmap"] = plot5
+        data["replicate_heatmap"] = data5
 
         # Plot 6
         plot6, data6 = self.scale_factor_summary()
@@ -391,7 +384,7 @@ class Reports:
         data["peak_widths"] = data7b
 
         # Plot 7c
-        if self.replicate_number > 1:
+        if self.multiple_reps:
             plot7c, data7c = self.reproduced_peaks()
             plots["reproduced_peaks"] = plot7c
             data["reproduced_peaks"] = data7c
@@ -577,10 +570,10 @@ class Reports:
         fig, ax = plt.subplots()
         fig.suptitle("Total Peaks")
 
-        ax = sns.boxplot(data=self.df_no_peaks, x='group', y='all_peaks', palette = "magma")
+        ax = sns.boxplot(data=self.seacr_beds_group_rep, x='group', y='all_peaks', palette = "magma")
         ax.set_ylabel("No. of Peaks")
 
-        return fig, self.df_no_peaks
+        return fig, self.seacr_beds_group_rep
 
     # 7b - Width of peaks
     def peak_widths(self):
