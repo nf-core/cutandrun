@@ -130,7 +130,7 @@
                     "description": "iGenomes option for spike-in reference genome."
                 },
                 "save_spikein_aligned": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Save BAM files from alignment to spike-in genome."
                 },
                 "spikein_fasta": {
@@ -267,6 +267,14 @@
                 "skip_igv": {
                     "type": "boolean",
                     "description": "Skip the IGV session creation step."
+                },
+                "skip_scale": {
+                    "type": "boolean",
+                    "description": "Skip calculation of scale factor and do NOT normalise between samples based on spike-in alignment."
+                },
+                "skip_deseq2": {
+                    "type": "boolean",
+                    "description": "Skip DESeq2 differential analysis."
                 }
             }
         },
@@ -390,6 +398,10 @@
                     "description": "Show all params when using `--help`",
                     "hidden": true,
                     "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
+                },
+                "attribute": {
+                    "type": "string",
+                    "hidden": true
                 }
             }
         },

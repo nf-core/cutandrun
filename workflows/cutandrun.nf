@@ -78,7 +78,15 @@ if (params.save_trimmed) { trimgalore_options.publish_files.put("fq.gz","") }
 // Alignment dedup and filtering
 def prepareToolIndices             = ["bowtie2"]
 def bowtie2_spikein_align_options  = modules["bowtie2_spikein_align"]
+if (params.save_spikein_aligned) {
+    bowtie2_spikein_align_options.publish_dir   = "aligner/${params.aligner}/spikein"
+    bowtie2_spikein_align_options.publish_files = ["bam":""]
+}
 def samtools_spikein_sort_options = modules["samtools_spikein_sort"]
+if (params.save_spikein_aligned) {
+    samtools_spikein_sort_options.publish_dir   = "aligner/${params.aligner}/spikein"
+    samtools_spikein_sort_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
 def dedup_control_only = true
 if(params.dedup_target_reads) { dedup_control_only = false }
 
@@ -201,7 +209,6 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../mo
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/software/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]  )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]   )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]  )
-include { SAMTOOLS_SORT                                            } from "../modules/nf-core/software/samtools/sort/main.nf"        addParams( options: modules["samtools_sort"]         )
 include { SEACR_CALLPEAK                                           } from "../modules/nf-core/software/seacr/callpeak/main"          addParams( options: modules["seacr"]                 )
 include { UCSC_BEDCLIP                                             } from "../modules/nf-core/software/ucsc/bedclip/main"            addParams( options: modules["ucsc_bedclip"]          )
 
@@ -402,14 +409,23 @@ workflow CUTANDRUN {
 
     /*
      * CHANNEL: Calculate scale factor for each sample based on a constant devided by the number
-     *          of reads aligned to the spike-in genome
+     *          of reads aligned to the spike-in genome. Optionally skipped.
      */
-    ch_samtools_bam
-        .map { row ->
-            def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
-            [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
-        }
-        .set { ch_scale_factor }
+     if (!params.skip_scale) {
+        ch_samtools_bam
+            .map { row ->
+                def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
+                [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
+            }
+            .set { ch_scale_factor }
+     } else {
+        ch_samtools_bam
+            .map { row ->
+                [ row[0].id, 1 ]
+            }
+            .set { ch_scale_factor }
+     }
+
     // EXAMPLE CHANNEL STRUCT: [id, scale_factor]
     //ch_scale_factor | view
 
@@ -724,12 +740,14 @@ workflow CUTANDRUN {
         /*
         * MODULE: DESeq2 QC Analysis
         */
-        DESEQ2_DIFF (
-            ch_groups_no_igg,
-            ch_seacr_bed.collect{it[1]},
-            ch_samtools_bam_no_igg.collect{it[1]}
-        )
-        ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
+        if (!params.skip_deseq2) {
+            DESEQ2_DIFF (
+                ch_groups_no_igg,
+                ch_seacr_bed.collect{it[1]},
+                ch_samtools_bam_no_igg.collect{it[1]}
+            )
+            ch_software_versions = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
+        }
 
         /*
         * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
@@ -851,14 +869,6 @@ workflow CUTANDRUN {
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
 
         /*
-        * MODULE: Sort bams by mate pair ids (no position)
-        */
-        SAMTOOLS_SORT (
-            ch_samtools_bam
-        )
-        //SAMTOOLS_SORT.out.bam | view
-
-        /*
         * MODULE: Export meta-data to csv file
         */
         EXPORT_META (
@@ -873,7 +883,7 @@ workflow CUTANDRUN {
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
             AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
             ch_seacr_bed.collect{it[1]},                // peak beds
-            SAMTOOLS_SORT.out.bam.collect{it[1]}        // bam files sorted by mate pair ids
+            ch_samtools_bam.collect{it[1]}              // bam files sorted by mate pair ids
         )
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
     }

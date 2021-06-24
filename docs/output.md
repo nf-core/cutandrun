@@ -109,7 +109,7 @@ If multiple libraries/runs have been provided for the same sample in the input s
 
 </details>
 
-Adapter-trimmed reads are mapped to the target and spike-in genomes using [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml). A genome index is required to run Bowtie2 which is created automatically from the genome fasta input. By default, the only alignment files output are the quality filtered, marked and/or deduplicated alignment files. To output all alignment files including those directly from the aligner, set `--publish_align_intermed true`.
+Adapter-trimmed reads are mapped to the target and spike-in genomes using [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml). A genome index is required to run Bowtie2 which is created automatically from the genome fasta input. By default, the only alignment files output are the quality filtered, marked and/or deduplicated alignment files. To output all alignment files including those directly from the aligner, set `--publish_align_intermed true`. By default, spike-in BAMs are not pubished to results. This can be overridden with `--save_spikein_aligned`.
 
 ![MultiQC - Bowtie2 paired-end mapping stats](images/mqc_bowtie2_pe.png)
 
