@@ -299,16 +299,28 @@ if (file.exists(PlotFile) == FALSE) {
                 panel.background = element_blank(),
                 panel.border = element_rect(colour = "black", fill=NA, size=1))
         print(pl)
+
+        # assign separate plotting variable
+        if (n_top_var == 500) {
+            pca.top_data <- pca.data
+        }
     } # at end of loop, we'll be using the user-defined ntop if any, else all peaks
 
     ## VOLCANO PLOT
     plotMA(dds)
 
     ## WRITE PC1 vs PC2 VALUES TO FILE
+    # All peaks
     pca.vals           <- pca.data[,1:2]
     colnames(pca.vals) <- paste0(colnames(pca.vals), ": ", percentVar[1:2], '% variance')
     pca.vals           <- cbind(sample = rownames(pca.vals), pca.vals)
     write.table(pca.vals,file=paste(opt$outprefix,".pca.vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
+
+    # 500 top peaks
+    pca.top_vals           <- pca.top_data[,1:2]
+    colnames(pca.top_vals) <- paste0(colnames(pca.top_vals), ": ", percentVar[1:2], '% variance')
+    pca.top_vals           <- cbind(sample = rownames(pca.top_vals), pca.top_vals)
+    write.table(pca.top_vals,file=paste(opt$outprefix,".pca.top_vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
 
     ## SAMPLE CORRELATION HEATMAP
     sampleDists      <- dist(t(assay(dds, vst_name)))

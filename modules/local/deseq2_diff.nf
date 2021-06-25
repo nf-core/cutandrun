@@ -19,6 +19,7 @@ process DESEQ2_DIFF {
     path peak_beds
     path bams
     path pca_header_multiqc
+    path top_pca_header_multiqc
     path clustering_header_multiqc
 
     output:
@@ -26,6 +27,8 @@ process DESEQ2_DIFF {
     path "*.RData"              , optional:true, emit: rdata
     path "*pca.vals.txt"        , optional:true, emit: pca_txt
     path "*pca.vals_mqc.tsv"    , optional:true, emit: pca_multiqc
+    path "*pca.top_vals.txt"    , optional:true, emit: top_pca_txt
+    path "*pca.top_vals_mqc.tsv", optional:true, emit: top_pca_multiqc
     path "*sample.dists.txt"    , optional:true, emit: dists_txt
     path "*sample.dists_mqc.tsv", optional:true, emit: dists_multiqc
     //path "*.log"                , optional:true, emit: log
@@ -54,6 +57,10 @@ process DESEQ2_DIFF {
         sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$pca_header_multiqc >tmp.txt
         sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
         cat tmp.txt *.pca.vals.txt > ${label_lower}.pca.vals_mqc.tsv
+
+        sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$pca_header_multiqc >tmp.txt
+        sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
+        cat tmp.txt *.pca.top_vals.txt > ${label_lower}.pca.top_vals_mqc.tsv
 
         sed "s/deseq2_clustering/${label_lower}_deseq2_clustering/g" <$clustering_header_multiqc >tmp.txt
         sed -i -e "s/DESeq2 sample/${label_upper} DESeq2 sample/g" tmp.txt
