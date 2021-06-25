@@ -944,6 +944,8 @@ workflow CUTANDRUN {
             ch_markduplicates_multiqc.collect{it[1]}.ifEmpty([]),
             ch_pca_multiqc.collect().ifEmpty([]),
             ch_top_pca_multiqc.collect().ifEmpty([]),
+            ch_pca_group_multiqc.collect().ifEmpty([]),
+            ch_top_pca_group_multiqc.collect().ifEmpty([]),
             ch_clustering_multiqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
