@@ -288,8 +288,6 @@ if (file.exists(PlotFile) == FALSE) {
 
         # PCA PLOT 3 - GROUP-EXPLANATORY PCs
         pc_r <- order(attr(pca.data, "percentVar")$groupR, decreasing=TRUE)
-        print("pc_r")
-        print(pc_r)
         pl <- ggplot(pca.data, aes_string(paste0("PC", pc_r[1]), paste0("PC", pc_r[2]), color="condition")) +
             geom_point(size=3) +
             xlab(paste0("PC", pc_r[1], ": ",percentVar[pc_r[1]],"% variance")) +
@@ -355,8 +353,7 @@ if (file.exists(PlotFile) == FALSE) {
 
     dev.off()
 }
-print("helloooooooo")
-print(pca.data[1:20,])
+
 ################################################
 ################################################
 ## SAVE SIZE FACTORS                          ##
