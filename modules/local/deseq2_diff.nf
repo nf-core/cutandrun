@@ -58,7 +58,7 @@ process DESEQ2_DIFF {
         sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
         cat tmp.txt *.pca.vals.txt > ${label_lower}.pca.vals_mqc.tsv
 
-        sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$pca_header_multiqc >tmp.txt
+        sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$top_pca_header_multiqc >tmp.txt
         sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
         cat tmp.txt *.pca.top_vals.txt > ${label_lower}.pca.top_vals_mqc.tsv
 
