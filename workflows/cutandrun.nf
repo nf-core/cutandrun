@@ -49,9 +49,11 @@ ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkI
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 // Header files for MultiQC
-ch_pca_header_multiqc        = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
-ch_top_pca_header_multiqc    = file("$projectDir/assets/multiqc/deseq2_top_pca_header.txt", checkIfExists: true)
-ch_clustering_header_multiqc = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
+ch_pca_header_multiqc           = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
+ch_top_pca_header_multiqc       = file("$projectDir/assets/multiqc/deseq2_top_pca_header.txt", checkIfExists: true)
+ch_pca_group_header_multiqc     = file("$projectDir/assets/multiqc/deseq2_pca_group_header.txt", checkIfExists: true)
+ch_top_pca_group_header_multiqc = file("$projectDir/assets/multiqc/deseq2_top_pca_group_header.txt", checkIfExists: true)
+ch_clustering_header_multiqc    = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
 
 /*
 ========================================================================================
@@ -752,12 +754,16 @@ workflow CUTANDRUN {
                 ch_samtools_bam_no_igg.collect{it[1]},
                 ch_pca_header_multiqc,
                 ch_top_pca_header_multiqc,
+                ch_pca_group_header_multiqc,
+                ch_top_pca_group_header_multiqc,
                 ch_clustering_header_multiqc
             )
-            ch_pca_multiqc        = DESEQ2_DIFF.out.pca_multiqc
-            ch_top_pca_multiqc    = DESEQ2_DIFF.out.top_pca_multiqc
-            ch_clustering_multiqc = DESEQ2_DIFF.out.dists_multiqc
-            ch_software_versions  = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
+            ch_pca_multiqc           = DESEQ2_DIFF.out.pca_multiqc
+            ch_top_pca_multiqc       = DESEQ2_DIFF.out.top_pca_multiqc
+            ch_pca_group_multiqc     = DESEQ2_DIFF.out.pca_group_multiqc
+            ch_top_pca_group_multiqc = DESEQ2_DIFF.out.top_pca_group_multiqc
+            ch_clustering_multiqc    = DESEQ2_DIFF.out.dists_multiqc
+            ch_software_versions     = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
         }
 
         /*

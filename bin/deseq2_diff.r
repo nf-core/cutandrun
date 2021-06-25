@@ -288,6 +288,8 @@ if (file.exists(PlotFile) == FALSE) {
 
         # PCA PLOT 3 - GROUP-EXPLANATORY PCs
         pc_r <- order(attr(pca.data, "percentVar")$groupR, decreasing=TRUE)
+        print("pc_r")
+        print(pc_r)
         pl <- ggplot(pca.data, aes_string(paste0("PC", pc_r[1]), paste0("PC", pc_r[2]), color="condition")) +
             geom_point(size=3) +
             xlab(paste0("PC", pc_r[1], ": ",percentVar[pc_r[1]],"% variance")) +
@@ -303,6 +305,7 @@ if (file.exists(PlotFile) == FALSE) {
         # assign separate plotting variable
         if (n_top_var == 500) {
             pca.top_data <- pca.data
+            pc_r_top <- pc_r
         }
     } # at end of loop, we'll be using the user-defined ntop if any, else all peaks
 
@@ -322,6 +325,19 @@ if (file.exists(PlotFile) == FALSE) {
     pca.top_vals           <- cbind(sample = rownames(pca.top_vals), pca.top_vals)
     write.table(pca.top_vals,file=paste(opt$outprefix,".pca.top_vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
 
+    ## WRITE GROUP-EXPLANATORY PCs TO FILE
+    # All peaks
+    pca.vals_group           <- pca.data[,pc_r[1]:pc_r[2]]
+    colnames(pca.vals_group) <- paste0(colnames(pca.vals_group), ": ", percentVar[1:2], '% variance')
+    pca.vals_group           <- cbind(sample = rownames(pca.vals_group), pca.vals_group)
+    write.table(pca.vals_group,file=paste(opt$outprefix,".pca.vals_group.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
+
+    # 500 top peaks
+    pca.top_vals_group           <- pca.top_data[,pc_r_top[1]:pc_r_top[2]]
+    colnames(pca.top_vals_group) <- paste0(colnames(pca.top_vals_group), ": ", percentVar[1:2], '% variance')
+    pca.top_vals_group           <- cbind(sample = rownames(pca.top_vals_group), pca.top_vals_group)
+    write.table(pca.top_vals_group,file=paste(opt$outprefix,".pca.top_vals_group.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
+
     ## SAMPLE CORRELATION HEATMAP
     sampleDists      <- dist(t(assay(dds, vst_name)))
     sampleDistMatrix <- as.matrix(sampleDists)
@@ -339,7 +355,8 @@ if (file.exists(PlotFile) == FALSE) {
 
     dev.off()
 }
-
+print("helloooooooo")
+print(pca.data[1:20,])
 ################################################
 ################################################
 ## SAVE SIZE FACTORS                          ##

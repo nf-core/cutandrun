@@ -20,20 +20,29 @@ process DESEQ2_DIFF {
     path bams
     path pca_header_multiqc
     path top_pca_header_multiqc
+    path pca_group_header_multiqc
+    path top_pca_group_header_multiqc
     path clustering_header_multiqc
 
     output:
-    path "*.pdf"                , optional:true, emit: pdf
-    path "*.RData"              , optional:true, emit: rdata
-    path "*pca.vals.txt"        , optional:true, emit: pca_txt
-    path "*pca.vals_mqc.tsv"    , optional:true, emit: pca_multiqc
-    path "*pca.top_vals.txt"    , optional:true, emit: top_pca_txt
-    path "*pca.top_vals_mqc.tsv", optional:true, emit: top_pca_multiqc
-    path "*sample.dists.txt"    , optional:true, emit: dists_txt
-    path "*sample.dists_mqc.tsv", optional:true, emit: dists_multiqc
+    path "*.pdf"                      , optional:true, emit: pdf
+    path "*.RData"                    , optional:true, emit: rdata
+    path "*pca.vals.txt"              , optional:true, emit: pca_txt
+    path "*pca.vals_mqc.tsv"          , optional:true, emit: pca_multiqc
+    path "*pca.top_vals.txt"          , optional:true, emit: top_pca_txt
+    path "*pca.top_vals_mqc.tsv"      , optional:true, emit: top_pca_multiqc
+
+    path "*pca.vals_group.txt"        , optional:true, emit: pca_group_txt
+    path "*pca.vals_group_mqc.tsv"    , optional:true, emit: pca_group_multiqc
+
+    path "*pca.top_vals_group.txt"    , optional:true, emit: top_pca_group_txt
+    path "*pca.top_vals_group_mqc.tsv", optional:true, emit: top_pca_group_multiqc
+
+    path "*sample.dists.txt"          , optional:true, emit: dists_txt
+    path "*sample.dists_mqc.tsv"      , optional:true, emit: dists_multiqc
     //path "*.log"                , optional:true, emit: log
-    path "size_factors"         , optional:true, emit: size_factors
-    path  "*.version.txt"       , emit: version
+    path "size_factors"               , optional:true, emit: size_factors
+    path  "*.version.txt"             , emit: version
 
     script:
     def software    = getSoftwareName(task.process)
@@ -61,6 +70,14 @@ process DESEQ2_DIFF {
         sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$top_pca_header_multiqc >tmp.txt
         sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
         cat tmp.txt *.pca.top_vals.txt > ${label_lower}.pca.top_vals_mqc.tsv
+
+        sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$pca_group_header_multiqc >tmp.txt
+        sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
+        cat tmp.txt *.pca.vals_group.txt > ${label_lower}.pca.vals_group_mqc.tsv
+
+        sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$top_pca_group_header_multiqc >tmp.txt
+        sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
+        cat tmp.txt *.pca.top_vals_group.txt > ${label_lower}.top_pca.vals_group_mqc.tsv
 
         sed "s/deseq2_clustering/${label_lower}_deseq2_clustering/g" <$clustering_header_multiqc >tmp.txt
         sed -i -e "s/DESeq2 sample/${label_upper} DESeq2 sample/g" tmp.txt
