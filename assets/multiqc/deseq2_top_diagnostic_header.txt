@@ -1,5 +1,5 @@
 #id: 'deseq2_top_diagnostic'
-#section_name: 'DESeq2 DIAGNOSTIC OF PCs plot - top 500 peaks'
+#section_name: 'DESeq2 Diagnostic OF PCs plot - top 500 peaks'
 #description: "DIAGNOSTIC OF PCs plot.
 #              These values are calculated using <a href='https://bioconductor.org/packages/release/bioc/html/DESeq2.html'>DESeq2</a>
 #              in the <a href='https://github.com/nf-core/atacseq/blob/master/bin/deseq2_qc.r'><code>deseq2_qc.r</code></a> script."
