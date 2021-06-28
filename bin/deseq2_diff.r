@@ -297,12 +297,12 @@ if (file.exists(PlotFile) == FALSE) {
         explained_by_condition <- round(diagnostic_data$data[[2]]$y)
         
         component_str          <- paste("'", component ,"'", sep="")
-        explained_by_PC_str    <- paste("        ", paste(component_str, explained_by_PC, sep = " : ", collapse = " , "))
-        explained_by_cond_str  <- paste("        ", paste(component_str, explained_by_condition, sep = " : ", collapse = " , "))
+        explained_by_PC_str    <- paste("    'explained_by_PC' : {", paste(component_str, explained_by_PC, sep = " : ", collapse = " , "), " }")
+        explained_by_cond_str  <- paste( "    'explained_by_condition' : {", paste(component_str, explained_by_condition, sep = " : ", collapse = " , "), "}")
         
-        start_str <- "#data = {"
-        line1_str <- "    'explained_by_PC' : {"
-        line2_str <- "    'explained_by_condition' : {"
+        start_str <- "data:"
+        #line1_str <- "    'explained_by_PC' : {"
+        #line2_str <- "    'explained_by_condition' : {"
         
         if (n_top_var == 500) {
             fileConn<-file(paste(opt$outprefix,".pca.top_diagnostic_vals.txt",sep=""))
@@ -310,7 +310,7 @@ if (file.exists(PlotFile) == FALSE) {
             fileConn<-file(paste(opt$outprefix,".pca.diagnostic_vals.txt",sep=""))
         }
         ## WRITE DIAGNOSTIC OF PCs TO FILE
-        writeLines(c(start_str, line1_str, explained_by_PC_str, "    },", line2_str, explained_by_cond_str, "    }", "}"), fileConn)
+        writeLines(c(start_str, explained_by_PC_str, explained_by_cond_str), fileConn)
         close(fileConn)
 
         # PCA PLOT 3 - GROUP-EXPLANATORY PCs

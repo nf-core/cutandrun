@@ -41,10 +41,10 @@ process DESEQ2_DIFF {
     path "*pca.top_vals_group_mqc.tsv"     , optional:true, emit: top_pca_group_multiqc
 
     path "*pca.diagnostic_vals.txt"        , optional:true, emit: pca_diagnostic_txt
-    path "*pca.diagnostic_vals_mqc.tsv"    , optional:true, emit: pca_diagnostic_multiqc
+    path "*pca.diagnostic_vals_mqc.yaml"    , optional:true, emit: pca_diagnostic_multiqc
 
     path "*pca.top_diagnostic_vals.txt"    , optional:true, emit: top_pca_diagnostic_txt
-    path "*pca.top_diagnostic_vals_mqc.tsv", optional:true, emit: top_pca_diagnostic_multiqc
+    path "*pca.top_diagnostic_vals_mqc.yaml", optional:true, emit: top_pca_diagnostic_multiqc
 
 
     path "*sample.dists.txt"               , optional:true, emit: dists_txt
@@ -90,11 +90,11 @@ process DESEQ2_DIFF {
 
         sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$diagnostic_header_multiqc >tmp.txt
         sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
-        cat tmp.txt *.pca.diagnostic_vals.txt > ${label_lower}.pca.diagnostic_vals_mqc.tsv
+        cat tmp.txt *.pca.diagnostic_vals.txt > ${label_lower}.pca.diagnostic_vals_mqc.yaml
 
         sed "s/deseq2_pca/${label_lower}_deseq2_pca/g" <$top_diagnostic_header_multiqc >tmp.txt
         sed -i -e "s/DESeq2 PCA/${label_upper} DESeq2 PCA/g" tmp.txt
-        cat tmp.txt *.pca.top_diagnostic_vals.txt > ${label_lower}.pca.top_diagnostic_vals_mqc.tsv
+        cat tmp.txt *.pca.top_diagnostic_vals.txt > ${label_lower}.pca.top_diagnostic_vals_mqc.yaml
 
         sed "s/deseq2_clustering/${label_lower}_deseq2_clustering/g" <$clustering_header_multiqc >tmp.txt
         sed -i -e "s/DESeq2 sample/${label_upper} DESeq2 sample/g" tmp.txt
