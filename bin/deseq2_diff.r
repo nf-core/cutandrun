@@ -294,7 +294,8 @@ if (file.exists(PlotFile) == FALSE) {
         #print("length")
         #print(nrow(diagnostic_data$data[[1]]))
         
-        component              <- 1:nrow(diagnostic_data$data[[1]])
+        int_component          <- 1:nrow(diagnostic_data$data[[1]])
+        component              <- paste(int_component, sep=" ", collapse=NULL)
         explained_by_PC        <- round(diagnostic_data$data[[1]]$y)
         explained_by_condition <- round(diagnostic_data$data[[2]]$y)
         diagnostic_df          <- data.frame(component, explained_by_PC, explained_by_condition)
@@ -333,8 +334,8 @@ if (file.exists(PlotFile) == FALSE) {
     pca.vals           <- pca.data[,1:2]
     colnames(pca.vals) <- paste0(colnames(pca.vals), ": ", percentVar[1:2], '% variance')
     pca.vals           <- cbind(sample = rownames(pca.vals), pca.vals)
-    print("pca vals")
-    print(pca.vals)
+    #print("pca vals")
+    #print(pca.vals)
     write.table(pca.vals,file=paste(opt$outprefix,".pca.vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
 
     # 500 top peaks
