@@ -287,18 +287,32 @@ if (file.exists(PlotFile) == FALSE) {
             theme_bw() +
             theme(legend.position="top")
         print(pl_d)
-        #print("testing")
         diagnostic_data <- ggplot_build(pl_d)
-        #print(round(diagnostic_data$data[[1]]$y))
-        #print(round(diagnostic_data$data[[2]]$y))
-        #print("length")
-        #print(nrow(diagnostic_data$data[[1]]))
+        
+        # Construct strings for linegraph multiqc format
         
         int_component          <- 1:nrow(diagnostic_data$data[[1]])
         component              <- paste(int_component, sep=" ", collapse=NULL)
         explained_by_PC        <- round(diagnostic_data$data[[1]]$y)
         explained_by_condition <- round(diagnostic_data$data[[2]]$y)
-        diagnostic_df          <- data.frame(component, explained_by_PC, explained_by_condition)
+        
+        component_str          <- paste("'", component ,"'", sep="")
+        explained_by_PC_str    <- paste("        ", paste(component_str, explained_by_PC, sep = " : ", collapse = " , "))
+        explained_by_cond_str  <- paste("        ", paste(component_str, explained_by_condition, sep = " : ", collapse = " , "))
+        
+        start_str <- "data = {"
+        line1_str <- "    'explained_by_PC' : {"
+        line2_str <- "    'explained_by_condition' : {"
+        
+        if (n_top_var == 500) {
+            fileConn<-file(paste(opt$outprefix,".pca.top_diagnostic_vals.txt",sep=""))
+        } else {
+            fileConn<-file(paste(opt$outprefix,".pca.diagnostic_vals.txt",sep=""))
+        }
+        ## WRITE DIAGNOSTIC OF PCs TO FILE
+        writeLines(c(start_str, line1_str, explained_by_PC_str, "    },", line2_str, explained_by_cond_str, "    }", "}"), fileConn)
+        close(fileConn)
+        
         print("diagnostic df")
         print(diagnostic_df)
 
@@ -343,13 +357,6 @@ if (file.exists(PlotFile) == FALSE) {
     colnames(pca.top_vals) <- paste0(colnames(pca.top_vals), ": ", percentVar[1:2], '% variance')
     pca.top_vals           <- cbind(sample = rownames(pca.top_vals), pca.top_vals)
     write.table(pca.top_vals,file=paste(opt$outprefix,".pca.top_vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
-
-    ## WRITE DIAGNOSTIC OF PCs TO FILE
-    # All peaks
-    write.table(diagnostic_df, file=paste(opt$outprefix,".pca.diagnostic_vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
-    
-    # 500 top peaks
-    write.table(diagnostic_df_top, file=paste(opt$outprefix,".pca.top_diagnostic_vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
     
     ## WRITE GROUP-EXPLANATORY PCs TO FILE
     # All peaks
