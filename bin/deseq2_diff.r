@@ -312,9 +312,6 @@ if (file.exists(PlotFile) == FALSE) {
         ## WRITE DIAGNOSTIC OF PCs TO FILE
         writeLines(c(start_str, line1_str, explained_by_PC_str, "    },", line2_str, explained_by_cond_str, "    }", "}"), fileConn)
         close(fileConn)
-        
-        print("diagnostic df")
-        print(diagnostic_df)
 
         # PCA PLOT 3 - GROUP-EXPLANATORY PCs
         pc_r <- order(attr(pca.data, "percentVar")$groupR, decreasing=TRUE)
@@ -334,7 +331,6 @@ if (file.exists(PlotFile) == FALSE) {
         if (n_top_var == 500) {
             pca.top_data <- pca.data
             pc_r_top <- pc_r
-            diagnostic_df_top <- diagnostic_df
         }
     } # at end of loop, we'll be using the user-defined ntop if any, else all peaks
 
