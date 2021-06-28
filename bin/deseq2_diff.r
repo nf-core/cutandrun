@@ -300,7 +300,7 @@ if (file.exists(PlotFile) == FALSE) {
         explained_by_PC_str    <- paste("        ", paste(component_str, explained_by_PC, sep = " : ", collapse = " , "))
         explained_by_cond_str  <- paste("        ", paste(component_str, explained_by_condition, sep = " : ", collapse = " , "))
         
-        start_str <- "data = {"
+        start_str <- "#data = {"
         line1_str <- "    'explained_by_PC' : {"
         line2_str <- "    'explained_by_condition' : {"
         
