@@ -394,14 +394,22 @@ class Reports:
         plots["frags_in_peaks"] = plot7d
         data["frags_in_peaks"] = data7d
 
-        return (plots, data)
+        # Fragment Length Histogram data in MultiQC yaml format
+        txt = self.frag_len_hist_mqc()
+
+        return (plots, data, txt)
 
     def gen_plots_to_folder(self, output_path):
         # Init
         abs_path = os.path.abspath(output_path)
 
         # Get plots and supporting data tables
-        plots, data = self.generate_plots()
+        plots, data, txt = self.generate_plots()
+
+        # Save mqc text file
+        txt_mqc = open(os.path.join(abs_path, "frag_len_mqc.txt"), "w")
+        txt_mqc.write(txt)
+        txt_mqc.close()
 
         # Save data to output folder
         for key in data:
@@ -424,6 +432,46 @@ class Reports:
             # d['Keywords'] = 'PdfPages multipage keywords author title subject'
             # d['CreationDate'] = datetime.datetime(2009, 11, 13)
             # d['ModDate'] = datetime.datetime.today()
+
+    #*
+    #========================================================================================
+    # TXT FILES
+    #========================================================================================
+    #*/
+
+    def frag_len_hist_mqc(self):
+        # print(self.frag_hist)
+        size_list = self.frag_hist["Size"].to_numpy().astype(str)
+        occurrences_list = self.frag_hist["Occurrences"].to_numpy().astype(str)
+        # print(size_list)
+        # seperator = " : " * self.frag_hist.shape[0]
+        size_list_sep = np.core.defchararray.add(size_list, " : ")
+        x_y_list = np.core.defchararray.add(size_list_sep, occurrences_list)
+        # print(size_list_sep)
+        # print(x_y_list)
+        # print(size_list)
+
+        group_rep = self.frag_hist[['group','replicate']].groupby(['group','replicate']).size().reset_index()
+        # print(group_rep)
+
+        first_line = "data:"
+
+        for i in list(range(group_rep.shape[0])):
+            group_i = group_rep.at[i,"group"]
+            rep_i = group_rep.at[i,"replicate"]
+            str_list = x_y_list[ (self.frag_hist['group'] == group_i) & (self.frag_hist['replicate'] == rep_i) ]
+            # print(str_list)
+
+            x_y_str = ", ".join(str_list)
+            full_line_i = "    '" + group_i + "_" + rep_i + "' : {" + x_y_str + "}"
+            if i==0:
+                frag_len_hist_mqc_dict = "\n".join([first_line, full_line_i])
+
+            else:
+                frag_len_hist_mqc_dict = "\n".join([frag_len_hist_mqc_dict, full_line_i])
+
+
+        return frag_len_hist_mqc_dict
 
     #*
     #========================================================================================

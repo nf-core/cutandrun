@@ -262,6 +262,8 @@ if (file.exists(PlotFile) == FALSE) {
     for (n_top_var in ntop) {
         pca.data      <- plotPCA_vst(dds, assay=vst_name,intgroup="condition",ntop=n_top_var)
         percentVar    <- round(attr(pca.data, "percentVar")$percentVar)
+        print("percent var")
+        print(percentVar)
         plot_subtitle <- ifelse(n_top_var==Inf, "All peaks", paste("Top", n_top_var, "peaks"))
         # PCA PLOT 1 - FIRST PC
         pl <- ggplot(pca.data, aes(PC1, PC2, color=condition)) +
@@ -277,14 +279,39 @@ if (file.exists(PlotFile) == FALSE) {
         print(pl)
 
         # PCA PLOT 2 - DIAGNOSTIC OF PCs
-        pl <- ggplot(attr(pca.data, "percentVar"), aes(x=PC, y=percentVar)) +
+        pl_d <- ggplot(attr(pca.data, "percentVar"), aes(x=PC, y=percentVar)) +
             geom_line(aes(colour="explained by PC")) +
             geom_line(aes(y=groupR, colour="of PC explained by condition")) +
             scale_x_continuous(breaks=seq(along=percentVar), minor_breaks=NULL)  +
             labs(title="Diagnostics of PCs", subtitle=plot_subtitle, x="Component", y="Percentage explaned", colour="Percentage variation") +
             theme_bw() +
             theme(legend.position="top")
-        print(pl)
+        print(pl_d)
+        diagnostic_data <- ggplot_build(pl_d)
+        
+        # Construct strings for linegraph multiqc format
+        
+        int_component          <- 1:nrow(diagnostic_data$data[[1]])
+        component              <- paste(int_component, sep=" ", collapse=NULL)
+        explained_by_PC        <- round(diagnostic_data$data[[1]]$y)
+        explained_by_condition <- round(diagnostic_data$data[[2]]$y)
+        
+        component_str          <- paste("'", component ,"'", sep="")
+        explained_by_PC_str    <- paste("    'explained_by_PC' : {", paste(component_str, explained_by_PC, sep = " : ", collapse = " , "), " }")
+        explained_by_cond_str  <- paste( "    'explained_by_condition' : {", paste(component_str, explained_by_condition, sep = " : ", collapse = " , "), "}")
+        
+        start_str <- "data:"
+        #line1_str <- "    'explained_by_PC' : {"
+        #line2_str <- "    'explained_by_condition' : {"
+        
+        if (n_top_var == 500) {
+            fileConn<-file(paste(opt$outprefix,".pca.top_diagnostic_vals.txt",sep=""))
+        } else {
+            fileConn<-file(paste(opt$outprefix,".pca.diagnostic_vals.txt",sep=""))
+        }
+        ## WRITE DIAGNOSTIC OF PCs TO FILE
+        writeLines(c(start_str, explained_by_PC_str, explained_by_cond_str), fileConn)
+        close(fileConn)
 
         # PCA PLOT 3 - GROUP-EXPLANATORY PCs
         pc_r <- order(attr(pca.data, "percentVar")$groupR, decreasing=TRUE)
@@ -299,16 +326,46 @@ if (file.exists(PlotFile) == FALSE) {
                 panel.background = element_blank(),
                 panel.border = element_rect(colour = "black", fill=NA, size=1))
         print(pl)
+
+        # assign separate plotting variable
+        if (n_top_var == 500) {
+            pca.top_data <- pca.data
+            pc_r_top <- pc_r
+        }
     } # at end of loop, we'll be using the user-defined ntop if any, else all peaks
 
     ## VOLCANO PLOT
     plotMA(dds)
+    
+    print(pca.data)
 
     ## WRITE PC1 vs PC2 VALUES TO FILE
+    # All peaks
     pca.vals           <- pca.data[,1:2]
     colnames(pca.vals) <- paste0(colnames(pca.vals), ": ", percentVar[1:2], '% variance')
     pca.vals           <- cbind(sample = rownames(pca.vals), pca.vals)
+    #print("pca vals")
+    #print(pca.vals)
     write.table(pca.vals,file=paste(opt$outprefix,".pca.vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
+
+    # 500 top peaks
+    pca.top_vals           <- pca.top_data[,1:2]
+    colnames(pca.top_vals) <- paste0(colnames(pca.top_vals), ": ", percentVar[1:2], '% variance')
+    pca.top_vals           <- cbind(sample = rownames(pca.top_vals), pca.top_vals)
+    write.table(pca.top_vals,file=paste(opt$outprefix,".pca.top_vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
+    
+    ## WRITE GROUP-EXPLANATORY PCs TO FILE
+    # All peaks
+    pca.vals_group           <- pca.data[,pc_r[1]:pc_r[2]]
+    colnames(pca.vals_group) <- paste0(colnames(pca.vals_group), ": ", percentVar[1:2], '% variance')
+    pca.vals_group           <- cbind(sample = rownames(pca.vals_group), pca.vals_group)
+    write.table(pca.vals_group,file=paste(opt$outprefix,".pca.vals_group.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
+
+    # 500 top peaks
+    pca.top_vals_group           <- pca.top_data[,pc_r_top[1]:pc_r_top[2]]
+    colnames(pca.top_vals_group) <- paste0(colnames(pca.top_vals_group), ": ", percentVar[1:2], '% variance')
+    pca.top_vals_group           <- cbind(sample = rownames(pca.top_vals_group), pca.top_vals_group)
+    write.table(pca.top_vals_group,file=paste(opt$outprefix,".pca.top_vals_group.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
 
     ## SAMPLE CORRELATION HEATMAP
     sampleDists      <- dist(t(assay(dds, vst_name)))

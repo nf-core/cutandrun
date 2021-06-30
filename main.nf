@@ -17,8 +17,13 @@ nextflow.enable.dsl = 2
 ========================================================================================
 */
 
+if (!params.fasta) {
+    params.bowtie2   = WorkflowMain.getGenomeAttribute(params, 'bowtie2')
+} else {
+    params.bowtie2   = null
+}
+
 params.fasta     = WorkflowMain.getGenomeAttribute(params, 'fasta')
-params.bowtie2   = WorkflowMain.getGenomeAttribute(params, 'bowtie2')
 params.gtf       = WorkflowMain.getGenomeAttribute(params, 'gtf')
 params.gene_bed  = WorkflowMain.getGenomeAttribute(params, 'bed12')
 params.blacklist = WorkflowMain.getGenomeAttribute(params, 'blacklist')
@@ -29,8 +34,13 @@ params.blacklist = WorkflowMain.getGenomeAttribute(params, 'blacklist')
 ========================================================================================
 */
 
+if (!params.spikein_fasta) {
+    params.spikein_bowtie2   = WorkflowMain.getGenomeAttribute(params, 'bowtie2')
+} else {
+    params.spikein_bowtie2   = null
+}
+
 params.spikein_fasta   = WorkflowMain.getGenomeAttributeSpikeIn(params, 'fasta')
-params.spikein_bowtie2 = WorkflowMain.getGenomeAttributeSpikeIn(params, 'bowtie2')
 
 /*
 ========================================================================================

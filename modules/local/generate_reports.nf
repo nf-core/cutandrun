@@ -20,12 +20,14 @@ process GENERATE_REPORTS {
     path bed_fragments
     path seacr_beds
     path bam_bais
+    path frag_len_header_multiqc
 
     output:
-    path '*.pdf', emit: pdf
-    path '*.csv', emit: csv
-    path '*.png', emit: png
-    path '*.version.txt', emit: version
+    path '*.pdf',             emit: pdf
+    path '*.csv',             emit: csv
+    path '*.png',             emit: png
+    path 'frag_len_mqc.yaml', emit: frag_len_multiqc
+    path '*.version.txt',     emit: version
 
     script:  // This script is bundled with the pipeline, in nf-core/cutandrun/bin/
     """
@@ -37,6 +39,10 @@ process GENERATE_REPORTS {
         --bams "*.bam" \\
         --output . \\
         --log log.txt
+
+    if [ -f "frag_len_mqc.txt" ]; then
+        cat $frag_len_header_multiqc frag_len_mqc.txt > frag_len_mqc.yaml
+    fi
 
     python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\" > python.version.txt
     """
