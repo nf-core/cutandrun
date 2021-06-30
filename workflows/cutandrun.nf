@@ -25,7 +25,7 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 if (params.input)     { ch_input     = file(params.input)     } else { exit 1, "Input samplesheet not specified!"     }
 if (params.blacklist) { ch_blacklist = file(params.blacklist) } else { exit 1, "Genome blacklist file not specified!" }
 
-// Save AWS IGenomes file containing annotation version
+// Save AWS IGenomes file containing annotation versions
 def anno_readme = params.genomes[ params.genome ]?.readme
 if (anno_readme && file(anno_readme).exists()) {
     file("${params.outdir}/genome/").mkdirs()
