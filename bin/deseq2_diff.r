@@ -288,22 +288,22 @@ if (file.exists(PlotFile) == FALSE) {
             theme(legend.position="top")
         print(pl_d)
         diagnostic_data <- ggplot_build(pl_d)
-        
+
         # Construct strings for linegraph multiqc format
-        
+
         int_component          <- 1:nrow(diagnostic_data$data[[1]])
         component              <- paste(int_component, sep=" ", collapse=NULL)
         explained_by_PC        <- round(diagnostic_data$data[[1]]$y)
         explained_by_condition <- round(diagnostic_data$data[[2]]$y)
-        
+
         component_str          <- paste("'", component ,"'", sep="")
         explained_by_PC_str    <- paste("    'explained_by_PC' : {", paste(component_str, explained_by_PC, sep = " : ", collapse = " , "), " }")
         explained_by_cond_str  <- paste( "    'explained_by_condition' : {", paste(component_str, explained_by_condition, sep = " : ", collapse = " , "), "}")
-        
+
         start_str <- "data:"
         #line1_str <- "    'explained_by_PC' : {"
         #line2_str <- "    'explained_by_condition' : {"
-        
+
         if (n_top_var == 500) {
             fileConn<-file(paste(opt$outprefix,".pca.top_diagnostic_vals.txt",sep=""))
         } else {
@@ -336,7 +336,7 @@ if (file.exists(PlotFile) == FALSE) {
 
     ## VOLCANO PLOT
     plotMA(dds)
-    
+
     print(pca.data)
 
     ## WRITE PC1 vs PC2 VALUES TO FILE
@@ -353,7 +353,7 @@ if (file.exists(PlotFile) == FALSE) {
     colnames(pca.top_vals) <- paste0(colnames(pca.top_vals), ": ", percentVar[1:2], '% variance')
     pca.top_vals           <- cbind(sample = rownames(pca.top_vals), pca.top_vals)
     write.table(pca.top_vals,file=paste(opt$outprefix,".pca.top_vals.txt",sep=""),row.names=FALSE,col.names=TRUE,sep="\t",quote=TRUE)
-    
+
     ## WRITE GROUP-EXPLANATORY PCs TO FILE
     # All peaks
     pca.vals_group           <- pca.data[,pc_r[1]:pc_r[2]]
