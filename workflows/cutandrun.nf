@@ -749,6 +749,13 @@ workflow CUTANDRUN {
         /*
         * MODULE: DESeq2 QC Analysis
         */
+        ch_pca_multiqc                = Channel.empty()
+        ch_top_pca_multiqc            = Channel.empty()
+        ch_pca_group_multiqc          = Channel.empty()
+        ch_top_pca_group_multiqc      = Channel.empty()
+        ch_pca_diagnostic_multiqc     = Channel.empty()
+        ch_top_pca_diagnostic_multiqc = Channel.empty()
+        ch_clustering_multiqc         = Channel.empty()
         if (!params.skip_deseq2) {
             DESEQ2_DIFF (
                 ch_groups_no_igg,
@@ -901,6 +908,7 @@ workflow CUTANDRUN {
         /*
         * MODULE: Generate python reporting using mixture of meta-data and direct file processing
         */
+        ch_frag_len_multiqc = Channel.empty()
         GENERATE_REPORTS(
             EXPORT_META.out.csv,                        // meta-data report stats
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
