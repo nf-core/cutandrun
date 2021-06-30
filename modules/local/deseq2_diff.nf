@@ -27,31 +27,31 @@ process DESEQ2_DIFF {
     path clustering_header_multiqc
 
     output:
-    path "*.pdf"                           , optional:true, emit: pdf
-    path "*.RData"                         , optional:true, emit: rdata
-    path "*pca.vals.txt"                   , optional:true, emit: pca_txt
-    path "*pca.vals_mqc.tsv"               , optional:true, emit: pca_multiqc
-    path "*pca.top_vals.txt"               , optional:true, emit: top_pca_txt
-    path "*pca.top_vals_mqc.tsv"           , optional:true, emit: top_pca_multiqc
+    path "*.pdf"                            , optional:true, emit: pdf
+    path "*.RData"                          , optional:true, emit: rdata
+    path "*pca.vals.txt"                    , optional:true, emit: pca_txt
+    path "*pca.vals_mqc.tsv"                , optional:true, emit: pca_multiqc
+    path "*pca.top_vals.txt"                , optional:true, emit: top_pca_txt
+    path "*pca.top_vals_mqc.tsv"            , optional:true, emit: top_pca_multiqc
 
-    path "*pca.vals_group.txt"             , optional:true, emit: pca_group_txt
-    path "*pca.vals_group_mqc.tsv"         , optional:true, emit: pca_group_multiqc
+    path "*pca.vals_group.txt"              , optional:true, emit: pca_group_txt
+    path "*pca.vals_group_mqc.tsv"          , optional:true, emit: pca_group_multiqc
 
-    path "*pca.top_vals_group.txt"         , optional:true, emit: top_pca_group_txt
-    path "*pca.top_vals_group_mqc.tsv"     , optional:true, emit: top_pca_group_multiqc
+    path "*pca.top_vals_group.txt"          , optional:true, emit: top_pca_group_txt
+    path "*pca.top_vals_group_mqc.tsv"      , optional:true, emit: top_pca_group_multiqc
 
-    path "*pca.diagnostic_vals.txt"        , optional:true, emit: pca_diagnostic_txt
+    path "*pca.diagnostic_vals.txt"         , optional:true, emit: pca_diagnostic_txt
     path "*pca.diagnostic_vals_mqc.yaml"    , optional:true, emit: pca_diagnostic_multiqc
 
-    path "*pca.top_diagnostic_vals.txt"    , optional:true, emit: top_pca_diagnostic_txt
+    path "*pca.top_diagnostic_vals.txt"     , optional:true, emit: top_pca_diagnostic_txt
     path "*pca.top_diagnostic_vals_mqc.yaml", optional:true, emit: top_pca_diagnostic_multiqc
 
 
-    path "*sample.dists.txt"               , optional:true, emit: dists_txt
-    path "*sample.dists_mqc.tsv"           , optional:true, emit: dists_multiqc
+    path "*sample.dists.txt"                , optional:true, emit: dists_txt
+    path "*sample.dists_mqc.tsv"            , optional:true, emit: dists_multiqc
     //path "*.log"                , optional:true, emit: log
-    path "size_factors"                    , optional:true, emit: size_factors
-    path  "*.version.txt"                  , emit: version
+    path "size_factors"                     , optional:true, emit: size_factors
+    path  "*.version.txt"                   , emit: version
 
     script:
     def software    = getSoftwareName(task.process)
