@@ -38,6 +38,7 @@ process MULTIQC {
     path ('deseq2_qc/*')
     path ('deseq2_qc/*')
     path ('deseq2_qc/*')
+    path ('reports/*')
 
     output:
     path "*multiqc_report.html", emit: report

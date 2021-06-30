@@ -56,7 +56,7 @@ ch_top_pca_group_header_multiqc  = file("$projectDir/assets/multiqc/deseq2_top_p
 ch_diagnostic_header_multiqc     = file("$projectDir/assets/multiqc/deseq2_diagnostic_header.txt", checkIfExists: true)
 ch_top_diagnostic_header_multiqc = file("$projectDir/assets/multiqc/deseq2_top_diagnostic_header.txt", checkIfExists: true)
 ch_clustering_header_multiqc     = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
-
+ch_frag_len_header_multiqc       = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
 /*
 ========================================================================================
     INIALISE PARAMETERS AND OPTIONS
@@ -906,8 +906,10 @@ workflow CUTANDRUN {
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
             AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
             ch_seacr_bed.collect{it[1]},                // peak beds
-            ch_samtools_bam.collect{it[1]}              // bam files sorted by mate pair ids
+            ch_samtools_bam.collect{it[1]},             // bam files sorted by mate pair ids
+            ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
         )
+        ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
     }
 
@@ -954,7 +956,8 @@ workflow CUTANDRUN {
             ch_top_pca_group_multiqc.collect().ifEmpty([]),
             ch_pca_diagnostic_multiqc.collect().ifEmpty([]),
             ch_top_pca_diagnostic_multiqc.collect().ifEmpty([]),
-            ch_clustering_multiqc.collect().ifEmpty([])
+            ch_clustering_multiqc.collect().ifEmpty([]),
+            ch_frag_len_multiqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }
