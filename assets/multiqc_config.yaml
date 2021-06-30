@@ -41,7 +41,6 @@ run_modules:
     - picard
 
 module_order:
-    - custom_content
     - fastqc:
         name: 'FastQC (raw)'
         info: 'This section of the report shows FastQC results before adapter trimming.'
@@ -63,6 +62,7 @@ module_order:
             - "./bowtie2/*spikein.bowtie2.log"
     - samtools
     - picard
+    - custom_content
 
 report_section_order:
     software_versions:
