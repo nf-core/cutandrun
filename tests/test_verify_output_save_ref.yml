@@ -1,0 +1,7 @@
+- name: Verify Output -- Save References
+  command: nextflow run main.nf -profile docker,test --save_reference true
+  tags:
+    - verify/output/save_ref
+    - verify/output
+  files:
+    - path: results/crosslinks/sample1.bedgraph.gz
