@@ -125,24 +125,18 @@ if (params.save_trimmed) { trimgalore_options.publish_files.put("fastq.gz","") }
 
 // Spikein alignment options
 def bowtie2_spikein_align_options  = modules["bowtie2_spikein_align"]
-if (params.save_spikein_aligned) {
-    bowtie2_spikein_align_options.publish_dir   = "02_alignment/${params.aligner}/spikein"
-    bowtie2_spikein_align_options.publish_files = ["bam":""]
-}
 def samtools_spikein_sort_options = modules["samtools_spikein_sort"]
 if (params.save_spikein_aligned) {
     samtools_spikein_sort_options.publish_dir   = "02_alignment/${params.aligner}/spikein"
-    samtools_spikein_sort_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+    samtools_spikein_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
 
 // Main alignment options
 def bowtie2_align_options = modules["bowtie2_align"]
 def samtools_sort_options = modules["samtools_sort"]
 if(params.only_alignment || (!run_q_filter && !run_mark_dups && !run_remove_dups)) {
-    bowtie2_align_options.publish_dir   = "02_alignment/${params.aligner}/target"
-    bowtie2_align_options.publish_files = ["bam":""]
     samtools_sort_options.publish_dir   = "02_alignment/${params.aligner}/target"
-    samtools_sort_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+    samtools_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
 
 // def dedup_control_only = true
@@ -247,7 +241,7 @@ include { CAT_FASTQ                      } from "../modules/local/cat_fastq"    
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
 include { PREPARE_GENOME }                                  from "../subworkflows/local/prepare_genome"           addParams( genome_options: genome_options, spikein_genome_options: spikein_genome_options, bt2_index_options: bowtie2_index_options, bt2_spikein_index_options: bowtie2_spikein_index_options )
-include { ALIGN_BOWTIE2 }                                   from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options )
+include { ALIGN_BOWTIE2 }                                   from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options, samtools_options: samtools_sort_options )
 // include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options )
 // include { CALCULATE_FRAGMENTS }                             from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
 // include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
