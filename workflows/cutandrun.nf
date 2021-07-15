@@ -81,13 +81,13 @@ def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "genom
 def cat_fastq_options = modules["cat_fastq"]
 if (!params.save_merged_fastq) { cat_fastq_options["publish_files"] = false }
 
-// def multiqc_options = modules["multiqc"]
-// multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ""
+// Pre QC
+def trimgalore_options = modules["trimgalore"]
+if(!params.skip_fastqc) { trimgalore_options.args += " --fastqc" }
 
-// // Trimming
-// def trimgalore_options = modules["trimgalore"]
-// trimgalore_options.args  += params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ""
-// if (params.save_trimmed) { trimgalore_options.publish_files.put("fq.gz","") }
+// Trimming
+trimgalore_options.args  += params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ""
+if (params.save_trimmed) { trimgalore_options.publish_files.put("fastq.gz","") }
 
 // // Alignment dedup and filtering
 // def bowtie2_spikein_align_options  = modules["bowtie2_spikein_align"]
@@ -164,6 +164,9 @@ if (!params.save_merged_fastq) { cat_fastq_options["publish_files"] = false }
 // def awk_dedup_options       = modules["awk_dedup"]
 // def awk_dt_frag_options     = modules["awk_dt_frag"]
 
+// def multiqc_options = modules["multiqc"]
+// multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ""
+
 // // AWK options
 // def awk_threshold           = modules["awk_threshold"]
 // awk_threshold.command   = "' \$10 >= " + params.replicate_threshold.toString() + " {print \$0}'"
@@ -176,19 +179,19 @@ if (!params.save_merged_fastq) { cat_fastq_options["publish_files"] = false }
 ========================================================================================
 */
 
-def run_input_check = true
-def run_cat_fastq   = true
+def run_input_check        = true
+def run_cat_fastq          = true
+def run_trim_galore_fastqc = true
 
 if(params.only_genome) {
-    run_input_check = false
-    run_cat_fastq   = false
+    run_input_check        = false
+    run_cat_fastq          = false
+    run_trim_galore_fastqc = false
 }
 
-    // save_merged_fastq          = false
+if(params.only_preqc) {
 
-    // // Pre-align QC
-    // skip_fastqc                = false
-    // only_preqc                 = false
+}
 
 /*
 ========================================================================================
@@ -248,7 +251,7 @@ include { PREPARE_GENOME }                                  from "../subworkflow
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
  */
-// include { FASTQC_TRIMGALORE                      } from "../subworkflows/nf-core/fastqc_trimgalore"      addParams( fastqc_options: modules["fastqc"], trimgalore_options: trimgalore_options )
+include { FASTQC_TRIMGALORE                      } from "../subworkflows/nf-core/fastqc_trimgalore"      addParams( fastqc_options: modules["fastqc"], trimgalore_options: trimgalore_options )
 // include { MARK_DUPLICATES_PICARD                 } from "../subworkflows/nf-core/mark_duplicates_picard" addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
 // include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard" addParams( markduplicates_options: picard_deduplicates_options, samtools_options: picard_deduplicates_samtools_options, control_only: dedup_control_only )
 
@@ -311,14 +314,16 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Read QC, trim adapters and perform post-trim read QC
      */
-    // FASTQC_TRIMGALORE (
-    //     ch_cat_fastq,
-    //     params.skip_fastqc || params.skip_qc,
-    //     params.skip_trimming
-    // )
-    // ch_trimmed_reads     = FASTQC_TRIMGALORE.out.reads
-    // ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
-    // ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
+    if(run_trim_galore_fastqc) {
+        FASTQC_TRIMGALORE (
+            ch_cat_fastq,
+            params.skip_fastqc,
+            params.skip_trimming
+        )
+        ch_trimmed_reads     = FASTQC_TRIMGALORE.out.reads
+        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //FASTQC_TRIMGALORE.out.reads | view
 

@@ -305,7 +305,7 @@
                     "description": "Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails."
                 },
                 "save_trimmed": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Save the trimmed FastQ files in the results directory."
                 }
             }
