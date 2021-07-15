@@ -124,7 +124,7 @@ trimgalore_options.args  += params.trim_nextseq > 0 ? " --nextseq ${params.trim_
 if (params.save_trimmed) { trimgalore_options.publish_files.put("fastq.gz","") }
 
 // Spikein alignment options
-def bowtie2_spikein_align_options  = modules["bowtie2_spikein_align"]
+def bowtie2_spikein_align_options = modules["bowtie2_spikein_align"]
 def samtools_spikein_sort_options = modules["samtools_spikein_sort"]
 if (params.save_spikein_aligned) {
     samtools_spikein_sort_options.publish_dir   = "02_alignment/${params.aligner}/spikein"
@@ -137,6 +137,10 @@ def samtools_sort_options = modules["samtools_sort"]
 if(params.only_alignment || (!run_q_filter && !run_mark_dups && !run_remove_dups)) {
     samtools_sort_options.publish_dir   = "02_alignment/${params.aligner}/target"
     samtools_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
+if(params.save_unaligned) {
+    bowtie2_align_options.publish_dir = "02_alignment/${params.aligner}/target"
+    bowtie2_align_options.publish_files = ["gz":""]
 }
 
 // def dedup_control_only = true

@@ -108,7 +108,7 @@
                     "description": "Specifies the alignment algorithm to use - current available options is Bowtie2"
                 },
                 "save_unaligned": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Where possible, save unaligned reads from the alignment algorithm to the results directory."
                 },
                 "minimum_alignment_q_score": {
