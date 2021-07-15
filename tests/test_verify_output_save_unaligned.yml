@@ -1,4 +1,4 @@
-- name: test_verify_output_only_align
+- name: test_verify_output_save_unaligned
   command: nextflow run main.nf -profile docker,test --only_alignment true --skip_fastqc true --save_unaligned true
   tags:
     - verify_output

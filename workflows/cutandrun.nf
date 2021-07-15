@@ -70,7 +70,7 @@ def run_input_check        = true
 def run_cat_fastq          = true
 def run_trim_galore_fastqc = true
 def run_alignment          = true
-def run_q_filter           = true
+def run_q_filter           = false
 def run_mark_dups          = true
 def run_remove_dups        = true
 
@@ -91,6 +91,14 @@ if(params.only_alignment) {
     run_q_filter    = false
     run_mark_dups   = false
     run_remove_dups = false
+}
+
+if(params.minimum_alignment_q_score > 0) { run_q_filter    = true  }
+if(params.skip_markduplicates)           { run_mark_dups   = false }
+if(params.skip_removeduplicates)         { run_remove_dups = false }
+
+if(params.only_filtering) {
+
 }
 
 /*
@@ -138,22 +146,28 @@ if(params.only_alignment || (!run_q_filter && !run_mark_dups && !run_remove_dups
     samtools_sort_options.publish_dir   = "02_alignment/${params.aligner}/target"
     samtools_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
+else if(params.save_align_intermed) {
+    samtools_sort_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/align"
+    samtools_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
 if(params.save_unaligned) {
     bowtie2_align_options.publish_dir = "02_alignment/${params.aligner}/target"
     bowtie2_align_options.publish_files = ["gz":""]
 }
 
+// Q Filter options
+samtools_qfilter_options   = modules["samtools_qfilter"]
+samtools_view_options      = modules["samtools_view_qfilter"]
+samtools_view_options.args = "-b -q " + params.minimum_alignment_q_score
+if(!run_mark_dups && !run_remove_dups) {
+    samtools_view_options.publish_dir      = "02_alignment/${params.aligner}/target"
+    samtools_view_options.publish_files    = ["bam":""]
+    samtools_qfilter_options.publish_dir   = "02_alignment/${params.aligner}/target"
+    samtools_qfilter_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
+
 // def dedup_control_only = true
 // if(params.dedup_target_reads) { dedup_control_only = false }
-
-// def bowtie2_align_options                       = null
-// def samtools_sort_options                       = null
-// def samtools_view_options                       = null
-// def samtools_qfilter_options                    = null
-// def picard_markduplicates_options               = null
-// def picard_markduplicates_samtools_options      = null
-// def picard_deduplicates_options                 = null
-// def picard_deduplicates_samtools_options        = null
 
 // // if (!params.skip_markduplicates && params.skip_removeduplicates) {
 // if (!params.skip_markduplicates) {
@@ -178,8 +192,7 @@ if(params.save_unaligned) {
 //     samtools_view_options                       = modules["samtools_view_qfilter_final"]
 //     samtools_qfilter_options                    = modules["samtools_qfilter_final"]
 //     if (params.publish_align_intermed ) {
-//         bowtie2_align_options                   = modules["bowtie2_align_intermed"]
-//         samtools_sort_options                   = modules["samtools_sort_intermed"]
+
 //         picard_markduplicates_options           = modules["picard_markduplicates_intermed"]
 //         picard_markduplicates_samtools_options  = modules["picard_markduplicates_samtools_intermed"]
 //         picard_deduplicates_options             = modules["picard_dedup_intermed"]
@@ -192,13 +205,6 @@ if(params.save_unaligned) {
 //         picard_deduplicates_options             = modules["picard_dedup"]
 //         picard_deduplicates_samtools_options    = modules["picard_dedup_samtools"]
 //     }
-// }
-
-// if (params.save_unaligned)         { bowtie2_align_options.publish_files.put(".gz","") }
-// if (params.save_unaligned)         { bowtie2_spikein_align_options.publish_files.put(".gz","") }
-
-// if (params.minimum_alignment_q_score > 0) {
-//     samtools_view_options.args = "-b -q " + params.minimum_alignment_q_score
 // }
 
 // // Meta annotation options
@@ -246,7 +252,7 @@ include { CAT_FASTQ                      } from "../modules/local/cat_fastq"    
  */
 include { PREPARE_GENOME }                                  from "../subworkflows/local/prepare_genome"           addParams( genome_options: genome_options, spikein_genome_options: spikein_genome_options, bt2_index_options: bowtie2_index_options, bt2_spikein_index_options: bowtie2_spikein_index_options )
 include { ALIGN_BOWTIE2 }                                   from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options, samtools_options: samtools_sort_options )
-// include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options )
+include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options )
 // include { CALCULATE_FRAGMENTS }                             from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
 // include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
 // include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
@@ -400,16 +406,16 @@ workflow CUTANDRUN {
      *  SUBWORKFLOW: Filter reads based on quality metrics
      *  http://biofinysics.blogspot.com/2014/05/how-does-bowtie2-assign-mapq-scores.html
      */
-    // if (params.minimum_alignment_q_score > 0) {
-    //     SAMTOOLS_VIEW_SORT_STATS (
-    //         ch_samtools_bam
-    //     )
-    //     ch_samtools_bam           = SAMTOOLS_VIEW_SORT_STATS.out.bam
-    //     ch_samtools_bai           = SAMTOOLS_VIEW_SORT_STATS.out.bai
-    //     ch_samtools_stats         = SAMTOOLS_VIEW_SORT_STATS.out.stats
-    //     ch_samtools_flagstat      = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
-    //     ch_samtools_idxstats      = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
-    // }
+    if (run_q_filter) {
+        SAMTOOLS_VIEW_SORT_STATS (
+            ch_samtools_bam
+        )
+        ch_samtools_bam           = SAMTOOLS_VIEW_SORT_STATS.out.bam
+        ch_samtools_bai           = SAMTOOLS_VIEW_SORT_STATS.out.bai
+        ch_samtools_stats         = SAMTOOLS_VIEW_SORT_STATS.out.stats
+        ch_samtools_flagstat      = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
+        ch_samtools_idxstats      = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
 
