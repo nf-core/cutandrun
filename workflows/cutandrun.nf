@@ -68,15 +68,18 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don"t overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
+// Init
+def prepare_tool_indices = ["bowtie2"]
+
 // Genome
 def genome_options                = params.save_reference ? [publish_dir: "genome/target"]        : [publish_files: false]
 def spikein_genome_options        = params.save_reference ? [publish_dir: "genome/spikein"]       : [publish_files: false]
 def bowtie2_index_options         = params.save_reference ? [publish_dir: "genome/target/index"]  : [publish_files: false]
 def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "genome/spikein/index"] : [publish_files: false]
 
-// // QC
-// def cat_fastq_options = modules["cat_fastq"]
-// if (!params.save_merged_fastq) { cat_fastq_options["publish_files"] = false }
+// Replicate merging
+def cat_fastq_options = modules["cat_fastq"]
+if (!params.save_merged_fastq) { cat_fastq_options["publish_files"] = false }
 
 // def multiqc_options = modules["multiqc"]
 // multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ""
@@ -87,7 +90,6 @@ def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "genom
 // if (params.save_trimmed) { trimgalore_options.publish_files.put("fq.gz","") }
 
 // // Alignment dedup and filtering
-// def prepareToolIndices             = ["bowtie2"]
 // def bowtie2_spikein_align_options  = modules["bowtie2_spikein_align"]
 // if (params.save_spikein_aligned) {
 //     bowtie2_spikein_align_options.publish_dir   = "aligner/${params.aligner}/spikein"
@@ -170,6 +172,18 @@ def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "genom
 
 /*
 ========================================================================================
+    RESOLVE FLOW SWITCHING
+========================================================================================
+*/
+
+def run_input_check = true
+
+if(params.only_genome) {
+    run_input_check = false
+}
+
+/*
+========================================================================================
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ========================================================================================
 */
@@ -177,10 +191,8 @@ def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "genom
 /*
  * MODULES
  */
-// include { GET_SOFTWARE_VERSIONS          } from "../modules/local/get_software_versions"                     addParams( options: [publish_files : ["csv":""]]               )
-// include { MULTIQC                        } from "../modules/local/multiqc"                                   addParams( options: multiqc_options                            )
-// include { INPUT_CHECK                    } from "../subworkflows/local/input_check"                          addParams( options: [:]                                        )
-// include { CAT_FASTQ                      } from "../modules/local/cat_fastq"                                 addParams( options: cat_fastq_options                          )
+include { INPUT_CHECK                    } from "../subworkflows/local/input_check"                          addParams( options: [:]                                        )
+include { CAT_FASTQ                      } from "../modules/local/cat_fastq"                                 addParams( options: cat_fastq_options                          )
 // include { BEDTOOLS_GENOMECOV_SCALE       } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
 // include { IGV_SESSION                    } from "../modules/local/igv_session"                               addParams( options: modules["igv"]                             )
 // include { EXPORT_META                    } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
@@ -192,11 +204,13 @@ def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "genom
 // include { DESEQ2_DIFF                    } from "../modules/local/deseq2_diff"                               addParams( options: modules["deseq2"],  multiqc_label: "deseq2")
 // include { SAMTOOLS_CUSTOMVIEW            } from "../modules/local/software/samtools/custom_view/main"        addParams( options: modules["samtools_frag_len"]               )
 // include { SEACR_CALLPEAK as SEACR_NO_IGG } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
+// include { GET_SOFTWARE_VERSIONS          } from "../modules/local/get_software_versions"                     addParams( options: [publish_files : ["csv":""]]               )
+// include { MULTIQC                        } from "../modules/local/multiqc"                                   addParams( options: multiqc_options                            )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
-// include { PREPARE_GENOME }                                  from "../subworkflows/local/prepare_genome"           addParams( genome_options: genome_options, spikein_genome_options: spikein_genome_options, bt2_index_options: bowtie2_index_options, bt2_spikein_index_options: bowtie2_spikein_index_options )
+include { PREPARE_GENOME }                                  from "../subworkflows/local/prepare_genome"           addParams( genome_options: genome_options, spikein_genome_options: spikein_genome_options, bt2_index_options: bowtie2_index_options, bt2_spikein_index_options: bowtie2_spikein_index_options )
 // include { ALIGN_BOWTIE2 }                                   from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options )
 // include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options )
 // include { CALCULATE_FRAGMENTS }                             from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
@@ -244,31 +258,33 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Uncompress and prepare reference genome files
      */
-    // PREPARE_GENOME (
-    //     prepareToolIndices
-    // )
-    // ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.bowtie2_version.ifEmpty(null))
-    // ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.samtools_version.ifEmpty(null))
+    PREPARE_GENOME (
+        prepare_tool_indices
+    )
+    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.bowtie2_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.samtools_version.ifEmpty(null))
 
     /*
      * SUBWORKFLOW: Read in samplesheet, validate and stage input files
      */
-    // INPUT_CHECK (
-    //     ch_input
-    // )
-    // .map {
-    //     meta, fastq ->
-    //         meta.id = meta.id.split("_")[0..-2].join("_")
-    //         [ meta, fastq ] }
-    // .groupTuple(by: [0])
-    // .branch {
-    //     meta, fastq ->
-    //         single  : fastq.size() == 1
-    //             return [ meta, fastq.flatten() ]
-    //         multiple: fastq.size() > 1
-    //             return [ meta, fastq.flatten() ]
-    // }
-    // .set { ch_fastq }
+    if(run_input_check) {
+        INPUT_CHECK (
+            ch_input
+        )
+        .map {
+            meta, fastq ->
+                meta.id = meta.id.split("_")[0..-2].join("_")
+                [ meta, fastq ] }
+        .groupTuple(by: [0])
+        .branch {
+            meta, fastq ->
+                single  : fastq.size() == 1
+                    return [ meta, fastq.flatten() ]
+                multiple: fastq.size() > 1
+                    return [ meta, fastq.flatten() ]
+        }
+        .set { ch_fastq }
+    }
 
     /*
      * MODULE: Concatenate FastQ files from same sample if required
