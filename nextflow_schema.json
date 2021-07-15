@@ -31,7 +31,7 @@
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 },
                 "save_merged_fastq": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Save FastQ files after merging re-sequenced libraries in the results directory."
                 },
                 "multiqc_title": {

@@ -177,10 +177,18 @@ if (!params.save_merged_fastq) { cat_fastq_options["publish_files"] = false }
 */
 
 def run_input_check = true
+def run_cat_fastq   = true
 
 if(params.only_genome) {
     run_input_check = false
+    run_cat_fastq   = false
 }
+
+    // save_merged_fastq          = false
+
+    // // Pre-align QC
+    // skip_fastqc                = false
+    // only_preqc                 = false
 
 /*
 ========================================================================================
@@ -285,15 +293,18 @@ workflow CUTANDRUN {
         }
         .set { ch_fastq }
     }
+    //ch_fastq | view
 
     /*
      * MODULE: Concatenate FastQ files from same sample if required
      */
-    // CAT_FASTQ (
-    //     ch_fastq.multiple
-    // )
-    // .mix(ch_fastq.single)
-    // .set { ch_cat_fastq }
+    if(run_cat_fastq) {
+        CAT_FASTQ (
+            ch_fastq.multiple
+        )
+        .mix(ch_fastq.single)
+        .set { ch_cat_fastq }
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //ch_cat_fastq | view
 
