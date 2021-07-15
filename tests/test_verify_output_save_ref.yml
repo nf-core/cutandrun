@@ -4,12 +4,12 @@
     - verify_output
     - verify_output/save_ref
   files:
-    - path: results/genome/target/hg38-chr20-genes.bed
-    - path: results/genome/target/hg38-chr20-genes.gtf
-    - path: results/genome/target/hg38-chr20.fa
-    - path: results/genome/target/hg38-chr20.fa.fai
-    - path: results/genome/target/hg38-chr20.fa.sizes
-    - path: results/genome/target/index/hg38-chr20-bowtie2/hg38-chr20.1.bt2
-    - path: results/genome/spikein/e_coli_U00096_3.fa
-    - path: results/genome/spikein/e_coli_U00096_3.fa.sizes
-    - path: results/genome/spikein/index/e_coli_U00096_3/e_coli_U00096_3.1.bt2
+    - path: results/00_genome/target/hg38-chr20-genes.bed
+    - path: results/00_genome/target/hg38-chr20-genes.gtf
+    - path: results/00_genome/target/hg38-chr20.fa
+    - path: results/00_genome/target/hg38-chr20.fa.fai
+    - path: results/00_genome/target/hg38-chr20.fa.sizes
+    - path: results/00_genome/target/index/hg38-chr20-bowtie2/hg38-chr20.1.bt2
+    - path: results/00_genome/spikein/e_coli_U00096_3.fa
+    - path: results/00_genome/spikein/e_coli_U00096_3.fa.sizes
+    - path: results/00_genome/spikein/index/e_coli_U00096_3/e_coli_U00096_3.1.bt2

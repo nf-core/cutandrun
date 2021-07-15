@@ -59,6 +59,40 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // ch_top_diagnostic_header_multiqc = file("$projectDir/assets/multiqc/deseq2_top_diagnostic_header.txt", checkIfExists: true)
 // ch_clustering_header_multiqc     = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
 // ch_frag_len_header_multiqc       = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
+
+/*
+========================================================================================
+    RESOLVE FLOW SWITCHING
+========================================================================================
+*/
+
+def run_input_check        = true
+def run_cat_fastq          = true
+def run_trim_galore_fastqc = true
+def run_alignment          = true
+def run_q_filter           = true
+def run_mark_dups          = true
+def run_remove_dups        = true
+
+if(params.only_genome) {
+    run_input_check        = false
+    run_cat_fastq          = false
+    run_trim_galore_fastqc = false
+}
+
+if(params.only_preqc) {
+    run_alignment   = false
+    run_q_filter    = false
+    run_mark_dups   = false
+    run_remove_dups = false
+}
+
+if(params.only_alignment) {
+    run_q_filter    = false
+    run_mark_dups   = false
+    run_remove_dups = false
+}
+
 /*
 ========================================================================================
     INIALISE PARAMETERS AND OPTIONS
@@ -72,10 +106,10 @@ def modules = params.modules.clone()
 def prepare_tool_indices = ["bowtie2"]
 
 // Genome
-def genome_options                = params.save_reference ? [publish_dir: "genome/target"]        : [publish_files: false]
-def spikein_genome_options        = params.save_reference ? [publish_dir: "genome/spikein"]       : [publish_files: false]
-def bowtie2_index_options         = params.save_reference ? [publish_dir: "genome/target/index"]  : [publish_files: false]
-def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "genome/spikein/index"] : [publish_files: false]
+def genome_options                = params.save_reference ? [publish_dir: "00_genome/target"]        : [publish_files: false]
+def spikein_genome_options        = params.save_reference ? [publish_dir: "00_genome/spikein"]       : [publish_files: false]
+def bowtie2_index_options         = params.save_reference ? [publish_dir: "00_genome/target/index"]  : [publish_files: false]
+def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "00_genome/spikein/index"] : [publish_files: false]
 
 // Replicate merging
 def cat_fastq_options = modules["cat_fastq"]
@@ -89,17 +123,28 @@ if(!params.skip_fastqc) { trimgalore_options.args += " --fastqc" }
 trimgalore_options.args  += params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ""
 if (params.save_trimmed) { trimgalore_options.publish_files.put("fastq.gz","") }
 
-// // Alignment dedup and filtering
-// def bowtie2_spikein_align_options  = modules["bowtie2_spikein_align"]
-// if (params.save_spikein_aligned) {
-//     bowtie2_spikein_align_options.publish_dir   = "aligner/${params.aligner}/spikein"
-//     bowtie2_spikein_align_options.publish_files = ["bam":""]
-// }
-// def samtools_spikein_sort_options = modules["samtools_spikein_sort"]
-// if (params.save_spikein_aligned) {
-//     samtools_spikein_sort_options.publish_dir   = "aligner/${params.aligner}/spikein"
-//     samtools_spikein_sort_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-// }
+// Spikein alignment options
+def bowtie2_spikein_align_options  = modules["bowtie2_spikein_align"]
+if (params.save_spikein_aligned) {
+    bowtie2_spikein_align_options.publish_dir   = "02_alignment/${params.aligner}/spikein"
+    bowtie2_spikein_align_options.publish_files = ["bam":""]
+}
+def samtools_spikein_sort_options = modules["samtools_spikein_sort"]
+if (params.save_spikein_aligned) {
+    samtools_spikein_sort_options.publish_dir   = "02_alignment/${params.aligner}/spikein"
+    samtools_spikein_sort_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
+
+// Main alignment options
+def bowtie2_align_options = modules["bowtie2_align"]
+def samtools_sort_options = modules["samtools_sort"]
+if(params.only_alignment || (!run_q_filter && !run_mark_dups && !run_remove_dups)) {
+    bowtie2_align_options.publish_dir   = "02_alignment/${params.aligner}/target"
+    bowtie2_align_options.publish_files = ["bam":""]
+    samtools_sort_options.publish_dir   = "02_alignment/${params.aligner}/target"
+    samtools_sort_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
+
 // def dedup_control_only = true
 // if(params.dedup_target_reads) { dedup_control_only = false }
 
@@ -175,26 +220,6 @@ if (params.save_trimmed) { trimgalore_options.publish_files.put("fastq.gz","") }
 
 /*
 ========================================================================================
-    RESOLVE FLOW SWITCHING
-========================================================================================
-*/
-
-def run_input_check        = true
-def run_cat_fastq          = true
-def run_trim_galore_fastqc = true
-
-if(params.only_genome) {
-    run_input_check        = false
-    run_cat_fastq          = false
-    run_trim_galore_fastqc = false
-}
-
-if(params.only_preqc) {
-
-}
-
-/*
-========================================================================================
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ========================================================================================
 */
@@ -222,7 +247,7 @@ include { CAT_FASTQ                      } from "../modules/local/cat_fastq"    
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
 include { PREPARE_GENOME }                                  from "../subworkflows/local/prepare_genome"           addParams( genome_options: genome_options, spikein_genome_options: spikein_genome_options, bt2_index_options: bowtie2_index_options, bt2_spikein_index_options: bowtie2_spikein_index_options )
-// include { ALIGN_BOWTIE2 }                                   from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options )
+include { ALIGN_BOWTIE2 }                                   from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options )
 // include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options )
 // include { CALCULATE_FRAGMENTS }                             from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
 // include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
@@ -328,46 +353,48 @@ workflow CUTANDRUN {
     //FASTQC_TRIMGALORE.out.reads | view
 
     /*
-     * SUBWORKFLOW: Alignment to target and spikein genome using botwtie2
-     */
-    // ch_orig_bam                   = Channel.empty()
-    // ch_orig_spikein_bam           = Channel.empty()
-    // ch_bowtie2_log                = Channel.empty()
-    // ch_bowtie2_spikein_log        = Channel.empty()
-    // ch_samtools_bam               = Channel.empty()
-    // ch_samtools_bai               = Channel.empty()
-    // ch_samtools_stats             = Channel.empty()
-    // ch_samtools_flagstat          = Channel.empty()
-    // ch_samtools_idxstats          = Channel.empty()
-    // ch_samtools_spikein_bam       = Channel.empty()
-    // ch_samtools_spikein_bai       = Channel.empty()
-    // ch_samtools_spikein_stats     = Channel.empty()
-    // ch_samtools_spikein_flagstat  = Channel.empty()
-    // ch_samtools_spikein_idxstats  = Channel.empty()
-    // if (params.aligner == "bowtie2") {
-    //     ALIGN_BOWTIE2 (
-    //         ch_trimmed_reads,
-    //         PREPARE_GENOME.out.bowtie2_index,
-    //         PREPARE_GENOME.out.bowtie2_spikein_index
-    //     )
-    //     ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.bowtie2_version.first().ifEmpty(null))
-    //     ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
-    //     ch_orig_spikein_bam           = ALIGN_BOWTIE2.out.orig_spikein_bam
-    //     ch_bowtie2_log                = ALIGN_BOWTIE2.out.bowtie2_log
-    //     ch_bowtie2_spikein_log        = ALIGN_BOWTIE2.out.bowtie2_spikein_log
+    * SUBWORKFLOW: Alignment to target and spikein genome using botwtie2
+    */
+    if(run_alignment) {
+        ch_orig_bam                   = Channel.empty()
+        ch_orig_spikein_bam           = Channel.empty()
+        ch_bowtie2_log                = Channel.empty()
+        ch_bowtie2_spikein_log        = Channel.empty()
+        ch_samtools_bam               = Channel.empty()
+        ch_samtools_bai               = Channel.empty()
+        ch_samtools_stats             = Channel.empty()
+        ch_samtools_flagstat          = Channel.empty()
+        ch_samtools_idxstats          = Channel.empty()
+        ch_samtools_spikein_bam       = Channel.empty()
+        ch_samtools_spikein_bai       = Channel.empty()
+        ch_samtools_spikein_stats     = Channel.empty()
+        ch_samtools_spikein_flagstat  = Channel.empty()
+        ch_samtools_spikein_idxstats  = Channel.empty()
+        if (params.aligner == "bowtie2") {
+            ALIGN_BOWTIE2 (
+                ch_trimmed_reads,
+                PREPARE_GENOME.out.bowtie2_index,
+                PREPARE_GENOME.out.bowtie2_spikein_index
+            )
+            ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.bowtie2_version.first().ifEmpty(null))
+            ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
+            ch_orig_spikein_bam           = ALIGN_BOWTIE2.out.orig_spikein_bam
+            ch_bowtie2_log                = ALIGN_BOWTIE2.out.bowtie2_log
+            ch_bowtie2_spikein_log        = ALIGN_BOWTIE2.out.bowtie2_spikein_log
 
-    //     ch_samtools_bam               = ALIGN_BOWTIE2.out.bam
-    //     ch_samtools_bai               = ALIGN_BOWTIE2.out.bai
-    //     ch_samtools_stats             = ALIGN_BOWTIE2.out.stats
-    //     ch_samtools_flagstat          = ALIGN_BOWTIE2.out.flagstat
-    //     ch_samtools_idxstats          = ALIGN_BOWTIE2.out.idxstats
+            ch_samtools_bam               = ALIGN_BOWTIE2.out.bam
+            ch_samtools_bai               = ALIGN_BOWTIE2.out.bai
+            ch_samtools_stats             = ALIGN_BOWTIE2.out.stats
+            ch_samtools_flagstat          = ALIGN_BOWTIE2.out.flagstat
+            ch_samtools_idxstats          = ALIGN_BOWTIE2.out.idxstats
 
-    //     ch_samtools_spikein_bam       = ALIGN_BOWTIE2.out.spikein_bam
-    //     ch_samtools_spikein_bai       = ALIGN_BOWTIE2.out.spikein_bai
-    //     ch_samtools_spikein_stats     = ALIGN_BOWTIE2.out.spikein_stats
-    //     ch_samtools_spikein_flagstat  = ALIGN_BOWTIE2.out.spikein_flagstat
-    //     ch_samtools_spikein_idxstats  = ALIGN_BOWTIE2.out.spikein_idxstats
-    // }
+            ch_samtools_spikein_bam       = ALIGN_BOWTIE2.out.spikein_bam
+            ch_samtools_spikein_bai       = ALIGN_BOWTIE2.out.spikein_bai
+            ch_samtools_spikein_stats     = ALIGN_BOWTIE2.out.spikein_stats
+            ch_samtools_spikein_flagstat  = ALIGN_BOWTIE2.out.spikein_flagstat
+            ch_samtools_spikein_idxstats  = ALIGN_BOWTIE2.out.spikein_idxstats
+        }
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
 
@@ -553,7 +580,7 @@ workflow CUTANDRUN {
     //UCSC_BEDGRAPHTOBIGWIG.out.bigwig | view
 
     // ch_seacr_bed = Channel.empty()
-    if(!params.skip_peakcalling) {
+    //if(!params.skip_peakcalling) {
         /*
          * CHANNEL: Separate bedgraphs into target/control pairings for each replicate
          */
@@ -566,7 +593,7 @@ workflow CUTANDRUN {
         //ch_bedgraph_split.target | view
         //ch_bedgraph_split.control | view
 
-        if (params.igg_control) {
+      //  if (params.igg_control) {
 
             /*
             * CHANNEL: Collect experimental replicate numbers
@@ -667,8 +694,8 @@ workflow CUTANDRUN {
             // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
             // scale_factor:10000], BED]
             //SEACR_CALLPEAK.out.bed | view
-        }
-        else {
+        //}
+        //else {
             /*
              * CHANNEL: Load peak threshold into channel
              */
@@ -688,7 +715,7 @@ workflow CUTANDRUN {
             // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
             // scale_factor:10000], BED]
             //SEACR_NO_IGG.out.bed | view
-        }
+        //}
 
         /*
         * MODULE: Add sample identifier column to peak beds
@@ -745,7 +772,7 @@ workflow CUTANDRUN {
         // CONSENSUS_PEAKS_ALL ( 
         //     ch_seacr_bed_all.multiple 
         // )
-    }
+   //}
 
     // if(!params.skip_igv) {
     //     /*
@@ -759,7 +786,7 @@ workflow CUTANDRUN {
     //     )
     // }
 
-    if(!params.skip_reporting && !params.skip_peakcalling) {
+    //if(!params.skip_reporting && !params.skip_peakcalling) {
         /*
          * CHANNEL: Collect SEACR group names that are not igg for reporting
          */
@@ -958,7 +985,7 @@ workflow CUTANDRUN {
         // )
         // ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
         // ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
-    }
+    //}
 
     /*
      * MODULE: Collect software versions used in pipeline

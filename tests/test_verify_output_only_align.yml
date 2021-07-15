@@ -1,0 +1,9 @@
+- name: test_verify_output_only_align
+  command: nextflow run main.nf -profile docker,test --only_alignment true
+  tags:
+    - verify_output
+    - verify_output/align
+    - verify_output/align/only_align
+  files:
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.bam
+    - path: results/02_alignment/bowtie2/target/igg_R1.target.bam
