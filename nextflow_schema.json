@@ -430,7 +430,7 @@
             "default": "",
             "properties": {
                 "dedup_target_reads": {
-                    "type": "string",
+                    "type": "boolean",
                     "default": "False",
                     "description": "Deduplicate target reads. This is NOT recommended since fragments that share exact starting and ending positions are expected to be common, and such \u2018duplicates\u2019 may not be due to duplication during PCR."
                 }

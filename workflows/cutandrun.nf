@@ -74,10 +74,16 @@ def run_q_filter           = false
 def run_mark_dups          = true
 def run_remove_dups        = true
 
+if(params.minimum_alignment_q_score > 0) { run_q_filter    = true  }
+
 if(params.only_genome) {
     run_input_check        = false
     run_cat_fastq          = false
     run_trim_galore_fastqc = false
+    run_alignment          = false
+    run_q_filter           = false
+    run_mark_dups          = false
+    run_remove_dups        = false
 }
 
 if(params.only_preqc) {
@@ -93,9 +99,8 @@ if(params.only_alignment) {
     run_remove_dups = false
 }
 
-if(params.minimum_alignment_q_score > 0) { run_q_filter    = true  }
-if(params.skip_markduplicates)           { run_mark_dups   = false }
-if(params.skip_removeduplicates)         { run_remove_dups = false }
+if(params.skip_markduplicates)                     { run_mark_dups   = false }
+if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups = false }
 
 if(params.only_filtering) {
 
@@ -165,47 +170,59 @@ if(!run_mark_dups && !run_remove_dups) {
     samtools_qfilter_options.publish_dir   = "02_alignment/${params.aligner}/target"
     samtools_qfilter_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
+else if(params.save_align_intermed) {
+    samtools_view_options.publish_dir      = "02_alignment/${params.aligner}/target/intermed/qfilter"
+    samtools_view_options.publish_files    = ["bam":""]
+    samtools_qfilter_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/qfilter"
+    samtools_qfilter_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
 
-// def dedup_control_only = true
-// if(params.dedup_target_reads) { dedup_control_only = false }
+// Mark duplicates options
+picard_markduplicates_options          = modules["picard_markduplicates"]
+picard_markduplicates_samtools_options = modules["picard_markduplicates_samtools"]
+if(!run_remove_dups) {
+    picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target"
+    picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
+    picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target"
+    picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
+else if(params.save_align_intermed) {
+    picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/intermed/mark_dup"
+    picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
+    picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/mark_dup"
+    picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
 
-// // if (!params.skip_markduplicates && params.skip_removeduplicates) {
-// if (!params.skip_markduplicates) {
-//     picard_markduplicates_options               = modules["picard_markduplicates_final"]
-//     picard_markduplicates_samtools_options      = modules["picard_markduplicates_samtools_final"]
-//     if (params.publish_align_intermed) {
-//         bowtie2_align_options                   = modules["bowtie2_align_intermed"]
-//         samtools_sort_options                   = modules["samtools_sort_intermed"]
-//         samtools_view_options                   = modules["samtools_view_qfilter_intermed"]
-//         samtools_qfilter_options                = modules["samtools_qfilter_intermed"]
-//         picard_deduplicates_options             = modules["picard_dedup_intermed"]
-//         picard_deduplicates_samtools_options    = modules["picard_dedup_samtools_intermed"]
-//     } else {
-//         bowtie2_align_options                   = modules["bowtie2_align"]
-//         samtools_sort_options                   = modules["samtools_sort"]
-//         samtools_view_options                   = modules["samtools_view_qfilter"]
-//         samtools_qfilter_options                = modules["samtools_qfilter"]
-//         picard_deduplicates_options             = modules["picard_dedup"]
-//         picard_deduplicates_samtools_options    = modules["picard_dedup_samtools"]
-//     }
-// } else {
-//     samtools_view_options                       = modules["samtools_view_qfilter_final"]
-//     samtools_qfilter_options                    = modules["samtools_qfilter_final"]
-//     if (params.publish_align_intermed ) {
+// Removed duplicates options
+def dedup_control_only = true
+if(params.dedup_target_reads) { dedup_control_only = false }
 
-//         picard_markduplicates_options           = modules["picard_markduplicates_intermed"]
-//         picard_markduplicates_samtools_options  = modules["picard_markduplicates_samtools_intermed"]
-//         picard_deduplicates_options             = modules["picard_dedup_intermed"]
-//         picard_deduplicates_samtools_options    = modules["picard_dedup_samtools_intermed"]
-//     } else {
-//         bowtie2_align_options                   = modules["bowtie2_align"]
-//         samtools_sort_options                   = modules["samtools_sort"]
-//         picard_markduplicates_options           = modules["picard_markduplicates"]
-//         picard_markduplicates_samtools_options  = modules["picard_markduplicates_samtools"]
-//         picard_deduplicates_options             = modules["picard_dedup"]
-//         picard_deduplicates_samtools_options    = modules["picard_dedup_samtools"]
-//     }
-// }
+picard_deduplicates_options          = modules["picard_dedup"]
+picard_deduplicates_samtools_options = modules["picard_dedup_samtools"]
+if(run_remove_dups) {
+    picard_deduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target"
+    picard_deduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
+    picard_deduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target"
+    picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+
+    if(dedup_control_only) {
+        picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target"
+        picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
+        picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target"
+        picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+    }
+}
+else if(params.save_align_intermed) {
+    picard_deduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/intermed/dedup"
+    picard_deduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
+    picard_deduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/dedup"
+    picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+}
+
+
+
+
+
 
 // // Meta annotation options
 // def awk_bt2_options         = modules["awk_bt2"]
@@ -281,8 +298,8 @@ include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflow
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
  */
 include { FASTQC_TRIMGALORE                      } from "../subworkflows/nf-core/fastqc_trimgalore"      addParams( fastqc_options: modules["fastqc"], trimgalore_options: trimgalore_options )
-// include { MARK_DUPLICATES_PICARD                 } from "../subworkflows/nf-core/mark_duplicates_picard" addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
-// include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard" addParams( markduplicates_options: picard_deduplicates_options, samtools_options: picard_deduplicates_samtools_options, control_only: dedup_control_only )
+include { MARK_DUPLICATES_PICARD                 } from "../subworkflows/nf-core/mark_duplicates_picard" addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false )
+include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard" addParams( markduplicates_options: picard_deduplicates_options, samtools_options: picard_deduplicates_samtools_options, control_only: dedup_control_only )
 
 /*
 ========================================================================================
@@ -422,37 +439,37 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Mark duplicates on all samples
      */
-    // ch_markduplicates_multiqc = Channel.empty()
-    // if (!params.skip_markduplicates) {
-    //     MARK_DUPLICATES_PICARD (
-    //         ch_samtools_bam
-    //     )
-    //     ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
-    //     ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
-    //     ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
-    //     ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
-    //     ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
-    //     ch_markduplicates_multiqc = MARK_DUPLICATES_PICARD.out.metrics
-    //     ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
-    // }
+    ch_markduplicates_multiqc = Channel.empty()
+    if (run_mark_dups) {
+        MARK_DUPLICATES_PICARD (
+            ch_samtools_bam
+        )
+        ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
+        ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
+        ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
+        ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
+        ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
+        ch_markduplicates_multiqc = MARK_DUPLICATES_PICARD.out.metrics
+        ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
 
     /*
      * SUBWORKFLOW: Remove duplicates - default is on IgG controls only
      */
-    // ch_dedup_multiqc = Channel.empty()
-    // if (!params.skip_markduplicates && !params.skip_removeduplicates) {
-    //     DEDUP_PICARD (
-    //         ch_samtools_bam
-    //     )
-    //     ch_samtools_bam      = DEDUP_PICARD.out.bam
-    //     ch_samtools_bai      = DEDUP_PICARD.out.bai
-    //     ch_samtools_stats    = DEDUP_PICARD.out.stats
-    //     ch_samtools_flagstat = DEDUP_PICARD.out.flagstat
-    //     ch_samtools_idxstats = DEDUP_PICARD.out.idxstats
-    //     ch_dedup_multiqc     = DEDUP_PICARD.out.metrics
-    // }
+    ch_dedup_multiqc = Channel.empty()
+    if (run_remove_dups) {
+        DEDUP_PICARD (
+            ch_samtools_bam
+        )
+        ch_samtools_bam      = DEDUP_PICARD.out.bam
+        ch_samtools_bai      = DEDUP_PICARD.out.bai
+        ch_samtools_stats    = DEDUP_PICARD.out.stats
+        ch_samtools_flagstat = DEDUP_PICARD.out.flagstat
+        ch_samtools_idxstats = DEDUP_PICARD.out.idxstats
+        ch_dedup_multiqc     = DEDUP_PICARD.out.metrics
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
 
