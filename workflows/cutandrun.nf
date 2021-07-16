@@ -219,16 +219,11 @@ else if(params.save_align_intermed) {
     picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
 
-
-
-
-
-
-// // Meta annotation options
-// def awk_bt2_options         = modules["awk_bt2"]
-// def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
-// def awk_dedup_options       = modules["awk_dedup"]
-// def awk_dt_frag_options     = modules["awk_dt_frag"]
+// Meta annotation options
+def awk_bt2_options         = modules["awk_bt2"]
+def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
+def awk_dedup_options       = modules["awk_dedup"]
+def awk_dt_frag_options     = modules["awk_dt_frag"]
 
 // def multiqc_options = modules["multiqc"]
 // multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ""
@@ -270,9 +265,11 @@ include { CAT_FASTQ                      } from "../modules/local/cat_fastq"    
 include { PREPARE_GENOME }                                  from "../subworkflows/local/prepare_genome"           addParams( genome_options: genome_options, spikein_genome_options: spikein_genome_options, bt2_index_options: bowtie2_index_options, bt2_spikein_index_options: bowtie2_spikein_index_options )
 include { ALIGN_BOWTIE2 }                                   from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options, samtools_options: samtools_sort_options )
 include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options )
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
+
 // include { CALCULATE_FRAGMENTS }                             from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
-// include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
-// include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
+
 // include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META }        from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "",meta_prefix: "dedup_", script_mode: false )
 // include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META }      from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dt_frag_options, meta_suffix: "", meta_prefix: "", script_mode: true )
 // include { CONSENSUS_PEAKS }                                 from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"])
@@ -477,25 +474,25 @@ workflow CUTANDRUN {
      * SUBWORKFLOW: Annotate meta-data with aligner stats for target and spike-in
      * the meta-data is annotated additivley so we only need to track the final channel output
      */
-    // if (params.aligner == "bowtie2") {
-    //     ANNOTATE_BT2_META (
-    //         ch_samtools_bam,
-    //         ch_bowtie2_log,
-    //         ch_bt2_to_csv_awk
-    //     )
+    if (params.aligner == "bowtie2" && run_alignment) {
+        ANNOTATE_BT2_META (
+            ch_samtools_bam,
+            ch_bowtie2_log,
+            ch_bt2_to_csv_awk
+        )
 
-    //     ANNOTATE_BT2_SPIKEIN_META (
-    //         ANNOTATE_BT2_META.out.output,
-    //         ch_bowtie2_spikein_log,
-    //         ch_bt2_to_csv_awk
-    //     )
-    //     ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
-    // }
+        ANNOTATE_BT2_SPIKEIN_META (
+            ANNOTATE_BT2_META.out.output,
+            ch_bowtie2_spikein_log,
+            ch_bt2_to_csv_awk
+        )
+        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
+    }
     // META-DATA example state:
     //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
     // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
     // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], BAM]
-    //ch_samtools_bam | view
+    ch_samtools_bam | view
     //EXPORT_META ( ch_annotated_meta.collect{ it[0] } )
 
     /*
