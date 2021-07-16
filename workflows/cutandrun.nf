@@ -73,8 +73,9 @@ def run_alignment          = true
 def run_q_filter           = false
 def run_mark_dups          = true
 def run_remove_dups        = true
+def run_peak_calling       = true
 
-if(params.minimum_alignment_q_score > 0) { run_q_filter    = true  }
+if(params.minimum_alignment_q_score > 0) { run_q_filter = true }
 
 if(params.only_genome) {
     run_input_check        = false
@@ -84,26 +85,32 @@ if(params.only_genome) {
     run_q_filter           = false
     run_mark_dups          = false
     run_remove_dups        = false
+    run_peak_calling       = false
 }
 
 if(params.only_preqc) {
-    run_alignment   = false
-    run_q_filter    = false
-    run_mark_dups   = false
-    run_remove_dups = false
+    run_alignment    = false
+    run_q_filter     = false
+    run_mark_dups    = false
+    run_remove_dups  = false
+    run_peak_calling = false
 }
 
 if(params.only_alignment) {
-    run_q_filter    = false
-    run_mark_dups   = false
-    run_remove_dups = false
+    run_q_filter     = false
+    run_mark_dups    = false
+    run_remove_dups  = false
+    run_peak_calling = false
 }
 
 if(params.skip_markduplicates)                     { run_mark_dups   = false }
 if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups = false }
 
 if(params.only_filtering) {
+    run_peak_calling = false
+}
 
+if(params.only_peak_calling) {
 }
 
 /*
@@ -245,7 +252,7 @@ def awk_dt_frag_options     = modules["awk_dt_frag"]
  */
 include { INPUT_CHECK                    } from "../subworkflows/local/input_check"                          addParams( options: [:]                                        )
 include { CAT_FASTQ                      } from "../modules/local/cat_fastq"                                 addParams( options: cat_fastq_options                          )
-// include { BEDTOOLS_GENOMECOV_SCALE       } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
+include { BEDTOOLS_GENOMECOV_SCALE       } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
 // include { IGV_SESSION                    } from "../modules/local/igv_session"                               addParams( options: modules["igv"]                             )
 // include { EXPORT_META                    } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
 // include { GENERATE_REPORTS               } from "../modules/local/generate_reports"                          addParams( options: modules["generate_reports"]                )
@@ -267,6 +274,7 @@ include { ALIGN_BOWTIE2 }                                   from "../subworkflow
 include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options )
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
+
 
 // include { CALCULATE_FRAGMENTS }                             from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
 
@@ -373,21 +381,22 @@ workflow CUTANDRUN {
     /*
     * SUBWORKFLOW: Alignment to target and spikein genome using botwtie2
     */
+    ch_orig_bam                   = Channel.empty()
+    ch_orig_spikein_bam           = Channel.empty()
+    ch_bowtie2_log                = Channel.empty()
+    ch_bowtie2_spikein_log        = Channel.empty()
+    ch_samtools_bam               = Channel.empty()
+    ch_samtools_bai               = Channel.empty()
+    ch_samtools_stats             = Channel.empty()
+    ch_samtools_flagstat          = Channel.empty()
+    ch_samtools_idxstats          = Channel.empty()
+    ch_samtools_spikein_bam       = Channel.empty()
+    ch_samtools_spikein_bai       = Channel.empty()
+    ch_samtools_spikein_stats     = Channel.empty()
+    ch_samtools_spikein_flagstat  = Channel.empty()
+    ch_samtools_spikein_idxstats  = Channel.empty()
     if(run_alignment) {
-        ch_orig_bam                   = Channel.empty()
-        ch_orig_spikein_bam           = Channel.empty()
-        ch_bowtie2_log                = Channel.empty()
-        ch_bowtie2_spikein_log        = Channel.empty()
-        ch_samtools_bam               = Channel.empty()
-        ch_samtools_bai               = Channel.empty()
-        ch_samtools_stats             = Channel.empty()
-        ch_samtools_flagstat          = Channel.empty()
-        ch_samtools_idxstats          = Channel.empty()
-        ch_samtools_spikein_bam       = Channel.empty()
-        ch_samtools_spikein_bai       = Channel.empty()
-        ch_samtools_spikein_stats     = Channel.empty()
-        ch_samtools_spikein_flagstat  = Channel.empty()
-        ch_samtools_spikein_idxstats  = Channel.empty()
+        
         if (params.aligner == "bowtie2") {
             ALIGN_BOWTIE2 (
                 ch_trimmed_reads,
@@ -492,42 +501,41 @@ workflow CUTANDRUN {
     //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
     // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
     // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], BAM]
-    ch_samtools_bam | view
+    //ch_samtools_bam | view
     //EXPORT_META ( ch_annotated_meta.collect{ it[0] } )
 
     /*
      * CHANNEL: Calculate scale factor for each sample based on a constant devided by the number
-     *          of reads aligned to the spike-in genome. Optionally skipped.
+     *          of reads aligned to the spike-in genome.
      */
-    // if (!params.skip_scale) {
-    // ch_samtools_bam
-    //     .map { row ->
-    //         def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
-    //         [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
-    //     }
-    //     .set { ch_scale_factor }
-    // } else {
-    // ch_samtools_bam
-    //     .map { row ->
-    //         [ row[0].id, 1 ]
-    //     }
-    //     .set { ch_scale_factor }
-    // }
-
+    if (!params.skip_scale) {
+    ch_samtools_bam
+        .map { row ->
+            def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
+            [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
+        }
+        .set { ch_scale_factor }
+    } else {
+    ch_samtools_bam
+        .map { row ->
+            [ row[0].id, 1 ]
+        }
+        .set { ch_scale_factor }
+    }
     // EXAMPLE CHANNEL STRUCT: [id, scale_factor]
     //ch_scale_factor | view
 
     /*
      * CHANNEL: Create a channel with the scale factor as a seperate value
      */
-    // ch_samtools_bam
-    //     .map { row -> [row[0].id, row ].flatten()}
-    //     .join ( ch_scale_factor )
-    //     .map { row -> row[1..(row.size() - 1)] }
-    //     .map { row ->
-    //         row[0].put("scale_factor", row[2])
-    //         [ row[0], row[1], row[2] ] }
-    //     .set { ch_samtools_bam_scale }
+    ch_samtools_bam
+        .map { row -> [row[0].id, row ].flatten()}
+        .join ( ch_scale_factor )
+        .map { row -> row[1..(row.size() - 1)] }
+        .map { row ->
+            row[0].put("scale_factor", row[2])
+            [ row[0], row[1], row[2] ] }
+        .set { ch_samtools_bam_scale }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
     // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
     // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
@@ -537,42 +545,30 @@ workflow CUTANDRUN {
     /*
      * CHANNEL: Add the scale factor values to the main meta-data stream
      */
-    // ch_samtools_bam_scale
-    //     .map { row -> [ row[0], row[1] ] }
-    //     .set { ch_samtools_bam_sf }
-    // ch_samtools_bam = ch_samtools_bam_sf
+    ch_samtools_bam_scale
+        .map { row -> [ row[0], row[1] ] }
+        .set { ch_samtools_bam_sf }
+    ch_samtools_bam = ch_samtools_bam_sf
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
     // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
     // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
     // scale_factor:10000], BAM]
     //ch_samtools_bam | view
 
-    /*
-     * SUBWORKFLOW: Calculate fragment bed from bams
-     * - Filter for mapped reads
-     * - Convert to bed file
-     * - Keep the read pairs that are on the same chromosome and fragment length less than 1000bp
-     * - Only extract the fragment related columns using cut
-     */
-    // CALCULATE_FRAGMENTS (
-    //     ch_samtools_bam
-    // )
-    // ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.bedtools_version.first().ifEmpty(null))
-    //EXAMPLE CHANNEL STRUCT: NO CHANGE
-    //CALCULATE_FRAGMENTS.out.bed | view
-
-    /*
-     * MODULE: Convert bam files to bedgraph
-     */
-    // BEDTOOLS_GENOMECOV_SCALE (
-    //     ch_samtools_bam_scale
-    // )
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
-    // scale_factor:10000], BEDGRAPH]
-    //BEDTOOLS_GENOMECOV_SCALE.out.bedgraph | view
-
+    if(run_peak_calling) {
+        /*
+        * MODULE: Convert bam files to bedgraph
+        */
+        BEDTOOLS_GENOMECOV_SCALE (
+            ch_samtools_bam_scale
+        )
+        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
+        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
+        // scale_factor:10000], BEDGRAPH]
+        //BEDTOOLS_GENOMECOV_SCALE.out.bedgraph | view
+    }
+        
     /*
      * MODULE: Clip off bedgraphs so none overlap beyond chromosome edge
      */
@@ -964,6 +960,20 @@ workflow CUTANDRUN {
         // dedup_unmapped_reads:0, dedup_unpaired_read_duplicates:0, dedup_read_pair_duplicates:0, dedup_read_pair_optical_duplicates:0, dedup_percent_duplication:0,
         // dedup_estimated_library_size:], BAM]
         //ch_samtools_bam | view
+
+    //         /*
+    //  * SUBWORKFLOW: Calculate fragment bed from bams
+    //  * - Filter for mapped reads
+    //  * - Convert to bed file
+    //  * - Keep the read pairs that are on the same chromosome and fragment length less than 1000bp
+    //  * - Only extract the fragment related columns using cut
+    //  */
+    // CALCULATE_FRAGMENTS (
+    //     ch_samtools_bam
+    // )
+    // ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.bedtools_version.first().ifEmpty(null))
+    //EXAMPLE CHANNEL STRUCT: NO CHANGE
+    //CALCULATE_FRAGMENTS.out.bed | view
 
         /*
         * MODULE: Bin the fragments into 500bp bins ready for downstream reporting
