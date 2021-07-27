@@ -116,9 +116,9 @@ def check_samplesheet(file_in, file_out, igg_control):
             ## Auto-detect paired-end/single-end
             sample_info = []
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = [sample, str(replicate), "0", control_group, fastq_1, fastq_2]
+                sample_info = [sample, str(replicate), control_group, "0", fastq_1, fastq_2]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = [sample, str(replicate), "1", control_group, fastq_1, fastq_2]
+                sample_info = [sample, str(replicate), control_group, "1", fastq_1, fastq_2]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
             ## Create sample mapping dictionary = {sample: {replicate : [ single_end, fastq_1, fastq_2 ]}}
@@ -146,10 +146,10 @@ def check_samplesheet(file_in, file_out, igg_control):
     if igg_present:
         for key, data in sample_run_dict["igg"].items():
             for tech_rep in data:
-                if tech_rep[3] not in control_group_ids:
-                    control_group_ids.append(tech_rep[3])
+                if tech_rep[2] not in control_group_ids:
+                    control_group_ids.append(tech_rep[2])
 
-                if(tech_rep[3] != str(key)):
+                if(tech_rep[2] != str(key)):
                     print("ERROR: IgG groups must have a control id equal to the replicate id")
                     sys.exit(1)
 
@@ -175,19 +175,19 @@ def check_samplesheet(file_in, file_out, igg_control):
                     ## Check control group exists
                     if igg_present:
                         for tech_rep in sample_run_dict[sample][replicate]:
-                            if tech_rep[3] not in control_group_ids:
+                            if tech_rep[2] not in control_group_ids:
                                 print_error(
                                     "Control group does not exist",
-                                    tech_rep[3]
+                                    tech_rep[2]
                                 )
 
                         ## Check tech reps have same control group id
-                        check_group = sample_run_dict[sample][replicate][0][3]
+                        check_group = sample_run_dict[sample][replicate][0][2]
                         for tech_rep in sample_run_dict[sample][replicate]:
-                            if tech_rep[3] != check_group:
+                            if tech_rep[2] != check_group:
                                 print_error(
                                     "Control group must match within technical replicates",
-                                    tech_rep[3]
+                                    tech_rep[2]
                                 )
 
                     ## Check that multiple runs of the same sample are of the same datatype
