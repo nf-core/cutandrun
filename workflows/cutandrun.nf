@@ -66,6 +66,7 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 ========================================================================================
 */
 
+def run_genome_prep        = true
 def run_input_check        = true
 def run_cat_fastq          = true
 def run_trim_galore_fastqc = true
@@ -80,6 +81,17 @@ if(params.skip_markduplicates)                     { run_mark_dups   = false }
 if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups = false }
 if(params.skip_peak_calling)                       { run_peak_calling = false }
 
+if(params.only_input) {
+    run_genome_prep        = false
+    run_cat_fastq          = false
+    run_trim_galore_fastqc = false
+    run_alignment          = false
+    run_q_filter           = false
+    run_mark_dups          = false
+    run_remove_dups        = false
+    run_peak_calling       = false
+}
+
 if(params.only_genome) {
     run_input_check        = false
     run_cat_fastq          = false
@@ -92,6 +104,7 @@ if(params.only_genome) {
 }
 
 if(params.only_preqc) {
+    run_genome_prep  = false
     run_alignment    = false
     run_q_filter     = false
     run_mark_dups    = false
@@ -320,11 +333,13 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Uncompress and prepare reference genome files
      */
-    PREPARE_GENOME (
-        prepare_tool_indices
-    )
-    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.bowtie2_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.samtools_version.ifEmpty(null))
+    if(run_genome_prep) {
+        PREPARE_GENOME (
+            prepare_tool_indices
+        )
+        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.bowtie2_version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.samtools_version.ifEmpty(null))
+    }
 
     /*
      * SUBWORKFLOW: Read in samplesheet, validate and stage input files
@@ -347,7 +362,6 @@ workflow CUTANDRUN {
         }
         .set { ch_fastq }
     }
-    //ch_fastq | view
 
     /*
      * MODULE: Concatenate FastQ files from same sample if required

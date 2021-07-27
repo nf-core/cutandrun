@@ -43,11 +43,13 @@ def check_samplesheet(file_in, file_out, igg_control):
     """
     This function checks that the samplesheet follows the following structure:
 
-    group,replicate,fastq_1,fastq_2
-    WT,1,WT_LIB1_REP1_1.fastq.gz,WT_LIB1_REP1_2.fastq.gz
-    WT,1,WT_LIB2_REP1_1.fastq.gz,WT_LIB2_REP1_2.fastq.gz
-    WT,2,WT_LIB1_REP2_1.fastq.gz,WT_LIB1_REP2_2.fastq.gz
-    KO,1,KO_LIB1_REP1_1.fastq.gz,KO_LIB1_REP1_2.fastq.gz
+    group,replicate,control_group,fastq_1,fastq_2
+    WT,1,1,WT_LIB1_REP1_1.fastq.gz,WT_LIB1_REP1_2.fastq.gz
+    WT,1,1,WT_LIB2_REP1_1.fastq.gz,WT_LIB2_REP1_2.fastq.gz
+    WT,2,1,WT_LIB1_REP2_1.fastq.gz,WT_LIB1_REP2_2.fastq.gz
+    KO,1,2,KO_LIB1_REP1_1.fastq.gz,KO_LIB1_REP1_2.fastq.gz
+    IGG,1,1,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz
+    IGG,2,2,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz
     """
 
     igg_present = False
@@ -57,7 +59,7 @@ def check_samplesheet(file_in, file_out, igg_control):
 
         ## Check header
         MIN_COLS = 3
-        HEADER = ["group", "replicate", "fastq_1", "fastq_2"]
+        HEADER = ["group", "replicate", "control_group", "fastq_1", "fastq_2"]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print("ERROR: Please check samplesheet header -> {} != {}".format(",".join(header), ",".join(HEADER)))
@@ -87,7 +89,7 @@ def check_samplesheet(file_in, file_out, igg_control):
                 )
 
             ## Check sample name entries
-            sample, replicate, fastq_1, fastq_2 = lspl[: len(HEADER)]
+            sample, replicate, control_group, fastq_1, fastq_2 = lspl[: len(HEADER)]
             if sample:
                 if sample.find(" ") != -1:
                     print_error("Group entry contains spaces!", "Line", line)
@@ -114,9 +116,9 @@ def check_samplesheet(file_in, file_out, igg_control):
             ## Auto-detect paired-end/single-end
             sample_info = []
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = [sample, str(replicate), "0", fastq_1, fastq_2]
+                sample_info = [sample, str(replicate), "0", control_group, fastq_1, fastq_2]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = [sample, str(replicate), "1", fastq_1, fastq_2]
+                sample_info = [sample, str(replicate), "1", control_group, fastq_1, fastq_2]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
             ## Create sample mapping dictionary = {sample: {replicate : [ single_end, fastq_1, fastq_2 ]}}
@@ -139,13 +141,25 @@ def check_samplesheet(file_in, file_out, igg_control):
         print("ERROR: Parameter --igg_control was set to false, but an 'igg' group was found in " + str(file_in) + ".")
         sys.exit(1)
 
+    ## Check control groups have unique ids that are the same as their replicate ids
+    control_group_ids = []
+    if igg_present:
+        for key, data in sample_run_dict["igg"].items():
+            for tech_rep in data:
+                if tech_rep[3] not in control_group_ids:
+                    control_group_ids.append(tech_rep[3])
+
+                if(tech_rep[3] != str(key)):
+                    print("ERROR: IgG groups must have a control id equal to the replicate id")
+                    sys.exit(1)
+
     ## Write validated samplesheet with appropriate columns
     if len(sample_run_dict) > 0:
         out_dir = os.path.dirname(file_out)
         make_dir(out_dir)
         with open(file_out, "w") as fout:
 
-            fout.write(",".join(["id", "group", "replicate", "single_end", "fastq_1", "fastq_2"]) + "\n")
+            fout.write(",".join(["id", "group", "replicate", "control_group", "single_end", "fastq_1", "fastq_2"]) + "\n")
             for sample in sorted(sample_run_dict.keys()):
 
                 ## Check that replicate ids are in format 1..<NUM_REPS>
@@ -157,6 +171,24 @@ def check_samplesheet(file_in, file_out, igg_control):
                         sample,
                     )
                 for replicate in sorted(sample_run_dict[sample].keys()):
+
+                    ## Check control group exists
+                    if igg_present:
+                        for tech_rep in sample_run_dict[sample][replicate]:
+                            if tech_rep[3] not in control_group_ids:
+                                print_error(
+                                    "Control group does not exist",
+                                    tech_rep[3]
+                                )
+
+                        ## Check tech reps have same control group id
+                        check_group = sample_run_dict[sample][replicate][0][3]
+                        for tech_rep in sample_run_dict[sample][replicate]:
+                            if tech_rep[3] != check_group:
+                                print_error(
+                                    "Control group must match within technical replicates",
+                                    tech_rep[3]
+                                )
 
                     ## Check that multiple runs of the same sample are of the same datatype
                     if not all(

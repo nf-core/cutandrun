@@ -17,3 +17,5 @@ dev/docker/static_reports/test_data/*
 dev/docker/static_reports/test_output/*
 !dev/docker/static_reports/test_data/_dummy.txt
 !dev/docker/static_reports/test_output/_dummy.txt
+
+!tests/data/
