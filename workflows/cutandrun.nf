@@ -75,7 +75,10 @@ def run_mark_dups          = true
 def run_remove_dups        = true
 def run_peak_calling       = true
 
-if(params.minimum_alignment_q_score > 0) { run_q_filter = true }
+if(params.minimum_alignment_q_score > 0)           { run_q_filter = true }
+if(params.skip_markduplicates)                     { run_mark_dups   = false }
+if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups = false }
+if(params.skip_peak_calling)                       { run_peak_calling = false }
 
 if(params.only_genome) {
     run_input_check        = false
@@ -102,9 +105,6 @@ if(params.only_alignment) {
     run_remove_dups  = false
     run_peak_calling = false
 }
-
-if(params.skip_markduplicates)                     { run_mark_dups   = false }
-if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups = false }
 
 if(params.only_filtering) {
     run_peak_calling = false
@@ -291,13 +291,13 @@ include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflow
 /*
  * MODULES
  */
-// include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/software/ucsc/bedgraphtobigwig/main"   addParams( options: modules["ucsc_bedgraphtobigwig"] )
+include { UCSC_BEDCLIP                                             } from "../modules/nf-core/software/ucsc/bedclip/main"            addParams( options: modules["ucsc_bedclip"]          )
+include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/software/ucsc/bedgraphtobigwig/main"   addParams( options: modules["ucsc_bedgraphtobigwig"] )
 // include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/software/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_gene"]   )
 // include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/software/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]  )
 // include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]   )
 // include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]  )
 // include { SEACR_CALLPEAK                                           } from "../modules/nf-core/software/seacr/callpeak/main"          addParams( options: modules["seacr"]                 )
-// include { UCSC_BEDCLIP                                             } from "../modules/nf-core/software/ucsc/bedclip/main"            addParams( options: modules["ucsc_bedclip"]          )
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -536,10 +536,7 @@ workflow CUTANDRUN {
             row[0].put("scale_factor", row[2])
             [ row[0], row[1], row[2] ] }
         .set { ch_samtools_bam_scale }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
-    // scale_factor:10000], BAM, SCALE_FACTOR]
+    //EXAMPLE CHANNEL STRUCT: [[META + scale_factor:10000], BAM, SCALE_FACTOR]
     //ch_samtools_bam_scale | view
 
     /*
@@ -549,10 +546,7 @@ workflow CUTANDRUN {
         .map { row -> [ row[0], row[1] ] }
         .set { ch_samtools_bam_sf }
     ch_samtools_bam = ch_samtools_bam_sf
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
-    // scale_factor:10000], BAM]
+    //EXAMPLE CHANNEL STRUCT: [[META], BAM]
     //ch_samtools_bam | view
 
     if(run_peak_calling) {
@@ -562,39 +556,30 @@ workflow CUTANDRUN {
         BEDTOOLS_GENOMECOV_SCALE (
             ch_samtools_bam_scale
         )
-        //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
-        // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
-        // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
-        // scale_factor:10000], BEDGRAPH]
+        //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
         //BEDTOOLS_GENOMECOV_SCALE.out.bedgraph | view
-    }
-        
-    /*
-     * MODULE: Clip off bedgraphs so none overlap beyond chromosome edge
-     */
-    // UCSC_BEDCLIP (
-    //     BEDTOOLS_GENOMECOV_SCALE.out.bedgraph,
-    //     PREPARE_GENOME.out.chrom_sizes
-    // )
-    //EXAMPLE CHANNEL STRUCT: NO CHANGE
-    //UCSC_BEDCLIP.out.bedgraph | view
 
-    /*
-     * MODULE: Convert bedgraph to bigwig
-     */
-    // UCSC_BEDGRAPHTOBIGWIG (
-    //     UCSC_BEDCLIP.out.bedgraph,
-    //     PREPARE_GENOME.out.chrom_sizes
-    // )
-    // ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.version.first().ifEmpty(null))
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
-    // scale_factor:10000], BIGWIG]
-    //UCSC_BEDGRAPHTOBIGWIG.out.bigwig | view
+        /*
+        * MODULE: Clip off bedgraphs so none overlap beyond chromosome edge
+        */
+        UCSC_BEDCLIP (
+            BEDTOOLS_GENOMECOV_SCALE.out.bedgraph,
+            PREPARE_GENOME.out.chrom_sizes
+        )
+        //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
+        //UCSC_BEDCLIP.out.bedgraph | view
 
-    // ch_seacr_bed = Channel.empty()
-    //if(!params.skip_peakcalling) {
+        /*
+        * MODULE: Convert bedgraph to bigwig
+        */
+        UCSC_BEDGRAPHTOBIGWIG (
+            UCSC_BEDCLIP.out.bedgraph,
+            PREPARE_GENOME.out.chrom_sizes
+        )
+        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.version.first().ifEmpty(null))
+        //EXAMPLE CHANNEL STRUCT: [[META], BIGWIG]
+        //UCSC_BEDGRAPHTOBIGWIG.out.bigwig | view
+
         /*
          * CHANNEL: Separate bedgraphs into target/control pairings for each replicate
          */
@@ -603,42 +588,47 @@ workflow CUTANDRUN {
         //     control: it[0].group == "igg"
         // }
         // .set { ch_bedgraph_split }
-        //EXAMPLE CHANNEL STRUCT: NO CHANGE
         //ch_bedgraph_split.target | view
         //ch_bedgraph_split.control | view
 
-      //  if (params.igg_control) {
+        // if(params.igg_control) {
+        //     /*
+        //     * CHANNEL: Collect experimental replicate numbers
+        //     */
+        //     ch_bedgraph_split.target
+        //         .combine( ch_bedgraph_split.control )
+        //         .map { row -> [ row[0].replicate ] }
+        //         .collect()
+        //         .map { row -> [ 0, row ] }
+        //         .set { ch_experimental_reps }
+        //     ch_experimental_reps | view
 
-            /*
-            * CHANNEL: Collect experimental replicate numbers
-            */
-            // ch_bedgraph_split.target
-            //     .combine( ch_bedgraph_split.control )
-            //     .map { row -> [ row[0].replicate ] }
-            //     .collect()
-            //     .map { row -> [ 0, row ] }
-            //     .set { ch_experimental_reps }
-                // ch_experimental_reps | view
+        //     /*
+        //     * CHANNEL: Collect IgG control replicate numbers
+        //     */
+        //     ch_bedgraph_split.target
+        //         .combine(ch_bedgraph_split.control)
+        //         .map { row -> [ row[2].replicate ] }
+        //         .collect()
+        //         .map { row -> [ 0, row ] }
+        //         .set { ch_control_reps }
+        //     ch_control_reps | view
 
-            /*
-            * CHANNEL: Collect IgG control replicate numbers
-            */
-            // ch_bedgraph_split.target
-            //     .combine(ch_bedgraph_split.control)
-            //     .map { row -> [ row[2].replicate ] }
-            //     .collect()
-            //     .map { row -> [ 0, row ] }
-            //     .set { ch_control_reps }
-            // ch_control_reps | view
+        //     /*
+        //     * CHANNEL: Combine experimental and control replicate numbers, each nested separately in array
+        //     */
+        //     ch_control_reps
+        //         .combine( ch_experimental_reps, by: 0 )
+        //         .map { row -> row[1..-1] }
+        //         .set{ ch_replicate_numbers }
+        //     ch_replicate_numbers | view
+        // }
+    }
 
-            /*
-            * CHANNEL: Combine experimental and control replicate numbers, each nested separately in array
-            */
-            // ch_control_reps
-            //     .combine( ch_experimental_reps, by: 0 )
-            //     .map { row -> row[1..-1] }
-            //     .set{ ch_replicate_numbers }
-            // ch_replicate_numbers | view
+
+    // ch_seacr_bed = Channel.empty()
+
+
 
             /*
             * CHANNEL: Create channel with elements of the following structure
