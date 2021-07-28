@@ -31,13 +31,6 @@ process MULTIQC {
     path ('samtools/flagstat/*')
     path ('samtools/idxstats/*')
     path ('picard/markduplicates/*')
-    path ('deseq2_qc/*')
-    path ('deseq2_qc/*')
-    path ('deseq2_qc/*')
-    path ('deseq2_qc/*')
-    path ('deseq2_qc/*')
-    path ('deseq2_qc/*')
-    path ('deseq2_qc/*')
     path ('reports/*')
 
     output:
