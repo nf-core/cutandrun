@@ -75,11 +75,15 @@ def run_q_filter           = false
 def run_mark_dups          = true
 def run_remove_dups        = true
 def run_peak_calling       = true
+def run_reporting          = true
+def run_deep_tools         = true
 
-if(params.minimum_alignment_q_score > 0)           { run_q_filter = true }
-if(params.skip_markduplicates)                     { run_mark_dups   = false }
-if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups = false }
+if(params.minimum_alignment_q_score > 0)           { run_q_filter     = true  }
+if(params.skip_markduplicates)                     { run_mark_dups    = false }
+if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups  = false }
 if(params.skip_peak_calling)                       { run_peak_calling = false }
+if(params.skip_reporting)                          { run_reporting    = false }
+if(!params.gene_bed || params.skip_heatmaps)       { run_deep_tools   = false }
 
 if(params.only_input) {
     run_genome_prep        = false
@@ -90,6 +94,7 @@ if(params.only_input) {
     run_mark_dups          = false
     run_remove_dups        = false
     run_peak_calling       = false
+    run_reporting          = false
 }
 
 if(params.only_genome) {
@@ -101,6 +106,7 @@ if(params.only_genome) {
     run_mark_dups          = false
     run_remove_dups        = false
     run_peak_calling       = false
+    run_reporting          = false
 }
 
 if(params.only_preqc) {
@@ -110,6 +116,7 @@ if(params.only_preqc) {
     run_mark_dups    = false
     run_remove_dups  = false
     run_peak_calling = false
+    run_reporting    = false
 }
 
 if(params.only_alignment) {
@@ -117,13 +124,16 @@ if(params.only_alignment) {
     run_mark_dups    = false
     run_remove_dups  = false
     run_peak_calling = false
+    run_reporting    = false
 }
 
 if(params.only_filtering) {
     run_peak_calling = false
+    run_reporting    = false
 }
 
 if(params.only_peak_calling) {
+    run_reporting = false
 }
 
 /*
@@ -268,7 +278,7 @@ include { CAT_FASTQ                      } from "../modules/local/cat_fastq"    
 include { BEDTOOLS_GENOMECOV_SCALE       } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
 include { SEACR_CALLPEAK as SEACR_NO_IGG } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
 include { AWK as AWK_NAME_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_name_peak_bed"]               )
-// include { IGV_SESSION                    } from "../modules/local/igv_session"                               addParams( options: modules["igv"]                             )
+include { IGV_SESSION                    } from "../modules/local/igv_session"                               addParams( options: modules["igv"]                             )
 // include { EXPORT_META                    } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
 // include { GENERATE_REPORTS               } from "../modules/local/generate_reports"                          addParams( options: modules["generate_reports"]                )
 // include { DEEPTOOLS_BAMPEFRAGMENTSIZE    } from "../modules/local/software/deeptools/bamPEFragmentSize/main" addParams( options: modules["deeptools_fragmentsize"]          )
@@ -309,10 +319,10 @@ include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL}           from "../subworkflow
 include { UCSC_BEDCLIP                                             } from "../modules/nf-core/software/ucsc/bedclip/main"            addParams( options: modules["ucsc_bedclip"]          )
 include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/software/ucsc/bedgraphtobigwig/main"   addParams( options: modules["ucsc_bedgraphtobigwig"] )
 include { SEACR_CALLPEAK                                           } from "../modules/nf-core/software/seacr/callpeak/main"          addParams( options: modules["seacr"]                 )
-// include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/software/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_gene"]   )
-// include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/software/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]  )
-// include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]   )
-// include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]  )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/software/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_gene"]   )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/software/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]  )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]   )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]  )
 
 
 /*
@@ -725,24 +735,46 @@ workflow CUTANDRUN {
         //CONSENSUS_PEAKS.out.bed | view
     }
 
+    if(run_reporting) {
+        /*
+         * CHANNEL: Remove IgG from bigwig channel
+         */
+        UCSC_BEDGRAPHTOBIGWIG.out.bigwig
+            .filter { it[0].group != "igg" }
+            .set { ch_bigwig_no_igg }
+        //ch_bigwig_no_igg | view
 
+        if(!params.skip_igv) {
+            /*
+            * MODULE: Create igv session
+            */
+            IGV_SESSION (
+                PREPARE_GENOME.out.fasta,
+                PREPARE_GENOME.out.gtf,
+                ch_seacr_bed.collect{it[1]}.ifEmpty([]),
+                UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
+            )
+        }
 
+        if (run_deep_tools){
+            /*
+            * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
+            */
+            DEEPTOOLS_COMPUTEMATRIX_GENE (
+                ch_bigwig_no_igg,
+                PREPARE_GENOME.out.bed
+            )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.version.first().ifEmpty(null))
 
+            /*
+            * MODULE: Calculate DeepTools heatmap
+            */
+            DEEPTOOLS_PLOTHEATMAP_GENE (
+                DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
+            )
+        }
+    }
 
-
-   //}
-
-    // if(!params.skip_igv) {
-    //     /*
-    //     * MODULE: Create igv session
-    //     */
-    //     IGV_SESSION (
-    //         PREPARE_GENOME.out.fasta,
-    //         PREPARE_GENOME.out.gtf,
-    //         ch_seacr_bed.collect{it[1]}.ifEmpty([]),
-    //         UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
-    //     )
-    // }
 
     //if(!params.skip_reporting && !params.skip_peakcalling) {
         /*
@@ -755,13 +787,7 @@ workflow CUTANDRUN {
         //     .set { ch_groups_no_igg }
         //ch_groups_no_igg | view
 
-        /*
-         * CHANNEL: Remove IgG from bigwig channel
-         */
-        // UCSC_BEDGRAPHTOBIGWIG.out.bigwig
-        //     .filter { it[0].group != "igg" }
-        //     .set { ch_bigwig_no_igg }
-        //ch_bigwig_no_igg | view
+        
 
         /*
          * CHANNEL: Remove IgG from bam channel
@@ -803,23 +829,7 @@ workflow CUTANDRUN {
         //     ch_software_versions          = ch_software_versions.mix(DESEQ2_DIFF.out.version.ifEmpty(null))
         // }
 
-        // if (params.gene_bed){
-        //     /*
-        //     * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
-        //     */
-        //     DEEPTOOLS_COMPUTEMATRIX_GENE (
-        //         ch_bigwig_no_igg,
-        //         PREPARE_GENOME.out.bed
-        //     )
-        //     ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.version.first().ifEmpty(null))
 
-        //     /*
-        //     * MODULE: Calculate DeepTools heatmap
-        //     */
-        //     DEEPTOOLS_PLOTHEATMAP_GENE (
-        //         DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
-        //     )
-        // }
 
         //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
         // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764,
