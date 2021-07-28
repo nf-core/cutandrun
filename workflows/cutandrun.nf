@@ -239,6 +239,12 @@ else if(params.save_align_intermed) {
     picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
 
+// Consensus peak options
+def awk_threshold           = modules["awk_threshold"]
+awk_threshold.command   = "' \$10 >= " + params.replicate_threshold.toString() + " {print \$0}'"
+def awk_all_threshold       = modules["awk_threshold"]
+awk_threshold.command   = "' \$10 >= 1 {print \$0}'"
+
 // Meta annotation options
 def awk_bt2_options         = modules["awk_bt2"]
 def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
@@ -247,12 +253,6 @@ def awk_dt_frag_options     = modules["awk_dt_frag"]
 
 // def multiqc_options = modules["multiqc"]
 // multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ""
-
-// // AWK options
-// def awk_threshold           = modules["awk_threshold"]
-// awk_threshold.command   = "' \$10 >= " + params.replicate_threshold.toString() + " {print \$0}'"
-// def awk_all_threshold       = modules["awk_threshold"]
-// awk_threshold.command   = "' \$10 >= 1 {print \$0}'"
 
 /*
 ========================================================================================
@@ -267,13 +267,14 @@ include { INPUT_CHECK                    } from "../subworkflows/local/input_che
 include { CAT_FASTQ                      } from "../modules/local/cat_fastq"                                 addParams( options: cat_fastq_options                          )
 include { BEDTOOLS_GENOMECOV_SCALE       } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
 include { SEACR_CALLPEAK as SEACR_NO_IGG } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
+include { AWK as AWK_NAME_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_name_peak_bed"]               )
 // include { IGV_SESSION                    } from "../modules/local/igv_session"                               addParams( options: modules["igv"]                             )
 // include { EXPORT_META                    } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
 // include { GENERATE_REPORTS               } from "../modules/local/generate_reports"                          addParams( options: modules["generate_reports"]                )
 // include { DEEPTOOLS_BAMPEFRAGMENTSIZE    } from "../modules/local/software/deeptools/bamPEFragmentSize/main" addParams( options: modules["deeptools_fragmentsize"]          )
 // include { AWK as AWK_FRAG_BIN            } from "../modules/local/awk"                                       addParams( options: modules["awk_frag_bin"]                    )
 // include { AWK as AWK_EDIT_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_edit_peak_bed"]               )
-// include { AWK as AWK_NAME_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_name_peak_bed"]               )
+
 // include { DESEQ2_DIFF                    } from "../modules/local/deseq2_diff"                               addParams( options: modules["deseq2"],  multiqc_label: "deseq2")
 // include { SAMTOOLS_CUSTOMVIEW            } from "../modules/local/software/samtools/custom_view/main"        addParams( options: modules["samtools_frag_len"]               )
 
@@ -288,14 +289,14 @@ include { ALIGN_BOWTIE2 }                                   from "../subworkflow
 include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options )
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
-
+include { CONSENSUS_PEAKS }                                 from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"], skip_peak_plot: params.skip_reporting)
+include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL}           from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"], skip_peak_plot: params.skip_reporting)
 
 // include { CALCULATE_FRAGMENTS }                             from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
 
 // include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META }        from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "",meta_prefix: "dedup_", script_mode: false )
 // include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META }      from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dt_frag_options, meta_suffix: "", meta_prefix: "", script_mode: true )
-// include { CONSENSUS_PEAKS }                                 from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"])
-// include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL}           from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"])
+
 /*
 ========================================================================================
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -653,7 +654,7 @@ workflow CUTANDRUN {
             ch_peak_threshold = Channel.value(params.peak_threshold)
 
             /*
-            * MODULE: Call peaks without IgG COntrol
+            * MODULE: Call peaks without IgG Control
             */
             SEACR_NO_IGG (
                 ch_bedgraph_split.target,
@@ -664,63 +665,71 @@ workflow CUTANDRUN {
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //SEACR_NO_IGG.out.bed | view
         }
-    }
 
         /*
         * MODULE: Add sample identifier column to peak beds
         */
-        // AWK_NAME_PEAK_BED ( 
-        //     ch_seacr_bed 
-        // )
-
-        /*
-        * CHANNEL: Group samples based on group
-        */
-        // AWK_NAME_PEAK_BED.out.file
-        //     .map { row -> [ row[0].group, row[1] ] }
-        //     .groupTuple(by: [0])
-        //     .map { row ->
-        //         new_meta = [:]
-        //         new_meta.put( "id", row[0] )
-        //         [ new_meta, row[1].flatten() ]
-        //     }
-        //     .branch { it ->
-        //             single : it[1].size() == 1
-        //             multiple: it[1].size() > 1
-        //     }
-        //     .set { ch_seacr_bed_group }
-        // ch_seacr_bed_group | view
-
-        /*
-        * SUBWORKFLOW: Construct group consensus peaks
-        */
-        // CONSENSUS_PEAKS ( 
-        //     ch_seacr_bed_group.multiple 
-        // )
+        AWK_NAME_PEAK_BED ( 
+            ch_seacr_bed 
+        )
+        // EXAMPLE CHANNEL STRUCT: [[META], BED]
+        //AWK_NAME_PEAK_BED.out.file | view
 
         /*
         * CHANNEL: Group all samples
         */
-        // AWK_NAME_PEAK_BED.out.file
-        //     .map { row -> [ 1, row[1] ] }
-        //     .groupTuple(by: [0])
-        //     .map { row ->
-        //         new_meta = [:]
-        //         new_meta.put( "id", "all_peaks" )
-        //         [ new_meta, row[1].flatten() ]
-        //     }
-        //     .branch { it ->
-        //             single : it[1].size() == 1
-        //             multiple: it[1].size() > 1
-        //     }
-        //     .set { ch_seacr_bed_all }
+        AWK_NAME_PEAK_BED.out.file
+            .map { row -> [ 1, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", "all_samples" )
+                [ new_meta, row[1].flatten() ]
+            }
+            .set { ch_seacr_bed_all }
+        // EXAMPLE CHANNEL STRUCT: [[id: all_samples], BED1, BED2, BEDn...]
+        //ch_seacr_bed_all | view
 
         /*
         * SUBWORKFLOW: Construct group consensus peaks
         */
-        // CONSENSUS_PEAKS_ALL ( 
-        //     ch_seacr_bed_all.multiple 
-        // )
+        CONSENSUS_PEAKS_ALL ( 
+            ch_seacr_bed_all 
+        )
+        // EXAMPLE CHANNEL STRUCT: [[META], BED]
+        //CONSENSUS_PEAKS_ALL.out.bed | view
+
+        /*
+        * CHANNEL: Group samples based on group
+        */
+        AWK_NAME_PEAK_BED.out.file
+            .map { row -> [ row[0].group, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", row[0] )
+                [ new_meta, row[1].flatten() ]
+            }
+            .set { ch_seacr_bed_group }
+        // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], BED1, BED2, BEDn...]
+        //ch_seacr_bed_group | view
+
+        /*
+        * SUBWORKFLOW: Construct group consensus peaks
+        * where there is more than 1 replicate in a group
+        */
+        CONSENSUS_PEAKS ( 
+            ch_seacr_bed_group 
+        )
+        // EXAMPLE CHANNEL STRUCT: [[META], BED]
+        //CONSENSUS_PEAKS.out.bed | view
+    }
+
+
+
+
+
+
    //}
 
     // if(!params.skip_igv) {
