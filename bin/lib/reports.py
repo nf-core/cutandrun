@@ -65,6 +65,7 @@ class Reports:
         # Create list of deeptools raw fragment files
         dt_frag_list = glob.glob(self.raw_frag_path)
 
+
         for i in list(range(len(dt_frag_list))):
             # create dataframe from csv file for each file and save to a list
             dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None, names=['Size','Occurrences'])
@@ -343,56 +344,62 @@ class Reports:
         self.annotate_data_table()
 
         # Plot 1
-        plot1, data1 = self.alignment_summary()
-        plots["alignment_summary"] = plot1
-        data["alignment_summary"] = data1
+        multi_plot, data1 = self.alignment_summary()
+        plots["01_01_seq_depth"] = multi_plot[0]
+        plots["01_02_alignable_frag"] = multi_plot[1]
+        plots["01_03_alignment_rate_target"] = multi_plot[2]
+        plots["01_04_alignment_rate_spikein"] = multi_plot[3]
+        data["01_alignment_summary"] = data1
 
         # Plot 2
         if self.duplicate_info == True:
-            plot2, data2 = self.duplication_summary()
-            plots["duplication_summary"] = plot2
-            data["duplication_summary"] = data2
+            multi_plot, data2 = self.duplication_summary()
+            plots["02_01_dup_rate"] = multi_plot[0]
+            plots["02_02_est_lib_size"] = multi_plot[1]
+            plots["02_03_unique_frags"] = multi_plot[2]
+            data["02_duplication_summary"] = data2
 
         # Plot 3
         plot3, data3 = self.fraglen_summary_violin()
-        plots["frag_violin"] = plot3
-        data["frag_violin"] = data3
+        plots["03_01_frag_len_violin"] = plot3
+        data["03_01_frag_len_violin"] = data3
 
         # Plot 4
         plot4, data4 = self.fraglen_summary_histogram()
-        plots["frag_hist"] = plot4
-        data["frag_hist"] = data4
+        plots["03_02_frag_len_hist"] = plot4
+        data["03_02_frag_len_hist"] = data4
 
         # Plot 5
         plot5, data5 = self.replicate_heatmap()
-        plots["replicate_heatmap"] = plot5
-        data["replicate_heatmap"] = data5
+        plots["04_replicate_heatmap"] = plot5
+        data["04_replicate_heatmap"] = data5
 
         # Plot 6
-        plot6, data6 = self.scale_factor_summary()
-        plots["scale_factor_summary"] = plot6
-        data["scale_factor_summary"] = data6
+        multi_plot, data6 = self.scale_factor_summary()
+        plots["05_01_scale_factor"] = multi_plot[0]
+        plots["05_02_frag_count"] = multi_plot[1]
+        data["05_scale_factor_summary"] = data6
 
         # Plot 7a
         plot7a, data7a = self.no_of_peaks()
-        plots["no_of_peaks"] = plot7a
-        data["no_of_peaks"] = data7a
+        plots["06_01_no_of_peaks"] = plot7a
+        data["06_01_no_of_peaks"] = data7a
 
         # Plot 7b
         plot7b, data7b = self.peak_widths()
-        plots["peak_widths"] = plot7b
-        data["peak_widths"] = data7b
+        plots["06_02_peak_widths"] = plot7b
+        data["06_02_peak_widths"] = data7b
 
         # Plot 7c
         if self.multiple_reps:
             plot7c, data7c = self.reproduced_peaks()
-            plots["reproduced_peaks"] = plot7c
-            data["reproduced_peaks"] = data7c
+            plots["06_03_reproduced_peaks"] = plot7c
+            data["06_03_reproduced_peaks"] = data7c
 
         # Plot 7d
         plot7d, data7d = self.frags_in_peaks()
-        plots["frags_in_peaks"] = plot7d
-        data["frags_in_peaks"] = data7d
+        plots["06_04_frags_in_peaks"] = plot7d
+        data["06_04_frags_in_peaks"] = data7d
 
         # Fragment Length Histogram data in MultiQC yaml format
         txt = self.frag_len_hist_mqc()
@@ -407,31 +414,25 @@ class Reports:
         plots, data, txt = self.generate_plots()
 
         # Save mqc text file
-        txt_mqc = open(os.path.join(abs_path, "frag_len_mqc.txt"), "w")
+        txt_mqc = open(os.path.join(abs_path, "03_03_frag_len_mqc.txt"), "w")
         txt_mqc.write(txt)
         txt_mqc.close()
 
         # Save data to output folder
         for key in data:
             data[key].to_csv(os.path.join(abs_path, key + '.csv'), index=False)
+        
+        # Save plots to output folder
+        for key in plots:
             plots[key].savefig(os.path.join(abs_path, key + '.png'))
 
         # Save pdf of the plots
         self.gen_pdf(abs_path, plots)
 
     def gen_pdf(self, output_path, plots):
-        with PdfPages(os.path.join(output_path, 'report.pdf')) as pdf:
+        with PdfPages(os.path.join(output_path, 'merged_report.pdf')) as pdf:
             for key in plots:
                 pdf.savefig(plots[key])
-
-            # # We can also set the file's metadata via the PdfPages object:
-            # d = pdf.infodict()
-            # d['Title'] = 'Multipage PDF Example'
-            # d['Author'] = 'Jouni K. Sepp\xe4nen'
-            #        d['Subject'] = 'How to create a multipage pdf file and set its metadata'
-            # d['Keywords'] = 'PdfPages multipage keywords author title subject'
-            # d['CreationDate'] = datetime.datetime(2009, 11, 13)
-            # d['ModDate'] = datetime.datetime.today()
 
     #*
     #========================================================================================
@@ -440,20 +441,12 @@ class Reports:
     #*/
 
     def frag_len_hist_mqc(self):
-        # print(self.frag_hist)
         size_list = self.frag_hist["Size"].to_numpy().astype(str)
         occurrences_list = self.frag_hist["Occurrences"].to_numpy().astype(str)
-        # print(size_list)
-        # seperator = " : " * self.frag_hist.shape[0]
         size_list_sep = np.core.defchararray.add(size_list, " : ")
         x_y_list = np.core.defchararray.add(size_list_sep, occurrences_list)
-        # print(size_list_sep)
-        # print(x_y_list)
-        # print(size_list)
 
         group_rep = self.frag_hist[['group','replicate']].groupby(['group','replicate']).size().reset_index()
-        # print(group_rep)
-
         first_line = "data:"
 
         for i in list(range(group_rep.shape[0])):
@@ -486,33 +479,38 @@ class Reports:
         # Subset data
         df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
-        ## Construct quad plot
-        fig, seq_summary = plt.subplots(2,2)
-        fig.suptitle("Sequencing and Alignment Summary")
+        # Create plots array
+        figs = []
 
         # Seq depth
-        sns.boxplot(data=df_data, x='group', y='bt2_total_reads_target', ax=seq_summary[0,0], palette = "magma")
-        seq_summary[0,0].set_title("Sequencing Depth")
-        seq_summary[0,0].set_ylabel("Total Reads")
+        fig, ax = plt.subplots()
+        ax = sns.boxplot(data=df_data, x='group', y='bt2_total_reads_target', palette = "magma")
+        fig.suptitle("Sequencing Depth")
+        ax.set(ylabel="Total Reads")
+        figs.append(fig)
 
         # Alignable fragments
-        sns.boxplot(data=df_data, x='group', y='bt2_total_aligned_target', ax=seq_summary[0,1], palette = "magma")
-        seq_summary[0,1].set_title("Alignable Fragments")
-        seq_summary[0,1].set_ylabel("Total Aligned Reads")
+        fig, ax = plt.subplots()
+        ax = sns.boxplot(data=df_data, x='group', y='bt2_total_aligned_target', palette = "magma")
+        fig.suptitle("Alignable Fragments")
+        ax.set(ylabel="Total Aligned Reads")
+        figs.append(fig)
 
         # Alignment rate hg38
-        sns.boxplot(data=df_data, x='group', y='target_alignment_rate', ax=seq_summary[1,0], palette = "magma")
-        seq_summary[1,0].set_title("Alignment Rate (Target)")
-        seq_summary[1,0].set_ylabel("Percent of Fragments Aligned")
+        fig, ax = plt.subplots()
+        ax = sns.boxplot(data=df_data, x='group', y='target_alignment_rate', palette = "magma")
+        fig.suptitle("Alignment Rate (Target)")
+        ax.set(ylabel="Percent of Fragments Aligned")
+        figs.append(fig)
 
         # Alignment rate e.coli
-        sns.boxplot(data=df_data, x='group', y='spikein_alignment_rate', ax=seq_summary[1,1], palette = "magma")
-        seq_summary[1,1].set_title("Alignment Rate (Spike-in)")
-        seq_summary[1,1].set_ylabel("Percent of Fragments Aligned")
+        fig, ax = plt.subplots()
+        ax = sns.boxplot(data=df_data, x='group', y='spikein_alignment_rate', palette = "magma")
+        fig.suptitle("Alignment Rate (Spike-in)")
+        ax.set(ylabel="Percent of Fragments Aligned")
+        figs.append(fig)
 
-        plt.subplots_adjust(wspace=0.4, hspace=0.45)
-
-        return fig, df_data
+        return figs, df_data
 
     # ---------- Plot 2 - Duplication Summary --------- #
     def duplication_summary(self):
@@ -525,32 +523,37 @@ class Reports:
         df_data['dedup_percent_duplication'] *= 100
         df_data['unique_frag_num'] = df_data['dedup_read_pairs_examined'] * (1-df_data['dedup_percent_duplication']/100)
 
-        ## Construct quad plot
-        fig, seq_summary = plt.subplots(1,3)
-        fig.suptitle("Duplication Summary")
+         # Create plots array
+        figs = []
 
         # Duplication rate
-        sns.boxplot(data=df_data, x='group', y='dedup_percent_duplication', ax=seq_summary[0], palette = "magma")
-        seq_summary[0].set_ylabel("Duplication Rate (%)")
-        seq_summary[0].set(ylim=(0, 100))
-        seq_summary[0].xaxis.set_tick_params(labelrotation=45)
+        fig, ax = plt.subplots()
+        ax = sns.boxplot(data=df_data, x='group', y='dedup_percent_duplication', palette = "magma")
+        fig.suptitle("Duplication Rate")
+        ax.set(ylabel="Rate (%)")
+        ax.set(ylim=(0, 100))
+        ax.xaxis.set_tick_params(labelrotation=45)
+        figs.append(fig)
 
         # Estimated library size
-        sns.boxplot(data=df_data, x='group', y='dedup_estimated_library_size', ax=seq_summary[1], palette = "magma")
-        seq_summary[1].set_ylabel("Estimated Library Size")
-        seq_summary[1].yaxis.set_major_formatter(m_formatter)
-        seq_summary[1].xaxis.set_tick_params(labelrotation=45)
+        fig, ax = plt.subplots()
+        ax = sns.boxplot(data=df_data, x='group', y='dedup_estimated_library_size', palette = "magma")
+        fig.suptitle("Estimated Library Size")
+        ax.set(ylabel="Size")
+        ax.yaxis.set_major_formatter(m_formatter)
+        ax.xaxis.set_tick_params(labelrotation=45)
+        figs.append(fig)
 
         # No. of unique fragments
-        sns.boxplot(data=df_data, x='group', y='unique_frag_num', ax=seq_summary[2], palette = "magma")
-        seq_summary[2].set_ylabel("No. of Unique Fragments")
-        seq_summary[2].yaxis.set_major_formatter(k_formatter)
-        seq_summary[2].xaxis.set_tick_params(labelrotation=45)
+        fig, ax = plt.subplots()
+        ax = sns.boxplot(data=df_data, x='group', y='unique_frag_num', palette = "magma")
+        fig.suptitle("Unique Fragments")
+        ax.set(ylabel="Count")
+        ax.yaxis.set_major_formatter(k_formatter)
+        ax.xaxis.set_tick_params(labelrotation=45)
+        figs.append(fig)
 
-        # Set the plot sizing
-        plt.subplots_adjust(top = 0.9, bottom = 0.2, right = 0.9, left = 0.1, hspace = 0.7, wspace = 0.7)
-
-        return fig, df_data
+        return figs, df_data
 
 
     # ---------- Plot 3 - Fragment Distribution Violin --------- #
@@ -592,25 +595,30 @@ class Reports:
 
     # ---------- Plot 6 - Scale Factor Comparison --------- #
     def scale_factor_summary(self):
-        fig, scale_summary = plt.subplots(1,2)
-        fig.suptitle("Scaling Factor")
-
         # Get normalised count data
         df_normalised_frags = self.data_table.loc[:, ('id', 'group')]
         df_normalised_frags['normalised_frags'] = self.data_table['bt2_total_reads_target']*self.data_table['scale_factor']
+
+        figs = []
 
         # Subset meta data
         df_data_scale = self.data_table.loc[:, ('id', 'group','scale_factor')]
 
         # Scale factor
-        sns.boxplot(data=df_data_scale, x='group', y='scale_factor', ax=scale_summary[0], palette = "magma")
-        scale_summary[0].set_ylabel('Scale Factor')
+        fig, ax = plt.subplots()
+        ax = sns.boxplot(data=df_data_scale, x='group', y='scale_factor', palette = "magma")
+        fig.suptitle("Spike-in Scale Factor")
+        ax.set(ylabel="Coefficient")
+        figs.append(fig)
 
         # Normalised fragment count
-        sns.boxplot(data=df_normalised_frags, x='group', y='normalised_frags', ax=scale_summary[1], palette = "magma")
-        scale_summary[1].set_ylabel('Normalised Fragment Count')
+        fig, ax = plt.subplots()
+        ax = sns.boxplot(data=df_normalised_frags, x='group', y='normalised_frags', palette = "magma")
+        fig.suptitle("Normalised Fragment Count")
+        ax.set(ylabel="Count")
+        figs.append(fig)
 
-        return fig, df_data_scale
+        return figs, df_data_scale
 
     # ---------- Plot 7 - Peak Analysis --------- #
     def no_of_peaks(self):

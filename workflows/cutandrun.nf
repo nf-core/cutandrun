@@ -51,13 +51,6 @@ ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkI
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 // Header files for MultiQC
-ch_pca_header_multiqc            = file("$projectDir/assets/multiqc/deseq2_pca_header.txt", checkIfExists: true)
-ch_top_pca_header_multiqc        = file("$projectDir/assets/multiqc/deseq2_top_pca_header.txt", checkIfExists: true)
-ch_pca_group_header_multiqc      = file("$projectDir/assets/multiqc/deseq2_pca_group_header.txt", checkIfExists: true)
-ch_top_pca_group_header_multiqc  = file("$projectDir/assets/multiqc/deseq2_top_pca_group_header.txt", checkIfExists: true)
-ch_diagnostic_header_multiqc     = file("$projectDir/assets/multiqc/deseq2_diagnostic_header.txt", checkIfExists: true)
-ch_top_diagnostic_header_multiqc = file("$projectDir/assets/multiqc/deseq2_top_diagnostic_header.txt", checkIfExists: true)
-ch_clustering_header_multiqc     = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
 ch_frag_len_header_multiqc       = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
 
 /*
@@ -211,15 +204,15 @@ else if(params.save_align_intermed) {
 picard_markduplicates_options          = modules["picard_markduplicates"]
 picard_markduplicates_samtools_options = modules["picard_markduplicates_samtools"]
 if(!run_remove_dups) {
-    picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target"
+    picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/markdup"
     picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-    picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target"
+    picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/markdup"
     picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
 else if(params.save_align_intermed) {
-    picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/intermed/mark_dup"
+    picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/intermed/markdup"
     picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-    picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/mark_dup"
+    picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/markdup"
     picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
 
@@ -230,15 +223,15 @@ if(params.dedup_target_reads) { dedup_control_only = false }
 picard_deduplicates_options          = modules["picard_dedup"]
 picard_deduplicates_samtools_options = modules["picard_dedup_samtools"]
 if(run_remove_dups) {
-    picard_deduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target"
-    picard_deduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-    picard_deduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target"
+    picard_deduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/dedup"
+    picard_deduplicates_options.publish_files          = ["bam":"","metrics.txt": "picard_metrics"]
+    picard_deduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/dedup"
     picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 
     if(dedup_control_only) {
-        picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target"
+        picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/markdup"
         picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-        picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target"
+        picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/markdup"
         picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
     }
 }
@@ -259,7 +252,6 @@ awk_threshold.command   = "' \$10 >= 1 {print \$0}'"
 def awk_bt2_options         = modules["awk_bt2"]
 def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
 def awk_dedup_options       = modules["awk_dedup"]
-def awk_dt_frag_options     = modules["awk_dt_frag"]
 
 def multiqc_options = modules["multiqc"]
 multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ""
@@ -274,7 +266,7 @@ multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title
  * MODULES
  */
 include { INPUT_CHECK                    } from "../subworkflows/local/input_check"                          addParams( options: [:]                                        )
-include { CAT_FASTQ                      } from "../modules/local/cat_fastq"                                 addParams( options: cat_fastq_options                          )
+include { CAT_FASTQ                      } from "../modules/local/cat_fastq"                                  addParams( options: cat_fastq_options                          )
 include { BEDTOOLS_GENOMECOV_SCALE       } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
 include { SEACR_CALLPEAK as SEACR_NO_IGG } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
 include { AWK as AWK_NAME_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_name_peak_bed"]               )
@@ -286,8 +278,6 @@ include { EXPORT_META                    } from "../modules/local/export_meta"  
 include { GENERATE_REPORTS               } from "../modules/local/generate_reports"                          addParams( options: modules["generate_reports"]                )
 include { GET_SOFTWARE_VERSIONS          } from "../modules/local/get_software_versions"                     addParams( options: [publish_files : ["csv":""]]               )
 include { MULTIQC                        } from "../modules/local/multiqc"                                   addParams( options: multiqc_options                            )
-
-// include { DEEPTOOLS_BAMPEFRAGMENTSIZE    } from "../modules/local/software/deeptools/bamPEFragmentSize/main" addParams( options: modules["deeptools_fragmentsize"]          )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -301,9 +291,6 @@ include { CONSENSUS_PEAKS }                                 from "../subworkflow
 include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL}           from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"], skip_peak_plot: params.skip_reporting)
 include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META }        from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "", meta_prefix: "dedup_", script_mode: false )
 include { CALCULATE_FRAGMENTS }                             from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
-
-
-// include { ANNOTATE_META_AWK as ANNOTATE_DT_FRAG_META }      from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dt_frag_options, meta_suffix: "", meta_prefix: "", script_mode: true )
 
 /*
 ========================================================================================
@@ -321,7 +308,8 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../mo
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/software/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]  )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]   )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/software/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]  )
-
+include { SAMTOOLS_SORT                                            } from "../modules/nf-core/software/samtools/sort/main.nf"        addParams( options: modules["samtools_sort"]         )
+include { SAMTOOLS_INDEX                                           } from "../modules/nf-core/software/samtools/index/main.nf"       addParams( options: modules["samtools_index"]        )
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -878,6 +866,21 @@ workflow CUTANDRUN {
             )
 
             /*
+            * MODULE: Sort bams by mate pair ids (no position)
+            */
+            SAMTOOLS_SORT (
+                ch_samtools_bam
+            )
+            //EXAMPLE CHANNEL STRUCT: [[META], BAM]
+            //SAMTOOLS_SORT.out.bam | view
+
+            SAMTOOLS_INDEX (
+                SAMTOOLS_SORT.out.bam
+            )
+            //EXAMPLE CHANNEL STRUCT: [[META], BAI]
+            //SAMTOOLS_INDEX.out.bai | view
+
+            /*
             * MODULE: Generate python reporting using mixture of meta-data and direct file processing
             */
             ch_frag_len_multiqc = Channel.empty()
@@ -886,7 +889,8 @@ workflow CUTANDRUN {
                 SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
                 AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
                 ch_seacr_bed.collect{it[1]},                // peak beds
-                ch_samtools_bam.collect{it[1]},             // bam files sorted by mate pair ids
+                SAMTOOLS_SORT.out.bam.collect{it[1]},       // bam files sorted by mate pair ids
+                SAMTOOLS_INDEX.out.bai.collect{it[1]},      // bai files sorted by mate pair ids
                 ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
             )
             ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc

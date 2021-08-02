@@ -9,9 +9,6 @@ process GENERATE_REPORTS {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
-    //conda     (params.enable_conda ? "conda-forge::python=3.8.3" : null)
-    //container "quay.io/biocontainers/python:3.8.3"
-    //container 'quay.io/biocontainers/pybda:0.1.0--pyh5ca1d4c_0'
     container "luslab/cutandrun-dev-reporting:latest"
 
     input:
@@ -19,14 +16,15 @@ process GENERATE_REPORTS {
     path raw_fragments
     path bed_fragments
     path seacr_beds
-    path bam_bais
+    path bam
+    path bai
     path frag_len_header_multiqc
 
     output:
     path '*.pdf',             emit: pdf
     path '*.csv',             emit: csv
     path '*.png',             emit: png
-    path 'frag_len_mqc.yaml', emit: frag_len_multiqc
+    path '*frag_len_mqc.yaml', emit: frag_len_multiqc
     path '*.version.txt',     emit: version
 
     script:  // This script is bundled with the pipeline, in nf-core/cutandrun/bin/
@@ -40,8 +38,8 @@ process GENERATE_REPORTS {
         --output . \\
         --log log.txt
 
-    if [ -f "frag_len_mqc.txt" ]; then
-        cat $frag_len_header_multiqc frag_len_mqc.txt > frag_len_mqc.yaml
+    if [ -f "03_03_frag_len_mqc.txt" ]; then
+        cat $frag_len_header_multiqc 03_03_frag_len_mqc.txt > frag_len_mqc.yaml
     fi
 
     python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\" > python.version.txt
