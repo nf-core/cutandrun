@@ -5,31 +5,31 @@ report_comment: >
 
 report_header_info:
   - Contact E-mail: "chris.cheshire@crick.ac.uk"
-  - Application Type: "CUT&TAG"
+  - Application Type: "CUT&RUN"
   - Project Type: "Application"
-  - Sequencing Platform: "HiSeq 2500 High Output V4"
-  - Sequencing Setup: "2x50"
+  # - Sequencing Platform: "HiSeq 2500 High Output V4"
+  # - Sequencing Setup: "2x50"
 
-show_analysis_paths: True
-show_analysis_time: True
+# show_analysis_paths: True
+# show_analysis_time: True
 
-show_hide_buttons:
-  - Read Group 1
-  - Read Group 2
-  - Controls
-  - Conditions
-show_hide_mode:
-  - show
-  - show
-  - show
-  - show
-show_hide_patterns:
-  - _r1
-  - _r2
-  - igg_
-  - ["h3k4me3_", "h3k27me3_"]
+# show_hide_buttons:
+#   - Read Group 1
+#   - Read Group 2
+#   - Controls
+#   - Conditions
+# show_hide_mode:
+#   - show
+#   - show
+#   - show
+#   - show
+# show_hide_patterns:
+#   - _r1
+#   - _r2
+#   - igg_
+#   - ["h3k4me3_", "h3k27me3_"]
 
-export_plots: true
+# export_plots: true
 
 # Run only these modules
 run_modules:
@@ -81,8 +81,15 @@ section_comments:
         - It can be due to the Tn5 preference.
         - What you might be detecting is the 10-bp periodicity that shows up as a sawtooth pattern in the length distribution. If so, this is normal and will not affect alignment or peak calling. In any case we do not recommend trimming as the bowtie2 parameters that we list will give accurate mapping information without trimming.
 
-fastqc_config:
-    fastqc_theoretical_gc: "hg38_genome"
+# fastqc_config:
+#     fastqc_theoretical_gc: "hg38_genome"
+
+# extra_fn_clean_exts:
+#   - ".spikein.bowtie2"
+#   - "_processedFile"
+# extra_fn_clean_trim:
+#   - "#"
+#   - ".myext"
 
 # Customise the module search patterns to speed up execution time
 #  - Skip module sub-tools that we are not interested in
