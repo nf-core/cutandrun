@@ -70,13 +70,18 @@ def run_remove_dups        = true
 def run_peak_calling       = true
 def run_reporting          = true
 def run_deep_tools         = true
+def run_multiqc            = true
 
 if(params.minimum_alignment_q_score > 0)           { run_q_filter     = true  }
 if(params.skip_markduplicates)                     { run_mark_dups    = false }
 if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups  = false }
 if(params.skip_peak_calling)                       { run_peak_calling = false }
-if(params.skip_reporting)                          { run_reporting    = false }
 if(!params.gene_bed || params.skip_heatmaps)       { run_deep_tools   = false }
+if(params.skip_multiqc)                            { run_multiqc      = false }
+if(params.skip_reporting)                          { 
+    run_reporting = false
+    run_multiqc   = false
+}
 
 if(params.only_input) {
     run_genome_prep        = false
@@ -88,6 +93,7 @@ if(params.only_input) {
     run_remove_dups        = false
     run_peak_calling       = false
     run_reporting          = false
+    run_multiqc            = false
 }
 
 if(params.only_genome) {
@@ -100,6 +106,7 @@ if(params.only_genome) {
     run_remove_dups        = false
     run_peak_calling       = false
     run_reporting          = false
+    run_multiqc            = false
 }
 
 if(params.only_preqc) {
@@ -110,6 +117,7 @@ if(params.only_preqc) {
     run_remove_dups  = false
     run_peak_calling = false
     run_reporting    = false
+    run_multiqc      = false
 }
 
 if(params.only_alignment) {
@@ -118,15 +126,18 @@ if(params.only_alignment) {
     run_remove_dups  = false
     run_peak_calling = false
     run_reporting    = false
+    run_multiqc      = false
 }
 
 if(params.only_filtering) {
     run_peak_calling = false
     run_reporting    = false
+    run_multiqc      = false
 }
 
 if(params.only_peak_calling) {
     run_reporting = false
+    run_multiqc   = false
 }
 
 /*
@@ -896,27 +907,27 @@ workflow CUTANDRUN {
             ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
             ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
         }
+
+        /*
+        * MODULE: Collect software versions used in pipeline
+        */
+        ch_software_versions
+            .map { it -> if (it) [ it.baseName, it ] }
+            .groupTuple()
+            .map { it[1][0] }
+            .flatten()
+            .collect()
+            .set { ch_software_versions }
+
+        GET_SOFTWARE_VERSIONS (
+            ch_software_versions.map { it }.collect()
+        )
     }
-
-    /*
-     * MODULE: Collect software versions used in pipeline
-     */
-    ch_software_versions
-        .map { it -> if (it) [ it.baseName, it ] }
-        .groupTuple()
-        .map { it[1][0] }
-        .flatten()
-        .collect()
-        .set { ch_software_versions }
-
-    GET_SOFTWARE_VERSIONS (
-        ch_software_versions.map { it }.collect()
-    )
 
     /*
      * MODULE: Multiqc
      */
-    if (!params.skip_multiqc) {
+    if (run_multiqc) {
         workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 

@@ -23,7 +23,13 @@ workflow SAMTOOLS_VIEW_SORT_STATS {
      * Index BAM file and run samtools stats, flagstat and idxstats
      */
     SAMTOOLS_INDEX     ( SAMTOOLS_VIEW.out.bam )
-    BAM_STATS_SAMTOOLS ( SAMTOOLS_VIEW.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]) )
+
+    // Join bam/bai
+    ch_bam_sample_id = SAMTOOLS_VIEW.out.bam.map  { row -> [row[0].id, row] }
+    ch_bai_sample_id = SAMTOOLS_INDEX.out.bai.map { row -> [row[0].id, row] }
+    ch_bam_bai = ch_bam_sample_id.join(ch_bai_sample_id, by: [0]).map {row -> [row[1][0], row[1][1], row[2][1]]}
+
+    BAM_STATS_SAMTOOLS ( ch_bam_bai )
 
     emit:
     bam              = SAMTOOLS_VIEW.out.bam           // channel: [ val(meta), [ bam ] ]
