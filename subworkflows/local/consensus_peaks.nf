@@ -3,10 +3,10 @@
  */
 
 params.bedtools_merge_options = [:]
-params.sort_options = [:]
-params.plot_peak_options = [:]
-params.awk_threshold_options = [:]
-params.skip_peak_plot = false
+params.sort_options           = [:]
+params.plot_peak_options      = [:]
+params.awk_threshold_options  = [:]
+params.run_peak_plotting      = true
 
 include { SORT                 } from "../../modules/local/sort"                           addParams( options: params.sort_options           )
 include { BEDTOOLS_MERGE       } from "../../modules/nf-core/software/bedtools/merge/main" addParams( options: params.bedtools_merge_options )
@@ -30,7 +30,7 @@ workflow CONSENSUS_PEAKS {
     AWK ( BEDTOOLS_MERGE.out.bed )
 
     // Plot consensus peak sets
-    if(!params.skip_peak_plot) {
+    if(params.run_peak_plotting) {
         PLOT_CONSENSUS_PEAKS ( BEDTOOLS_MERGE.out.bed.collect{it[1]}.ifEmpty([]) )
     }
 

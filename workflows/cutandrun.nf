@@ -71,17 +71,21 @@ def run_peak_calling       = true
 def run_reporting          = true
 def run_deep_tools         = true
 def run_multiqc            = true
+def run_peak_plotting      = true
 
-if(params.minimum_alignment_q_score > 0)           { run_q_filter     = true  }
-if(params.skip_markduplicates)                     { run_mark_dups    = false }
-if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups  = false }
-if(params.skip_peak_calling)                       { run_peak_calling = false }
-if(!params.gene_bed || params.skip_heatmaps)       { run_deep_tools   = false }
-if(params.skip_multiqc)                            { run_multiqc      = false }
-if(params.skip_reporting)                          { 
-    run_reporting = false
-    run_multiqc   = false
+if(params.minimum_alignment_q_score > 0)           { run_q_filter      = true  }
+if(params.skip_markduplicates)                     { run_mark_dups     = false }
+if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups   = false }
+if(params.skip_peak_calling)                       { run_peak_calling  = false }
+if(!params.gene_bed || params.skip_heatmaps)       { run_deep_tools    = false }
+if(params.skip_multiqc)                            { run_multiqc       = false }
+if(params.skip_upset_plots)                        { run_peak_plotting = false }
+if(params.skip_reporting) {
+    run_reporting     = false
+    run_multiqc       = false
+    run_peak_plotting = false
 }
+
 
 if(params.only_input) {
     run_genome_prep        = false
@@ -298,8 +302,8 @@ include { ALIGN_BOWTIE2 }                                   from "../subworkflow
 include { SAMTOOLS_VIEW_SORT_STATS }                        from "../subworkflows/local/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options )
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_META }          from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META }  from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
-include { CONSENSUS_PEAKS }                                 from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"], skip_peak_plot: params.skip_reporting)
-include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL}           from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"], skip_peak_plot: params.skip_reporting)
+include { CONSENSUS_PEAKS }                                 from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"], run_peak_plotting: run_peak_plotting)
+include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL}           from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"], run_peak_plotting: run_peak_plotting)
 include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META }        from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "", meta_prefix: "dedup_", script_mode: false )
 include { CALCULATE_FRAGMENTS }                             from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
 
