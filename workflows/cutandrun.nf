@@ -804,6 +804,41 @@ workflow CUTANDRUN {
             )
         }
 
+        /*
+        * MODULE: Extract max signal from peak beds
+        */
+        AWK_EDIT_PEAK_BED (
+            ch_seacr_bed
+        )
+        //AWK_EDIT_PEAK_BED.out.file | view
+
+        /*
+        * CHANNEL: Structure output for join on id
+        */
+        AWK_EDIT_PEAK_BED.out.file
+            .map { row -> [row[0].id, row ].flatten()}
+            .set { ch_seacr_bed_id }
+        //ch_seacr_bed_id | view
+
+        /*
+            * CHANNEL: Join beds and bigwigs on id
+            */
+        ch_bigwig_no_igg
+            .map { row -> [row[0].id, row ].flatten()}
+            .join ( ch_seacr_bed_id )
+            .set { ch_dt_peaks }
+        //ch_dt_peaks | view
+
+        ch_dt_peaks
+            .map { row -> row[1,2] }
+            .set { ch_ordered_bigwig }
+        //ch_ordered_bigwig | view
+
+        ch_dt_peaks
+            .map { row -> row[-1] }
+            .set { ch_ordered_seacr_max }
+        //ch_ordered_seacr_max | view
+
         if (run_deep_tools){
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
@@ -822,41 +857,6 @@ workflow CUTANDRUN {
             )
 
             /*
-            * MODULE: Extract max signal from peak beds
-            */
-            AWK_EDIT_PEAK_BED (
-                ch_seacr_bed
-            )
-            //AWK_EDIT_PEAK_BED.out.file | view
-
-            /*
-            * CHANNEL: Structure output for join on id
-            */
-            AWK_EDIT_PEAK_BED.out.file
-                .map { row -> [row[0].id, row ].flatten()}
-                .set { ch_seacr_bed_id }
-            //ch_seacr_bed_id | view
-
-            /*
-             * CHANNEL: Join beds and bigwigs on id
-             */
-            ch_bigwig_no_igg
-                .map { row -> [row[0].id, row ].flatten()}
-                .join ( ch_seacr_bed_id )
-                .set { ch_dt_peaks }
-            //ch_dt_peaks | view
-
-            ch_dt_peaks
-                .map { row -> row[1,2] }
-                .set { ch_ordered_bigwig }
-            //ch_ordered_bigwig | view
-
-            ch_dt_peaks
-                .map { row -> row[-1] }
-                .set { ch_ordered_seacr_max }
-            //ch_ordered_seacr_max | view
-
-            /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
@@ -872,45 +872,45 @@ workflow CUTANDRUN {
             DEEPTOOLS_PLOTHEATMAP_PEAKS (
                 DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
             )
-
-            /*
-            * MODULE: Export meta-data to csv file
-            */
-            EXPORT_META (
-                ch_samtools_bam.collect{it[0]}.ifEmpty(["{NO-DATA}"])
-            )
-
-            /*
-            * MODULE: Sort bams by mate pair ids (no position)
-            */
-            SAMTOOLS_SORT (
-                ch_samtools_bam
-            )
-            //EXAMPLE CHANNEL STRUCT: [[META], BAM]
-            //SAMTOOLS_SORT.out.bam | view
-
-            SAMTOOLS_INDEX (
-                SAMTOOLS_SORT.out.bam
-            )
-            //EXAMPLE CHANNEL STRUCT: [[META], BAI]
-            //SAMTOOLS_INDEX.out.bai | view
-
-            /*
-            * MODULE: Generate python reporting using mixture of meta-data and direct file processing
-            */
-            ch_frag_len_multiqc = Channel.empty()
-            GENERATE_REPORTS(
-                EXPORT_META.out.csv,                        // meta-data report stats
-                SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
-                AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
-                ch_seacr_bed.collect{it[1]},                // peak beds
-                SAMTOOLS_SORT.out.bam.collect{it[1]},       // bam files sorted by mate pair ids
-                SAMTOOLS_INDEX.out.bai.collect{it[1]},      // bai files sorted by mate pair ids
-                ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
-            )
-            ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
-            ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
         }
+
+        /*
+        * MODULE: Export meta-data to csv file
+        */
+        EXPORT_META (
+            ch_samtools_bam.collect{it[0]}.ifEmpty(["{NO-DATA}"])
+        )
+
+        /*
+        * MODULE: Sort bams by mate pair ids (no position)
+        */
+        SAMTOOLS_SORT (
+            ch_samtools_bam
+        )
+        //EXAMPLE CHANNEL STRUCT: [[META], BAM]
+        //SAMTOOLS_SORT.out.bam | view
+
+        SAMTOOLS_INDEX (
+            SAMTOOLS_SORT.out.bam
+        )
+        //EXAMPLE CHANNEL STRUCT: [[META], BAI]
+        //SAMTOOLS_INDEX.out.bai | view
+
+        /*
+        * MODULE: Generate python reporting using mixture of meta-data and direct file processing
+        */
+        ch_frag_len_multiqc = Channel.empty()
+        GENERATE_REPORTS(
+            EXPORT_META.out.csv,                        // meta-data report stats
+            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
+            AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
+            ch_seacr_bed.collect{it[1]},                // peak beds
+            SAMTOOLS_SORT.out.bam.collect{it[1]},       // bam files sorted by mate pair ids
+            SAMTOOLS_INDEX.out.bai.collect{it[1]},      // bai files sorted by mate pair ids
+            ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
+        )
+        ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
+        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
 
         /*
         * MODULE: Collect software versions used in pipeline

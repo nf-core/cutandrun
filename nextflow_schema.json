@@ -241,7 +241,7 @@
                     "description": "Skip FastQC."
                 },
                 "skip_multiqc": {
-                    "type": "string",
+                    "type": "boolean",
                     "description": "Skip MultiQC."
                 },
                 "skip_markduplicates": {
