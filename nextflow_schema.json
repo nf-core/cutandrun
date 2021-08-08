@@ -5,47 +5,8 @@
     "description": "Analysis pipeline for CUT&RUN and CUT&TAG experiments that includes sequencing QC, spike-in normalisation, IgG control normalisation, peak calling and downstream peak analysis.",
     "type": "object",
     "definitions": {
-        "input_output_options": {
-            "title": "Input/output options",
-            "type": "object",
-            "fa_icon": "fas fa-terminal",
-            "description": "Define where the pipeline should find input data and save output data.",
-            "required": [
-                "input"
-            ],
-            "properties": {
-                "input": {
-                    "type": "string",
-                    "format": "file-path",
-                    "mimetype": "text/csv",
-                    "pattern": "^\\S+\\.csv$",
-                    "schema": "assets/schema_input.json",
-                    "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re//usage#samplesheet-input).",
-                    "fa_icon": "fas fa-file-csv"
-                },
-                "outdir": {
-                    "type": "string",
-                    "description": "Path to the output directory where the results will be saved.",
-                    "default": "./results",
-                    "fa_icon": "fas fa-folder-open"
-                },
-                "email": {
-                    "type": "string",
-                    "description": "Email address for completion summary.",
-                    "fa_icon": "fas fa-envelope",
-                    "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
-                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
-                },
-                "multiqc_title": {
-                    "type": "string",
-                    "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
-                    "fa_icon": "fas fa-file-signature"
-                }
-            }
-        },
-        "reference_genome_options": {
-            "title": "Reference genome options",
+        "reference_data_options": {
+            "title": "Reference data options",
             "type": "object",
             "fa_icon": "fas fa-dna",
             "description": "Reference genome related files and options required for the workflow.",
@@ -55,6 +16,32 @@
                     "description": "Name of iGenomes reference.",
                     "fa_icon": "fas fa-book",
                     "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`. \n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
+                },
+                "bowtie2": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book"
+                },
+                "gtf": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book"
+                },
+                "blacklist": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book"
+                },
+                "spikein_genome": {
+                    "type": "string",
+                    "default": "K12-MG1655",
+                    "fa_icon": "fas fa-book",
+                    "description": "Name of the igenome reference for the spike-in genome"
+                },
+                "spikein_bowtie2": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book"
+                },
+                "spikein_fasta": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book"
                 },
                 "fasta": {
                     "type": "string",
@@ -269,14 +256,227 @@
                     "help_text": "This may be useful for example if you are unable to directly pull Singularity containers to run the pipeline due to http/https proxy issues."
                 }
             }
+        },
+        "trimming_options": {
+            "title": "Trimming Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "clip_r1": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "clip_r2": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "three_prime_clip_r1": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "three_prime_clip_r2": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "trim_nextseq": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify"
+                }
+            },
+            "fa_icon": "fas fa-cut"
+        },
+        "input_output_options": {
+            "title": "Input/output options",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Define where the pipeline should find input data and save output data.",
+            "required": [
+                "input"
+            ],
+            "properties": {
+                "input": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/csv",
+                    "pattern": "^\\S+\\.csv$",
+                    "schema": "assets/schema_input.json",
+                    "description": "Path to comma-separated file containing information about the samples in the experiment.",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re//usage#samplesheet-input).",
+                    "fa_icon": "fas fa-file-csv"
+                },
+                "outdir": {
+                    "type": "string",
+                    "description": "Path to the output directory where the results will be saved.",
+                    "default": "./results",
+                    "fa_icon": "fas fa-folder-open"
+                },
+                "email": {
+                    "type": "string",
+                    "description": "Email address for completion summary.",
+                    "fa_icon": "fas fa-envelope",
+                    "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
+                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
+                },
+                "multiqc_title": {
+                    "type": "string",
+                    "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
+                    "fa_icon": "fas fa-file-signature"
+                },
+                "save_reference": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus"
+                },
+                "save_merged_fastq": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus"
+                },
+                "save_trimmed": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus"
+                },
+                "save_spikein_aligned": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus"
+                },
+                "save_unaligned": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus"
+                },
+                "save_align_intermed": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus"
+                },
+                "aligner": {
+                    "type": "string",
+                    "default": "bowtie2",
+                    "hidden": true,
+                    "fa_icon": "fas fa-align-justify"
+                }
+            }
+        },
+        "flow_switching_options": {
+            "title": "Flow switching options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "only_genome": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "only_input": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "only_preqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "only_alignment": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "only_filtering": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "only_peak_calling": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_fastqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_trimming": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_removeduplicates": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_scale": {
+                    "type": "boolean",
+                    "description": "Skip scalefactor normalisation",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_reporting": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_igv": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_heatmaps": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_upset_plots": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify"
+                }
+            },
+            "fa_icon": "fas fa-exchange-alt"
+        },
+        "pipeline_options": {
+            "title": "Pipeline Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "minimum_alignment_q_score": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-sort-numeric-down"
+                },
+                "dedup_target_reads": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-clone"
+                },
+                "normalisation_c": {
+                    "type": "integer",
+                    "default": 10000,
+                    "hidden": true,
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "igg_control": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "peak_threshold": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "gene_bed": {
+                    "type": "string",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "replicate_threshold": {
+                    "type": "integer",
+                    "default": 1,
+                    "fa_icon": "fas fa-align-justify"
+                }
+            },
+            "fa_icon": "fas fa-cog"
         }
     },
     "allOf": [
         {
-            "$ref": "#/definitions/input_output_options"
-        },
-        {
-            "$ref": "#/definitions/reference_genome_options"
+            "$ref": "#/definitions/reference_data_options"
         },
         {
             "$ref": "#/definitions/institutional_config_options"
@@ -286,140 +486,18 @@
         },
         {
             "$ref": "#/definitions/generic_options"
+        },
+        {
+            "$ref": "#/definitions/trimming_options"
+        },
+        {
+            "$ref": "#/definitions/input_output_options"
+        },
+        {
+            "$ref": "#/definitions/flow_switching_options"
+        },
+        {
+            "$ref": "#/definitions/pipeline_options"
         }
-    ],
-    "properties": {
-        "spikein_genome": {
-            "type": "string",
-            "default": "K12-MG1655"
-        },
-        "save_reference": {
-            "type": "boolean"
-        },
-        "only_genome": {
-            "type": "boolean"
-        },
-        "save_merged_fastq": {
-            "type": "boolean"
-        },
-        "only_input": {
-            "type": "boolean"
-        },
-        "skip_fastqc": {
-            "type": "boolean"
-        },
-        "only_preqc": {
-            "type": "boolean"
-        },
-        "clip_r1": {
-            "type": "integer",
-            "default": 0
-        },
-        "clip_r2": {
-            "type": "integer",
-            "default": 0
-        },
-        "three_prime_clip_r1": {
-            "type": "integer",
-            "default": 0
-        },
-        "three_prime_clip_r2": {
-            "type": "integer",
-            "default": 0
-        },
-        "trim_nextseq": {
-            "type": "integer",
-            "default": 0
-        },
-        "save_trimmed": {
-            "type": "boolean"
-        },
-        "skip_trimming": {
-            "type": "boolean"
-        },
-        "aligner": {
-            "type": "string",
-            "default": "bowtie2"
-        },
-        "save_spikein_aligned": {
-            "type": "boolean"
-        },
-        "save_unaligned": {
-            "type": "boolean"
-        },
-        "only_alignment": {
-            "type": "boolean"
-        },
-        "save_align_intermed": {
-            "type": "boolean"
-        },
-        "minimum_alignment_q_score": {
-            "type": "integer",
-            "default": 0
-        },
-        "skip_removeduplicates": {
-            "type": "boolean"
-        },
-        "dedup_target_reads": {
-            "type": "boolean"
-        },
-        "only_filtering": {
-            "type": "boolean"
-        },
-        "skip_scale": {
-            "type": "boolean"
-        },
-        "normalisation_c": {
-            "type": "integer",
-            "default": 10000
-        },
-        "igg_control": {
-            "type": "boolean",
-            "default": "true"
-        },
-        "peak_threshold": {
-            "type": "number",
-            "default": 0.05
-        },
-        "replicate_threshold": {
-            "type": "integer",
-            "default": 1
-        },
-        "only_peak_calling": {
-            "type": "boolean"
-        },
-        "skip_reporting": {
-            "type": "boolean"
-        },
-        "skip_igv": {
-            "type": "boolean"
-        },
-        "skip_heatmaps": {
-            "type": "boolean"
-        },
-        "skip_multiqc": {
-            "type": "boolean"
-        },
-        "skip_upset_plots": {
-            "type": "boolean"
-        },
-        "bowtie2": {
-            "type": "string"
-        },
-        "gtf": {
-            "type": "string"
-        },
-        "gene_bed": {
-            "type": "string"
-        },
-        "blacklist": {
-            "type": "string"
-        },
-        "spikein_bowtie2": {
-            "type": "string"
-        },
-        "spikein_fasta": {
-            "type": "string"
-        }
-    }
+    ]
 }
