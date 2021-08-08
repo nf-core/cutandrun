@@ -3,10 +3,31 @@
     "homePage": "https://github.com/nf-core/cutandrun",
     "repos": {
         "nf-core/modules": {
+            "bedtools/bamtobed": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "bedtools/merge": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "bowtie2/build": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "cat/fastq": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
             "fastqc": {
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
             },
-            "multiqc": {
+            "gunzip": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "seacr/callpeak": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "ucsc/bedclip": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "untar": {
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
             }
         }
