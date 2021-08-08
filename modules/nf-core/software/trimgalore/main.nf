@@ -2,14 +2,14 @@
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 params.options = [:]
-def options    = initOptions(params.options)
+options        = initOptions(params.options)
 
 process TRIMGALORE {
     tag "$meta.id"
     label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::trim-galore=0.6.6" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -22,9 +22,9 @@ process TRIMGALORE {
     tuple val(meta), path(reads)
 
     output:
-    tuple val(meta), path("*.fq.gz")    , emit: reads
-    tuple val(meta), path("*report.txt"), emit: log
-    path "*.version.txt"                , emit: version
+    tuple val(meta), path("*trimmed.fastq.gz") , emit: reads
+    tuple val(meta), path("*report.txt")        , emit: log
+    path "*.version.txt"                        , emit: version
 
     tuple val(meta), path("*.html"), emit: html optional true
     tuple val(meta), path("*.zip") , emit: zip optional true
@@ -49,7 +49,11 @@ process TRIMGALORE {
 
     // Added soft-links to original fastqs for consistent naming in MultiQC
     def software = getSoftwareName(task.process)
-    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def suffix = options.suffix ? "${options.suffix}.trimmed" : ".trimmed"
+    def prefix_1 = "${meta.id}_1${suffix}"
+    def prefix_2 = "${meta.id}_2${suffix}"
+    def prefix = "${meta.id}${suffix}"
+    
     if (meta.single_end) {
         """
         [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz
@@ -64,8 +68,8 @@ process TRIMGALORE {
         """
     } else {
         """
-        [ ! -f  ${prefix}_1.fastq.gz ] && ln -s ${reads[0]} ${prefix}_1.fastq.gz
-        [ ! -f  ${prefix}_2.fastq.gz ] && ln -s ${reads[1]} ${prefix}_2.fastq.gz
+        [ ! -f  ${meta.id}_1.fastq.gz ] && ln -s ${reads[0]} ${meta.id}_1.fastq.gz
+        [ ! -f  ${meta.id}_2.fastq.gz ] && ln -s ${reads[1]} ${meta.id}_2.fastq.gz
         trim_galore \\
             $options.args \\
             --cores $cores \\
@@ -75,9 +79,18 @@ process TRIMGALORE {
             $c_r2 \\
             $tpc_r1 \\
             $tpc_r2 \\
-            ${prefix}_1.fastq.gz \\
-            ${prefix}_2.fastq.gz
+            ${meta.id}_1.fastq.gz \\
+            ${meta.id}_2.fastq.gz
         echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${software}.version.txt
+
+        mv ${meta.id}_1_val_1.fq.gz ${prefix_1}.fastq.gz
+        mv ${meta.id}_2_val_2.fq.gz ${prefix_2}.fastq.gz
+
+        [ ! -f  ${meta.id}_1_val_1_fastqc.html ] || mv ${meta.id}_1_val_1_fastqc.html ${meta.id}_1_fastqc${suffix}.html
+        [ ! -f  ${meta.id}_2_val_2_fastqc.html ] || mv ${meta.id}_2_val_2_fastqc.html ${meta.id}_2_fastqc${suffix}.html
+
+        [ ! -f  ${meta.id}_1_val_1_fastqc.zip ] || mv ${meta.id}_1_val_1_fastqc.zip ${meta.id}_1_fastqc${suffix}.zip
+        [ ! -f  ${meta.id}_2_val_2_fastqc.zip ] || mv ${meta.id}_2_val_2_fastqc.zip ${meta.id}_2_fastqc${suffix}.zip
         """
     }
 }

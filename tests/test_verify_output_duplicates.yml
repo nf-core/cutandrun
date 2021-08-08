@@ -1,0 +1,46 @@
+- name: test_verify_output_duplicates_mark
+  command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true --skip_removeduplicates true
+  tags:
+    - verify_output
+    - verify_output/align
+    - verify_output/align/duplicates
+    - verify_output/align/duplicates/mark
+  files:
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.bam
+    - path: results/02_alignment/bowtie2/target/markdup/igg_R1.target.markdup.bam
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.bam.bai
+    - path: results/02_alignment/bowtie2/target/markdup/igg_R1.target.markdup.bam.bai
+    - path: results/02_alignment/bowtie2/target/markdup/samtools_stats/h3k27me3_R1.target.markdup.bam.flagstat
+    - path: results/02_alignment/bowtie2/target/markdup/samtools_stats/igg_R1.target.markdup.bam.flagstat
+
+- name: test_verify_output_duplicates_remove
+  command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true --dedup_target_reads false
+  tags:
+    - verify_output
+    - verify_output/align
+    - verify_output/align/duplicates
+    - verify_output/align/duplicates/remove
+  files:
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.bam
+    - path: results/02_alignment/bowtie2/target/dedup/igg_R1.target.dedup.bam
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.bam.bai
+    - path: results/02_alignment/bowtie2/target/dedup/igg_R1.target.dedup.bam.bai
+    - path: results/02_alignment/bowtie2/target/markdup/samtools_stats/h3k27me3_R1.target.markdup.bam.flagstat
+    - path: results/02_alignment/bowtie2/target/dedup/samtools_stats/igg_R1.target.dedup.bam.flagstat
+    - path: results/02_alignment/bowtie2/target/dedup/h3k27me3_R1.target.dedup.bam
+      should_exist: false
+
+- name: test_verify_output_duplicates_remove_target
+  command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true --dedup_target_reads true
+  tags:
+    - verify_output
+    - verify_output/align
+    - verify_output/align/duplicates
+    - verify_output/align/duplicates/remove_target
+  files:
+    - path: results/02_alignment/bowtie2/target/dedup/h3k27me3_R1.target.dedup.bam
+    - path: results/02_alignment/bowtie2/target/dedup/igg_R1.target.dedup.bam
+    - path: results/02_alignment/bowtie2/target/dedup/h3k27me3_R1.target.dedup.bam.bai
+    - path: results/02_alignment/bowtie2/target/dedup/igg_R1.target.dedup.bam.bai
+    - path: results/02_alignment/bowtie2/target/dedup/samtools_stats/h3k27me3_R1.target.dedup.bam.flagstat
+    - path: results/02_alignment/bowtie2/target/dedup/samtools_stats/igg_R1.target.dedup.bam.flagstat

@@ -1,0 +1,9 @@
+id: 'fragment_lengths'
+section_name: 'Fragment Length Distribution'
+description: "Fragment length distribution QC"
+plot_type: 'linegraph'
+anchor: 'fragment_lengths'
+pconfig:
+    title: 'Fragment Length Distribution Plot'
+    xlab: Length (bp)
+    ylab: Frequency

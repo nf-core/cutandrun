@@ -14,9 +14,25 @@ workflow BAM_SORT_SAMTOOLS {
     ch_bam // channel: [ val(meta), [ bam ] ]
 
     main:
+    /*
+    * SORT BAM file
+    */
     SAMTOOLS_SORT      ( ch_bam )
+
+    /*
+    * Index BAM file
+    */
     SAMTOOLS_INDEX     ( SAMTOOLS_SORT.out.bam )
-    BAM_STATS_SAMTOOLS ( SAMTOOLS_SORT.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0]) )
+
+    // Join bam/bai
+    ch_bam_sample_id = SAMTOOLS_SORT.out.bam.map  { row -> [row[0].id, row] }
+    ch_bai_sample_id = SAMTOOLS_INDEX.out.bai.map { row -> [row[0].id, row] }
+    ch_bam_bai = ch_bam_sample_id.join(ch_bai_sample_id, by: [0]).map {row -> [row[1][0], row[1][1], row[2][1]]}
+
+    /*
+    * Run samtools stats, flagstat and idxstats
+    */
+    BAM_STATS_SAMTOOLS ( ch_bam_bai )
 
     emit:
     bam      = SAMTOOLS_SORT.out.bam           // channel: [ val(meta), [ bam ] ]

@@ -41,12 +41,22 @@ workflow MARK_DUPLICATES_PICARD {
 
         out_bam = out_bam.mix ( ch_split.target )
     }
+    //out_bam | view
 
     /*
-    * Index BAM file and run samtools stats, flagstat and idxstats
+    * Index BAM file
     */
     SAMTOOLS_INDEX     ( out_bam )
-    BAM_STATS_SAMTOOLS ( out_bam.join(SAMTOOLS_INDEX.out.bai, by: [0]) )
+
+    // Join bam/bai
+    ch_bam_sample_id = out_bam.map                { row -> [row[0].id, row] }
+    ch_bai_sample_id = SAMTOOLS_INDEX.out.bai.map { row -> [row[0].id, row] }
+    ch_bam_bai = ch_bam_sample_id.join(ch_bai_sample_id, by: [0]).map {row -> [row[1][0], row[1][1], row[2][1]]}
+
+    /*
+    * Run samtools stats, flagstat and idxstats
+    */
+    BAM_STATS_SAMTOOLS ( ch_bam_bai )
 
     emit:
     bam              = out_bam                           // channel: [ val(meta), [ bam ] ]
