@@ -72,9 +72,9 @@ class WorkflowMain {
         // Check the hostnames against configured profiles
         NfcoreTemplate.hostName(workflow, params, log)
 
-        // Check at least one form of input has been provided
+        // Check input has been provided
         if (!params.input) {
-            log.error "Please specify an input for the pipeline e.g. '--input samplsheet.csv'."
+            log.error "Please provide an input samplesheet to the pipeline e.g. '--input samplesheet.csv'"
             System.exit(1)
         }
     }
@@ -84,26 +84,9 @@ class WorkflowMain {
     //
     public static String getGenomeAttribute(params, attribute) {
         def val = ''
-        if (params.attribute) {
-            val = params.attribute
-        } else if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
+        if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
             if (params.genomes[ params.genome ].containsKey(attribute)) {
                 val = params.genomes[ params.genome ][ attribute ]
-            }
-        }
-        return val
-    }
-
-    //
-    // Get attribute from genome config file e.g. fasta
-    //
-    public static String getGenomeAttributeSpikeIn(params, attribute) {
-        def val = ''
-        if (params.attribute) {
-            val = params.attribute
-        } else if (params.genomes && params.spikein_genome && params.genomes.containsKey(params.spikein_genome)) {
-            if (params.genomes[ params.spikein_genome ].containsKey(attribute)) {
-                val = params.genomes[ params.spikein_genome ][ attribute ]
             }
         }
         return val

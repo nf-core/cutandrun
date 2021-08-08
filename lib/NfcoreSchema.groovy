@@ -121,7 +121,8 @@ class NfcoreSchema {
             def params_ignore = params.schema_ignore_params.split(',') + 'schema_ignore_params'
             def expectedParamsLowerCase = expectedParams.collect{ it.replace("-", "").toLowerCase() }
             def specifiedParamLowerCase = specifiedParam.replace("-", "").toLowerCase()
-            if (!expectedParams.contains(specifiedParam) && !params_ignore.contains(specifiedParam) && !expectedParamsLowerCase.contains(specifiedParamLowerCase)) {
+            def isCamelCaseBug = (specifiedParam.contains("-") && !expectedParams.contains(specifiedParam) && expectedParamsLowerCase.contains(specifiedParamLowerCase))
+            if (!expectedParams.contains(specifiedParam) && !params_ignore.contains(specifiedParam) && !isCamelCaseBug) {
                 // Temporarily remove camelCase/camel-case params #1035
                 def unexpectedParamsLowerCase = unexpectedParams.collect{ it.replace("-", "").toLowerCase()}
                 if (!unexpectedParamsLowerCase.contains(specifiedParamLowerCase)){
@@ -177,86 +178,10 @@ class NfcoreSchema {
         }
     }
 
-    /*
-    Method to actually read in JSON file using Groovy.
-    Group (as Key), values are all parameters
-        - Parameter1 as Key, Description as Value
-        - Parameter2 as Key, Description as Value
-        ....
-    Group
-        -
-    */
-    private static LinkedHashMap params_read(String json_schema) throws Exception {
-        def json = new File(json_schema).text
-        def Map schema_definitions = (Map) new JsonSlurper().parseText(json).get('definitions')
-        def Map schema_properties = (Map) new JsonSlurper().parseText(json).get('properties')
-        /* Tree looks like this in nf-core schema
-         * definitions <- this is what the first get('definitions') gets us
-                group 1
-                title
-                description
-                    properties
-                    parameter 1
-                        type
-                        description
-                    parameter 2
-                        type
-                        description
-                group 2
-                title
-                description
-                    properties
-                    parameter 1
-                        type
-                        description
-            * properties <- parameters can also be ungrouped, outside of definitions
-                parameter 1
-                type
-                description
-        */
-
-        // Grouped params
-        def params_map = new LinkedHashMap()
-        schema_definitions.each { key, val ->
-            def Map group = schema_definitions."$key".properties // Gets the property object of the group
-            def title = schema_definitions."$key".title
-            def sub_params = new LinkedHashMap()
-            group.each { innerkey, value ->
-                sub_params.put(innerkey, value)
-            }
-            params_map.put(title, sub_params)
-        }
-
-        // Ungrouped params
-        def ungrouped_params = new LinkedHashMap()
-        schema_properties.each { innerkey, value ->
-            ungrouped_params.put(innerkey, value)
-        }
-        params_map.put("Other parameters", ungrouped_params)
-
-        return params_map
-    }
-
-    /*
-     * Get maximum number of characters across all parameter names
-     */
-    private static Integer params_max_chars(params_map) {
-        Integer max_chars = 0
-        for (group in params_map.keySet()) {
-            def group_params = params_map.get(group)  // This gets the parameters of that particular group
-            for (param in group_params.keySet()) {
-                if (param.size() > max_chars) {
-                    max_chars = param.size()
-                }
-            }
-        }
-        return max_chars
-    }
-
-    /*
-     * Beautify parameters for --help
-     */
-    private static String params_help(workflow, params, command, schema_filename='nextflow_schema.json') {
+    //
+    // Beautify parameters for --help
+    //
+    public static String paramsHelp(workflow, params, command, schema_filename='nextflow_schema.json') {
         Map colors = NfcoreTemplate.logColours(params.monochrome_logs)
         Integer num_hidden = 0
         String output  = ''
@@ -379,10 +304,10 @@ class NfcoreSchema {
         return [ 'Core Nextflow options' : workflow_summary ] << params_summary
     }
 
-    /*
-     * Beautify parameters for summary and return as string
-     */
-    private static String paramsSummaryLog(workflow, params) {
+    //
+    // Beautify parameters for summary and return as string
+    //
+    public static String paramsSummaryLog(workflow, params) {
         Map colors = NfcoreTemplate.logColours(params.monochrome_logs)
         String output  = ''
         def params_map = paramsSummaryMap(workflow, params)
@@ -397,8 +322,7 @@ class NfcoreSchema {
                 output += '\n'
             }
         }
-        output += NfcoreTemplate.dashedLine(params.monochrome_logs)
-        output += colors.dim + "\n Only displaying parameters that differ from defaults.\n" + colors.reset
+        output += "!! Only displaying parameters that differ from the pipeline defaults !!\n"
         output += NfcoreTemplate.dashedLine(params.monochrome_logs)
         return output
     }

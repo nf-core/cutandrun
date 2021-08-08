@@ -24,17 +24,21 @@ class NfcoreTemplate {
     public static void hostName(workflow, params, log) {
         Map colors = logColours(params.monochrome_logs)
         if (params.hostnames) {
-            def hostname = "hostname".execute().text.trim()
-            params.hostnames.each { prof, hnames ->
-                hnames.each { hname ->
-                    if (hostname.contains(hname) && !workflow.profile.contains(prof)) {
-                        log.info "=${colors.yellow}====================================================${colors.reset}=\n" +
-                            "${colors.yellow}WARN: You are running with `-profile $workflow.profile`\n" +
-                            "      but your machine hostname is ${colors.white}'$hostname'${colors.reset}.\n" +
-                            "      ${colors.yellow_bold}Please use `-profile $prof${colors.reset}`\n" +
-                            "=${colors.yellow}====================================================${colors.reset}="
+            try {
+                def hostname = "hostname".execute().text.trim()
+                params.hostnames.each { prof, hnames ->
+                    hnames.each { hname ->
+                        if (hostname.contains(hname) && !workflow.profile.contains(prof)) {
+                            log.info "=${colors.yellow}====================================================${colors.reset}=\n" +
+                                "${colors.yellow}WARN: You are running with `-profile $workflow.profile`\n" +
+                                "      but your machine hostname is ${colors.white}'$hostname'${colors.reset}.\n" +
+                                "      ${colors.yellow_bold}Please use `-profile $prof${colors.reset}`\n" +
+                                "=${colors.yellow}====================================================${colors.reset}="
+                        }
                     }
                 }
+            } catch (Exception e) {
+                log.warn "[$workflow.manifest.name] Could not determine 'hostname' - skipping check. Reason: ${e.message}."
             }
         }
     }
@@ -42,13 +46,10 @@ class NfcoreTemplate {
     //
     // Construct and send completion email
     //
-    public static void email(workflow, params, summary_params, projectDir, log, multiqc_report=[], fail_percent_mapped=[:]) {
+    public static void email(workflow, params, summary_params, projectDir, log, multiqc_report=[]) {
 
         // Set up the e-mail variables
         def subject = "[$workflow.manifest.name] Successful: $workflow.runName"
-        if (fail_percent_mapped.size() > 0) {
-            subject = "[$workflow.manifest.name] Partially successful (${fail_percent_mapped.size()} skipped): $workflow.runName"
-        }
         if (!workflow.success) {
             subject = "[$workflow.manifest.name] FAILED: $workflow.runName"
         }
@@ -71,24 +72,22 @@ class NfcoreTemplate {
         misc_fields['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
 
         def email_fields = [:]
-        email_fields['version']             = workflow.manifest.version
-        email_fields['runName']             = workflow.runName
-        email_fields['success']             = workflow.success
-        email_fields['dateComplete']        = workflow.complete
-        email_fields['duration']            = workflow.duration
-        email_fields['exitStatus']          = workflow.exitStatus
-        email_fields['errorMessage']        = (workflow.errorMessage ?: 'None')
-        email_fields['errorReport']         = (workflow.errorReport ?: 'None')
-        email_fields['commandLine']         = workflow.commandLine
-        email_fields['projectDir']          = workflow.projectDir
-        email_fields['summary']             = summary << misc_fields
-        // email_fields['fail_percent_mapped'] = fail_percent_mapped.keySet()
-        // email_fields['min_mapped_reads']    = params.min_mapped_reads
+        email_fields['version']      = workflow.manifest.version
+        email_fields['runName']      = workflow.runName
+        email_fields['success']      = workflow.success
+        email_fields['dateComplete'] = workflow.complete
+        email_fields['duration']     = workflow.duration
+        email_fields['exitStatus']   = workflow.exitStatus
+        email_fields['errorMessage'] = (workflow.errorMessage ?: 'None')
+        email_fields['errorReport']  = (workflow.errorReport ?: 'None')
+        email_fields['commandLine']  = workflow.commandLine
+        email_fields['projectDir']   = workflow.projectDir
+        email_fields['summary']      = summary << misc_fields
 
         // On success try attach the multiqc report
         def mqc_report = null
         try {
-            if (workflow.success && !params.skip_multiqc) {
+            if (workflow.success) {
                 mqc_report = multiqc_report.getVal()
                 if (mqc_report.getClass() == ArrayList && mqc_report.size() >= 1) {
                     if (mqc_report.size() > 1) {
@@ -122,7 +121,7 @@ class NfcoreTemplate {
 
         // Render the sendmail template
         def max_multiqc_email_size = params.max_multiqc_email_size as nextflow.util.MemoryUnit
-        def smail_fields           = [ email: email_address, subject: subject, email_txt: email_txt, email_html: email_html, projectDir: "$projectDir", mqcFile: mqc_report, mqcMaxSize:  max_multiqc_email_size.toBytes()]
+        def smail_fields           = [ email: email_address, subject: subject, email_txt: email_txt, email_html: email_html, projectDir: "$projectDir", mqcFile: mqc_report, mqcMaxSize: max_multiqc_email_size.toBytes() ]
         def sf                     = new File("$projectDir/assets/sendmail_template.txt")
         def sendmail_template      = engine.createTemplate(sf).make(smail_fields)
         def sendmail_html          = sendmail_template.toString()
@@ -160,31 +159,8 @@ class NfcoreTemplate {
     //
     // Print pipeline summary on completion
     //
-    public static void summary(workflow, params, log, fail_percent_mapped=[:], pass_percent_mapped=[:]) {
+    public static void summary(workflow, params, log) {
         Map colors = logColours(params.monochrome_logs)
-
-        def total_aln_count = pass_percent_mapped.size() + fail_percent_mapped.size()
-        if (pass_percent_mapped.size() > 0) {
-            def idx = 0
-            def samp_aln = ''
-            for (samp in pass_percent_mapped) {
-                samp_aln += "    ${samp.value}%: ${samp.key}\n"
-                idx += 1
-                if (idx > 5) {
-                    samp_aln += "    ..see pipeline reports for full list\n"
-                    break;
-                }
-            }
-            log.info "-${colors.purple}[$workflow.manifest.name]${colors.green} ${pass_percent_mapped.size()}/$total_aln_count samples passed STAR ${params.min_mapped_reads}% mapped threshold:\n${samp_aln}${colors.reset}-"
-        }
-        if (fail_percent_mapped.size() > 0) {
-            def samp_aln = ''
-            for (samp in fail_percent_mapped) {
-                samp_aln += "    ${samp.value}%: ${samp.key}\n"
-            }
-            log.info "-${colors.purple}[$workflow.manifest.name]${colors.red} ${fail_percent_mapped.size()}/$total_aln_count samples skipped since they failed STAR ${params.min_mapped_reads}% mapped threshold:\n${samp_aln}${colors.reset}-"
-        }
-
         if (workflow.success) {
             if (workflow.stats.ignoredCount == 0) {
                 log.info "-${colors.purple}[$workflow.manifest.name]${colors.green} Pipeline completed successfully${colors.reset}-"
