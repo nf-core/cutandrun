@@ -7,16 +7,16 @@ params.spikein_genome_options    = [:]
 params.bt2_index_options         = [:]
 params.bt2_spikein_index_options = [:]
 
-include { GUNZIP as GUNZIP_FASTA                     } from "../../modules/nf-core/software/gunzip/main.nf"     addParams( options: params.genome_options            )
-include { GUNZIP as GUNZIP_SPIKEIN_FASTA             } from "../../modules/nf-core/software/gunzip/main.nf"     addParams( options: params.spikein_genome_options    )
-include { GUNZIP as GUNZIP_GTF                       } from "../../modules/nf-core/software/gunzip/main.nf"     addParams( options: params.genome_options            )
-include { GUNZIP as GUNZIP_BED                       } from "../../modules/nf-core/software/gunzip/main.nf"     addParams( options: params.genome_options            )
+include { GUNZIP as GUNZIP_FASTA                     } from "../../modules/nf-core/modules/gunzip/main.nf"     addParams( options: params.genome_options            )
+include { GUNZIP as GUNZIP_SPIKEIN_FASTA             } from "../../modules/nf-core/modules/gunzip/main.nf"     addParams( options: params.spikein_genome_options    )
+include { GUNZIP as GUNZIP_GTF                       } from "../../modules/nf-core/modules/gunzip/main.nf"     addParams( options: params.genome_options            )
+include { GUNZIP as GUNZIP_BED                       } from "../../modules/nf-core/modules/gunzip/main.nf"     addParams( options: params.genome_options            )
 include { GET_CHROM_SIZES                            } from "../../modules/local/get_chrom_sizes"               addParams( options: params.genome_options            )
 include { GET_CHROM_SIZES as GET_SPIKEIN_CHROM_SIZES } from "../../modules/local/get_chrom_sizes"               addParams( options: params.spikein_genome_options    )
-include { UNTAR as UNTAR_BT2_INDEX                   } from "../../modules/nf-core/software/untar/main.nf"      addParams( options: params.bt2_index_options         )
-include { UNTAR as UNTAR_SPIKEIN_BT2_INDEX           } from "../../modules/nf-core/software/untar/main.nf"      addParams( options: params.bt2_spikein_index_options )
-include { BOWTIE2_BUILD                              } from "../../modules/nf-core/software/bowtie2/build/main" addParams( options: params.bt2_index_options         )
-include { BOWTIE2_BUILD as BOWTIE2_SPIKEIN_BUILD     } from "../../modules/nf-core/software/bowtie2/build/main" addParams( options: params.bt2_spikein_index_options )
+include { UNTAR as UNTAR_BT2_INDEX                   } from "../../modules/nf-core/modules/untar/main.nf"      addParams( options: params.bt2_index_options         )
+include { UNTAR as UNTAR_SPIKEIN_BT2_INDEX           } from "../../modules/nf-core/modules/untar/main.nf"      addParams( options: params.bt2_spikein_index_options )
+include { BOWTIE2_BUILD                              } from "../../modules/nf-core/modules/bowtie2/build/main" addParams( options: params.bt2_index_options         )
+include { BOWTIE2_BUILD as BOWTIE2_SPIKEIN_BUILD     } from "../../modules/nf-core/modules/bowtie2/build/main" addParams( options: params.bt2_spikein_index_options )
 
 workflow PREPARE_GENOME {
     take:

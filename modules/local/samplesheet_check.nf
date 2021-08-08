@@ -1,7 +1,8 @@
 // Import generic module functions
-include { saveFiles } from './functions'
+include { initOptions; saveFiles } from './functions'
 
 params.options = [:]
+options        = initOptions(params.options)
 
 /*
  * Reformat design file and check validity

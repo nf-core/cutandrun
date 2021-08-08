@@ -7,8 +7,8 @@ params.spikein_align_options    = [:]
 params.samtools_options         = [:]
 params.samtools_spikein_options = [:]
 
-include { BOWTIE2_ALIGN                                  } from "../../modules/nf-core/software/bowtie2/align/main" addParams( options: params.align_options, save_unaligned: params.save_unaligned                              )
-include { BOWTIE2_ALIGN as BOWTIE2_SPIKEIN_ALIGN         } from "../../modules/nf-core/software/bowtie2/align/main" addParams( options: params.spikein_align_options, save_unaligned: false                                      )
+include { BOWTIE2_ALIGN                                  } from "../../modules/nf-core/modules/bowtie2/align/main" addParams( options: params.align_options, save_unaligned: params.save_unaligned                              )
+include { BOWTIE2_ALIGN as BOWTIE2_SPIKEIN_ALIGN         } from "../../modules/nf-core/modules/bowtie2/align/main" addParams( options: params.spikein_align_options, save_unaligned: false                                      )
 include { BAM_SORT_SAMTOOLS                              } from "../nf-core/bam_sort_samtools"                      addParams( samtools_sort_options: params.samtools_options, options: params.samtools_options                  )
 include { BAM_SORT_SAMTOOLS as BAM_SORT_SAMTOOLS_SPIKEIN } from "../nf-core/bam_sort_samtools"                      addParams( samtools_sort_options: params.samtools_spikein_options, options: params.samtools_spikein_options  )
 

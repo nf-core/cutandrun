@@ -15,10 +15,11 @@ for version_file in version_files:
     results[software] = version
 
 # Dump to YAML
-print ('''
+print(
+    """
 id: 'software_versions'
-section_name: 'nf-core/rnaseq Software Versions'
-section_href: 'https://github.com/nf-core/rnaseq'
+section_name: 'nf-core/cutandrun Software Versions'
+section_href: 'https://github.com/nf-core/cutandrun'
 plot_type: 'html'
 description: 'are collected at run time from the software output.'
 data: |

@@ -1,7 +1,7 @@
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 params.options = [:]
-def options      = initOptions(params.options)
+options        = initOptions(params.options)
 
 process PLOT_CONSENSUS_PEAKS {
     label 'process_low'
