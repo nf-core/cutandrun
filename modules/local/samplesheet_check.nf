@@ -2,6 +2,7 @@
 include { saveFiles } from './functions'
 
 params.options = [:]
+options        = initOptions(params.options)
 
 /*
  * Reformat design file and check validity

@@ -2,6 +2,7 @@
 include { saveFiles } from './functions'
 
 params.options = [:]
+options        = initOptions(params.options)
 
 process GET_SOFTWARE_VERSIONS {
     publishDir "${params.outdir}",

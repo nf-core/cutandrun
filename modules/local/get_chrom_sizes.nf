@@ -2,6 +2,7 @@
 include { saveFiles } from './functions'
 
 params.options = [:]
+options        = initOptions(params.options)
 
 /*
  * Get chromosome sizes from a fasta file

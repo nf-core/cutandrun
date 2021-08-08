@@ -1,7 +1,7 @@
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
 params.options = [:]
-def options    = initOptions(params.options)
+options        = initOptions(params.options)
 
 colour_pallete = ['38,70,83', '231,111,81', '42,157,143', '244,162,97', '233,196,106']
 
