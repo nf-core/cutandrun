@@ -8,8 +8,7 @@ The directories listed below will be created in the results directory after the 
 
 ## Pipeline overview
 
-The pipeline is built using [Nextflow](https://www.nextflow.io/)
-and processes data using the following steps:
+The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data using the following steps:
 
 * [Preprocessing](#preprocessing)
     * [cat](#cat) - Merge re-sequenced FastQ files
@@ -256,9 +255,9 @@ Additional QC and analysis pertaining particularly to CUT&Run and CUT&Tag data a
 
 [MultiQC](http://multiqc.info) is a visualization tool that generates a single HTML report summarizing all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available in the report data directory.
 
-The pipeline has special steps which also allow the software versions to be reported in the MultiQC output for future traceability.
+> **NB:** The FastQC plots displayed in the MultiQC report shows _untrimmed_ reads. They may contain adapter sequence and potentially regions with low quality.
 
-For more information about how to use MultiQC reports, see [https://multiqc.info](https://multiqc.info).
+### MultiQC
 
 <details markdown="1">
 <summary>Output files</summary>
