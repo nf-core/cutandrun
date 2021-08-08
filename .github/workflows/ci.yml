@@ -32,11 +32,10 @@ jobs:
 
       - name: Run pipeline with test data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test_all_exp_one_igg_small,docker --skip_deseq2
-# ---------------------------------------------------------------------
-  test_one_exp_all_igg_small:
-    name: Run pipeline test with 2 groups of 2 replicate and one replicate of igg
-    # Only run on push if this is the luslab dev branch (merged PRs)
+          nextflow run ${GITHUB_WORKSPACE} -profile docker,test
+  test_full_small:
+    name: Run extended pipeline test
+    # Only run on push if this is the nf-core dev branch (merged PRs)
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
@@ -45,7 +44,7 @@ jobs:
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        nxf_ver: ["21.04.0", ""]
+        nxf_ver: ['21.04.0', '']
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -57,4 +56,4 @@ jobs:
 
       - name: Run pipeline with test data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test_one_exp_all_igg_small,docker --skip_deseq2
+          nextflow run ${GITHUB_WORKSPACE} -profile docker,test_full_small
