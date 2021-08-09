@@ -53,7 +53,7 @@ process TRIMGALORE {
     def prefix_1 = "${meta.id}_1${suffix}"
     def prefix_2 = "${meta.id}_2${suffix}"
     def prefix = "${meta.id}${suffix}"
-    
+
     if (meta.single_end) {
         """
         [ ! -f  ${prefix}.fastq.gz ] && ln -s $reads ${prefix}.fastq.gz
