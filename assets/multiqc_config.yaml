@@ -47,12 +47,6 @@ module_order:
     - picard
     - custom_content
 
-report_section_order:
-    software_versions:
-        order: -1000
-    nf-core-cutandrun-summary:
-        order: -1001
-
 # Don't show % Dups in the General Stats table (we have this from Picard)
 table_columns_visible:
     FastQC:

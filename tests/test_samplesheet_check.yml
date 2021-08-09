@@ -1,72 +1,72 @@
 - name: test_samplesheet_check_test_id_1
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/rep_id_start_1.csv
+  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/rep_id_start_1.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
-    - samplesheet/start_1
+    - samplesheet_start_1
   exit_code: 1
 
 - name: test_samplesheet_check_noigg_pos
-  command: nextflow run main.nf -profile docker,test --only_input true --igg_control false --input tests/data/samplesheets/no_igg.csv
+  command: nextflow run main.nf -profile docker,test --only_input true --igg_control false --input tests/data/samplesheets/no_igg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
-    - samplesheet/no_igg
-    - samplesheet/no_igg/pos
+    - samplesheet_no_igg
+    - samplesheet_no_igg_pos
   files:
     - path: results/pipeline_info/samplesheet.valid.csv
 
 - name: test_samplesheet_check_noigg_neg
-  command: nextflow run main.nf -profile docker,test --only_input true --igg_control true --input tests/data/samplesheets/no_igg.csv
+  command: nextflow run main.nf -profile docker,test --only_input true --igg_control true --input tests/data/samplesheets/no_igg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
-    - samplesheet/no_igg
-    - samplesheet/no_igg/neg
+    - samplesheet_no_igg
+    - samplesheet_no_igg_neg
   exit_code: 1
 
 - name: test_samplesheet_check_1_1_pos
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg.csv
+  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
-    - samplesheet/1_1
-    - samplesheet/1_1/pos
+    - samplesheet_1_1
+    - samplesheet_1_1_pos
   files:
     - path: results/pipeline_info/samplesheet.valid.csv
 
 - name: test_samplesheet_check_1_1_neg
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg_neg.csv
+  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg_neg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
-    - samplesheet/1_1
-    - samplesheet/1_1/neg
+    - samplesheet_1_1
+    - samplesheet_1_1_neg
   exit_code: 1
 
 - name: test_samplesheet_check_1_2_group_match
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg_non_matching_groups.csv
+  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg_non_matching_groups.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
-    - samplesheet/1_2
-    - samplesheet/1_2/group_match
+    - samplesheet_1_2
+    - samplesheet_1_2_group_match
   exit_code: 1
 
 - name: test_samplesheet_check_2_2_group_match_tech_rep
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg_non_matching_groups_tech_rep.csv
+  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg_non_matching_groups_tech_rep.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
-    - samplesheet/2_2
-    - samplesheet/2_2/group_match_tech_rep
+    - samplesheet_2_2
+    - samplesheet-2_2_group_match_tech_rep
   exit_code: 1
 
 - name: test_samplesheet_check_multiple_sample_single_igg
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/multiple_sample_single_igg.csv
+  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/multiple_sample_single_igg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
-    - samplesheet/M_1
+    - samplesheet_M_1
   files:
     - path: results/pipeline_info/samplesheet.valid.csv
 
 - name: test_samplesheet_check_multiple_sample_multiple_igg
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/multiple_sample_multiple_igg.csv
+  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/multiple_sample_multiple_igg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
-    - samplesheet/M_M
+    - samplesheet_M_M
   files:
     - path: results/pipeline_info/samplesheet.valid.csv
