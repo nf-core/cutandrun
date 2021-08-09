@@ -86,7 +86,6 @@ if(params.skip_reporting) {
     run_peak_plotting = false
 }
 
-
 if(params.only_input) {
     run_genome_prep        = false
     run_cat_fastq          = false
@@ -134,6 +133,8 @@ if(params.only_alignment) {
 }
 
 if(params.only_filtering) {
+    run_mark_dups    = false
+    run_remove_dups  = false
     run_peak_calling = false
     run_reporting    = false
     run_multiqc      = false
