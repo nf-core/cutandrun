@@ -2,9 +2,9 @@
   command: nextflow run main.nf -profile docker,test --only_preqc true --skip_fastqc true
   tags:
     - verify_output
-    - verify_output/skip
-    - verify_output/skip_fastqc
-    - verify_output/skip_fastqc/true
+    - verify_output_skip
+    - verify_output_skip_fastqc
+    - verify_output_skip_fastqc_true
   files:
     - path: results/01_prealign/pretrim_fastqc/h3k27me3_R1_1_fastqc.html
       should_exist: false

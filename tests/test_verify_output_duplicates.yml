@@ -2,9 +2,9 @@
   command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true --skip_removeduplicates true
   tags:
     - verify_output
-    - verify_output/align
-    - verify_output/align/duplicates
-    - verify_output/align/duplicates/mark
+    - verify_output_align
+    - verify_output_align_duplicates
+    - verify_output_align_duplicates_mark
   files:
     - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.bam
     - path: results/02_alignment/bowtie2/target/markdup/igg_R1.target.markdup.bam
@@ -17,9 +17,9 @@
   command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true --dedup_target_reads false
   tags:
     - verify_output
-    - verify_output/align
-    - verify_output/align/duplicates
-    - verify_output/align/duplicates/remove
+    - verify_output_align
+    - verify_output_align_duplicates
+    - verify_output_align_duplicates_remove
   files:
     - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.bam
     - path: results/02_alignment/bowtie2/target/dedup/igg_R1.target.dedup.bam
@@ -34,9 +34,9 @@
   command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true --dedup_target_reads true
   tags:
     - verify_output
-    - verify_output/align
-    - verify_output/align/duplicates
-    - verify_output/align/duplicates/remove_target
+    - verify_output_align
+    - verify_output_align_duplicates
+    - verify_output_align_duplicates_remove_target
   files:
     - path: results/02_alignment/bowtie2/target/dedup/h3k27me3_R1.target.dedup.bam
     - path: results/02_alignment/bowtie2/target/dedup/igg_R1.target.dedup.bam
