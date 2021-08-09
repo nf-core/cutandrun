@@ -13,9 +13,9 @@ process PICARD_MARKDUPLICATES {
 
     conda (params.enable_conda ? 'bioconda::picard=2.25.7' : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/picard:2.25.7--hdfd78af_0"
+        container "https://depot.galaxyproject.org/singularity/picard:2.23.9--0"
     } else {
-        container "quay.io/biocontainers/picard:2.25.7--hdfd78af_0"
+        container "quay.io/biocontainers/picard:2.23.9--0"
     }
 
     input:
