@@ -2,6 +2,7 @@
   command: nextflow run main.nf -profile docker,test --only_preqc true --save_trimmed true --skip_trimming true
   tags:
     - verify_output
+    - verify_output/skip
     - verify_output/skip_trimming
   files:
     - path: results/01_prealign/trimgalore/h3k27me3_R1_1.trimmed.fastq.gz
