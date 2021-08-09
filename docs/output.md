@@ -257,8 +257,6 @@ Additional QC and analysis pertaining particularly to CUT&Run and CUT&Tag data a
 
 > **NB:** The FastQC plots displayed in the MultiQC report shows _untrimmed_ reads. They may contain adapter sequence and potentially regions with low quality.
 
-### MultiQC
-
 <details markdown="1">
 <summary>Output files</summary>
 
