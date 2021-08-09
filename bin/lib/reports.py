@@ -421,7 +421,7 @@ class Reports:
         # Save data to output folder
         for key in data:
             data[key].to_csv(os.path.join(abs_path, key + '.csv'), index=False)
-        
+
         # Save plots to output folder
         for key in plots:
             plots[key].savefig(os.path.join(abs_path, key + '.png'))
@@ -523,7 +523,7 @@ class Reports:
         df_data['dedup_percent_duplication'] *= 100
         df_data['unique_frag_num'] = df_data['dedup_read_pairs_examined'] * (1-df_data['dedup_percent_duplication']/100)
 
-         # Create plots array
+        # Create plots array
         figs = []
 
         # Duplication rate

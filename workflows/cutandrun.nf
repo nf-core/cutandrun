@@ -424,7 +424,7 @@ workflow CUTANDRUN {
     ch_samtools_spikein_flagstat  = Channel.empty()
     ch_samtools_spikein_idxstats  = Channel.empty()
     if(run_alignment) {
-        
+
         if (params.aligner == "bowtie2") {
             ALIGN_BOWTIE2 (
                 ch_trimmed_reads,
@@ -696,8 +696,8 @@ workflow CUTANDRUN {
         /*
         * MODULE: Add sample identifier column to peak beds
         */
-        AWK_NAME_PEAK_BED ( 
-            ch_seacr_bed 
+        AWK_NAME_PEAK_BED (
+            ch_seacr_bed
         )
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //AWK_NAME_PEAK_BED.out.file | view
@@ -720,8 +720,8 @@ workflow CUTANDRUN {
         /*
         * SUBWORKFLOW: Construct group consensus peaks
         */
-        CONSENSUS_PEAKS_ALL ( 
-            ch_seacr_bed_all 
+        CONSENSUS_PEAKS_ALL (
+            ch_seacr_bed_all
         )
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //CONSENSUS_PEAKS_ALL.out.bed | view
@@ -745,19 +745,19 @@ workflow CUTANDRUN {
         * SUBWORKFLOW: Construct group consensus peaks
         * where there is more than 1 replicate in a group
         */
-        CONSENSUS_PEAKS ( 
-            ch_seacr_bed_group 
+        CONSENSUS_PEAKS (
+            ch_seacr_bed_group
         )
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //CONSENSUS_PEAKS.out.bed | view
 
-         /*
-         * SUBWORKFLOW: Calculate fragment bed from bams
-         * - Filter for mapped reads
-         * - Convert to bed file
-         * - Keep the read pairs that are on the same chromosome and fragment length less than 1000bp
-         * - Only extract the fragment related columns using cut
-         */
+        /*
+        * SUBWORKFLOW: Calculate fragment bed from bams
+        * - Filter for mapped reads
+        * - Convert to bed file
+        * - Keep the read pairs that are on the same chromosome and fragment length less than 1000bp
+        * - Only extract the fragment related columns using cut
+        */
         CALCULATE_FRAGMENTS (
             ch_samtools_bam
         )

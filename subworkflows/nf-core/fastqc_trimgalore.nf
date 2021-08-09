@@ -30,8 +30,8 @@ workflow FASTQC_TRIMGALORE {
     trimgalore_version = Channel.empty()
     ch_output_reads = reads
     if (!skip_trimming) {
-        TRIMGALORE ( 
-            reads 
+        TRIMGALORE (
+            reads
         )
         ch_output_reads = TRIMGALORE.out.reads
         trim_html  = TRIMGALORE.out.html
