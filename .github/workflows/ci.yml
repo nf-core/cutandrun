@@ -111,28 +111,8 @@ jobs:
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
-      - name: Set up Singularity
-        if: matrix.profile == 'singularity'
-        uses: eWaterCycle/setup-singularity@v5
-        with:
-          singularity-version: 3.7.1
-
-      - name: Setup miniconda
-        if: matrix.profile == 'conda'
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          channels: conda-forge,bioconda,defaults
-          python-version: ${{ matrix.python-version }}
-
-      - name: Conda clean
-        if: matrix.profile == 'conda'
-        run: conda clean -a
-
-      # Test the module
       - name: Run pytest-workflow
-        # only use one thread for pytest-workflow to avoid race condition on conda cache.
-        run: TMPDIR=~ PROFILE=${{ matrix.profile }} pytest --tag ${{ matrix.tags }} --symlink --kwdof
+        run: pytest --tag ${{ matrix.tags }} --symlink --kwdof
 
       - name: Upload logs on failure
         if: failure()
