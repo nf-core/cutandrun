@@ -16,30 +16,30 @@
 
 ## Introduction
 
-**nf-core/cutandrun** is a bioinformatics best-practise analysis pipeline for CUT&Run and CUT&Tag sequencing data analysis to study protein-DNA interactions and epigenomic profiling.
+**nf-core/cutandrun** is a best-practice bioinformatic analysis pipeline for CUT&Run and CUT&Tag experimental protocols that where developed to study protein-DNA interactions and epigenomic profiling.
 
-The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
+The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It is capable of using docker/singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules).
 
-<!-- TODO nf-core: Add full-sized test dataset and amend the paragraph below if applicable -->
-On release, automated continuous integration tests run the pipeline on a full-sized dataset on the AWS cloud infrastructure. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources. The results obtained from the full-sized test can be viewed on the [nf-core website](https://nf-co.re/cutandrun/results).
+The pipeline has been developed with continuous integration (CI) in mind. nf-core code and module linting as well as a battery of over 100 unit and integration tests run on pull request to the main repository and on release of the pipeline. On official release, automated CI tests run the pipeline on a full-sized dataset on the AWS cloud infrastructure. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources. The results obtained from the full-sized test can be viewed on the [nf-core website](https://nf-co.re/cutandrun/results).
 
 ## Pipeline summary
 
-1. Merge re-sequenced FastQ files ([`cat`](http://www.linfo.org/cat.html))
-2. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-3. Adapter and quality trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
-4. Alignment to both target and spike-in genomes ([`Bowtie 2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
-5. Filter on quality, sort and index alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
-6. Duplicate read marking ([`picard MarkDuplicates`](https://broadinstitute.github.io/picard/))
-7. Create bedGraph files ([`BEDTools`](https://github.com/arq5x/bedtools2/)
-8. Create bigWig coverage files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
-9. Peak calling specifically tailored for low background noise ([`SEACR`](https://github.com/FredHutch/SEACR))
-10. Quality control and analysis:
-    1. Alignment, fragment length and peak analysis and replicate reproducibility ([`Python`](https://www.python.org/))
-    2. Differential peak analysis ([`DESeq2`](https://bioconductor.org/packages/release/bioc/html/DESeq2.html))
-    3. Heatmap peak analysis ([`deepTools`](https://github.com/deeptools/deepTools/))
-11. Genome browser session ([`IGV`](https://software.broadinstitute.org/software/igv/))
-12. Present QC for raw read, alignment and duplicate reads ([`MultiQC`](http://multiqc.info/))
+1. Check input files
+2. Merge re-sequenced FastQ files ([`cat`](http://www.linfo.org/cat.html))
+3. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
+4. Adapter and quality trimming ([`Trim Galore!`](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/))
+5. Alignment to both target and spike-in genomes ([`Bowtie 2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
+6. Filter on quality, sort and index alignments ([`samtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+7. Duplicate read marking ([`picard`](https://broadinstitute.github.io/picard/))
+8. Create bedGraph files ([`bedtools`](https://github.com/arq5x/bedtools2/)
+9. Create bigWig coverage files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
+10. Peak calling specifically tailored for low background noise experiments ([`SEACR`](https://github.com/FredHutch/SEACR))
+11. Consensus peak merging and reporting ([`bedtools`](https://github.com/arq5x/bedtools2/))
+12. Quality control and analysis:
+    1. Alignment, fragment length and peak analysis and replicate reproducibility ([`python`](https://www.python.org/))
+    2. Heatmap peak analysis ([`deepTools`](https://github.com/deeptools/deepTools/))
+13. Genome browser session ([`IGV`](https://software.broadinstitute.org/software/igv/))
+14. Present QC for raw read, alignment and duplicate reads ([`MultiQC`](http://multiqc.info/))
 
 ## Quick Start
 
@@ -65,7 +65,7 @@ On release, automated continuous integration tests run the pipeline on a full-si
         nextflow run nf-core/cutandrun \
             -profile <docker/singularity/podman/conda/institute> \
             --input samplesheet.csv \
-            --genome GRCh37
+            --genome GRCh38
         ```
 
 See [usage docs](https://nf-co.re/cutandrun/usage) for all of the available options when running the pipeline.
