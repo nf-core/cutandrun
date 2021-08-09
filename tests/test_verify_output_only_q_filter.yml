@@ -3,7 +3,7 @@
   tags:
     - verify_output
     - verify_output_align
-    - verify_output_align_short
+    - verify_output_align_long
     - verify_output_align_only_q_filter
   files:
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.filtered.bam
