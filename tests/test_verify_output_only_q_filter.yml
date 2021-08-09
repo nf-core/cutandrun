@@ -1,5 +1,5 @@
 - name: test_verify_output_only_q_filter
-  command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true minimum_alignment_q_score 10 --skip_markduplicates true --skip_removeduplicates true
+  command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true minimum_alignment_q_score 10 --skip_markduplicates true --skip_removeduplicates true -c tests/config/nextflow.config
   tags:
     - verify_output
     - verify_output_align

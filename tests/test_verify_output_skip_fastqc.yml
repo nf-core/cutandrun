@@ -1,5 +1,5 @@
 - name: test_verify_output_skip_fastqc_true
-  command: nextflow run main.nf -profile docker,test --only_preqc true --skip_fastqc true
+  command: nextflow run main.nf -profile docker,test --only_preqc true --skip_fastqc true -c tests/config/nextflow.config
   tags:
     - verify_output
     - verify_output_skip
