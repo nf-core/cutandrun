@@ -5,6 +5,121 @@
     "description": "Analysis pipeline for CUT&RUN and CUT&TAG experiments that includes sequencing QC, spike-in normalisation, IgG control normalisation, peak calling and downstream peak analysis.",
     "type": "object",
     "definitions": {
+        "input_output_options": {
+            "title": "Input/output options",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Define where the pipeline should find input data and save output data.",
+            "required": [
+                "input"
+            ],
+            "properties": {
+                "input": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/csv",
+                    "pattern": "^\\S+\\.csv$",
+                    "schema": "assets/schema_input.json",
+                    "description": "Path to comma-separated file containing information about the samples in the experiment.",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re//usage#samplesheet-input).",
+                    "fa_icon": "fas fa-file-csv"
+                },
+                "outdir": {
+                    "type": "string",
+                    "description": "Path to the output directory where the results will be saved.",
+                    "default": "./results",
+                    "fa_icon": "fas fa-folder-open"
+                },
+                "email": {
+                    "type": "string",
+                    "description": "Email address for completion summary.",
+                    "fa_icon": "fas fa-envelope",
+                    "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
+                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
+                },
+                "multiqc_title": {
+                    "type": "string",
+                    "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
+                    "fa_icon": "fas fa-file-signature"
+                },
+                "save_reference": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save reference data to output directory"
+                },
+                "save_merged_fastq": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save any technical replicates that were merged to output directory"
+                },
+                "save_trimmed": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save trimmed fastqs to output directory"
+                },
+                "save_spikein_aligned": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save bam files aligned to the spike-in genome to output directory"
+                },
+                "save_unaligned": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save unaligned sequences to output directory"
+                },
+                "save_align_intermed": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save alignment intermediates to output directory (WARNING: can be very large)"
+                },
+                "aligner": {
+                    "type": "string",
+                    "default": "bowtie2",
+                    "hidden": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Select aligner"
+                }
+            }
+        },
+        "trimming_options": {
+            "title": "Trimming Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "clip_r1": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "clip_r2": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "three_prime_clip_r1": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "three_prime_clip_r2": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "trim_nextseq": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                }
+            },
+            "fa_icon": "fas fa-cut"
+        },
         "reference_data_options": {
             "title": "Reference data options",
             "type": "object",
@@ -19,15 +134,18 @@
                 },
                 "bowtie2": {
                     "type": "string",
-                    "fa_icon": "fas fa-book"
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to bowtie2 index"
                 },
                 "gtf": {
                     "type": "string",
-                    "fa_icon": "fas fa-book"
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to GTF annotation file"
                 },
                 "blacklist": {
                     "type": "string",
-                    "fa_icon": "fas fa-book"
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to genome blacklist"
                 },
                 "spikein_genome": {
                     "type": "string",
@@ -37,11 +155,13 @@
                 },
                 "spikein_bowtie2": {
                     "type": "string",
-                    "fa_icon": "fas fa-book"
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to spike-in bowtie2 index"
                 },
                 "spikein_fasta": {
                     "type": "string",
-                    "fa_icon": "fas fa-book"
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to spike-in fasta"
                 },
                 "fasta": {
                     "type": "string",
@@ -68,6 +188,140 @@
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
                 }
             }
+        },
+        "pipeline_options": {
+            "title": "Pipeline Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "minimum_alignment_q_score": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-sort-numeric-down",
+                    "description": "Filter reads below a q-score threshold"
+                },
+                "dedup_target_reads": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-clone",
+                    "description": "Deduplicate non-control reads"
+                },
+                "normalisation_c": {
+                    "type": "integer",
+                    "default": 10000,
+                    "hidden": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Normalisation constant"
+                },
+                "igg_control": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies if the samplesheet contains an IgG control"
+                },
+                "peak_threshold": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Threshold for peak calling when no IgG is present"
+                },
+                "gene_bed": {
+                    "type": "string",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Path to gene bed file"
+                },
+                "replicate_threshold": {
+                    "type": "integer",
+                    "default": 1,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Minimum number of overlapping replicates needed for a consensus peak"
+                }
+            },
+            "fa_icon": "fas fa-cog"
+        },
+        "flow_switching_options": {
+            "title": "Flow switching options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "only_genome": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to reference preparation"
+                },
+                "only_input": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to input checking"
+                },
+                "only_preqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to pre-alignment"
+                },
+                "only_alignment": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to alignment"
+                },
+                "only_filtering": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to q-filtering"
+                },
+                "only_peak_calling": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to peak calling"
+                },
+                "skip_fastqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips fastqc reporting"
+                },
+                "skip_trimming": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips trimming"
+                },
+                "skip_removeduplicates": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips de-duplication"
+                },
+                "skip_scale": {
+                    "type": "boolean",
+                    "description": "Skips scalefactor normalisation",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_reporting": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips reporting"
+                },
+                "skip_igv": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips igv session generation"
+                },
+                "skip_heatmaps": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips deeptools heatmaps"
+                },
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips multiqc"
+                },
+                "skip_upset_plots": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skip upset plot calculation"
+                }
+            },
+            "fa_icon": "fas fa-exchange-alt"
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -256,227 +510,23 @@
                     "help_text": "This may be useful for example if you are unable to directly pull Singularity containers to run the pipeline due to http/https proxy issues."
                 }
             }
-        },
-        "trimming_options": {
-            "title": "Trimming Options",
-            "type": "object",
-            "description": "",
-            "default": "",
-            "properties": {
-                "clip_r1": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "clip_r2": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "three_prime_clip_r1": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "three_prime_clip_r2": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "trim_nextseq": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-align-justify"
-                }
-            },
-            "fa_icon": "fas fa-cut"
-        },
-        "input_output_options": {
-            "title": "Input/output options",
-            "type": "object",
-            "fa_icon": "fas fa-terminal",
-            "description": "Define where the pipeline should find input data and save output data.",
-            "required": [
-                "input"
-            ],
-            "properties": {
-                "input": {
-                    "type": "string",
-                    "format": "file-path",
-                    "mimetype": "text/csv",
-                    "pattern": "^\\S+\\.csv$",
-                    "schema": "assets/schema_input.json",
-                    "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re//usage#samplesheet-input).",
-                    "fa_icon": "fas fa-file-csv"
-                },
-                "outdir": {
-                    "type": "string",
-                    "description": "Path to the output directory where the results will be saved.",
-                    "default": "./results",
-                    "fa_icon": "fas fa-folder-open"
-                },
-                "email": {
-                    "type": "string",
-                    "description": "Email address for completion summary.",
-                    "fa_icon": "fas fa-envelope",
-                    "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
-                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
-                },
-                "multiqc_title": {
-                    "type": "string",
-                    "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
-                    "fa_icon": "fas fa-file-signature"
-                },
-                "save_reference": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-folder-plus"
-                },
-                "save_merged_fastq": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-folder-plus"
-                },
-                "save_trimmed": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-folder-plus"
-                },
-                "save_spikein_aligned": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-folder-plus"
-                },
-                "save_unaligned": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-folder-plus"
-                },
-                "save_align_intermed": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-folder-plus"
-                },
-                "aligner": {
-                    "type": "string",
-                    "default": "bowtie2",
-                    "hidden": true,
-                    "fa_icon": "fas fa-align-justify"
-                }
-            }
-        },
-        "flow_switching_options": {
-            "title": "Flow switching options",
-            "type": "object",
-            "description": "",
-            "default": "",
-            "properties": {
-                "only_genome": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "only_input": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "only_preqc": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "only_alignment": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "only_filtering": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "only_peak_calling": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "skip_fastqc": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "skip_trimming": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "skip_removeduplicates": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "skip_scale": {
-                    "type": "boolean",
-                    "description": "Skip scalefactor normalisation",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "skip_reporting": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "skip_igv": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "skip_heatmaps": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "skip_multiqc": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "skip_upset_plots": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify"
-                }
-            },
-            "fa_icon": "fas fa-exchange-alt"
-        },
-        "pipeline_options": {
-            "title": "Pipeline Options",
-            "type": "object",
-            "description": "",
-            "default": "",
-            "properties": {
-                "minimum_alignment_q_score": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-sort-numeric-down"
-                },
-                "dedup_target_reads": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-clone"
-                },
-                "normalisation_c": {
-                    "type": "integer",
-                    "default": 10000,
-                    "hidden": true,
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "igg_control": {
-                    "type": "boolean",
-                    "default": true,
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "peak_threshold": {
-                    "type": "number",
-                    "default": 0.05,
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "gene_bed": {
-                    "type": "string",
-                    "fa_icon": "fas fa-align-justify"
-                },
-                "replicate_threshold": {
-                    "type": "integer",
-                    "default": 1,
-                    "fa_icon": "fas fa-align-justify"
-                }
-            },
-            "fa_icon": "fas fa-cog"
         }
     },
     "allOf": [
         {
+            "$ref": "#/definitions/input_output_options"
+        },
+        {
+            "$ref": "#/definitions/trimming_options"
+        },
+        {
             "$ref": "#/definitions/reference_data_options"
+        },
+        {
+            "$ref": "#/definitions/pipeline_options"
+        },
+        {
+            "$ref": "#/definitions/flow_switching_options"
         },
         {
             "$ref": "#/definitions/institutional_config_options"
@@ -486,18 +536,6 @@
         },
         {
             "$ref": "#/definitions/generic_options"
-        },
-        {
-            "$ref": "#/definitions/trimming_options"
-        },
-        {
-            "$ref": "#/definitions/input_output_options"
-        },
-        {
-            "$ref": "#/definitions/flow_switching_options"
-        },
-        {
-            "$ref": "#/definitions/pipeline_options"
         }
     ]
 }
