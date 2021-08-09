@@ -59,7 +59,7 @@ jobs:
         run: npm install -g editorconfig-checker
 
       - name: Run ECLint check
-        run: editorconfig-checker -exclude README.md $(git ls-files | grep -v test)
+        run: editorconfig-checker -exclude README.md,docs/output.md,docs/usage.md $(git ls-files | grep -v test)
 
   YAML:
     runs-on: ubuntu-latest
