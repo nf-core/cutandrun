@@ -75,7 +75,7 @@ jobs:
     strategy:
       matrix:
         nxf_version: ["21.04.0", '']
-        tags: ["samplesheet", "verify_output/input", "verify_output/align", "verify_output/peak_calling", "verify_output/reporting", verify_output/save", "verify_output/skip"]
+        tags: ["samplesheet", "verify_output/input", "verify_output/align", "verify_output/peak_calling", "verify_output/reporting", "verify_output/save", "verify_output/skip"]
     steps:
       - uses: actions/checkout@v2
 
