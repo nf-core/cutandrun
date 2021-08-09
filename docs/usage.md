@@ -6,81 +6,55 @@
 
 ## Samplesheet input
 
-You will need to create a samplesheet file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row as shown in the examples below.
+You will need to create a samplesheet file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with the correct data structure as shown in the examples below.
 
 ```bash
---input '[path to samplesheet file]'
+--input <path to samplesheet file>
 ```
 
-### Multiple replicates
-
-The `group` identifier is the same when you have multiple biological replicates from the same experimental group, just increment the `replicate` identifier appropriately. A special case for `group` is if you have non-specific IgG antibody control data that can be used for normalising your experimental CUT&Run (OR CUT&Tag) data. In this case, the `group` name for the IgG control data _must_ be set to `igg`. Below is an example for a single target group in triplicate, complemented by an IgG control duplicate:
+An example sample sheet structure is shown below. This defines two target experimental groups for the histone marks h3k27me3 and h3k4me3 with two biological replicates per group. Each antibody target also had an IgG control performed alongside. The two IgG experiments are configured as biological replicates with the `igg` group keyword with a unique control group assignment. The target experiments are then assigned to the igg control group using the `control_group` column.
 
 ```bash
-group,replicate,fastq_1,fastq_2
-target,1,H3K27me3_S1_L001_R1.fastq.gz,H3K27me3_S1_L001_R2.fastq.gz
-target,2,H3K27me3_S2_L001_R1.fastq.gz,H3K27me3_S2_L001_R2.fastq.gz
-target,3,H3K27me3_S3_L001_R1.fastq.gz,H3K27me3_S3_L001_R2.fastq.gz
-igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
-igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
-```
-
-There are 4 use-cases for various combinations of experimental and IgG control replicate numbers that are note-worthy:
-
-* One-to-one:
-Across all experimental groups and IgG control, the number of replicates are the same and numbered in a uniform fashion. In this case, IgG normalisation at the peak-calling level is done for matching replicate numbers.
-* Many experimental replicates, one IgG replicate:
-Each experimental replicate will be normalised by the given single IgG replicate.
-* Equal numbers of replicates across experimental groups and more than one IgG replicate:
-If the user puts forward groups with equal amounts of uniformly numbered replicates, but different to the multiple IgG replicates, then a warning will show informing the user that just the first IgG replicate will be used for normalisation.
-* Varying experimental and IgG replicates:
-If the user puts forward groups with varying, ununiform experimental replicate numbers and more than one IgG replicate, an error will be thrown up and the pipeline will hault. If you wish to merge the IgG control data in this case, see next steps.
-
-It is _recommended_ to have an IgG control for normalising your experimental data and this is the default action for the pipeline. However, if you run the pipeline without IgG control data you must supply `--igg_control false`.
-
-### Multiple runs of the same library
-
-The `group` and `replicate` identifiers are the same when you have re-sequenced the same sample more than once (e.g. to increase sequencing depth), or if you would like to merge technical replicates. The pipeline will concatenate the raw reads before alignment. Below is an example for two samples, one experimental and one control, sequenced across multiple lanes:
-
-```bash
-group,replicate,fastq_1,fastq_2
-target,1,H3K27me3_S1_L001_R1.fastq.gz,H3K27me3_S1_L001_R2.fastq.gz
-target,1,H3K27me3_S1_L002_R1.fastq.gz,H3K27me3_S1_L002_R2.fastq.gz
-igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
-igg,1,IGG_S1_L002_R1.fastq.gz,IGG_S1_L002_R2.fastq.gz
-```
-
-### Full design
-
-A final design file may look something like the one below. This is for one experimental group in triplicate where the last replicate of the `treatment` group has been sequenced twice, another experimental group in duplicate, and one IgG control group.
-
-```bash
-group,replicate,fastq_1,fastq_2
-h3k27me3,1,H3K27me3_S1_L001_R1.fastq.gz,H3K27me3_S1_L001_R2.fastq.gz
-h3k27me3,2,H3K27me3_S2_L001_R1.fastq.gz,H3K27me3_S2_L001_R2.fastq.gz
-h3k27me3,3,H3K27me3_S3_L001_R1.fastq.gz,H3K27me3_S3_L001_R2.fastq.gz
-h3k27me3,3,H3K27me3_S3_L002_R1.fastq.gz,H3K27me3_S3_L002_R2.fastq.gz
-h3k4me3,1,H3K4me3_S1_L001_R1.fastq.gz,H3K4me3_S1_L001_R2.fastq.gz
-h3k4me3,2,H3K4me3_S2_L001_R1.fastq.gz,H3K4me3_S2_L001_R2.fastq.gz
-igg,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
-igg,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
+group,replicate,control_group,fastq_1,fastq_2
+h3k27me3,1,1,H3K27ME3_S1_L001_R1.fastq.gz,H3K27ME3_S1_L001_R2.fastq.gz
+h3k27me3,2,1,H3K27ME3_S2_L001_R1.fastq.gz,H3K27ME3_S2_L001_R2.fastq.gz
+h3k4me3,1,2,H3K4ME3_S1_L001_R1.fastq.gz,H3K4ME3_S1_L001_R2.fastq.gz
+h3k4me3,2,2,H3K4ME3_S2_L001_R1.fastq.gz,H3K4MES_S2_L001_R2.fastq.gz
+igg,1,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
+igg,2,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
 ```
 
 | Column         | Description                                                                                                 |
 |----------------|-------------------------------------------------------------------------------------------------------------|
 | `group`        | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
 | `replicate`    | Integer representing replicate number.                                                                      |
+| `control_group`    | Integer representing the IgG control group the target is assigned to.                                                                      |
 | `fastq_1`      | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
 | `fastq_2`      | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+
+### Multiple replicates and IgG controls
+
+To assign biological replicates to the same group use the same group identifier but increment the `replicate` column appropriately. To merge multiple fastq files from the same library or to merge technical replicate data, use identical `group` AND `replicate` column identifiers. The pipeline will automatically merge these samples and treat them as one biological replicate. An example of this type of sample sheet configuration is shown below where each biological replicate has two fastq files:
+
+```bash
+group,replicate,control_group,fastq_1,fastq_2
+h3k27me3,1,1,H3K27ME3_S1_L001_R1.fastq.gz,H3K27ME3_S1_L001_R2.fastq.gz
+h3k27me3,1,1,H3K27ME3_S2_L001_R1.fastq.gz,H3K27ME3_S2_L001_R2.fastq.gz
+h3k27me3,2,1,H3K27ME3_S3_L001_R1.fastq.gz,H3K27ME3_S3_L001_R2.fastq.gz
+h3k27me3,2,1,H3K27ME3_S4_L001_R1.fastq.gz,H3K27ME3_S4_L001_R2.fastq.gz
+igg,1,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
+```
+
+To add any IgG controls that were processed, use the `igg` keyword in the `group` column and increment as with the target samples. The IgG control will be used to normalising your experimental CUT&Run (OR CUT&Tag) data. It is _recommended_ to have an IgG control for normalising your experimental data and this is the default action for the pipeline. However, if you run the pipeline without IgG control data you must supply `--igg_control false`.
 
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run nf-core/cutandrun --input samplesheet.csv --genome GRCh37 -profile docker
+nextflow run nf-core/cutandrun --input samplesheet.csv --genome GRCh38 -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -120,7 +94,7 @@ Use this parameter to choose a configuration profile. Profiles can give configur
 
 Several generic profiles are bundled with the pipeline which instruct the pipeline to use software packaged using different methods (Docker, Singularity, Podman, Shifter, Charliecloud, Conda) - see below. When using Biocontainers, most of these software packaging methods pull Docker containers from quay.io e.g [FastQC](https://quay.io/repository/biocontainers/fastqc) except for Singularity which directly downloads Singularity images via https hosted by the [Galaxy project](https://depot.galaxyproject.org/singularity/) and Conda which downloads and installs software locally from [Bioconda](https://bioconda.github.io/).
 
-> We highly recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported.
+> We recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported.
 
 The pipeline also dynamically loads configurations from [https://github.com/nf-core/configs](https://github.com/nf-core/configs) when it runs, making multiple config profiles for various institutional clusters available at run time. For more information and to see if your system is available in these configs please see the [nf-core/configs documentation](https://github.com/nf-core/configs#documentation).
 
