@@ -113,7 +113,7 @@ jobs:
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
       - name: Run pytest-workflow
-        run: pytest --tag ${{ matrix.tags }} --symlink --kwdof
+        run: pytest --tag ${{ matrix.tags }} --kwdof
 
       - name: Upload logs on failure
         if: failure()
