@@ -1,3 +1,7 @@
-sample,fastq_1,fastq_2
-SAMPLE_PAIRED_END,/path/to/fastq/files/AEG588A1_S1_L002_R1_001.fastq.gz,/path/to/fastq/files/AEG588A1_S1_L002_R2_001.fastq.gz
-SAMPLE_SINGLE_END,/path/to/fastq/files/AEG588A4_S4_L003_R1_001.fastq.gz,
+group,replicate,control_group,fastq_1,fastq_2
+h3k27me3,1,1,READ1_FASTQ,READ2_FASTQC
+h3k27me3,2,1,READ1_FASTQ,READ2_FASTQC
+h3k4me3,1,2,READ1_FASTQ,READ2_FASTQC
+h3k4me3,2,2,READ1_FASTQ,READ2_FASTQC
+igg,1,1,READ1_FASTQ,READ2_FASTQC
+igg,2,2,READ1_FASTQ,READ2_FASTQC
