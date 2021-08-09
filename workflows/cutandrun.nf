@@ -74,9 +74,7 @@ def run_multiqc            = true
 def run_peak_plotting      = true
 
 if(params.minimum_alignment_q_score > 0)           { run_q_filter      = true  }
-//if(params.skip_markduplicates)                     { run_mark_dups     = false }
 if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups   = false }
-//if(params.skip_peak_calling)                       { run_peak_calling  = false }
 if(!params.gene_bed || params.skip_heatmaps)       { run_deep_tools    = false }
 if(params.skip_multiqc)                            { run_multiqc       = false }
 if(params.skip_upset_plots)                        { run_peak_plotting = false }
