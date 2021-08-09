@@ -76,7 +76,7 @@ jobs:
       fail-fast: false
       matrix:
         nxf_version: ["21.04.0", '']
-        tags: ["samplesheet", "verify_output_input", "verify_output_align", "verify_output_peak_calling", "verify_output_reporting", "verify_output_save", "verify_output_skip"]
+        tags: ["samplesheet", "verify_output_input", "verify_output_align_short", "verify_output_align_long", "verify_output_peak_calling", "verify_output_reporting", "verify_output_save", "verify_output_skip"]
     steps:
       - uses: actions/checkout@v2
 

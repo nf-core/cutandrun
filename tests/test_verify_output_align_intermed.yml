@@ -3,6 +3,7 @@
   tags:
     - verify_output
     - verify_output_align
+    - verify_output_align_short
     - verify_output_align_intermed
   files:
     - path: results/02_alignment/bowtie2/target/intermed/align/h3k27me3_R1.target.sorted.bam
