@@ -121,7 +121,7 @@ jobs:
         with:
           name: logs-${{ matrix.tags }}-${{ matrix.profile }}-${{ matrix.nxf_version }}
           path: |
-            /home/runner/pytest_workflow_*/*/.nextflow.log
-            /home/runner/pytest_workflow_*/*/log.out
-            /home/runner/pytest_workflow_*/*/log.err
-            /home/runner/pytest_workflow_*/*/work
+            /tmp/pytest_workflow_*/*/.nextflow.log
+            /tmp/pytest_workflow_*/*/log.out
+            /tmp/pytest_workflow_*/*/log.err
+            /tmp/pytest_workflow_*/*/work
