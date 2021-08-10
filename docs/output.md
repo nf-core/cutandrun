@@ -276,7 +276,7 @@ An IGV session file will be created at the end of the pipeline containing the no
 
 </details>
 
-[Deeptools](https://github.com/deeptools/deepTools/) sub-tools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks.
+[deeptools](https://github.com/deeptools/deepTools/) sub-tools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks.
 
 ## Workflow reporting and genomes
 
