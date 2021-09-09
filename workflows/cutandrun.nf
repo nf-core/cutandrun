@@ -712,11 +712,11 @@ workflow CUTANDRUN {
                 new_meta.put( "id", "all_samples" )
                 [ new_meta, row[1].flatten() ]
             }
-            .map { row -> 
+            .map { row ->
                 [ row[0], row[1], row[1].size() ]
             }
             .filter { row -> row[2] > 1 }
-            .map { row -> 
+            .map { row ->
                 [ row[0], row[1] ]
             }
             .set { ch_seacr_bed_all }
@@ -743,11 +743,11 @@ workflow CUTANDRUN {
                 new_meta.put( "id", row[0] )
                 [ new_meta, row[1].flatten() ]
             }
-            .map { row -> 
+            .map { row ->
                 [ row[0], row[1], row[1].size() ]
             }
             .filter { row -> row[2] > 1 }
-            .map { row -> 
+            .map { row ->
                 [ row[0], row[1] ]
             }
             .set { ch_seacr_bed_group }
