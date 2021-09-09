@@ -16,7 +16,7 @@ include { PLOT_CONSENSUS_PEAKS } from "../../modules/local/plot_consensus_peaks"
 workflow CONSENSUS_PEAKS {
 
     take:
-    bed //  channel: [ val(meta), [ bed ] ]
+    bed //  channel: [ val(meta), [ bed ], count]
 
     main:
 
@@ -26,7 +26,7 @@ workflow CONSENSUS_PEAKS {
     // Merge peaks
     BEDTOOLS_MERGE ( SORT.out.file )
 
-    // Optionally filter peaks on minimum replicate consensus and produce plot
+    // Filter peaks on minimum replicate consensus
     AWK ( BEDTOOLS_MERGE.out.bed )
 
     // Plot consensus peak sets
