@@ -712,8 +712,15 @@ workflow CUTANDRUN {
                 new_meta.put( "id", "all_samples" )
                 [ new_meta, row[1].flatten() ]
             }
+            .map { row ->
+                [ row[0], row[1], row[1].size() ]
+            }
+            .filter { row -> row[2] > 1 }
+            .map { row ->
+                [ row[0], row[1] ]
+            }
             .set { ch_seacr_bed_all }
-        // EXAMPLE CHANNEL STRUCT: [[id: all_samples], BED1, BED2, BEDn...]
+        // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
         //ch_seacr_bed_all | view
 
         /*
@@ -736,8 +743,15 @@ workflow CUTANDRUN {
                 new_meta.put( "id", row[0] )
                 [ new_meta, row[1].flatten() ]
             }
+            .map { row ->
+                [ row[0], row[1], row[1].size() ]
+            }
+            .filter { row -> row[2] > 1 }
+            .map { row ->
+                [ row[0], row[1] ]
+            }
             .set { ch_seacr_bed_group }
-        // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], BED1, BED2, BEDn...]
+        // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
         //ch_seacr_bed_group | view
 
         /*
