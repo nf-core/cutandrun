@@ -37,6 +37,6 @@ process SORT {
     String input_files = input.join(" ")
 
     """
-    sort $options.args $input_files > ${prefix}.sort.${ext}
+    sort -T '.' $options.args $input_files > ${prefix}.sort.${ext}
     """
 }
