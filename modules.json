@@ -31,7 +31,7 @@
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
             },
             "picard/markduplicates": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "b2a6f5409efa6eb065c8186c606e68ff8004ba51"
             },
             "samtools/flagstat": {
                 "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
