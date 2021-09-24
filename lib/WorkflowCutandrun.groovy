@@ -122,4 +122,12 @@ class WorkflowCutandrun {
             "==================================================================================="
     }
 
+    //
+    // Print a warning if not blacklist detected
+    //
+    private static void blacklistWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  No genome blacklist file specified, switching to dummy empty file...\n" +
+            "==================================================================================="
+    }
 }

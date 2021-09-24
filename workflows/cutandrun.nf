@@ -24,7 +24,15 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 
 // Check mandatory parameters that cannot be checked in the groovy lib as we want a channel for them
 if (params.input)     { ch_input     = file(params.input)     } else { exit 1, "Input samplesheet not specified!"     }
-if (params.blacklist) { ch_blacklist = file(params.blacklist) } else { exit 1, "Genome blacklist file not specified!" }
+
+ch_blacklist = Channel.empty()
+if (params.blacklist) {
+    ch_blacklist = file(params.blacklist)
+}
+else {
+    ch_blacklist = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
+    WorkflowCutandrun.blacklistWarn(log)
+}
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
