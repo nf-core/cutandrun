@@ -343,6 +343,9 @@ class Reports:
         self.load_data()
         self.annotate_data_table()
 
+        # Sort tables
+        self.data_table = self.data_table.sort_values('group')
+
         # Plot 1
         multi_plot, data1 = self.alignment_summary()
         plots["01_01_seq_depth"] = multi_plot[0]
