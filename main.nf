@@ -55,12 +55,13 @@ WorkflowMain.initialise(workflow, params, log)
 ========================================================================================
 */
 
+include { CUTANDRUN } from './workflows/cutandrun'
+
 workflow NFCORE_CUTANDRUN {
     /*
      * WORKFLOW: Run main nf-core/cutandrun analysis pipeline
      */
 
-    include { CUTANDRUN } from './workflows/cutandrun'
     CUTANDRUN ()
 
 }
