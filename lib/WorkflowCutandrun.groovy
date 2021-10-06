@@ -82,10 +82,6 @@ class WorkflowCutandrun {
     private static void ncbiGenomeWarn(log) {
         log.warn "=============================================================================\n" +
             "  When using '--genome GRCh38' the assembly is from the NCBI and NOT Ensembl.\n" +
-            "  Biotype QC will be skipped to circumvent the issue below:\n" +
-            "  https://github.com/nf-core/rnaseq/issues/460\n\n" +
-            "  If you would like to use the soft-masked Ensembl assembly instead please see:\n" +
-            "  https://github.com/nf-core/rnaseq/issues/159#issuecomment-501184312\n" +
             "==================================================================================="
     }
 
@@ -122,4 +118,12 @@ class WorkflowCutandrun {
             "==================================================================================="
     }
 
+    //
+    // Print a warning if not blacklist detected
+    //
+    private static void blacklistWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  No genome blacklist file specified, switching to dummy empty file...\n" +
+            "==================================================================================="
+    }
 }

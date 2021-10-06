@@ -24,7 +24,15 @@ for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true
 
 // Check mandatory parameters that cannot be checked in the groovy lib as we want a channel for them
 if (params.input)     { ch_input     = file(params.input)     } else { exit 1, "Input samplesheet not specified!"     }
-if (params.blacklist) { ch_blacklist = file(params.blacklist) } else { exit 1, "Genome blacklist file not specified!" }
+
+ch_blacklist = Channel.empty()
+if (params.blacklist) {
+    ch_blacklist = file(params.blacklist)
+}
+else {
+    ch_blacklist = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
+    WorkflowCutandrun.blacklistWarn(log)
+}
 
 // Save AWS IGenomes file containing annotation version
 def anno_readme = params.genomes[ params.genome ]?.readme
@@ -280,7 +288,7 @@ multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title
  * MODULES
  */
 include { INPUT_CHECK                    } from "../subworkflows/local/input_check"                          addParams( options: [:]                                        )
-include { CAT_FASTQ                      } from "../modules/local/cat_fastq"                                 addParams( options: cat_fastq_options                          )
+include { CAT_FASTQ                      } from "../modules/nf-core/modules/cat/fastq/main"                  addParams( options: cat_fastq_options                          )
 include { BEDTOOLS_GENOMECOV_SCALE       } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
 include { SEACR_CALLPEAK as SEACR_NO_IGG } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
 include { AWK as AWK_NAME_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_name_peak_bed"]               )
