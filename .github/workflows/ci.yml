@@ -63,6 +63,31 @@ jobs:
       - name: Run pipeline with test data
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile docker,test_full_small
+  #####################################
+  ### EDGE VERSION INTEGRATION TEST ###
+  #####################################
+  test_edge:
+    name: Run standard pipeline test (edge version)
+    # Only run on push if this is the nf-core dev branch (merged PRs)
+    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
+    runs-on: ubuntu-latest
+    env:
+      NXF_VER: ''
+      NXF_EDGE: 1
+      NXF_ANSI_LOG: false
+    steps:
+      - name: Check out pipeline code
+        uses: actions/checkout@v2
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+          nextflow self-update
+
+      - name: Run pipeline with test data
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile docker,test
   ##############################
   ###      UNIT TESTS        ###
   ##############################
