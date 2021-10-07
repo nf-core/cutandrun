@@ -67,7 +67,7 @@ jobs:
   ### EDGE VERSION INTEGRATION TEST ###
   #####################################
   test:
-    name: Run standard pipeline test
+    name: Run standard pipeline test (edge version)
     # Only run on push if this is the nf-core dev branch (merged PRs)
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
