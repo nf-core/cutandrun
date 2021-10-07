@@ -72,7 +72,7 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
-      NXF_VER: '*-edge'
+      NXF_VER: ''
       NXF_EDGE: 1
       NXF_ANSI_LOG: false
     steps:
@@ -83,6 +83,7 @@ jobs:
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
+          nextflow self-update
 
       - name: Run pipeline with test data
         run: |
