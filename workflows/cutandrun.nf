@@ -143,12 +143,12 @@ if(params.only_filtering) {
     run_remove_dups  = false
     run_peak_calling = false
     run_reporting    = false
-    run_multiqc      = false
+    run_multiqc      = true
 }
 
 if(params.only_peak_calling) {
     run_reporting = false
-    run_multiqc   = false
+    run_multiqc   = true
 }
 
 /*
@@ -350,6 +350,7 @@ workflow CUTANDRUN {
 
     // Init
     ch_software_versions = Channel.empty()
+    ch_frag_len_multiqc  = Channel.empty()
 
     /*
      * SUBWORKFLOW: Uncompress and prepare reference genome files
@@ -920,7 +921,6 @@ workflow CUTANDRUN {
         /*
         * MODULE: Generate python reporting using mixture of meta-data and direct file processing
         */
-        ch_frag_len_multiqc = Channel.empty()
         GENERATE_REPORTS(
             EXPORT_META.out.csv,                        // meta-data report stats
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
@@ -932,22 +932,22 @@ workflow CUTANDRUN {
         )
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
-
-        /*
-        * MODULE: Collect software versions used in pipeline
-        */
-        ch_software_versions
-            .map { it -> if (it) [ it.baseName, it ] }
-            .groupTuple()
-            .map { it[1][0] }
-            .flatten()
-            .collect()
-            .set { ch_software_versions }
-
-        GET_SOFTWARE_VERSIONS (
-            ch_software_versions.map { it }.collect()
-        )
     }
+
+    /*
+    * MODULE: Collect software versions used in pipeline
+    */
+    ch_software_versions
+        .map { it -> if (it) [ it.baseName, it ] }
+        .groupTuple()
+        .map { it[1][0] }
+        .flatten()
+        .collect()
+        .set { ch_software_versions }
+
+    GET_SOFTWARE_VERSIONS (
+        ch_software_versions.map { it }.collect()
+    )
 
     /*
      * MODULE: Multiqc
