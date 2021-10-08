@@ -825,43 +825,43 @@ workflow CUTANDRUN {
                 UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
             )
         }
-
-        /*
-        * MODULE: Extract max signal from peak beds
-        */
-        AWK_EDIT_PEAK_BED (
-            ch_seacr_bed
-        )
-        //AWK_EDIT_PEAK_BED.out.file | view
-
-        /*
-        * CHANNEL: Structure output for join on id
-        */
-        AWK_EDIT_PEAK_BED.out.file
-            .map { row -> [row[0].id, row ].flatten()}
-            .set { ch_seacr_bed_id }
-        //ch_seacr_bed_id | view
-
-        /*
-        * CHANNEL: Join beds and bigwigs on id
-        */
-        ch_bigwig_no_igg
-            .map { row -> [row[0].id, row ].flatten()}
-            .join ( ch_seacr_bed_id )
-            .set { ch_dt_peaks }
-        //ch_dt_peaks | view
-
-        ch_dt_peaks
-            .map { row -> row[1,2] }
-            .set { ch_ordered_bigwig }
-        //ch_ordered_bigwig | view
-
-        ch_dt_peaks
-            .map { row -> row[-1] }
-            .set { ch_ordered_seacr_max }
-        //ch_ordered_seacr_max | view
-
+        
         if (run_deep_tools){
+            /*
+            * MODULE: Extract max signal from peak beds
+            */
+            AWK_EDIT_PEAK_BED (
+                ch_seacr_bed
+            )
+            //AWK_EDIT_PEAK_BED.out.file | view
+
+            /*
+            * CHANNEL: Structure output for join on id
+            */
+            AWK_EDIT_PEAK_BED.out.file
+                .map { row -> [row[0].id, row ].flatten()}
+                .set { ch_seacr_bed_id }
+            //ch_seacr_bed_id | view
+
+            /*
+            * CHANNEL: Join beds and bigwigs on id
+            */
+            ch_bigwig_no_igg
+                .map { row -> [row[0].id, row ].flatten()}
+                .join ( ch_seacr_bed_id )
+                .set { ch_dt_peaks }
+            //ch_dt_peaks | view
+
+            ch_dt_peaks
+                .map { row -> row[1,2] }
+                .set { ch_ordered_bigwig }
+            //ch_ordered_bigwig | view
+
+            ch_dt_peaks
+                .map { row -> row[-1] }
+                .set { ch_ordered_seacr_max }
+            //ch_ordered_seacr_max | view
+
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
             */
