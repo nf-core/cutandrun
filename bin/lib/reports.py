@@ -64,10 +64,10 @@ class Reports:
         # Get plots and supporting data tables
         plots, data, mqc_frag_hist = self.generate_reports()
 
-        # # Save mqc text file
-        # txt_mqc = open(os.path.join(abs_path, "03_03_frag_len_mqc.txt"), "w")
-        # txt_mqc.write(mqc_frag_hist)
-        # txt_mqc.close()
+        # Save mqc text file
+        txt_mqc = open(os.path.join(abs_path, "03_03_frag_len_mqc.txt"), "w")
+        txt_mqc.write(mqc_frag_hist)
+        txt_mqc.close()
 
         # Save data to output folder
         for key in data:
@@ -473,10 +473,8 @@ class Reports:
         # plots["06_04_frags_in_peaks"] = plot7d
         # data["06_04_frags_in_peaks"] = data7d
 
-        # # Fragment Length Histogram data in MultiQC yaml format
-        # mqc_frag_hist = self.frag_len_hist_mqc()
-
-        mqc_frag_hist = None
+        # Fragment Length Histogram data in MultiQC yaml format
+        mqc_frag_hist = self.frag_len_hist_mqc()
 
         return (plots, data, mqc_frag_hist)
 
