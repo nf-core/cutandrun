@@ -3,7 +3,6 @@
 
 import os
 import glob
-import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -12,10 +11,9 @@ from matplotlib.ticker import FuncFormatter
 import seaborn as sns
 import pyranges as pr
 import pysam
-import time
 
 class Reports:
-    data_table = None
+    metadata_table = None
     frag_hist = None
     frag_violin = None
     frag_bin500 = None
@@ -48,26 +46,79 @@ class Reports:
         #the two args are the value and tick position
         return '%1.1fK' % (x * 1e-3)
 
+    def gen_pdf(self, output_path, plots):
+        with PdfPages(os.path.join(output_path, 'merged_report.pdf')) as pdf:
+            for key in plots:
+                pdf.savefig(plots[key])
+
+    #*
+    #========================================================================================
+    # ENTRY POINTS
+    #========================================================================================
+    #*/
+
+    def generate_cutandrun_reports(self, output_path):
+        # Init
+        abs_path = os.path.abspath(output_path)
+
+        # Get plots and supporting data tables
+        plots, data, mqc_frag_hist = self.generate_reports()
+
+        # # Save mqc text file
+        # txt_mqc = open(os.path.join(abs_path, "03_03_frag_len_mqc.txt"), "w")
+        # txt_mqc.write(mqc_frag_hist)
+        # txt_mqc.close()
+
+        # Save data to output folder
+        for key in data:
+            data[key].to_csv(os.path.join(abs_path, key + '.csv'), index=False)
+
+        # Save plots to output folder
+        for key in plots:
+            plots[key].savefig(os.path.join(abs_path, key + '.png'))
+
+        # # Save pdf of the plots
+        # self.gen_pdf(abs_path, plots)
+
     #*
     #========================================================================================
     # LOAD DATA
     #========================================================================================
     #*/
 
-    def load_data(self):
-        # ---------- Data - data_table --------- #
-        self.data_table = pd.read_csv(self.meta_path, sep=',')
+    def load_meta_data(self):
+        # Plots supported
+
+        # Sequencing Depth
+        # Alignable Fragments
+        # Alignment Rate (Target)
+        # Alignment Rate (Spike-in)
+        # Duplication Rate
+        # Estimated Library Size
+        # Unique Fragments
+        # Spike-in Scale Factor
+        # Normalised Fragment Count
+
+        self.metadata_table = pd.read_csv(self.meta_path, sep=',')
         self.duplicate_info = False
-        if 'dedup_percent_duplication' in self.data_table.columns:
+        if 'dedup_percent_duplication' in self.metadata_table.columns:
             self.duplicate_info = True
 
-        # ---------- Data - Raw frag histogram --------- #
+        # Make new perctenage alignment columns
+        self.metadata_table['target_alignment_rate'] = self.metadata_table.loc[:, ('bt2_total_aligned_target')] / self.metadata_table.loc[:, ('bt2_total_reads_target')] * 100
+        self.metadata_table['spikein_alignment_rate'] = self.metadata_table.loc[:, ('bt2_total_aligned_spikein')] / self.metadata_table.loc[:, ('bt2_total_reads_spikein')] * 100
+
+    def load_raw_frag_histogram(self):
+        # Plots supported
+
+        # Fragment Length Distribution (the main frag length lineplot)
+        # Fragment Length Distribution (the main frag length violin plot)
+
         # Create list of deeptools raw fragment files
         dt_frag_list = glob.glob(self.raw_frag_path)
 
-
         for i in list(range(len(dt_frag_list))):
-            # create dataframe from csv file for each file and save to a list
+            # Create dataframe from csv file for each file and save to a list
             dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None, names=['Size','Occurrences'])
             frag_base_i = os.path.basename(dt_frag_list[i])
             sample_id = frag_base_i.split(".")[0]
@@ -75,7 +126,7 @@ class Reports:
             rep_i = sample_id_split[1]
             group_i = sample_id_split[0]
 
-            # create long forms of fragment histograms
+            # Create long forms of fragment histograms
             dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
             dt_group_i_long = np.repeat(group_i, len(dt_frag_i_long))
             dt_rep_i_long = np.repeat(rep_i, len(dt_frag_i_long))
@@ -102,11 +153,14 @@ class Reports:
 
         self.frag_hist['group'] = group_short
         self.frag_hist['replicate'] = rep_short
-        self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr} ) #, index = np.arange(len(frags_arr)))
+        self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr} )
 
-        # ---------- Data - Binned frags --------- #
-        # create full join data frame for count data
-        # start by creating list of bin500 files
+    def load_binned_frags(self):
+        # Plots supported
+
+        # Replicate Reproducibility
+
+        # Start by creating list of bin500 files
         dt_bin_frag_list = glob.glob(self.bin_frag_path)
         for i in list(range(len(dt_bin_frag_list))):
             dt_bin_frag_i_read = pd.read_csv(dt_bin_frag_list[i], sep='\t', header=None, names=['chrom','bin','count','sample'])
@@ -120,13 +174,18 @@ class Reports:
             else:
                 self.frag_bin500 = pd.merge(self.frag_bin500, dt_bin_frag_i, on=['chrom','bin'], how='outer')
 
-        # add log2 transformed count data column
+        # Add log2 transformed count data column
         log2_counts = self.frag_bin500[self.frag_bin500.columns[-(len(dt_bin_frag_list)):]].transform(lambda x: np.log2(x))
         chrom_bin_cols = self.frag_bin500[['chrom','bin']]
         self.frag_bin500 = pd.concat([chrom_bin_cols,log2_counts], axis=1)
 
-        # ---------- Data - Peaks --------- #
-        # create dataframe for seacr peaks
+    def load_seacr_peaks(self):
+        # Plots supported
+
+        # Total Peaks
+        # Peak Width
+
+        # Create dataframe for seacr peaks
         seacr_bed_list = glob.glob(self.seacr_bed_path)
 
         # combine all seacr bed files into one df including group and replicate info
@@ -146,73 +205,76 @@ class Reports:
             else:
                 self.seacr_beds = self.seacr_beds.append(seacr_bed_i)
 
-        # ---------- Data - target histone mark bams --------- #
+        # Get peak stats by group and replicate
+        self.seacr_beds_group_rep = self.seacr_beds[['group','replicate']].groupby(['group','replicate']).size().reset_index().rename(columns={0:'all_peaks'})
+
+    def pe_bam_to_df(self, bam_path):
+        bamfile = pysam.AlignmentFile(bam_path, "rb")
+        # Iterate through reads.
+        read1 = None
+        read2 = None
+        k=0 #counter
+
+        # get number of reads in bam
+        count = 0
+        for _ in bamfile:
+            count += 1
+
+        bamfile.close()
+        bamfile = pysam.AlignmentFile(bam_path, "rb")
+
+        # initialise arrays
+        frag_no = round(count/2)
+        start_arr = np.zeros(frag_no, dtype=np.int64)
+        end_arr = np.zeros(frag_no, dtype=np.int64)
+        chrom_arr = np.empty(frag_no, dtype="<U20")
+
+        for read in bamfile:
+
+            if not read.is_paired or read.mate_is_unmapped or read.is_duplicate:
+                continue
+
+            if read.is_read2:
+                read2 = read
+                # print("is read2: " + read.query_name)
+
+            else:
+                read1 = read
+                read2 = None
+                # print("is read1: " + read.query_name)
+
+            if read1 is not None and read2 is not None and read1.query_name == read2.query_name:
+
+                start_pos = min(read1.reference_start, read2.reference_start)
+                end_pos = max(read1.reference_end, read2.reference_end) - 1
+                chrom = read.reference_name
+
+                start_arr[k] = start_pos
+                end_arr[k] = end_pos
+                chrom_arr[k] = chrom
+
+                k +=1
+
+        bamfile.close()
+
+        # remove zeros and empty elements. The indicies for these are always the same from end_arr and chrom_arr
+        remove_idx = np.where(chrom_arr == '')[0]
+        chrom_arr = np.delete(chrom_arr, remove_idx)
+        start_arr = np.delete(start_arr, remove_idx)
+        end_arr = np.delete(end_arr, remove_idx)
+
+        # create dataframe
+        bam_df = pd.DataFrame({ "Chromosome" : chrom_arr, "Start" : start_arr, "End" : end_arr })
+        return(bam_df)
+
+    def load_bams(self):
         bam_list = glob.glob(self.bam_path)
         self.bam_df_list = list()
         self.frip = pd.DataFrame(data=None, index=range(len(bam_list)), columns=['group','replicate','mapped_frags','frags_in_peaks','percentage_frags_in_peaks'])
         k = 0 #counter
 
-        def pe_bam_to_df(bam_path):
-            bamfile = pysam.AlignmentFile(bam_path, "rb")
-            # Iterate through reads.
-            read1 = None
-            read2 = None
-            k=0 #counter
-
-            # get number of reads in bam
-            count = 0
-            for _ in bamfile:
-                count += 1
-
-            bamfile.close()
-            bamfile = pysam.AlignmentFile(bam_path, "rb")
-
-            # initialise arrays
-            frag_no = round(count/2)
-            start_arr = np.zeros(frag_no, dtype=np.int64)
-            end_arr = np.zeros(frag_no, dtype=np.int64)
-            chrom_arr = np.empty(frag_no, dtype="<U20")
-
-            for read in bamfile:
-
-                if not read.is_paired or read.mate_is_unmapped or read.is_duplicate:
-                    continue
-
-                if read.is_read2:
-                    read2 = read
-                    # print("is read2: " + read.query_name)
-
-                else:
-                    read1 = read
-                    read2 = None
-                    # print("is read1: " + read.query_name)
-
-                if read1 is not None and read2 is not None and read1.query_name == read2.query_name:
-
-                    start_pos = min(read1.reference_start, read2.reference_start)
-                    end_pos = max(read1.reference_end, read2.reference_end) - 1
-                    chrom = read.reference_name
-
-                    start_arr[k] = start_pos
-                    end_arr[k] = end_pos
-                    chrom_arr[k] = chrom
-
-                    k +=1
-
-            bamfile.close()
-
-            # remove zeros and empty elements. The indicies for these are always the same from end_arr and chrom_arr
-            remove_idx = np.where(chrom_arr == '')[0]
-            chrom_arr = np.delete(chrom_arr, remove_idx)
-            start_arr = np.delete(start_arr, remove_idx)
-            end_arr = np.delete(end_arr, remove_idx)
-
-            # create dataframe
-            bam_df = pd.DataFrame({ "Chromosome" : chrom_arr, "Start" : start_arr, "End" : end_arr })
-            return(bam_df)
-
         for bam in bam_list:
-            bam_now = pe_bam_to_df(bam)
+            bam_now = self.pe_bam_to_df(bam)
             self.bam_df_list.append(bam_now)
             bam_base = os.path.basename(bam)
             sample_id = bam_base.split(".")[0]
@@ -243,15 +305,28 @@ class Reports:
 
         self.frag_series = pd.DataFrame({'group' : group_arr, 'replicate' : rep_arr, 'frag_len' : frag_lens, 'occurences' : frag_counts})
 
-        # ---------- Data - Peak stats --------- #
-        self.seacr_beds_group_rep = self.seacr_beds[['group','replicate']].groupby(['group','replicate']).size().reset_index().rename(columns={0:'all_peaks'})
+    def load_data(self):
+        # ---------- Data - Load main meta-data table --------- #
+        self.load_meta_data()
+
+        # ---------- Data - Raw frag histogram --------- #
+        self.load_raw_frag_histogram()
+
+        # ---------- Data - Binned frags --------- #
+        self.load_binned_frags()
+
+        # ---------- Data - Peaks --------- #
+        self.load_seacr_peaks()
+
+        # ---------- Data - Target bams --------- #
+        self.load_bams()
 
         # ---------- Data - Reproducibility of peaks between replicates --------- #
-        # empty dataframe to fill in loop
-        self.reprod_peak_stats = self.seacr_beds_group_rep #self.df_no_peaks
+        # Empty dataframe to fill in loop
+        self.reprod_peak_stats = self.seacr_beds_group_rep
         self.reprod_peak_stats = self.reprod_peak_stats.reindex(columns=self.reprod_peak_stats.columns.tolist() + ['no_peaks_reproduced','peak_reproduced_rate'])
 
-        # create permutations list
+        # Create permutations list
         def array_permutate(x):
             arr_len=len(x)
             loop_list = x
@@ -262,7 +337,7 @@ class Reports:
                 loop_list = i_list
             return out_list
 
-        # create pyranges objects and fill df
+        # Create pyranges objects and fill df
         unique_groups = self.seacr_beds.group.unique()
         unique_replicates = self.seacr_beds.replicate.unique()
         self.replicate_number = 1
@@ -323,28 +398,22 @@ class Reports:
 
         self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
 
-    def annotate_data_table(self):
-        # Make new perctenage alignment columns
-        self.data_table['target_alignment_rate'] = self.data_table.loc[:, ('bt2_total_aligned_target')] / self.data_table.loc[:, ('bt2_total_reads_target')] * 100
-        self.data_table['spikein_alignment_rate'] = self.data_table.loc[:, ('bt2_total_aligned_spikein')] / self.data_table.loc[:, ('bt2_total_reads_spikein')] * 100
-
     #*
     #========================================================================================
     # GEN REPORTS
     #========================================================================================
     #*/
 
-    def generate_plots(self):
+    def generate_reports(self):
         # Init
         plots = dict()
         data = dict()
 
         # Get Data
         self.load_data()
-        self.annotate_data_table()
 
         # Sort tables
-        self.data_table = self.data_table.sort_values('group')
+        self.metadata_table = self.metadata_table.sort_values('group')
 
         # Plot 1
         multi_plot, data1 = self.alignment_summary()
@@ -354,88 +423,62 @@ class Reports:
         plots["01_04_alignment_rate_spikein"] = multi_plot[3]
         data["01_alignment_summary"] = data1
 
-        # Plot 2
-        if self.duplicate_info == True:
-            multi_plot, data2 = self.duplication_summary()
-            plots["02_01_dup_rate"] = multi_plot[0]
-            plots["02_02_est_lib_size"] = multi_plot[1]
-            plots["02_03_unique_frags"] = multi_plot[2]
-            data["02_duplication_summary"] = data2
+        # # Plot 2
+        # if self.duplicate_info == True:
+        #     multi_plot, data2 = self.duplication_summary()
+        #     plots["02_01_dup_rate"] = multi_plot[0]
+        #     plots["02_02_est_lib_size"] = multi_plot[1]
+        #     plots["02_03_unique_frags"] = multi_plot[2]
+        #     data["02_duplication_summary"] = data2
 
-        # Plot 3
-        plot3, data3 = self.fraglen_summary_violin()
-        plots["03_01_frag_len_violin"] = plot3
-        data["03_01_frag_len_violin"] = data3
+        # # Plot 3
+        # plot3, data3 = self.fraglen_summary_violin()
+        # plots["03_01_frag_len_violin"] = plot3
+        # data["03_01_frag_len_violin"] = data3
 
-        # Plot 4
-        plot4, data4 = self.fraglen_summary_histogram()
-        plots["03_02_frag_len_hist"] = plot4
-        data["03_02_frag_len_hist"] = data4
+        # # Plot 4
+        # plot4, data4 = self.fraglen_summary_histogram()
+        # plots["03_02_frag_len_hist"] = plot4
+        # data["03_02_frag_len_hist"] = data4
 
-        # Plot 5
-        plot5, data5 = self.replicate_heatmap()
-        plots["04_replicate_heatmap"] = plot5
-        data["04_replicate_heatmap"] = data5
+        # # Plot 5
+        # plot5, data5 = self.replicate_heatmap()
+        # plots["04_replicate_heatmap"] = plot5
+        # data["04_replicate_heatmap"] = data5
 
-        # Plot 6
-        multi_plot, data6 = self.scale_factor_summary()
-        plots["05_01_scale_factor"] = multi_plot[0]
-        plots["05_02_frag_count"] = multi_plot[1]
-        data["05_scale_factor_summary"] = data6
+        # # Plot 6
+        # multi_plot, data6 = self.scale_factor_summary()
+        # plots["05_01_scale_factor"] = multi_plot[0]
+        # plots["05_02_frag_count"] = multi_plot[1]
+        # data["05_scale_factor_summary"] = data6
 
-        # Plot 7a
-        plot7a, data7a = self.no_of_peaks()
-        plots["06_01_no_of_peaks"] = plot7a
-        data["06_01_no_of_peaks"] = data7a
+        # # Plot 7a
+        # plot7a, data7a = self.no_of_peaks()
+        # plots["06_01_no_of_peaks"] = plot7a
+        # data["06_01_no_of_peaks"] = data7a
 
-        # Plot 7b
-        plot7b, data7b = self.peak_widths()
-        plots["06_02_peak_widths"] = plot7b
-        data["06_02_peak_widths"] = data7b
+        # # Plot 7b
+        # plot7b, data7b = self.peak_widths()
+        # plots["06_02_peak_widths"] = plot7b
+        # data["06_02_peak_widths"] = data7b
 
-        # Plot 7c
-        if self.multiple_reps:
-            plot7c, data7c = self.reproduced_peaks()
-            plots["06_03_reproduced_peaks"] = plot7c
-            data["06_03_reproduced_peaks"] = data7c
+        # # Plot 7c
+        # if self.multiple_reps:
+        #     plot7c, data7c = self.reproduced_peaks()
+        #     plots["06_03_reproduced_peaks"] = plot7c
+        #     data["06_03_reproduced_peaks"] = data7c
 
-        # Plot 7d
-        plot7d, data7d = self.frags_in_peaks()
-        plots["06_04_frags_in_peaks"] = plot7d
-        data["06_04_frags_in_peaks"] = data7d
+        # # Plot 7d
+        # plot7d, data7d = self.frags_in_peaks()
+        # plots["06_04_frags_in_peaks"] = plot7d
+        # data["06_04_frags_in_peaks"] = data7d
 
-        # Fragment Length Histogram data in MultiQC yaml format
-        txt = self.frag_len_hist_mqc()
+        # # Fragment Length Histogram data in MultiQC yaml format
+        # mqc_frag_hist = self.frag_len_hist_mqc()
 
-        return (plots, data, txt)
+        mqc_frag_hist = None
 
-    def gen_plots_to_folder(self, output_path):
-        # Init
-        abs_path = os.path.abspath(output_path)
-
-        # Get plots and supporting data tables
-        plots, data, txt = self.generate_plots()
-
-        # Save mqc text file
-        txt_mqc = open(os.path.join(abs_path, "03_03_frag_len_mqc.txt"), "w")
-        txt_mqc.write(txt)
-        txt_mqc.close()
-
-        # Save data to output folder
-        for key in data:
-            data[key].to_csv(os.path.join(abs_path, key + '.csv'), index=False)
-
-        # Save plots to output folder
-        for key in plots:
-            plots[key].savefig(os.path.join(abs_path, key + '.png'))
-
-        # Save pdf of the plots
-        self.gen_pdf(abs_path, plots)
-
-    def gen_pdf(self, output_path, plots):
-        with PdfPages(os.path.join(output_path, 'merged_report.pdf')) as pdf:
-            for key in plots:
-                pdf.savefig(plots[key])
+        return (plots, data, mqc_frag_hist)
 
     #*
     #========================================================================================
@@ -480,7 +523,7 @@ class Reports:
         sns.color_palette("magma", as_cmap=True)
         sns.set(font_scale=0.6)
         # Subset data
-        df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
+        df_data = self.metadata_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
 
         # Create plots array
         figs = []
@@ -522,7 +565,7 @@ class Reports:
         m_formatter = FuncFormatter(self.format_millions)
 
         # Subset data
-        df_data = self.data_table.loc[:, ('id', 'group', 'dedup_percent_duplication', 'dedup_estimated_library_size', 'dedup_read_pairs_examined')]
+        df_data = self.metadata_table.loc[:, ('id', 'group', 'dedup_percent_duplication', 'dedup_estimated_library_size', 'dedup_read_pairs_examined')]
         df_data['dedup_percent_duplication'] *= 100
         df_data['unique_frag_num'] = df_data['dedup_read_pairs_examined'] * (1-df_data['dedup_percent_duplication']/100)
 
@@ -558,7 +601,6 @@ class Reports:
 
         return figs, df_data
 
-
     # ---------- Plot 3 - Fragment Distribution Violin --------- #
     def fraglen_summary_violin(self):
         fig, ax = plt.subplots()
@@ -571,19 +613,10 @@ class Reports:
     # ---------- Plot 4 - Fragment Distribution Histogram --------- #
     def fraglen_summary_histogram(self):
         fig, ax = plt.subplots()
-        # ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="Sample")
         ax = sns.lineplot(data=self.frag_hist, x="Size", y="Occurrences", hue="group", style="replicate", palette = "magma")
         fig.suptitle("Fragment Length Distribution")
 
         return fig, self.frag_hist
-
-    def alignment_summary_ex(self):
-        df_data = self.data_table.loc[:, ('id', 'group', 'bt2_total_reads_target', 'bt2_total_aligned_target', 'target_alignment_rate', 'spikein_alignment_rate')]
-
-        ax = px.box(df_data, x="group", y="bt2_total_reads_target", palette = "magma")
-
-        return ax, df_data
-
 
     # ---------- Plot 5 - Replicate Reproducibility Heatmap --------- #
     def replicate_heatmap(self):
@@ -599,13 +632,13 @@ class Reports:
     # ---------- Plot 6 - Scale Factor Comparison --------- #
     def scale_factor_summary(self):
         # Get normalised count data
-        df_normalised_frags = self.data_table.loc[:, ('id', 'group')]
-        df_normalised_frags['normalised_frags'] = self.data_table['bt2_total_reads_target']*self.data_table['scale_factor']
+        df_normalised_frags = self.metadata_table.loc[:, ('id', 'group')]
+        df_normalised_frags['normalised_frags'] = self.metadata_table['bt2_total_reads_target']*self.metadata_table['scale_factor']
 
         figs = []
 
         # Subset meta data
-        df_data_scale = self.data_table.loc[:, ('id', 'group','scale_factor')]
+        df_data_scale = self.metadata_table.loc[:, ('id', 'group','scale_factor')]
 
         # Scale factor
         fig, ax = plt.subplots()
@@ -656,7 +689,7 @@ class Reports:
         # plot
         ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate", palette = "viridis")
         ax.set_ylabel("Peaks Reproduced (%)")
-        fig.suptitle("Peak Reprodducibility")
+        fig.suptitle("Peak Reproducibility")
 
         return fig, self.reprod_peak_stats
 

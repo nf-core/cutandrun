@@ -38,8 +38,8 @@ def gen_png(parsed_args):
     bams_path = parsed_args.bams
 
     logger.info('Generating plots to output folder')
-    fig = Reports(logger, meta_path, frag_path, bin_frag_path, seacr_bed_path, bams_path)
-    fig.gen_plots_to_folder(output_path)
+    report_gen = Reports(logger, meta_path, frag_path, bin_frag_path, seacr_bed_path, bams_path)
+    report_gen.generate_cutandrun_reports(output_path)
 
     logger.info('Completed')
 
@@ -64,7 +64,9 @@ if __name__ == '__main__':
 
     # Init logging
     logger = init_logger('reporting', parsed_args.log)
-    logger.info("Reporting app")
+    logger.info("CUT&RUN Python Reporting")
+
+    print(parsed_args)
 
     # Call functions
     parsed_args.func(parsed_args)
