@@ -843,8 +843,8 @@ workflow CUTANDRUN {
         //ch_seacr_bed_id | view
 
         /*
-            * CHANNEL: Join beds and bigwigs on id
-            */
+        * CHANNEL: Join beds and bigwigs on id
+        */
         ch_bigwig_no_igg
             .map { row -> [row[0].id, row ].flatten()}
             .join ( ch_seacr_bed_id )
