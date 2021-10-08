@@ -296,6 +296,7 @@ include { IGV_SESSION                    } from "../modules/local/igv_session"  
 include { AWK as AWK_EDIT_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_edit_peak_bed"]               )
 include { AWK as AWK_FRAG_BIN            } from "../modules/local/awk"                                       addParams( options: modules["awk_frag_bin"]                    )
 include { SAMTOOLS_CUSTOMVIEW            } from "../modules/local/modules/samtools/custom_view/main"         addParams( options: modules["samtools_frag_len"]               )
+include { CALCULATE_FRIP                 } from "../modules/local/modules/frip/main"                         addParams( options: modules["calc_frip"]                       )
 include { EXPORT_META                    } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
 include { GENERATE_REPORTS               } from "../modules/local/generate_reports"                          addParams( options: modules["generate_reports"]                )
 include { GET_SOFTWARE_VERSIONS          } from "../modules/local/get_software_versions"                     addParams( options: [publish_files : ["csv":""]]               )
@@ -314,6 +315,7 @@ include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows
 include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "", meta_prefix: "dedup_", script_mode: false )
 include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
 include { FASTQC_TRIMGALORE                              } from "../subworkflows/local/fastqc_trimgalore"        addParams( fastqc_options: modules["fastqc"], trimgalore_options: trimgalore_options )
+include { ANNOTATE_META_CSV as ANNOTATE_FRIP_META        } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_frip_options"] )
 
 /*
 ========================================================================================
@@ -806,15 +808,15 @@ workflow CUTANDRUN {
     }
 
     if(run_reporting) {
-        /*
-         * CHANNEL: Remove IgG from bigwig channel
-         */
-        UCSC_BEDGRAPHTOBIGWIG.out.bigwig
-            .filter { it[0].group != "igg" }
-            .set { ch_bigwig_no_igg }
-        //ch_bigwig_no_igg | view
-
         if(!params.skip_igv) {
+            /*
+            * CHANNEL: Remove IgG from bigwig channel
+            */
+            UCSC_BEDGRAPHTOBIGWIG.out.bigwig
+                .filter { it[0].group != "igg" }
+                .set { ch_bigwig_no_igg }
+            //ch_bigwig_no_igg | view 
+
             /*
             * MODULE: Create igv session
             */
@@ -825,7 +827,7 @@ workflow CUTANDRUN {
                 UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
             )
         }
-        
+
         if (run_deep_tools){
             /*
             * MODULE: Extract max signal from peak beds
@@ -895,6 +897,35 @@ workflow CUTANDRUN {
                 DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
             )
         }
+
+        /*
+        * CHANNEL: Join bams and beds on id
+        */
+        ch_samtools_bam
+            .map { row -> [row[0].id, row ].flatten()}
+            .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
+            .join ( ch_seacr_bed.map { row -> [row[0].id, row ].flatten()} )
+            .map { row -> [row[1], row[2], row[4], row[6]] }
+            .set { ch_bam_bai_bed }
+        // EXAMPLE CHANNEL STRUCT: [[META], BAM, BED]
+        //ch_bam_bai_bed | view
+
+        /*
+        * MODULE: Calculate Frip scores for samples
+        */
+        CALCULATE_FRIP (
+            ch_bam_bai_bed
+        )
+
+        /*
+        * SUBWORKFLOW: Annotate meta-data with frip stats
+        */
+        ANNOTATE_FRIP_META (
+            ch_samtools_bam,
+            CALCULATE_FRIP.out.frips
+        )
+        ch_samtools_bam = ANNOTATE_FRIP_META.out.output
+        // ch_samtools_bam | view
 
         /*
         * MODULE: Export meta-data to csv file

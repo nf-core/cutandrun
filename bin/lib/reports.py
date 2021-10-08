@@ -381,23 +381,6 @@ class Reports:
             fill_reprod_rate = (self.reprod_peak_stats['no_peaks_reproduced'] / self.reprod_peak_stats['all_peaks'])*100
             self.reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
 
-        # ---------- Data - Percentage of fragments in peaks --------- #
-        for i in range(len(self.bam_df_list)):
-            bam_i = self.bam_df_list[i]
-            self.frip.at[i,'mapped_frags'] = bam_i.shape[0]
-            group_i = self.frip.at[i,'group']
-            rep_i = self.frip.at[i,'replicate']
-            seacr_bed_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
-            pyr_seacr = pr.PyRanges(chromosomes=seacr_bed_i['chrom'], starts=seacr_bed_i['start'], ends=seacr_bed_i['end'])
-            pyr_bam = pr.PyRanges(df=bam_i)
-            sample_id = group_i + "_" + rep_i
-            frag_count_pyr = pyr_bam.count_overlaps(pyr_seacr)
-            frag_counts = np.count_nonzero(frag_count_pyr.NumberOverlaps)
-
-            self.frip.at[i,'frags_in_peaks'] = frag_counts
-
-        self.frip['percentage_frags_in_peaks'] = (self.frip['frags_in_peaks'] / self.frip['mapped_frags'])*100
-
     #*
     #========================================================================================
     # GEN REPORTS
