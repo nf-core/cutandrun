@@ -77,8 +77,8 @@ class Reports:
         for key in plots:
             plots[key].savefig(os.path.join(abs_path, key + '.png'))
 
-        # # Save pdf of the plots
-        # self.gen_pdf(abs_path, plots)
+        # Save pdf of the plots
+        self.gen_pdf(abs_path, plots)
 
     #*
     #========================================================================================
@@ -423,15 +423,15 @@ class Reports:
         plots["01_04_alignment_rate_spikein"] = multi_plot[3]
         data["01_alignment_summary"] = data1
 
-        # # Plot 2
-        # if self.duplicate_info == True:
-        #     multi_plot, data2 = self.duplication_summary()
-        #     plots["02_01_dup_rate"] = multi_plot[0]
-        #     plots["02_02_est_lib_size"] = multi_plot[1]
-        #     plots["02_03_unique_frags"] = multi_plot[2]
-        #     data["02_duplication_summary"] = data2
+        # Plot 2
+        if self.duplicate_info == True:
+            multi_plot, data2 = self.duplication_summary()
+            plots["02_01_dup_rate"] = multi_plot[0]
+            plots["02_02_est_lib_size"] = multi_plot[1]
+            plots["02_03_unique_frags"] = multi_plot[2]
+            data["02_duplication_summary"] = data2
 
-        # # Plot 3
+        # Plot 3
         # plot3, data3 = self.fraglen_summary_violin()
         # plots["03_01_frag_len_violin"] = plot3
         # data["03_01_frag_len_violin"] = data3
