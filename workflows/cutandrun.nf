@@ -275,6 +275,11 @@ def awk_bt2_options         = modules["awk_bt2"]
 def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
 def awk_dedup_options       = modules["awk_dedup"]
 
+// Reporting options
+def bedtools_intersect_options = modules["bedtools_intersect"]
+bedtools_intersect_options.args = "-wa -wb -filenames -sorted"
+
+// Multi QC
 def multiqc_options = modules["multiqc"]
 multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ""
 
@@ -296,7 +301,7 @@ include { IGV_SESSION                    } from "../modules/local/igv_session"  
 include { AWK as AWK_EDIT_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_edit_peak_bed"]               )
 include { AWK as AWK_FRAG_BIN            } from "../modules/local/awk"                                       addParams( options: modules["awk_frag_bin"]                    )
 include { SAMTOOLS_CUSTOMVIEW            } from "../modules/local/modules/samtools/custom_view/main"         addParams( options: modules["samtools_frag_len"]               )
-include { CALCULATE_FRIP                 } from "../modules/local/modules/frip/main"                         addParams( options: modules["calc_frip"]                       )
+include { CALCULATE_FRIP                 } from "../modules/local/modules/calculate_frip/main"               addParams( options: modules["calc_frip"]                       )
 include { EXPORT_META                    } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
 include { GENERATE_REPORTS               } from "../modules/local/generate_reports"                          addParams( options: modules["generate_reports"]                )
 include { GET_SOFTWARE_VERSIONS          } from "../modules/local/get_software_versions"                     addParams( options: [publish_files : ["csv":""]]               )
@@ -335,6 +340,7 @@ include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../mo
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]  )
 include { SAMTOOLS_SORT                                            } from "../modules/nf-core/modules/samtools/sort/main.nf"        addParams( options: modules["samtools_sort"]         )
 include { SAMTOOLS_INDEX                                           } from "../modules/nf-core/modules/samtools/index/main.nf"       addParams( options: modules["samtools_index"]        )
+include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"   addParams( options: bedtools_intersect_options       )
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -925,7 +931,34 @@ workflow CUTANDRUN {
             CALCULATE_FRIP.out.frips
         )
         ch_samtools_bam = ANNOTATE_FRIP_META.out.output
-        // ch_samtools_bam | view
+        //ch_samtools_bam | view
+
+        /*
+        * CHANNEL: Per group, create a channel per one against all combination
+        */
+        ch_seacr_bed_group
+            .flatMap{
+                row ->
+                new_output = []
+                row[1].each{ file -> 
+                    files_copy = row[1].collect()
+                    files_copy.remove(files_copy.indexOf(file))
+                    new_output.add([[id: file.name.split("\\.")[0]], file, files_copy])
+                }
+                new_output
+            }
+            .set { ch_beds_intersect }
+        //EXAMPLE CHANNEL STRUCT: [[META], BED (-a), [BED...n] (-b)]
+        //ch_beds_intersect | view
+
+        /*
+        * MODULE: Find intra-group overlap
+        */
+        BEDTOOLS_INTERSECT (
+            ch_beds_intersect,
+            "bed"
+        )
+        //BEDTOOLS_INTERSECT.out.intersect | view
 
         /*
         * MODULE: Export meta-data to csv file
