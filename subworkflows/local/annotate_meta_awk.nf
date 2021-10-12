@@ -12,10 +12,10 @@ include { AWK_SCRIPT } from "../../modules/local/awk_script" addParams( options:
 include { AWK }        from "../../modules/local/awk"        addParams( options: params.options )
 
 workflow ANNOTATE_META_AWK {
-    take: passthrough
-    take: report
-    take: script
-    main:
+    take: 
+    passthrough
+    report
+    script
 
     main:
     // Strip out the sample id from the meta in the passthrough
