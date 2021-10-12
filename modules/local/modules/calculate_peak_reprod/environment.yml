@@ -1,0 +1,13 @@
+# conda env create -f environment.yml
+name: packages
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+    # python version
+    - python=3.8.3
+
+    # conda packages
+    - pandas
+    - dask
