@@ -277,7 +277,7 @@ def awk_dedup_options       = modules["awk_dedup"]
 
 // Reporting options
 def bedtools_intersect_options = modules["bedtools_intersect"]
-bedtools_intersect_options.args = "-wa -wb -filenames -sorted"
+bedtools_intersect_options.args = "-c -sorted"
 
 // Multi QC
 def multiqc_options = modules["multiqc"]
