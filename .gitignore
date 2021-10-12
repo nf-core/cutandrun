@@ -19,3 +19,5 @@ dev/docker/static_reports/test_output/*
 !dev/docker/static_reports/test_output/_dummy.txt
 
 !tests/data/
+
+.vscode/
