@@ -4,21 +4,21 @@ import os
 import glob
 import argparse
 
-import deeptools.countReadsPerBin as crpb
-import pysam
+import dask.dataframe as dd
+import numpy as np
+import pandas as pd
 
 ############################################
 ############################################
 ## PARSE ARGUMENTS
 ############################################
 ############################################
-Description = 'Calclate FRIP scores (FRagment proportion in Peaks regions) using deeptools for each sample'
+Description = 'Calclate peak reproducability percentage for each sample'
 
 parser = argparse.ArgumentParser(description=Description)
 
 ## REQUIRED PARAMETERS
-parser.add_argument('--bams', help="Bam file.")
-parser.add_argument('--peaks', help="Peaks interval file.")
+parser.add_argument('--intersect', help="Peaks intersect file.")
 parser.add_argument('--threads', help="the number of threads for the task.")
 parser.add_argument('--outpath', help="Full path to output directory.")
 args = parser.parse_args()
@@ -29,34 +29,52 @@ args = parser.parse_args()
 ############################################
 ############################################
 
-# https://deeptools.readthedocs.io/en/develop/content/example_api_tutorial.html
+# Init
+peak_perc = 0
 
-# Create file lists
-bam_file_list = glob.glob(args.bams)
-peak_file_list = glob.glob(args.peaks)
+print('Reading file')
 
-frips = []
-for idx, bam_file in enumerate(bam_file_list):
-    print("Calculating " + bam_file + " using " + peak_file_list[idx])
-    cr = crpb.CountReadsPerBin([bam_file], bedFile=[peak_file_list[idx]], numberOfProcessors=int(args.threads))
+# Read file in using dask
+ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','overlap_1','key','a_name','b_name','count'])
 
-    # Calc the total number of reads in peaks per bam file
-    reads_at_peaks = cr.run()
-    total = reads_at_peaks.sum(axis=0)
+# Find number of files
+numfiles = ddf_inter['b_name'].max().compute()
 
-    # Load up bam file and get the total number of mapped reads
-    bam = pysam.AlignmentFile(bam_file)
+# Check for table format
+if isinstance(numfiles, str):
+    print('Detected single file, reloading table')
+    numfiles = 1
+    ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','overlap_1','overlap_2','key','name','count'])
+    
+print('Number of files: ' + str(numfiles))
 
-    # Calc frip
-    frip = float(total[0]) / bam.mapped
-    frips.append(str(frip))
+# Check for empty file
+if numfiles != 0:
+    # Find total number of peaks
+    ddf_inter_grouped = ddf_inter.groupby(by=["key"]).size()
+    df_inter_grouped = ddf_inter_grouped.compute()
+    total_peaks = len(df_inter_grouped.index)
+    print('Total peaks: ' + str(total_peaks))
 
-    # Log
-    print("Frip = " + str(frip))
+    if total_peaks > 0:
+        # Filter for files which had an overlap and group by peak
+        ddf_inter_filt = ddf_inter[ddf_inter["count"] > 0]
+        ddf_inter_grouped = ddf_inter_filt.groupby(by=["key"]).size()
+        df_inter_grouped = ddf_inter_grouped.compute()
+        df_inter_grouped = df_inter_grouped.reset_index()
+        df_inter_grouped = df_inter_grouped.rename({0: 'count'}, axis=1)
+
+        # Filter for peaks which have full overlap
+        df_inter_grouped_filter = df_inter_grouped[df_inter_grouped["count"] == numfiles]
+        overlap_peaks = len(df_inter_grouped_filter.index)
+        print('Overlap peaks: ' + str(overlap_peaks))
+
+        # Calc peak percentage
+        peak_perc = (overlap_peaks / total_peaks) * 100
 
 # Create string and write to file
-frip_string = ",".join(frips)
-writer = open(os.path.join(args.outpath, "frips.csv"), "w")
-writer.write("frip\n")
-writer.write(frip_string)
+output_string = str(peak_perc)
+writer = open(os.path.join(args.outpath, "peak_repro.csv"), "w")
+writer.write("peak_repro\n")
+writer.write(output_string)
 writer.close()

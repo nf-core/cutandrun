@@ -302,6 +302,7 @@ include { AWK as AWK_EDIT_PEAK_BED       } from "../modules/local/awk"          
 include { AWK as AWK_FRAG_BIN            } from "../modules/local/awk"                                       addParams( options: modules["awk_frag_bin"]                    )
 include { SAMTOOLS_CUSTOMVIEW            } from "../modules/local/modules/samtools/custom_view/main"         addParams( options: modules["samtools_frag_len"]               )
 include { CALCULATE_FRIP                 } from "../modules/local/modules/calculate_frip/main"               addParams( options: modules["calc_frip"]                       )
+include { CALCULATE_PEAK_REPROD          } from "../modules/local/modules/calculate_peak_reprod/main"        addParams( options: modules["calc_peak_repro"]                 )
 include { EXPORT_META                    } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
 include { GENERATE_REPORTS               } from "../modules/local/generate_reports"                          addParams( options: modules["generate_reports"]                )
 include { GET_SOFTWARE_VERSIONS          } from "../modules/local/get_software_versions"                     addParams( options: [publish_files : ["csv":""]]               )
@@ -321,6 +322,7 @@ include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows
 include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
 include { FASTQC_TRIMGALORE                              } from "../subworkflows/local/fastqc_trimgalore"        addParams( fastqc_options: modules["fastqc"], trimgalore_options: trimgalore_options )
 include { ANNOTATE_META_CSV as ANNOTATE_FRIP_META        } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_frip_options"] )
+include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_peak_repro_options"] )
 
 /*
 ========================================================================================
@@ -958,7 +960,27 @@ workflow CUTANDRUN {
             ch_beds_intersect,
             "bed"
         )
+        //EXAMPLE CHANNEL STRUCT: [[META], BED]
         //BEDTOOLS_INTERSECT.out.intersect | view
+
+        /*
+        * MODULE: Use overlap to calculate a peak repro %
+        */
+        CALCULATE_PEAK_REPROD (
+            BEDTOOLS_INTERSECT.out.intersect
+        )
+        //EXAMPLE CHANNEL STRUCT: [[META], CSV]
+        //CALCULATE_PEAK_REPROD.out.csv
+
+        /*
+        * SUBWORKFLOW: Annotate meta-data with peak  stats
+        */
+        ANNOTATE_PEAK_REPRO_META (
+            ch_samtools_bam,
+            CALCULATE_PEAK_REPROD.out.csv
+        )
+        ch_samtools_bam = ANNOTATE_PEAK_REPRO_META.out.output
+        //ch_samtools_bam | view
 
         /*
         * MODULE: Export meta-data to csv file
