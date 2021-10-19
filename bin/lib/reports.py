@@ -9,8 +9,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.ticker import FuncFormatter
 import seaborn as sns
-import pyranges as pr
-import pysam
 
 class Reports:
     metadata_table = None
@@ -180,8 +178,7 @@ class Reports:
 
         # Add log2 transformed count data column
         log2_counts = self.frag_bin500[self.frag_bin500.columns[-(len(dt_bin_frag_list)):]].transform(lambda x: np.log2(x))
-        chrom_bin_cols = self.frag_bin500[['chrom','bin']]
-        self.frag_bin500 = pd.concat([chrom_bin_cols,log2_counts], axis=1)
+        self.frag_bin500 = pd.concat([self.frag_bin500[['chrom','bin']],log2_counts], axis=1)
 
     def load_seacr_peaks(self):
         # Plots supported
@@ -224,66 +221,6 @@ class Reports:
 
         # ---------- Data - Peaks --------- #
         self.load_seacr_peaks()
-
-        # ---------- Data - Reproducibility of peaks between replicates --------- #
-        # Empty dataframe to fill in loop
-        self.reprod_peak_stats = self.seacr_beds_group_rep
-        self.reprod_peak_stats = self.reprod_peak_stats.reindex(columns=self.reprod_peak_stats.columns.tolist() + ['no_peaks_reproduced','peak_reproduced_rate'])
-
-        # Create permutations list
-        def array_permutate(x):
-            arr_len=len(x)
-            loop_list = x
-            out_list = x
-            for i in range(arr_len-1):
-                i_list = np.roll(loop_list, -1)
-                out_list = np.vstack((out_list, i_list))
-                loop_list = i_list
-            return out_list
-
-        # Create pyranges objects and fill df
-        unique_groups = self.seacr_beds.group.unique()
-        unique_replicates = self.seacr_beds.replicate.unique()
-        self.replicate_number = 1
-        self.multiple_reps = True
-        if (len(unique_groups) == self.seacr_beds_group_rep.shape[0]):
-            self.multiple_reps = False
-
-        if self.multiple_reps:
-            idx_count=0
-            for i in list(range(len(unique_groups))):
-                group_i = unique_groups[i]
-                group_reps = len(self.seacr_beds_group_rep[self.seacr_beds_group_rep['group'] == group_i])
-                if group_reps < 2:
-                    continue
-                rep_permutations = array_permutate(range(group_reps))
-                for k in list(range(group_reps)):
-                    pyr_query = pr.PyRanges()
-                    rep_perm = rep_permutations[k]
-                    for j in rep_perm:
-                        rep_i = "R" + str(range(group_reps)[j]+1)
-                        peaks_i = self.seacr_beds[(self.seacr_beds['group']==group_i) & (self.seacr_beds['replicate']==rep_i)]
-                        pyr_subject = pr.PyRanges(chromosomes=peaks_i['chrom'], starts=peaks_i['start'], ends=peaks_i['end'])
-                        if(len(pyr_query) > 0):
-                            pyr_overlap = pyr_query.join(pyr_subject)
-                            pyr_overlap = pyr_overlap.apply(lambda df: df.drop(['Start_b','End_b'], axis=1))
-                            pyr_query = pyr_overlap
-
-                        else:
-                            pyr_query = pyr_subject
-
-                    if (pyr_query.empty):
-                        self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = 0
-
-                    else :
-                        pyr_starts = pyr_query.values()[0]['Start']
-                        unique_pyr_starts = pyr_starts.unique()
-                        self.reprod_peak_stats.at[idx_count, 'no_peaks_reproduced'] = len(unique_pyr_starts)
-
-                    idx_count = idx_count + 1
-
-            fill_reprod_rate = (self.reprod_peak_stats['no_peaks_reproduced'] / self.reprod_peak_stats['all_peaks'])*100
-            self.reprod_peak_stats['peak_reproduced_rate'] = fill_reprod_rate
 
     #*
     #========================================================================================
@@ -518,7 +455,7 @@ class Reports:
         # plot_data = plot_data.fillna(0)
         corr_mat = plot_data.corr(method='pearson')
         ax = sns.heatmap(corr_mat, annot=True)
-        fig.suptitle("Replicate Reproducibility")
+        fig.suptitle("Replicate Reproducibility (read counts in 500bp bins)")
 
         return fig, self.frag_bin500
 

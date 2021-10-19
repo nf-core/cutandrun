@@ -341,8 +341,6 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../mo
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]  )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]   )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]  )
-include { SAMTOOLS_SORT                                            } from "../modules/nf-core/modules/samtools/sort/main.nf"        addParams( options: modules["samtools_sort"]         )
-include { SAMTOOLS_INDEX                                           } from "../modules/nf-core/modules/samtools/index/main.nf"       addParams( options: modules["samtools_index"]        )
 include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"   addParams( options: bedtools_intersect_options       )
 
 /*
