@@ -16,8 +16,6 @@ process GENERATE_REPORTS {
     path raw_fragments
     path bed_fragments
     path seacr_beds
-    path bam
-    path bai
     path frag_len_header_multiqc
 
     output:
@@ -34,7 +32,6 @@ process GENERATE_REPORTS {
         --raw_frag "*.frag_len.txt" \\
         --bin_frag "*bin500.awk.bed" \\
         --seacr_bed "*bed.*.bed" \\
-        --bams "*.bam" \\
         --output . \\
         --log log.txt
 

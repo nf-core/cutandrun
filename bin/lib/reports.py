@@ -20,13 +20,12 @@ class Reports:
     seacr_beds = None
     bams = None
 
-    def __init__(self, logger, meta, raw_frags, bin_frag, seacr_bed, bams):
+    def __init__(self, logger, meta, raw_frags, bin_frag, seacr_bed):
         self.logger = logger
         self.meta_path = meta
         self.raw_frag_path = raw_frags
         self.bin_frag_path = bin_frag
         self.seacr_bed_path = seacr_bed
-        self.bam_path = bams
 
         sns.set()
         sns.set_theme()
@@ -208,103 +207,6 @@ class Reports:
         # Get peak stats by group and replicate
         self.seacr_beds_group_rep = self.seacr_beds[['group','replicate']].groupby(['group','replicate']).size().reset_index().rename(columns={0:'all_peaks'})
 
-    def pe_bam_to_df(self, bam_path):
-        bamfile = pysam.AlignmentFile(bam_path, "rb")
-        # Iterate through reads.
-        read1 = None
-        read2 = None
-        k=0 #counter
-
-        # get number of reads in bam
-        count = 0
-        for _ in bamfile:
-            count += 1
-
-        bamfile.close()
-        bamfile = pysam.AlignmentFile(bam_path, "rb")
-
-        # initialise arrays
-        frag_no = round(count/2)
-        start_arr = np.zeros(frag_no, dtype=np.int64)
-        end_arr = np.zeros(frag_no, dtype=np.int64)
-        chrom_arr = np.empty(frag_no, dtype="<U20")
-
-        for read in bamfile:
-
-            if not read.is_paired or read.mate_is_unmapped or read.is_duplicate:
-                continue
-
-            if read.is_read2:
-                read2 = read
-                # print("is read2: " + read.query_name)
-
-            else:
-                read1 = read
-                read2 = None
-                # print("is read1: " + read.query_name)
-
-            if read1 is not None and read2 is not None and read1.query_name == read2.query_name:
-
-                start_pos = min(read1.reference_start, read2.reference_start)
-                end_pos = max(read1.reference_end, read2.reference_end) - 1
-                chrom = read.reference_name
-
-                start_arr[k] = start_pos
-                end_arr[k] = end_pos
-                chrom_arr[k] = chrom
-
-                k +=1
-
-        bamfile.close()
-
-        # remove zeros and empty elements. The indicies for these are always the same from end_arr and chrom_arr
-        remove_idx = np.where(chrom_arr == '')[0]
-        chrom_arr = np.delete(chrom_arr, remove_idx)
-        start_arr = np.delete(start_arr, remove_idx)
-        end_arr = np.delete(end_arr, remove_idx)
-
-        # create dataframe
-        bam_df = pd.DataFrame({ "Chromosome" : chrom_arr, "Start" : start_arr, "End" : end_arr })
-        return(bam_df)
-
-    def load_bams(self):
-        bam_list = glob.glob(self.bam_path)
-        self.bam_df_list = list()
-        self.frip = pd.DataFrame(data=None, index=range(len(bam_list)), columns=['group','replicate','mapped_frags','frags_in_peaks','percentage_frags_in_peaks'])
-        k = 0 #counter
-
-        for bam in bam_list:
-            bam_now = self.pe_bam_to_df(bam)
-            self.bam_df_list.append(bam_now)
-            bam_base = os.path.basename(bam)
-            sample_id = bam_base.split(".")[0]
-            [group_now,rep_now] = sample_id.rsplit("_", 1)
-            self.frip.at[k, 'group'] = group_now
-            self.frip.at[k, 'replicate'] = rep_now
-            self.frip.at[k, 'mapped_frags'] = bam_now.shape[0]
-            k=k+1
-
-        # ---------- Data - New frag_hist --------- #
-        for i in list(range(len(self.bam_df_list))):
-            df_i = self.bam_df_list[i]
-            widths_i = (df_i['End'] - df_i['Start']).abs()
-            unique_i, counts_i = np.unique(widths_i, return_counts=True)
-            group_i = np.repeat(self.frip.at[i, 'group'], len(unique_i))
-            rep_i = np.repeat(self.frip.at[i, 'replicate'], len(unique_i))
-
-            if i==0:
-                frag_lens = unique_i
-                frag_counts = counts_i
-                group_arr = group_i
-                rep_arr = rep_i
-            else:
-                frag_lens = np.append(frag_lens, unique_i)
-                frag_counts = np.append(frag_counts, counts_i)
-                group_arr = np.append(group_arr, group_i)
-                rep_arr = np.append(rep_arr, rep_i)
-
-        self.frag_series = pd.DataFrame({'group' : group_arr, 'replicate' : rep_arr, 'frag_len' : frag_lens, 'occurences' : frag_counts})
-
     def load_data(self):
         # ---------- Data - Load main meta-data table --------- #
         self.load_meta_data()
@@ -317,9 +219,6 @@ class Reports:
 
         # ---------- Data - Peaks --------- #
         self.load_seacr_peaks()
-
-        # ---------- Data - Target bams --------- #
-        self.load_bams()
 
         # ---------- Data - Reproducibility of peaks between replicates --------- #
         # Empty dataframe to fill in loop
@@ -398,7 +297,7 @@ class Reports:
         # Sort tables
         self.metadata_table = self.metadata_table.sort_values('group')
 
-        # Plot 1
+        # Plot section 1
         multi_plot, data1 = self.alignment_summary()
         plots["01_01_seq_depth"] = multi_plot[0]
         plots["01_02_alignable_frag"] = multi_plot[1]
@@ -406,7 +305,7 @@ class Reports:
         plots["01_04_alignment_rate_spikein"] = multi_plot[3]
         data["01_alignment_summary"] = data1
 
-        # Plot 2
+        # Plot section 2
         if self.duplicate_info == True:
             multi_plot, data2 = self.duplication_summary()
             plots["02_01_dup_rate"] = multi_plot[0]
@@ -414,47 +313,47 @@ class Reports:
             plots["02_03_unique_frags"] = multi_plot[2]
             data["02_duplication_summary"] = data2
 
-        # Plot 3
-        # plot3, data3 = self.fraglen_summary_violin()
-        # plots["03_01_frag_len_violin"] = plot3
-        # data["03_01_frag_len_violin"] = data3
+        #  Plot 3
+        plot3, data3 = self.fraglen_summary_violin()
+        plots["03_01_frag_len_violin"] = plot3
+        data["03_01_frag_len_violin"] = data3
 
-        # # Plot 4
-        # plot4, data4 = self.fraglen_summary_histogram()
-        # plots["03_02_frag_len_hist"] = plot4
-        # data["03_02_frag_len_hist"] = data4
+        # Plot 4
+        plot4, data4 = self.fraglen_summary_histogram()
+        plots["03_02_frag_len_hist"] = plot4
+        data["03_02_frag_len_hist"] = data4
 
-        # # Plot 5
-        # plot5, data5 = self.replicate_heatmap()
-        # plots["04_replicate_heatmap"] = plot5
-        # data["04_replicate_heatmap"] = data5
+        # Plot 5
+        plot5, data5 = self.replicate_heatmap()
+        plots["04_replicate_heatmap"] = plot5
+        data["04_replicate_heatmap"] = data5
 
-        # # Plot 6
-        # multi_plot, data6 = self.scale_factor_summary()
-        # plots["05_01_scale_factor"] = multi_plot[0]
-        # plots["05_02_frag_count"] = multi_plot[1]
-        # data["05_scale_factor_summary"] = data6
+        # Plot section 6
+        multi_plot, data6 = self.scale_factor_summary()
+        plots["05_01_scale_factor"] = multi_plot[0]
+        plots["05_02_frag_count"] = multi_plot[1]
+        data["05_scale_factor_summary"] = data6
 
-        # # Plot 7a
-        # plot7a, data7a = self.no_of_peaks()
-        # plots["06_01_no_of_peaks"] = plot7a
-        # data["06_01_no_of_peaks"] = data7a
+        # Plot 7a
+        plot7a, data7a = self.no_of_peaks()
+        plots["06_01_no_of_peaks"] = plot7a
+        data["06_01_no_of_peaks"] = data7a
 
-        # # Plot 7b
-        # plot7b, data7b = self.peak_widths()
-        # plots["06_02_peak_widths"] = plot7b
-        # data["06_02_peak_widths"] = data7b
+        # Plot 7b
+        plot7b, data7b = self.peak_widths()
+        plots["06_02_peak_widths"] = plot7b
+        data["06_02_peak_widths"] = data7b
 
-        # # Plot 7c
-        # if self.multiple_reps:
-        #     plot7c, data7c = self.reproduced_peaks()
-        #     plots["06_03_reproduced_peaks"] = plot7c
-        #     data["06_03_reproduced_peaks"] = data7c
+        # Plot 7c
+        if self.multiple_reps:
+            plot7c, data7c = self.reproduced_peaks()
+            plots["06_03_reproduced_peaks"] = plot7c
+            data["06_03_reproduced_peaks"] = data7c
 
-        # # Plot 7d
-        # plot7d, data7d = self.frags_in_peaks()
-        # plots["06_04_frags_in_peaks"] = plot7d
-        # data["06_04_frags_in_peaks"] = data7d
+        # Plot 7d
+        plot7d, data7d = self.frags_in_peaks()
+        plots["06_04_frags_in_peaks"] = plot7d
+        data["06_04_frags_in_peaks"] = data7d
 
         # Fragment Length Histogram data in MultiQC yaml format
         mqc_frag_hist = self.frag_len_hist_mqc()
@@ -514,6 +413,7 @@ class Reports:
         ax = sns.boxplot(data=df_data, x='group', y='bt2_total_reads_target', palette = "magma")
         fig.suptitle("Sequencing Depth")
         ax.set(ylabel="Total Reads")
+        ax.xaxis.set_tick_params(labelrotation=45)
         figs.append(fig)
 
         # Alignable fragments
@@ -521,6 +421,7 @@ class Reports:
         ax = sns.boxplot(data=df_data, x='group', y='bt2_total_aligned_target', palette = "magma")
         fig.suptitle("Alignable Fragments")
         ax.set(ylabel="Total Aligned Reads")
+        ax.xaxis.set_tick_params(labelrotation=45)
         figs.append(fig)
 
         # Alignment rate hg38
@@ -528,6 +429,8 @@ class Reports:
         ax = sns.boxplot(data=df_data, x='group', y='target_alignment_rate', palette = "magma")
         fig.suptitle("Alignment Rate (Target)")
         ax.set(ylabel="Percent of Fragments Aligned")
+        ax.set(ylim=(0, 100))
+        ax.xaxis.set_tick_params(labelrotation=45)
         figs.append(fig)
 
         # Alignment rate e.coli
@@ -535,6 +438,8 @@ class Reports:
         ax = sns.boxplot(data=df_data, x='group', y='spikein_alignment_rate', palette = "magma")
         fig.suptitle("Alignment Rate (Spike-in)")
         ax.set(ylabel="Percent of Fragments Aligned")
+        ax.set(ylim=(0, 100))
+        ax.xaxis.set_tick_params(labelrotation=45)
         figs.append(fig)
 
         return figs, df_data
@@ -578,6 +483,7 @@ class Reports:
         ax.set(ylabel="Count")
         ax.yaxis.set_major_formatter(k_formatter)
         ax.xaxis.set_tick_params(labelrotation=45)
+        ax.set(ylim=(0))
         figs.append(fig)
 
         return figs, df_data
@@ -587,6 +493,7 @@ class Reports:
         fig, ax = plt.subplots()
         ax = sns.violinplot(data=self.frag_violin, x="group", y="fragment_size", hue="replicate", palette = "viridis")
         ax.set(ylabel="Fragment Size")
+        ax.xaxis.set_tick_params(labelrotation=45)
         fig.suptitle("Fragment Length Distribution")
 
         return fig, self.frag_violin
@@ -626,6 +533,7 @@ class Reports:
         ax = sns.boxplot(data=df_data_scale, x='group', y='scale_factor', palette = "magma")
         fig.suptitle("Spike-in Scale Factor")
         ax.set(ylabel="Coefficient")
+        ax.xaxis.set_tick_params(labelrotation=45)
         figs.append(fig)
 
         # Normalised fragment count
@@ -633,6 +541,7 @@ class Reports:
         ax = sns.boxplot(data=df_normalised_frags, x='group', y='normalised_frags', palette = "magma")
         fig.suptitle("Normalised Fragment Count")
         ax.set(ylabel="Count")
+        ax.xaxis.set_tick_params(labelrotation=45)
         figs.append(fig)
 
         return figs, df_data_scale
@@ -644,6 +553,7 @@ class Reports:
         fig.suptitle("Total Peaks")
 
         ax = sns.boxplot(data=self.seacr_beds_group_rep, x='group', y='all_peaks', palette = "magma")
+        ax.xaxis.set_tick_params(labelrotation=45)
         ax.set_ylabel("No. of Peaks")
 
         return fig, self.seacr_beds_group_rep
@@ -657,6 +567,7 @@ class Reports:
         self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs()
 
         ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate", palette = "viridis")
+        ax.xaxis.set_tick_params(labelrotation=45)
         ax.set_ylabel("Peak Width")
         fig.suptitle("Peak Width Distribution")
 
@@ -667,19 +578,29 @@ class Reports:
     def reproduced_peaks(self):
         fig, ax = plt.subplots()
 
+        # Subset data
+        df_data = self.metadata_table.loc[:, ('id', 'group', 'peak_repro')]
+
         # plot
-        ax = sns.barplot(data=self.reprod_peak_stats, hue="replicate", x="group", y="peak_reproduced_rate", palette = "viridis")
+        ax = sns.boxplot(data=df_data, x="group", y="peak_repro", palette = "magma")
         ax.set_ylabel("Peaks Reproduced (%)")
+        ax.set(ylim=(0, 100))
+        ax.xaxis.set_tick_params(labelrotation=45)
         fig.suptitle("Peak Reproducibility")
 
-        return fig, self.reprod_peak_stats
+        return fig, df_data
 
     # 7d - Fragments within peaks
     def frags_in_peaks(self):
         fig, ax = plt.subplots()
 
-        ax = sns.boxplot(data=self.frip, x='group', y='percentage_frags_in_peaks', palette = "magma")
+        # Subset data
+        df_data = self.metadata_table.loc[:, ('id', 'group', 'frip')]
+
+        ax = sns.boxplot(data=df_data, x='group', y='frip', palette = "magma")
         ax.set_ylabel("Fragments within Peaks (%)")
+        ax.set(ylim=(0, 100))
+        ax.xaxis.set_tick_params(labelrotation=45)
         fig.suptitle("Aligned Fragments within Peaks")
 
-        return fig, self.frip
+        return fig, df_data

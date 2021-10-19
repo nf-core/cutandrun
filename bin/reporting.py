@@ -35,10 +35,9 @@ def gen_png(parsed_args):
     logger = init_logger('gen_img', parsed_args.log)
     bin_frag_path = parsed_args.bin_frag
     seacr_bed_path = parsed_args.seacr_bed
-    bams_path = parsed_args.bams
 
     logger.info('Generating plots to output folder')
-    report_gen = Reports(logger, meta_path, frag_path, bin_frag_path, seacr_bed_path, bams_path)
+    report_gen = Reports(logger, meta_path, frag_path, bin_frag_path, seacr_bed_path)
     report_gen.generate_cutandrun_reports(output_path)
 
     logger.info('Completed')
@@ -57,7 +56,6 @@ if __name__ == '__main__':
     parser_genimg.add_argument('--bin_frag', required=True)
     parser_genimg.add_argument('--seacr_bed', required=True)
     parser_genimg.add_argument('--output', required=True)
-    parser_genimg.add_argument('--bams', required=True)
 
     # Parse
     parsed_args = parser.parse_args()

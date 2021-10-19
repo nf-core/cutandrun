@@ -990,21 +990,6 @@ workflow CUTANDRUN {
         )
 
         /*
-        * MODULE: Sort bams by mate pair ids (no position)
-        */
-        SAMTOOLS_SORT (
-            ch_samtools_bam
-        )
-        //EXAMPLE CHANNEL STRUCT: [[META], BAM]
-        //SAMTOOLS_SORT.out.bam | view
-
-        SAMTOOLS_INDEX (
-            SAMTOOLS_SORT.out.bam
-        )
-        //EXAMPLE CHANNEL STRUCT: [[META], BAI]
-        //SAMTOOLS_INDEX.out.bai | view
-
-        /*
         * MODULE: Generate python reporting using mixture of meta-data and direct file processing
         */
         GENERATE_REPORTS(
@@ -1012,8 +997,6 @@ workflow CUTANDRUN {
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
             AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
             ch_seacr_bed.collect{it[1]},                // peak beds
-            SAMTOOLS_SORT.out.bam.collect{it[1]},       // bam files sorted by mate pair ids
-            SAMTOOLS_INDEX.out.bai.collect{it[1]},      // bai files sorted by mate pair ids
             ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
         )
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
