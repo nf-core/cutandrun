@@ -823,7 +823,7 @@ workflow CUTANDRUN {
             UCSC_BEDGRAPHTOBIGWIG.out.bigwig
                 .filter { it[0].group != "igg" }
                 .set { ch_bigwig_no_igg }
-            //ch_bigwig_no_igg | view 
+            //ch_bigwig_no_igg | view
 
             /*
             * MODULE: Create igv session
@@ -943,7 +943,7 @@ workflow CUTANDRUN {
             .flatMap{
                 row ->
                 new_output = []
-                row[1].each{ file -> 
+                row[1].each{ file ->
                     files_copy = row[1].collect()
                     files_copy.remove(files_copy.indexOf(file))
                     new_output.add([[id: file.name.split("\\.")[0]], file, files_copy])

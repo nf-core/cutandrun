@@ -1,5 +1,5 @@
 /*
- * Annotate the pipeline meta data with a csv file 
+ * Annotate the pipeline meta data with a csv file
  */
 
 params.options     = [:]
@@ -16,13 +16,13 @@ workflow ANNOTATE_META_CSV {
     ch_paths = passthrough.map { row -> [row[0].id, row[0], row[1..-1]].flatten() }
 
     reports.splitCsv(header:true)
-       .map { row ->
+        .map { row ->
             new_meta = [:]
             row[1].each{ k, v -> new_meta.put(params.meta_prefix + k + params.meta_suffix, v) }
             [row[0].id, new_meta]
         }
         .join ( ch_paths )
-        .map { row -> [ row[2] << row[1], row[3..-1] ] } 
+        .map { row -> [ row[2] << row[1], row[3..-1] ] }
         .set { ch_annotated_meta }
 
     emit:

@@ -45,7 +45,7 @@ if isinstance(numfiles, str):
     print('Detected single file, reloading table')
     numfiles = 1
     ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','overlap_1','overlap_2','key','name','count'])
-    
+
 print('Number of files: ' + str(numfiles))
 
 # Check for empty file

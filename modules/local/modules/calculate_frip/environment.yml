@@ -11,3 +11,4 @@ dependencies:
     # conda packages
     - deeptools=3.5.*
     - pysam=0.17.*
+  

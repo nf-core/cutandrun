@@ -12,7 +12,7 @@ include { AWK_SCRIPT } from "../../modules/local/awk_script" addParams( options:
 include { AWK }        from "../../modules/local/awk"        addParams( options: params.options )
 
 workflow ANNOTATE_META_AWK {
-    take: 
+    take:
     passthrough
     report
     script
