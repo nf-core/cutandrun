@@ -287,10 +287,9 @@ class Reports:
         data["06_02_peak_widths"] = data7b
 
         # Plot 7c
-        if self.multiple_reps:
-            plot7c, data7c = self.reproduced_peaks()
-            plots["06_03_reproduced_peaks"] = plot7c
-            data["06_03_reproduced_peaks"] = data7c
+        plot7c, data7c = self.reproduced_peaks()
+        plots["06_03_reproduced_peaks"] = plot7c
+        data["06_03_reproduced_peaks"] = data7c
 
         # Plot 7d
         plot7d, data7d = self.frags_in_peaks()
