@@ -12,13 +12,13 @@ WorkflowCutandrun.initialise(params, log)
 
 // Check input path parameters to see if the files exist if they have been specified
 checkPathParamList = [
-    params.input,
-    params.fasta,
-    params.gtf,
     params.blacklist,
     params.bowtie2,
-    params.spikein_fasta,
-    params.spikein_bowtie2
+    params.fasta,
+    params.gtf,
+    params.input,
+    params.spikein_bowtie2,
+    params.spikein_fasta
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
