@@ -164,6 +164,8 @@ class Reports:
 
         # Start by creating list of bin500 files
         dt_bin_frag_list = glob.glob(self.bin_frag_path)
+        dt_bin_frag_list.sort()
+
         for i in list(range(len(dt_bin_frag_list))):
             dt_bin_frag_i_read = pd.read_csv(dt_bin_frag_list[i], sep='\t', header=None, names=['chrom','bin','count','sample'])
             sample_name = dt_bin_frag_i_read['sample'].iloc[0].split(".")[0]
@@ -177,8 +179,10 @@ class Reports:
                 self.frag_bin500 = pd.merge(self.frag_bin500, dt_bin_frag_i, on=['chrom','bin'], how='outer')
 
         # Add log2 transformed count data column
-        log2_counts = self.frag_bin500[self.frag_bin500.columns[-(len(dt_bin_frag_list)):]].transform(lambda x: np.log2(x))
-        self.frag_bin500 = pd.concat([self.frag_bin500[['chrom','bin']],log2_counts], axis=1)
+        # log2_counts = self.frag_bin500[self.frag_bin500.columns[-(len(dt_bin_frag_list)):]].transform(lambda x: np.log2(x))
+        # self.frag_bin500 = pd.concat([self.frag_bin500[['chrom','bin']],log2_counts], axis=1)
+
+        self.frag_bin500 = self.frag_bin500.fillna(0)
 
     def load_seacr_peaks(self):
         # Plots supported
