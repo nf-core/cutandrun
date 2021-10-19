@@ -30,6 +30,7 @@ def init_logger(app_name, log_file = None):
 
 def gen_png(parsed_args):
     meta_path = parsed_args.meta
+    meta_ctrl_path = parsed_args.meta_ctrl
     frag_path = parsed_args.raw_frag
     output_path = parsed_args.output
     logger = init_logger('gen_img', parsed_args.log)
@@ -37,7 +38,7 @@ def gen_png(parsed_args):
     seacr_bed_path = parsed_args.seacr_bed
 
     logger.info('Generating plots to output folder')
-    report_gen = Reports(logger, meta_path, frag_path, bin_frag_path, seacr_bed_path)
+    report_gen = Reports(logger, meta_path, meta_ctrl_path, frag_path, bin_frag_path, seacr_bed_path)
     report_gen.generate_cutandrun_reports(output_path)
 
     logger.info('Completed')
@@ -52,6 +53,7 @@ if __name__ == '__main__':
     parser_genimg.set_defaults(func=gen_png)
     parser_genimg.add_argument('--log', required=False)
     parser_genimg.add_argument('--meta', required=True)
+    parser_genimg.add_argument('--meta_ctrl', required=True)
     parser_genimg.add_argument('--raw_frag', required=True)
     parser_genimg.add_argument('--bin_frag', required=True)
     parser_genimg.add_argument('--seacr_bed', required=True)

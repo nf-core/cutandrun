@@ -18,9 +18,11 @@ process EXPORT_META {
 
     input:
     val meta
+    val table_name
+
 
     output:
-    path "meta_table.csv", emit: csv
+    path "*.csv", emit: csv
 
     script:
     def header = [:]
@@ -54,6 +56,6 @@ process EXPORT_META {
     }
 
     """
-    echo "$arr_str" > meta_table.csv
+    echo "$arr_str" > ${table_name}.csv
     """
 }

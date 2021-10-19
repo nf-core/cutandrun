@@ -20,9 +20,10 @@ class Reports:
     seacr_beds = None
     bams = None
 
-    def __init__(self, logger, meta, raw_frags, bin_frag, seacr_bed):
+    def __init__(self, logger, meta, meta_ctrl, raw_frags, bin_frag, seacr_bed):
         self.logger = logger
         self.meta_path = meta
+        self.meta_ctrl_path = meta_ctrl
         self.raw_frag_path = raw_frags
         self.bin_frag_path = bin_frag
         self.seacr_bed_path = seacr_bed
@@ -98,7 +99,8 @@ class Reports:
         # Spike-in Scale Factor
         # Normalised Fragment Count
 
-        self.metadata_table = pd.read_csv(self.meta_path, sep=',')
+        self.metadata_noctrl_table = pd.read_csv(self.meta_path, sep=',')
+        self.metadata_table = pd.read_csv(self.meta_ctrl_path, sep=',')
         self.duplicate_info = False
         if 'dedup_percent_duplication' in self.metadata_table.columns:
             self.duplicate_info = True
@@ -579,7 +581,7 @@ class Reports:
         fig, ax = plt.subplots()
 
         # Subset data
-        df_data = self.metadata_table.loc[:, ('id', 'group', 'peak_repro')]
+        df_data = self.metadata_noctrl_table.loc[:, ('id', 'group', 'peak_repro')]
 
         # plot
         ax = sns.boxplot(data=df_data, x="group", y="peak_repro", palette = "magma")
@@ -595,7 +597,7 @@ class Reports:
         fig, ax = plt.subplots()
 
         # Subset data
-        df_data = self.metadata_table.loc[:, ('id', 'group', 'frip')]
+        df_data = self.metadata_noctrl_table.loc[:, ('id', 'group', 'frip')]
 
         ax = sns.boxplot(data=df_data, x='group', y='frip', palette = "magma")
         ax.set_ylabel("Fragments within Peaks (%)")

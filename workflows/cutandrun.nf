@@ -292,21 +292,22 @@ multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title
 /*
  * MODULES
  */
-include { INPUT_CHECK                    } from "../subworkflows/local/input_check"                          addParams( options: [:]                                        )
-include { CAT_FASTQ                      } from "../modules/nf-core/modules/cat/fastq/main"                  addParams( options: cat_fastq_options                          )
-include { BEDTOOLS_GENOMECOV_SCALE       } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
-include { SEACR_CALLPEAK as SEACR_NO_IGG } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
-include { AWK as AWK_NAME_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_name_peak_bed"]               )
-include { IGV_SESSION                    } from "../modules/local/igv_session"                               addParams( options: modules["igv"]                             )
-include { AWK as AWK_EDIT_PEAK_BED       } from "../modules/local/awk"                                       addParams( options: modules["awk_edit_peak_bed"]               )
-include { AWK as AWK_FRAG_BIN            } from "../modules/local/awk"                                       addParams( options: modules["awk_frag_bin"]                    )
-include { SAMTOOLS_CUSTOMVIEW            } from "../modules/local/modules/samtools/custom_view/main"         addParams( options: modules["samtools_frag_len"]               )
-include { CALCULATE_FRIP                 } from "../modules/local/modules/calculate_frip/main"               addParams( options: modules["calc_frip"]                       )
-include { CALCULATE_PEAK_REPROD          } from "../modules/local/modules/calculate_peak_reprod/main"        addParams( options: modules["calc_peak_repro"]                 )
-include { EXPORT_META                    } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
-include { GENERATE_REPORTS               } from "../modules/local/generate_reports"                          addParams( options: modules["generate_reports"]                )
-include { GET_SOFTWARE_VERSIONS          } from "../modules/local/get_software_versions"                     addParams( options: [publish_files : ["csv":""]]               )
-include { MULTIQC                        } from "../modules/local/multiqc"                                   addParams( options: multiqc_options                            )
+include { INPUT_CHECK                     } from "../subworkflows/local/input_check"                          addParams( options: [:]                                        )
+include { CAT_FASTQ                       } from "../modules/nf-core/modules/cat/fastq/main"                  addParams( options: cat_fastq_options                          )
+include { BEDTOOLS_GENOMECOV_SCALE        } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
+include { SEACR_CALLPEAK as SEACR_NO_IGG  } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
+include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/awk"                                       addParams( options: modules["awk_name_peak_bed"]               )
+include { IGV_SESSION                     } from "../modules/local/igv_session"                               addParams( options: modules["igv"]                             )
+include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/awk"                                       addParams( options: modules["awk_edit_peak_bed"]               )
+include { AWK as AWK_FRAG_BIN             } from "../modules/local/awk"                                       addParams( options: modules["awk_frag_bin"]                    )
+include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/modules/samtools/custom_view/main"         addParams( options: modules["samtools_frag_len"]               )
+include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"               addParams( options: modules["calc_frip"]                       )
+include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"        addParams( options: modules["calc_peak_repro"]                 )
+include { EXPORT_META                     } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
+include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                               addParams( options: modules["export_meta"]                     )
+include { GENERATE_REPORTS                } from "../modules/local/generate_reports"                          addParams( options: modules["generate_reports"]                )
+include { GET_SOFTWARE_VERSIONS           } from "../modules/local/get_software_versions"                     addParams( options: [publish_files : ["csv":""]]               )
+include { MULTIQC                         } from "../modules/local/multiqc"                                   addParams( options: multiqc_options                            )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -932,6 +933,7 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             CALCULATE_FRIP.out.frips
         )
+        ch_samtools_bam_ctrl = ch_samtools_bam
         ch_samtools_bam = ANNOTATE_FRIP_META.out.output
         //ch_samtools_bam | view
 
@@ -986,7 +988,16 @@ workflow CUTANDRUN {
         * MODULE: Export meta-data to csv file
         */
         EXPORT_META (
-            ch_samtools_bam.collect{it[0]}.ifEmpty(["{NO-DATA}"])
+            ch_samtools_bam.collect{it[0]}.ifEmpty(["{NO-DATA}"]),
+            "meta_table"
+        )
+
+        /*
+        * MODULE: Export meta-data to csv file
+        */
+        EXPORT_META_CTRL (
+            ch_samtools_bam_ctrl.collect{it[0]}.ifEmpty(["{NO-DATA}"]),
+            "meta_table_ctrl"
         )
 
         /*
@@ -994,6 +1005,7 @@ workflow CUTANDRUN {
         */
         GENERATE_REPORTS(
             EXPORT_META.out.csv,                        // meta-data report stats
+            EXPORT_META_CTRL.out.csv,                   // meta-data report stats
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
             AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
             ch_seacr_bed.collect{it[1]},                // peak beds
