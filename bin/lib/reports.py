@@ -118,6 +118,7 @@ class Reports:
 
         # Create list of deeptools raw fragment files
         dt_frag_list = glob.glob(self.raw_frag_path)
+        dt_frag_list.sort()
 
         for i in list(range(len(dt_frag_list))):
             # Create dataframe from csv file for each file and save to a list

@@ -20,7 +20,6 @@ process EXPORT_META {
     val meta
     val table_name
 
-
     output:
     path "*.csv", emit: csv
 
