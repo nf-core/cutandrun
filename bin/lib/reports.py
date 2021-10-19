@@ -109,6 +109,9 @@ class Reports:
         self.metadata_table['target_alignment_rate'] = self.metadata_table.loc[:, ('bt2_total_aligned_target')] / self.metadata_table.loc[:, ('bt2_total_reads_target')] * 100
         self.metadata_table['spikein_alignment_rate'] = self.metadata_table.loc[:, ('bt2_total_aligned_spikein')] / self.metadata_table.loc[:, ('bt2_total_reads_spikein')] * 100
 
+        # Change to percentage
+        self.metadata_noctrl_table['frip'] =  self.metadata_noctrl_table['frip'] * 100
+
     def load_raw_frag_histogram(self):
         # Plots supported
 
@@ -431,7 +434,7 @@ class Reports:
         ax = sns.boxplot(data=df_data, x='group', y='target_alignment_rate', palette = "magma")
         fig.suptitle("Alignment Rate (Target)")
         ax.set(ylabel="Percent of Fragments Aligned")
-        ax.set(ylim=(0, 100))
+        #ax.set(ylim=(0, 100))
         ax.xaxis.set_tick_params(labelrotation=45)
         figs.append(fig)
 
@@ -440,7 +443,7 @@ class Reports:
         ax = sns.boxplot(data=df_data, x='group', y='spikein_alignment_rate', palette = "magma")
         fig.suptitle("Alignment Rate (Spike-in)")
         ax.set(ylabel="Percent of Fragments Aligned")
-        ax.set(ylim=(0, 100))
+        #ax.set(ylim=(0, 100))
         ax.xaxis.set_tick_params(labelrotation=45)
         figs.append(fig)
 
