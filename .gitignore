@@ -21,3 +21,4 @@ dev/docker/static_reports/test_output/*
 !tests/data/
 
 .vscode/
+profile.svg

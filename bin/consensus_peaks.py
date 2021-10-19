@@ -2,7 +2,6 @@
 
 import os
 import glob
-import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -32,6 +31,11 @@ args = parser.parse_args()
 
 # create list of data frames, one for each group consensus peaks file
 peak_file_list = glob.glob(args.peaks)
+
+if len(peak_file_list) > 10:
+    print('WARN: There are too many files to generate an upset plot, cancelling figure generation')
+    exit(0)
+
 peak_df_list = list()
 for i in list(range(len(peak_file_list))):
     peaks_i = pd.read_csv(peak_file_list[i], sep='\t', header=None, usecols=[0,1,2,8,9], names=['chrom','start','end','sample_reps','count'])

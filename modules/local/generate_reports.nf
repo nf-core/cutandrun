@@ -13,11 +13,10 @@ process GENERATE_REPORTS {
 
     input:
     path meta_data
+    path meta_data_ctrl
     path raw_fragments
     path bed_fragments
     path seacr_beds
-    path bam
-    path bai
     path frag_len_header_multiqc
 
     output:
@@ -31,10 +30,10 @@ process GENERATE_REPORTS {
     """
     reporting.py gen_reports \\
         --meta $meta_data \\
+        --meta_ctrl $meta_data_ctrl \\
         --raw_frag "*.frag_len.txt" \\
         --bin_frag "*bin500.awk.bed" \\
         --seacr_bed "*bed.*.bed" \\
-        --bams "*.bam" \\
         --output . \\
         --log log.txt
 
