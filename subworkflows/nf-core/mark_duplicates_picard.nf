@@ -8,7 +8,7 @@ params.control_only           = false
 
 include { PICARD_MARKDUPLICATES } from '../../modules/nf-core/modules/picard/markduplicates/main' addParams( options: params.markduplicates_options )
 include { SAMTOOLS_INDEX        } from '../../modules/nf-core/modules/samtools/index/main'        addParams( options: params.samtools_options       )
-include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'                                      addParams( options: params.samtools_options       )
+include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'                                     addParams( options: params.samtools_options       )
 
 workflow MARK_DUPLICATES_PICARD {
     take:
