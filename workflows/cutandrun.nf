@@ -672,6 +672,7 @@ workflow CUTANDRUN {
             /*
             * CHANNEL: Create target/control pairings
             */
+            // Create pairs of controls (IgG) with target samples if they are supplied
             ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp)
                 .map {
                     row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
