@@ -45,8 +45,8 @@ if (anno_readme && file(anno_readme).exists()) {
 ch_dummy_file = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
 
 // Stage awk files for parsing log files
-ch_bt2_to_csv_awk     = file("$projectDir/bin/awk/bt2_report_to_csv.awk"    , checkIfExists: true)
-ch_dt_frag_to_csv_awk = file("$projectDir/bin/awk/dt_frag_report_to_csv.awk", checkIfExists: true)
+ch_bt2_to_csv_awk     = file("$projectDir/bin/bt2_report_to_csv.awk"    , checkIfExists: true)
+ch_dt_frag_to_csv_awk = file("$projectDir/bin/dt_frag_report_to_csv.awk", checkIfExists: true)
 
 /*
 ========================================================================================
