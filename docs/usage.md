@@ -16,12 +16,12 @@ An example sample sheet structure is shown below. This defines two target experi
 
 ```bash
 group,replicate,control_group,fastq_1,fastq_2
-h3k27me3,1,1,H3K27ME3_S1_L001_R1.fastq.gz,H3K27ME3_S1_L001_R2.fastq.gz
-h3k27me3,2,1,H3K27ME3_S2_L001_R1.fastq.gz,H3K27ME3_S2_L001_R2.fastq.gz
-h3k4me3,1,2,H3K4ME3_S1_L001_R1.fastq.gz,H3K4ME3_S1_L001_R2.fastq.gz
-h3k4me3,2,2,H3K4ME3_S2_L001_R1.fastq.gz,H3K4MES_S2_L001_R2.fastq.gz
-igg,1,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
-igg,2,2,IGG_S2_L001_R1.fastq.gz,IGG_S2_L001_R2.fastq.gz
+h3k27me3,1,1,READ1_FASTQ.gz,READ2_FASTQ.gz
+h3k27me3,2,1,READ1_FASTQ.gz,READ2_FASTQ.gz
+h3k4me3,1,2,READ1_FASTQ.gz,READ2_FASTQ.gz
+h3k4me3,2,2,READ1_FASTQ.gz,READ2_FASTQ.gz
+igg,1,1,READ1_FASTQ.gz,READ2_FASTQ.gz
+igg,2,2,READ1_FASTQ.gz,READ2_FASTQ.gz
 ```
 
 | Column         | Description                                                                                                 |
