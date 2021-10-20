@@ -8,10 +8,10 @@ params.plot_peak_options      = [:]
 params.awk_threshold_options  = [:]
 params.run_peak_plotting      = true
 
-include { SORT                 } from "../../modules/local/sort"                           addParams( options: params.sort_options           )
-include { BEDTOOLS_MERGE       } from "../../modules/nf-core/modules/bedtools/merge/main"  addParams( options: params.bedtools_merge_options )
-include { AWK                  } from "../../modules/local/awk"                            addParams( options: params.awk_threshold_options  )
-include { PLOT_CONSENSUS_PEAKS } from "../../modules/local/plot_consensus_peaks"           addParams( options: params.plot_peak_options      )
+include { SORT                 } from "../../modules/local/sort"                          addParams( options: params.sort_options           )
+include { BEDTOOLS_MERGE       } from "../../modules/nf-core/modules/bedtools/merge/main" addParams( options: params.bedtools_merge_options )
+include { AWK                  } from "../../modules/local/awk"                           addParams( options: params.awk_threshold_options  )
+include { PLOT_CONSENSUS_PEAKS } from "../../modules/local/plot_consensus_peaks"          addParams( options: params.plot_peak_options      )
 
 workflow CONSENSUS_PEAKS {
 

@@ -1,12 +1,12 @@
 - name: test_samplesheet_check_test_id_1
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/rep_id_start_1.csv -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_input true --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet/unit_tests/rep_id_start_1.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
     - samplesheet_start_1
   exit_code: 1
 
 - name: test_samplesheet_check_noigg_pos
-  command: nextflow run main.nf -profile docker,test --only_input true --igg_control false --input tests/data/samplesheets/no_igg.csv -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_input true --igg_control false --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet/unit_tests/no_igg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
     - samplesheet_no_igg
@@ -15,7 +15,7 @@
     - path: results/pipeline_info/samplesheet.valid.csv
 
 - name: test_samplesheet_check_noigg_neg
-  command: nextflow run main.nf -profile docker,test --only_input true --igg_control true --input tests/data/samplesheets/no_igg.csv -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_input true --igg_control true --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet/unit_tests/no_igg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
     - samplesheet_no_igg
@@ -23,7 +23,7 @@
   exit_code: 1
 
 - name: test_samplesheet_check_1_1_pos
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg.csv -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_input true --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet/unit_tests/single_sample_single_igg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
     - samplesheet_1_1
@@ -32,7 +32,7 @@
     - path: results/pipeline_info/samplesheet.valid.csv
 
 - name: test_samplesheet_check_1_1_neg
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg_neg.csv -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_input true --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet/unit_tests/single_sample_single_igg_neg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
     - samplesheet_1_1
@@ -40,7 +40,7 @@
   exit_code: 1
 
 - name: test_samplesheet_check_1_2_group_match
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg_non_matching_groups.csv -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_input true --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet/unit_tests/single_sample_single_igg_non_matching_groups.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
     - samplesheet_1_2
@@ -48,7 +48,7 @@
   exit_code: 1
 
 - name: test_samplesheet_check_2_2_group_match_tech_rep
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/single_sample_single_igg_non_matching_groups_tech_rep.csv -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_input true --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet/unit_tests/single_sample_single_igg_non_matching_groups_tech_rep.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
     - samplesheet_2_2
@@ -56,7 +56,7 @@
   exit_code: 1
 
 - name: test_samplesheet_check_multiple_sample_single_igg
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/multiple_sample_single_igg.csv -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_input true --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet/unit_tests/multiple_sample_single_igg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
     - samplesheet_M_1
@@ -64,7 +64,7 @@
     - path: results/pipeline_info/samplesheet.valid.csv
 
 - name: test_samplesheet_check_multiple_sample_multiple_igg
-  command: nextflow run main.nf -profile docker,test --only_input true --input tests/data/samplesheets/multiple_sample_multiple_igg.csv -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_input true --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet/unit_tests/multiple_sample_multiple_igg.csv -c tests/config/nextflow.config
   tags:
     - samplesheet
     - samplesheet_M_M
