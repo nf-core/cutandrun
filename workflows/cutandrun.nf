@@ -238,7 +238,7 @@ else if(params.save_align_intermed) {
     picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
 
-// Removed duplicates options
+// Remove duplicates options
 def dedup_control_only = true
 if(params.dedup_target_reads) { dedup_control_only = false }
 
