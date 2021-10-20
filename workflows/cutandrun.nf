@@ -974,7 +974,7 @@ workflow CUTANDRUN {
         //CALCULATE_PEAK_REPROD.out.csv
 
         /*
-        * SUBWORKFLOW: Annotate meta-data with peak  stats
+        * SUBWORKFLOW: Annotate meta-data with peak stats
         */
         ANNOTATE_PEAK_REPRO_META (
             ch_samtools_bam,
@@ -987,7 +987,7 @@ workflow CUTANDRUN {
         * MODULE: Export meta-data to csv file
         */
         EXPORT_META (
-            ch_samtools_bam.collect{it[0]}.ifEmpty(["{NO-DATA}"]),
+            ch_samtools_bam.collect{it[0]},
             "meta_table"
         )
 
@@ -995,7 +995,7 @@ workflow CUTANDRUN {
         * MODULE: Export meta-data to csv file
         */
         EXPORT_META_CTRL (
-            ch_samtools_bam_ctrl.collect{it[0]}.ifEmpty(["{NO-DATA}"]),
+            ch_samtools_bam_ctrl.collect{it[0]},
             "meta_table_ctrl"
         )
 
@@ -1003,7 +1003,7 @@ workflow CUTANDRUN {
         * MODULE: Generate python reporting using mixture of meta-data and direct file processing
         */
         GENERATE_REPORTS(
-            EXPORT_META.out.csv,                        // meta-data report stats
+            EXPORT_META.out.csv.collect().ifEmpty([]),  // meta-data report stats
             EXPORT_META_CTRL.out.csv,                   // meta-data report stats
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
             AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments

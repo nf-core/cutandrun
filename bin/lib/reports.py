@@ -108,7 +108,8 @@ class Reports:
         self.metadata_table['spikein_alignment_rate'] = self.metadata_table.loc[:, ('bt2_total_aligned_spikein')] / self.metadata_table.loc[:, ('bt2_total_reads_spikein')] * 100
 
         # Change to percentage
-        self.metadata_noctrl_table['frip'] =  self.metadata_noctrl_table['frip'] * 100
+        if 'frip' in self.metadata_noctrl_table.columns:
+            self.metadata_noctrl_table['frip'] =  self.metadata_noctrl_table['frip'] * 100
 
     def load_raw_frag_histogram(self):
         # Plots supported
@@ -292,14 +293,16 @@ class Reports:
         data["06_02_peak_widths"] = data7b
 
         # Plot 7c
-        plot7c, data7c = self.reproduced_peaks()
-        plots["06_03_reproduced_peaks"] = plot7c
-        data["06_03_reproduced_peaks"] = data7c
+        if 'peak_repro' in self.metadata_noctrl_table.columns:
+            plot7c, data7c = self.reproduced_peaks()
+            plots["06_03_reproduced_peaks"] = plot7c
+            data["06_03_reproduced_peaks"] = data7c
 
         # Plot 7d
-        plot7d, data7d = self.frags_in_peaks()
-        plots["06_04_frags_in_peaks"] = plot7d
-        data["06_04_frags_in_peaks"] = data7d
+        if 'frip' in self.metadata_noctrl_table.columns:
+            plot7d, data7d = self.frags_in_peaks()
+            plots["06_04_frags_in_peaks"] = plot7d
+            data["06_04_frags_in_peaks"] = data7d
 
         # Fragment Length Histogram data in MultiQC yaml format
         mqc_frag_hist = self.frag_len_hist_mqc()

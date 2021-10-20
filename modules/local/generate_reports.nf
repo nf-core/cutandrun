@@ -26,10 +26,12 @@ process GENERATE_REPORTS {
     path '*frag_len_mqc.yaml', emit: frag_len_multiqc
     path '*.version.txt',     emit: version
 
-    script:  // This script is bundled with the pipeline, in nf-core/cutandrun/bin/
+    script:
+    def meta_data_resolved = meta_data ? meta_data : meta_data_ctrl
+
     """
     reporting.py gen_reports \\
-        --meta $meta_data \\
+        --meta $meta_data_resolved \\
         --meta_ctrl $meta_data_ctrl \\
         --raw_frag "*.frag_len.txt" \\
         --bin_frag "*bin500.awk.bed" \\
