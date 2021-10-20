@@ -2,7 +2,7 @@
 
 ## :warning: Please read this documentation on the nf-core website: [https://nf-co.re/cutandrun/usage](https://nf-co.re/cutandrun/usage)
 
-> _Documentation of pipeline parameters is generated automatically from the pipeline schema and can no longer be found in markdown files._
+nf-core/cutandrun is a best-practice bioinformatic analysis pipeline for CUT&Run and CUT&Tag experimental protocols that where developed to study protein-DNA interactions and epigenomic profiling.
 
 ## Samplesheet input
 
