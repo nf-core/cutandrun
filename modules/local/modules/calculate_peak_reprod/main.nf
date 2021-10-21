@@ -4,6 +4,7 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process CALCULATE_PEAK_REPROD {
+    tag "$meta.id"
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
