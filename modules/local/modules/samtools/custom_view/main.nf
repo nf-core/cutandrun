@@ -23,7 +23,7 @@ process SAMTOOLS_CUSTOMVIEW {
 
     output:
     tuple val(meta), path("*.txt") , emit: tsv
-    path  "versions.yml"              , emit: versions
+    path  "versions.yml"           , emit: versions
 
     script:
     def software = getSoftwareName(task.process)
