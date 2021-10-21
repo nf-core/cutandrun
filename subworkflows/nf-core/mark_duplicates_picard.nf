@@ -46,12 +46,15 @@ workflow MARK_DUPLICATES_PICARD {
     /*
     * Index BAM file
     */
-    SAMTOOLS_INDEX     ( out_bam )
+    SAMTOOLS_INDEX ( out_bam )
 
     // Join bam/bai
-    ch_bam_sample_id = out_bam.map                { row -> [row[0].id, row] }
-    ch_bai_sample_id = SAMTOOLS_INDEX.out.bai.map { row -> [row[0].id, row] }
-    ch_bam_bai = ch_bam_sample_id.join(ch_bai_sample_id, by: [0]).map {row -> [row[1][0], row[1][1], row[2][1]]}
+    out_bam
+        .map { row -> [row[0].id, row ].flatten()}
+        .join ( SAMTOOLS_INDEX.out.bai.map { row -> [row[0].id, row ].flatten()} )
+        .map { row -> [row[1], row[2], row[4]] }
+        .set { ch_bam_bai }
+    //ch_bam_bai | view
 
     /*
     * Run samtools stats, flagstat and idxstats
