@@ -18,8 +18,8 @@ process CALCULATE_FRIP {
 
     output:
     tuple val(meta), path('frips.csv'), emit: frips
-    path '*.version.txt'              , emit: version
-
+    path  "versions.yml"              , emit: versions
+    
     script:
     """
     frip.py \\
@@ -28,6 +28,9 @@ process CALCULATE_FRIP {
         --threads ${task.cpus} \\
         --outpath .
 
-    python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\" > python.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
+    END_VERSIONS
     """
 }
