@@ -605,8 +605,7 @@ workflow CUTANDRUN {
      */
     ch_samtools_bam_scale
         .map { row -> [ row[0], row[1] ] }
-        .set { ch_samtools_bam_sf }
-    ch_samtools_bam = ch_samtools_bam_sf
+        .set { ch_samtools_bam }
     //EXAMPLE CHANNEL STRUCT: [[META], BAM]
     //ch_samtools_bam | view
 

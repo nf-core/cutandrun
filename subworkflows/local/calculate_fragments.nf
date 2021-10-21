@@ -10,7 +10,7 @@ params.awk_options           = [:]
 params.cut_options           = [:]
 
 include { SAMTOOLS_VIEW      } from "../../modules/nf-core/modules/samtools/view/main"     addParams( options: params.samtools_view_options )
-include { SAMTOOLS_SORT      } from '../../modules/nf-core/modules/samtools/sort/main'     addParams( options: params.samtools_sort_options )
+include { SAMTOOLS_SORT      } from "../../modules/nf-core/modules/samtools/sort/main"     addParams( options: params.samtools_sort_options )
 include { BEDTOOLS_BAMTOBED  } from "../../modules/nf-core/modules/bedtools/bamtobed/main" addParams( options: params.bamtobed_options      )
 include { AWK                } from "../../modules/local/awk"                              addParams( options: params.awk_options           )
 include { CUT                } from "../../modules/local/cut"                              addParams( options: params.cut_options           )
@@ -41,8 +41,8 @@ workflow CALCULATE_FRAGMENTS {
     CUT ( AWK.out.file )
 
     emit:
-    bed              = CUT.out.file          // channel: [ val(meta), [ bed ] ]
-    bam              = SAMTOOLS_SORT.out.bam // channel: [ val(meta), [ bam ] ]
+    bed              = CUT.out.file                   // channel: [ val(meta), [ bed ] ]
+    bam              = SAMTOOLS_SORT.out.bam          // channel: [ val(meta), [ bam ] ]
 
     samtools_version = SAMTOOLS_SORT.out.version      //    path: *.version.txt
     bedtools_version = BEDTOOLS_BAMTOBED.out.version  //    path: *.version.txt
