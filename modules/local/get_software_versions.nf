@@ -16,8 +16,6 @@ process GET_SOFTWARE_VERSIONS {
         container "quay.io/biocontainers/python:3.8.3"
     }
 
-    cache false
-
     input:
     path versions
 

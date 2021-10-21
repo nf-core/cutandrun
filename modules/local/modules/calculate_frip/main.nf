@@ -4,7 +4,8 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process CALCULATE_FRIP {
-    label 'process_medium'
+    tag "$meta.id"
+    label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }

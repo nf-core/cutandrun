@@ -295,7 +295,6 @@ multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title
 include { INPUT_CHECK                     } from "../subworkflows/local/input_check"                          addParams( options: [:]                                        )
 include { CAT_FASTQ                       } from "../modules/nf-core/modules/cat/fastq/main"                  addParams( options: cat_fastq_options                          )
 include { BEDTOOLS_GENOMECOV_SCALE        } from "../modules/local/bedtools_genomecov_scale"                  addParams( options: modules["bedtools_genomecov_bedgraph"]     )
-include { SEACR_CALLPEAK as SEACR_NO_IGG  } from "../modules/local/seacr_no_igg"                              addParams( options: modules["seacr"]                           )
 include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/awk"                                       addParams( options: modules["awk_name_peak_bed"]               )
 include { IGV_SESSION                     } from "../modules/local/igv_session"                               addParams( options: modules["igv"]                             )
 include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/awk"                                       addParams( options: modules["awk_edit_peak_bed"]               )
@@ -336,6 +335,7 @@ include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows
 include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"            addParams( options: modules["ucsc_bedclip"]          )
 include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"   addParams( options: modules["ucsc_bedgraphtobigwig"] )
 include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"          addParams( options: modules["seacr"]                 )
+include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"          addParams( options: modules["seacr"]                 )
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_gene"]   )
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]  )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]   )
@@ -605,8 +605,7 @@ workflow CUTANDRUN {
      */
     ch_samtools_bam_scale
         .map { row -> [ row[0], row[1] ] }
-        .set { ch_samtools_bam_sf }
-    ch_samtools_bam = ch_samtools_bam_sf
+        .set { ch_samtools_bam }
     //EXAMPLE CHANNEL STRUCT: [[META], BAM]
     //ch_samtools_bam | view
 
@@ -685,28 +684,33 @@ workflow CUTANDRUN {
              * MODULE: Call peaks with IgG control
              */
             SEACR_CALLPEAK (
-                ch_bedgraph_paired
+                ch_bedgraph_paired,
+                params.peak_threshold
             )
             ch_seacr_bed = SEACR_CALLPEAK.out.bed
-            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
+            //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //SEACR_CALLPEAK.out.bed | view
         }
         else {
             /*
-             * CHANNEL: Load peak threshold into channel
-             */
-            ch_peak_threshold = Channel.value(params.peak_threshold)
+            * CHANNEL: Add fake control channel
+            */
+            ch_bedgraph_split.target
+                .map{ row-> [ row[0], row[1], [] ] }
+                .set { ch_bedgraph_target_fctrl }
+            // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
+            // ch_bedgraph_target_fctrl | view
 
             /*
             * MODULE: Call peaks without IgG Control
             */
-            SEACR_NO_IGG (
-                ch_bedgraph_split.target,
-                ch_peak_threshold
+            SEACR_CALLPEAK_NOIGG (
+                ch_bedgraph_target_fctrl,
+                params.peak_threshold
             )
-            ch_seacr_bed = SEACR_NO_IGG.out.bed
-            ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.version.first().ifEmpty(null))
+            ch_seacr_bed = SEACR_CALLPEAK_NOIGG.out.bed
+            //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.version.first().ifEmpty(null))
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //SEACR_NO_IGG.out.bed | view
         }
@@ -805,12 +809,23 @@ workflow CUTANDRUN {
         )
         //AWK_FRAG_BIN.out.file | view
 
+
+        /*
+        * CHANNEL: Combine bam and bai files on id
+        */
+        ch_samtools_bam
+            .map { row -> [row[0].id, row ].flatten()}
+            .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
+            .map { row -> [row[1], row[2], row[4]] }
+            .set { ch_bam_bai }
+        // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
+        //ch_bam_bai | view
+
         /*
         * MODULE: Calculate fragment lengths
         */
         SAMTOOLS_CUSTOMVIEW (
-            ch_samtools_bam,
-            ch_samtools_bai
+            ch_bam_bai
         )
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
     }
@@ -915,7 +930,7 @@ workflow CUTANDRUN {
             .join ( ch_seacr_bed.map { row -> [row[0].id, row ].flatten()} )
             .map { row -> [row[1], row[2], row[4], row[6]] }
             .set { ch_bam_bai_bed }
-        // EXAMPLE CHANNEL STRUCT: [[META], BAM, BED]
+        // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, BED]
         //ch_bam_bai_bed | view
 
         /*

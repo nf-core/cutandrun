@@ -18,12 +18,12 @@ workflow MARK_DUPLICATES_PICARD {
     /*
     * Picard MarkDuplicates
     */
-    out_bam = Channel.empty()
+    ch_bam = Channel.empty()
     metrics = Channel.empty()
     version = Channel.empty()
     if( !params.control_only ) {
         PICARD_MARKDUPLICATES ( bam )
-        out_bam = PICARD_MARKDUPLICATES.out.bam
+        ch_bam = PICARD_MARKDUPLICATES.out.bam
         metrics = PICARD_MARKDUPLICATES.out.metrics
         version = PICARD_MARKDUPLICATES.out.version
     }
@@ -35,23 +35,24 @@ workflow MARK_DUPLICATES_PICARD {
         .set { ch_split }
 
         PICARD_MARKDUPLICATES ( ch_split.control )
-        out_bam = PICARD_MARKDUPLICATES.out.bam
         metrics = PICARD_MARKDUPLICATES.out.metrics
         version = PICARD_MARKDUPLICATES.out.version
-
-        out_bam = out_bam.mix ( ch_split.target )
+        ch_bam = PICARD_MARKDUPLICATES.out.bam.mix ( ch_split.target )
     }
     //out_bam | view
 
     /*
     * Index BAM file
     */
-    SAMTOOLS_INDEX     ( out_bam )
+    SAMTOOLS_INDEX ( ch_bam )
 
     // Join bam/bai
-    ch_bam_sample_id = out_bam.map                { row -> [row[0].id, row] }
-    ch_bai_sample_id = SAMTOOLS_INDEX.out.bai.map { row -> [row[0].id, row] }
-    ch_bam_bai = ch_bam_sample_id.join(ch_bai_sample_id, by: [0]).map {row -> [row[1][0], row[1][1], row[2][1]]}
+    ch_bam
+        .map { row -> [row[0].id, row ].flatten()}
+        .join ( SAMTOOLS_INDEX.out.bai.map { row -> [row[0].id, row ].flatten()} )
+        .map { row -> [row[1], row[2], row[4]] }
+        .set { ch_bam_bai }
+    //ch_bam_bai | view
 
     /*
     * Run samtools stats, flagstat and idxstats
@@ -59,7 +60,7 @@ workflow MARK_DUPLICATES_PICARD {
     BAM_STATS_SAMTOOLS ( ch_bam_bai )
 
     emit:
-    bam              = out_bam                           // channel: [ val(meta), [ bam ] ]
+    bam              = ch_bam                           // channel: [ val(meta), [ bam ] ]
     metrics                                              // channel: [ val(meta), [ metrics ] ]
     picard_version   = version                           // path: *.version.txt
 

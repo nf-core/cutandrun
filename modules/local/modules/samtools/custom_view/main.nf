@@ -19,8 +19,7 @@ process SAMTOOLS_CUSTOMVIEW {
     }
 
     input:
-    tuple val(meta), path(bam)
-    tuple val(meta), path(bai)
+    tuple val(meta), path(bam), path(bai)
 
     output:
     tuple val(meta), path("*.txt") , emit: tsv
