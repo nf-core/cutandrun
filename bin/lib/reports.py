@@ -111,6 +111,10 @@ class Reports:
         if 'frip' in self.metadata_noctrl_table.columns:
             self.metadata_noctrl_table['frip'] =  self.metadata_noctrl_table['frip'] * 100
 
+        # Sort tables
+        self.metadata_table = self.metadata_table.sort_values('group')
+        self.metadata_noctrl_table = self.metadata_noctrl_table.sort_values('group')
+
     def load_raw_frag_histogram(self):
         # Plots supported
 
@@ -241,9 +245,6 @@ class Reports:
 
         # Get Data
         self.load_data()
-
-        # Sort tables
-        self.metadata_table = self.metadata_table.sort_values('group')
 
         # Plot section 1
         multi_plot, data1 = self.alignment_summary()
