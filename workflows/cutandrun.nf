@@ -804,12 +804,23 @@ workflow CUTANDRUN {
         )
         //AWK_FRAG_BIN.out.file | view
 
+
+        /*
+        * CHANNEL: Combine bam and bai files on id
+        */
+        ch_samtools_bam
+            .map { row -> [row[0].id, row ].flatten()}
+            .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
+            .map { row -> [row[1], row[2], row[4]] }
+            .set { ch_bam_bai }
+        // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
+        //ch_bam_bai | view
+
         /*
         * MODULE: Calculate fragment lengths
         */
         SAMTOOLS_CUSTOMVIEW (
-            ch_samtools_bam,
-            ch_samtools_bai
+            ch_bam_bai
         )
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
     }
@@ -914,7 +925,7 @@ workflow CUTANDRUN {
             .join ( ch_seacr_bed.map { row -> [row[0].id, row ].flatten()} )
             .map { row -> [row[1], row[2], row[4], row[6]] }
             .set { ch_bam_bai_bed }
-        // EXAMPLE CHANNEL STRUCT: [[META], BAM, BED]
+        // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, BED]
         //ch_bam_bai_bed | view
 
         /*
