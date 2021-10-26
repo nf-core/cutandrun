@@ -1,9 +1,12 @@
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName } from '../common/functions'
 
-params.options = [:]
-options    = initOptions(params.options)
+params.options   = [:]
+options          = initOptions(params.options)
+options.command  = params.options.command ?: ''
+options.command2 = params.options.command2 ?: ''
+options.ext      = params.options.ext ?: ''
 
-process AWK_SCRIPT {
+process AWK {
     tag "$meta.id"
     label 'process_low'
     publishDir "${params.outdir}",
@@ -19,17 +22,17 @@ process AWK_SCRIPT {
 
     input:
     tuple val(meta), path(input)
-    path script
 
     output:
-    tuple val(meta), path("*.awk.txt"), emit: file
-    path "*.version.txt",           emit: version
+    tuple val(meta), path("*.awk.*"), emit: file
+    path "*.version.txt",             emit: version
 
     script:
     def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def ext   = options.ext ? "${options.ext}" : "txt"
     """
-    awk $options.args -f $script $input > ${prefix}.awk.txt
+    awk $options.args $options.command $input $options.command2 > ${prefix}.awk.${ext}
     awk -W version | head -n 1 | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}" > ${software}.version.txt
     """
 }
