@@ -401,8 +401,10 @@ workflow CUTANDRUN {
         CAT_FASTQ (
             ch_fastq.multiple
         )
-        .mix(ch_fastq.single)
-        .set { ch_cat_fastq }
+
+        CAT_FASTQ.out.reads
+            .mix(ch_fastq.single)
+            .set { ch_cat_fastq }
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //ch_cat_fastq | view
