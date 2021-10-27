@@ -23,8 +23,8 @@ process BEDTOOLS_GENOMECOV_SCALE {
 
     output:
     tuple val(meta), path("*.bedGraph"), emit: bedgraph
-    path "*.version.txt"               , emit: version
-
+    path  "versions.yml"              , emit: versions
+    
     script:
     def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
@@ -33,6 +33,9 @@ process BEDTOOLS_GENOMECOV_SCALE {
     bedtools genomecov -ibam $bam $options.args -bg -scale $scale \\
     | bedtools sort > ${prefix}.bedGraph
 
-    bedtools --version | sed -e "s/bedtools v//g" > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(bedtools --version | sed -e "s/bedtools v//g")
+    END_VERSIONS
     """
 }
