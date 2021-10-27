@@ -20,6 +20,8 @@ process IGV_SESSION {
     path gtf
     path beds
     path bigwig
+    path  "versions.yml"     , emit: versions
+
 
     output:
     path('*.{txt,xml,bed,bigWig,fa,gtf}', includeInputs:true)
@@ -53,6 +55,11 @@ process IGV_SESSION {
     find -L * -iname "*.gtf" -exec echo -e {}"\\t0,48,73" \\; > gtf.igv.txt
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt $genome --path_prefix './'
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
+    END_VERSIONS
     """
 }
 
