@@ -23,7 +23,7 @@ checkPathParamList = [
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters that cannot be checked in the groovy lib as we want a channel for them
-if (params.input)     { ch_input     = file(params.input)     } else { exit 1, "Input samplesheet not specified!"     }
+if (params.input) { ch_input = file(params.input) } else { exit 1, "Input samplesheet not specified!" }
 
 ch_blacklist = Channel.empty()
 if (params.blacklist) {
@@ -379,19 +379,20 @@ workflow CUTANDRUN {
         INPUT_CHECK (
             ch_input
         )
-        .map {
-            meta, fastq ->
-                meta.id = meta.id.split("_")[0..-2].join("_")
-                [ meta, fastq ] }
-        .groupTuple(by: [0])
-        .branch {
-            meta, fastq ->
-                single  : fastq.size() == 1
-                    return [ meta, fastq.flatten() ]
-                multiple: fastq.size() > 1
-                    return [ meta, fastq.flatten() ]
-        }
-        .set { ch_fastq }
+        // .map {
+        //     meta, fastq ->
+        //         meta.id = meta.id.split("_")[0..-2].join("_")
+        //         [ meta, fastq ] }
+        // .groupTuple(by: [0])
+        // .branch {
+        //     meta, fastq ->
+        //         single  : fastq.size() == 1
+        //             return [ meta, fastq.flatten() ]
+        //         multiple: fastq.size() > 1
+        //             return [ meta, fastq.flatten() ]
+        // }
+        // .set { ch_fastq }
+        ch_input | view
     }
 
     /*
