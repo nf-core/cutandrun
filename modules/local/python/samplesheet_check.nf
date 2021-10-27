@@ -21,7 +21,7 @@ process SAMPLESHEET_CHECK {
     path samplesheet
 
     output:
-    path '*.csv'
+    path '*.csv', emit: csv
 
     script:  // This script is bundled with the pipeline, in nf-core/cutandrun/bin/
     """
