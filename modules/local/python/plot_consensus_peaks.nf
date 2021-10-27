@@ -18,7 +18,7 @@ process PLOT_CONSENSUS_PEAKS {
 
     output:
     path ("*.pdf"), optional:true, emit: pdf
-    path  "versions.yml"     , emit: versions
+    path  "versions.yml", emit: versions
 
     script:
     """
