@@ -305,7 +305,7 @@ include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calcu
 include { EXPORT_META                     } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]                     )
 include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]                     )
 include { GENERATE_REPORTS                } from "../modules/local/python/generate_reports"            addParams( options: modules["generate_reports"]                )
-include { GET_SOFTWARE_VERSIONS           } from "../modules/local/get_software_versions"              addParams( options: [publish_files : ["csv":""]]               )
+//include { GET_SOFTWARE_VERSIONS           } from "../modules/local/get_software_versions"              addParams( options: [publish_files : ["csv":""]]               )
 include { MULTIQC                         } from "../modules/local/multiqc"                            addParams( options: multiqc_options                            )
 
 /*
@@ -1040,9 +1040,9 @@ workflow CUTANDRUN {
         .collect()
         .set { ch_software_versions }
 
-    GET_SOFTWARE_VERSIONS (
-        ch_software_versions.map { it }.collect()
-    )
+    //GET_SOFTWARE_VERSIONS (
+    //    ch_software_versions.map { it }.collect()
+    //)
 
     /*
      * MODULE: Multiqc
@@ -1054,7 +1054,7 @@ workflow CUTANDRUN {
         MULTIQC (
             ch_multiqc_config,
             ch_multiqc_custom_config.collect().ifEmpty([]),
-            GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+        //    GET_SOFTWARE_VERSIONS.out.yaml.collect(),
             ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml"),
             FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
