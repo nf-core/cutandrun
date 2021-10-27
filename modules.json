@@ -21,6 +21,9 @@
             "cat/fastq": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
+            "custom/dumpsoftwareversions": {
+                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+            },
             "deeptools/computematrix": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
