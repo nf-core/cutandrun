@@ -86,11 +86,11 @@ process TRIMGALORE {
         mv ${meta.id}_1_val_1.fq.gz ${prefix_1}.fastq.gz
         mv ${meta.id}_2_val_2.fq.gz ${prefix_2}.fastq.gz
 
-        [ ! -f  ${meta.id}_1_val_1_fastqc.html ] || mv ${meta.id}_1_val_1_fastqc.html ${meta.id}_1_fastqc${suffix}.html
-        [ ! -f  ${meta.id}_2_val_2_fastqc.html ] || mv ${meta.id}_2_val_2_fastqc.html ${meta.id}_2_fastqc${suffix}.html
+        [ ! -f  ${meta.id}_1_val_1_fastqc.html ] || mv ${meta.id}_1_val_1_fastqc.html ${meta.id}_1${suffix}_fastqc.html
+        [ ! -f  ${meta.id}_2_val_2_fastqc.html ] || mv ${meta.id}_2_val_2_fastqc.html ${meta.id}_2${suffix}_fastqc.html
 
-        [ ! -f  ${meta.id}_1_val_1_fastqc.zip ] || mv ${meta.id}_1_val_1_fastqc.zip ${meta.id}_1_fastqc${suffix}.zip
-        [ ! -f  ${meta.id}_2_val_2_fastqc.zip ] || mv ${meta.id}_2_val_2_fastqc.zip ${meta.id}_2_fastqc${suffix}.zip
+        [ ! -f  ${meta.id}_1_val_1_fastqc.zip ] || mv ${meta.id}_1_val_1_fastqc.zip ${meta.id}_1${suffix}_fastqc.zip
+        [ ! -f  ${meta.id}_2_val_2_fastqc.zip ] || mv ${meta.id}_2_val_2_fastqc.zip ${meta.id}_2${suffix}_fastqc.zip
         """
     }
 }
