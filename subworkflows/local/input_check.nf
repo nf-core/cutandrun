@@ -22,4 +22,5 @@ workflow INPUT_CHECK {
 
     emit:
     reads // channel: [ val(meta), [ reads ] ]
+    versions = SAMPLESHEET_CHECK.out.versions
 }
