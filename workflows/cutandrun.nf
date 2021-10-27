@@ -1040,9 +1040,9 @@ workflow CUTANDRUN {
         .collect()
         .set { ch_software_versions }
 
-    //GET_SOFTWARE_VERSIONS (
-    //    ch_software_versions.map { it }.collect()
-    //)
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_software_versions.unique().collectFile()
+    )
 
     /*
      * MODULE: Multiqc
