@@ -25,14 +25,18 @@ process AWK {
 
     output:
     tuple val(meta), path("*.awk.*"), emit: file
-    path "*.version.txt",             emit: version
-
+    path  "versions.yml"              , emit: versions
+    
     script:
     def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     def ext   = options.ext ? "${options.ext}" : "txt"
     """
     awk $options.args $options.command $input $options.command2 > ${prefix}.awk.${ext}
-    awk -W version | head -n 1 | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}" > ${software}.version.txt
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(awk -W version | head -n 1 | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}")
+    END_VERSIONS
     """
 }
