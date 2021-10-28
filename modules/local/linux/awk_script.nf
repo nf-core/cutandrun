@@ -1,4 +1,5 @@
-include { initOptions; saveFiles; getSoftwareName } from '../common/functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../common/functions'
+
 
 params.options = [:]
 options    = initOptions(params.options)
