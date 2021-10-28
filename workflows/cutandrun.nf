@@ -368,8 +368,8 @@ workflow CUTANDRUN {
         PREPARE_GENOME (
             prepare_tool_indices
         )
-        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.bowtie2_version.ifEmpty(null))
-        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.samtools_version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.bowtie2_versions.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.samtools_versions.ifEmpty(null))
     }
 
     /*
@@ -1030,7 +1030,7 @@ workflow CUTANDRUN {
             ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
         )
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
-        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions.ifEmpty(null))
     }
 
     /*

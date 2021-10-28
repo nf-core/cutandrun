@@ -78,7 +78,7 @@ workflow PREPARE_GENOME {
     */
     ch_bt2_index         = Channel.empty()
     ch_bt2_spikein_index = Channel.empty()
-    ch_bt2_version       = Channel.empty()
+    ch_bt2_versions       = Channel.empty()
     if ("bowtie2" in prepare_tool_indices) {
         if (params.bowtie2) {
             if (params.bowtie2.endsWith(".tar.gz")) {
@@ -88,7 +88,7 @@ workflow PREPARE_GENOME {
             }
         } else {
             ch_bt2_index   = BOWTIE2_BUILD ( ch_fasta ).index
-            ch_bt2_version = BOWTIE2_BUILD.out.version
+            ch_bt2_versions = BOWTIE2_BUILD.out.versions
         }
 
         if (params.spikein_bowtie2) {
@@ -103,13 +103,13 @@ workflow PREPARE_GENOME {
     }
 
     emit:
-    fasta                 = ch_fasta                    // path: genome.fasta
-    chrom_sizes           = ch_chrom_sizes              // path: genome.sizes
-    spikein_chrom_sizes   = ch_spikein_chrom_sizes      // path: genome.sizes
-    gtf                   = ch_gtf                      // path: genome.gtf
-    bed                   = ch_gene_bed                 // path: genome.bed
-    bowtie2_index         = ch_bt2_index                // path: bt2/index/
-    bowtie2_spikein_index = ch_bt2_spikein_index        // path: bt2/index/
-    bowtie2_version       = ch_bt2_version              // path: *.version.txt
-    samtools_version      = GET_CHROM_SIZES.out.version // path: *.version.txt
+    fasta                  = ch_fasta                    // path: genome.fasta
+    chrom_sizes            = ch_chrom_sizes              // path: genome.sizes
+    spikein_chrom_sizes    = ch_spikein_chrom_sizes      // path: genome.sizes
+    gtf                    = ch_gtf                      // path: genome.gtf
+    bed                    = ch_gene_bed                 // path: genome.bed
+    bowtie2_index          = ch_bt2_index                // path: bt2/index/
+    bowtie2_spikein_index  = ch_bt2_spikein_index        // path: bt2/index/
+    bowtie2_versions       = ch_bt2_versions              // path: *.version.txt
+    samtools_versions      = GET_CHROM_SIZES.out.versions // path: *.version.txt
 }
