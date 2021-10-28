@@ -39,21 +39,21 @@ workflow ALIGN_BOWTIE2 {
     bowtie2_versions     = BOWTIE2_ALIGN.out.versions              // path: *.version.txt
     samtools_versions    = BAM_SORT_SAMTOOLS.out.versions          // path: *.version.txt
 
-    orig_bam            = BOWTIE2_ALIGN.out.bam                  // channel: [ val(meta), bam ]
-    orig_spikein_bam    = BOWTIE2_SPIKEIN_ALIGN.out.bam          // channel: [ val(meta), bam ]
+    orig_bam             = BOWTIE2_ALIGN.out.bam                  // channel: [ val(meta), bam ]
+    orig_spikein_bam     = BOWTIE2_SPIKEIN_ALIGN.out.bam          // channel: [ val(meta), bam ]
 
-    bowtie2_log         = BOWTIE2_ALIGN.out.log                  // channel: [ val(meta), log_final ]
-    bowtie2_spikein_log = BOWTIE2_SPIKEIN_ALIGN.out.log          // channel: [ val(meta), log_final ]
+    bowtie2_log          = BOWTIE2_ALIGN.out.log                  // channel: [ val(meta), log_final ]
+    bowtie2_spikein_log  = BOWTIE2_SPIKEIN_ALIGN.out.log          // channel: [ val(meta), log_final ]
 
-    bam                 = BAM_SORT_SAMTOOLS.out.bam              // channel: [ val(meta), [ bam ] ]
-    bai                 = BAM_SORT_SAMTOOLS.out.bai              // channel: [ val(meta), [ bai ] ]
-    stats               = BAM_SORT_SAMTOOLS.out.stats            // channel: [ val(meta), [ stats ] ]
-    flagstat            = BAM_SORT_SAMTOOLS.out.flagstat         // channel: [ val(meta), [ flagstat ] ]
-    idxstats            = BAM_SORT_SAMTOOLS.out.idxstats         // channel: [ val(meta), [ idxstats ] ]
+    bam                  = BAM_SORT_SAMTOOLS.out.bam              // channel: [ val(meta), [ bam ] ]
+    bai                  = BAM_SORT_SAMTOOLS.out.bai              // channel: [ val(meta), [ bai ] ]
+    stats                = BAM_SORT_SAMTOOLS.out.stats            // channel: [ val(meta), [ stats ] ]
+    flagstat             = BAM_SORT_SAMTOOLS.out.flagstat         // channel: [ val(meta), [ flagstat ] ]
+    idxstats             = BAM_SORT_SAMTOOLS.out.idxstats         // channel: [ val(meta), [ idxstats ] ]
 
-    spikein_bam         = BAM_SORT_SAMTOOLS_SPIKEIN.out.bam      // channel: [ val(meta), [ bam ] ]
-    spikein_bai         = BAM_SORT_SAMTOOLS_SPIKEIN.out.bai      // channel: [ val(meta), [ bai ] ]
-    spikein_stats       = BAM_SORT_SAMTOOLS_SPIKEIN.out.stats    // channel: [ val(meta), [ stats ] ]
-    spikein_flagstat    = BAM_SORT_SAMTOOLS_SPIKEIN.out.flagstat // channel: [ val(meta), [ flagstat ] ]
-    spikein_idxstats    = BAM_SORT_SAMTOOLS_SPIKEIN.out.idxstats // channel: [ val(meta), [ idxstats ] ]
+    spikein_bam          = BAM_SORT_SAMTOOLS_SPIKEIN.out.bam      // channel: [ val(meta), [ bam ] ]
+    spikein_bai          = BAM_SORT_SAMTOOLS_SPIKEIN.out.bai      // channel: [ val(meta), [ bai ] ]
+    spikein_stats        = BAM_SORT_SAMTOOLS_SPIKEIN.out.stats    // channel: [ val(meta), [ stats ] ]
+    spikein_flagstat     = BAM_SORT_SAMTOOLS_SPIKEIN.out.flagstat // channel: [ val(meta), [ flagstat ] ]
+    spikein_idxstats     = BAM_SORT_SAMTOOLS_SPIKEIN.out.idxstats // channel: [ val(meta), [ idxstats ] ]
 }
