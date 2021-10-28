@@ -505,7 +505,7 @@ workflow CUTANDRUN {
         ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
         ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
         ch_markduplicates_metrics = MARK_DUPLICATES_PICARD.out.metrics
-        ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
+        ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_versions.first().ifEmpty(null))
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view

@@ -20,12 +20,12 @@ workflow MARK_DUPLICATES_PICARD {
     */
     ch_bam = Channel.empty()
     metrics = Channel.empty()
-    version = Channel.empty()
+    versions = Channel.empty()
     if( !params.control_only ) {
         PICARD_MARKDUPLICATES ( bam )
         ch_bam = PICARD_MARKDUPLICATES.out.bam
         metrics = PICARD_MARKDUPLICATES.out.metrics
-        version = PICARD_MARKDUPLICATES.out.version
+        versions = PICARD_MARKDUPLICATES.out.versions
     }
     else { // Split out non igg files and run only on these
         bam.branch { it ->
@@ -36,7 +36,7 @@ workflow MARK_DUPLICATES_PICARD {
 
         PICARD_MARKDUPLICATES ( ch_split.control )
         metrics = PICARD_MARKDUPLICATES.out.metrics
-        version = PICARD_MARKDUPLICATES.out.version
+        versions = PICARD_MARKDUPLICATES.out.versions
         ch_bam = PICARD_MARKDUPLICATES.out.bam.mix ( ch_split.target )
     }
     //out_bam | view
@@ -60,13 +60,13 @@ workflow MARK_DUPLICATES_PICARD {
     BAM_STATS_SAMTOOLS ( ch_bam_bai )
 
     emit:
-    bam              = ch_bam                           // channel: [ val(meta), [ bam ] ]
-    metrics                                              // channel: [ val(meta), [ metrics ] ]
-    picard_version   = version                           // path: *.version.txt
+    bam               = ch_bam                            // channel: [ val(meta), [ bam ] ]
+    metrics                                               // channel: [ val(meta), [ metrics ] ]
+    picard_versions   = versions                          // path: *.version.txt
 
-    bai              = SAMTOOLS_INDEX.out.bai            // channel: [ val(meta), [ bai ] ]
-    stats            = BAM_STATS_SAMTOOLS.out.stats      // channel: [ val(meta), [ stats ] ]
-    flagstat         = BAM_STATS_SAMTOOLS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
-    idxstats         = BAM_STATS_SAMTOOLS.out.idxstats   // channel: [ val(meta), [ idxstats ] ]
-    samtools_version = SAMTOOLS_INDEX.out.version        // path: *.version.txt
+    bai               = SAMTOOLS_INDEX.out.bai            // channel: [ val(meta), [ bai ] ]
+    stats             = BAM_STATS_SAMTOOLS.out.stats      // channel: [ val(meta), [ stats ] ]
+    flagstat          = BAM_STATS_SAMTOOLS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
+    idxstats          = BAM_STATS_SAMTOOLS.out.idxstats   // channel: [ val(meta), [ idxstats ] ]
+    samtools_versions = SAMTOOLS_INDEX.out.versions       // path: *.version.txt
 }
