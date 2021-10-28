@@ -44,7 +44,7 @@ workflow CALCULATE_FRAGMENTS {
     bed              = CUT.out.file                   // channel: [ val(meta), [ bed ] ]
     bam              = SAMTOOLS_SORT.out.bam          // channel: [ val(meta), [ bam ] ]
 
-    samtools_version = SAMTOOLS_SORT.out.version      //    path: *.version.txt
-    bedtools_version = BEDTOOLS_BAMTOBED.out.version  //    path: *.version.txt
-    awk_version      = AWK.out.version                //    path: *.version.txt
+    samtools_versions = SAMTOOLS_SORT.out.versions      //    path: *.version.txt
+    bedtools_versions = BEDTOOLS_BAMTOBED.out.versions  //    path: *.version.txt
+    awk_versions      = AWK.out.versions                //    path: *.version.txt
 }
