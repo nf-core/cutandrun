@@ -898,7 +898,7 @@ workflow CUTANDRUN {
                 ch_bigwig_no_igg,
                 PREPARE_GENOME.out.bed
             )
-            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.version.first().ifEmpty(null))
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions.first().ifEmpty(null))
 
             /*
             * MODULE: Calculate DeepTools heatmap
