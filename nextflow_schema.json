@@ -346,7 +346,7 @@
                     "fa_icon": "fas fa-users-cog"
                 },
                 "hostnames": {
-                    "type": "object",
+                    "type": "string",
                     "description": "Institutional configs hostname.",
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
