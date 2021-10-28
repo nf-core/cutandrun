@@ -452,7 +452,7 @@ workflow CUTANDRUN {
                 PREPARE_GENOME.out.bowtie2_index,
                 PREPARE_GENOME.out.bowtie2_spikein_index
             )
-            ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.bowtie2_version.first().ifEmpty(null))
+            ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.bowtie2_versions.first().ifEmpty(null))
             ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
             ch_orig_spikein_bam           = ALIGN_BOWTIE2.out.orig_spikein_bam
             ch_bowtie2_log                = ALIGN_BOWTIE2.out.bowtie2_log
