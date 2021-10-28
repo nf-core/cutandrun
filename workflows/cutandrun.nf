@@ -640,7 +640,7 @@ workflow CUTANDRUN {
             UCSC_BEDCLIP.out.bedgraph,
             PREPARE_GENOME.out.chrom_sizes
         )
-        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first().ifEmpty(null))
         //EXAMPLE CHANNEL STRUCT: [[META], BIGWIG]
         //UCSC_BEDGRAPHTOBIGWIG.out.bigwig | view
 
