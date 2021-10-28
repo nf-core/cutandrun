@@ -39,10 +39,10 @@ workflow SAMTOOLS_VIEW_SORT_STATS {
     BAM_STATS_SAMTOOLS ( ch_bam_bai )
 
     emit:
-    bam              = SAMTOOLS_SORT.out.bam           // channel: [ val(meta), [ bam ] ]
-    bai              = SAMTOOLS_INDEX.out.bai          // channel: [ val(meta), [ bai ] ]
-    stats            = BAM_STATS_SAMTOOLS.out.stats    // channel: [ val(meta), [ stats ] ]
-    flagstat         = BAM_STATS_SAMTOOLS.out.flagstat // channel: [ val(meta), [ flagstat ] ]
-    idxstats         = BAM_STATS_SAMTOOLS.out.idxstats // channel: [ val(meta), [ idxstats ] ]
-    samtools_version = SAMTOOLS_INDEX.out.version      //    path: *.version.txt
+    bam               = SAMTOOLS_SORT.out.bam            // channel: [ val(meta), [ bam ] ]
+    bai               = SAMTOOLS_INDEX.out.bai           // channel: [ val(meta), [ bai ] ]
+    stats             = BAM_STATS_SAMTOOLS.out.stats     // channel: [ val(meta), [ stats ] ]
+    flagstat          = BAM_STATS_SAMTOOLS.out.flagstat  // channel: [ val(meta), [ flagstat ] ]
+    idxstats          = BAM_STATS_SAMTOOLS.out.idxstats  // channel: [ val(meta), [ idxstats ] ]
+    samtools_versions = SAMTOOLS_INDEX.out.versions      //    path: *.version.txt
 }
