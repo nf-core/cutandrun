@@ -692,7 +692,7 @@ workflow CUTANDRUN {
                 params.peak_threshold
             )
             ch_seacr_bed = SEACR_CALLPEAK.out.bed
-            //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
+            //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions.first().ifEmpty(null))
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //SEACR_CALLPEAK.out.bed | view
         }
