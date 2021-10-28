@@ -379,20 +379,21 @@ workflow CUTANDRUN {
         INPUT_CHECK (
             ch_input
         )
-        // .map {
-        //     meta, fastq ->
-        //         meta.id = meta.id.split("_")[0..-2].join("_")
-        //         [ meta, fastq ] }
-        // .groupTuple(by: [0])
-        // .branch {
-        //     meta, fastq ->
-        //         single  : fastq.size() == 1
-        //             return [ meta, fastq.flatten() ]
-        //         multiple: fastq.size() > 1
-        //             return [ meta, fastq.flatten() ]
-        // }
-        // .set { ch_fastq }
-        ch_input | view
+        
+        INPUT_CHECK.out.reads
+            .map {
+                meta, fastq ->
+                    meta.id = meta.id.split("_")[0..-2].join("_")
+                    [ meta, fastq ] }
+            .groupTuple(by: [0])
+            .branch {
+                meta, fastq ->
+                    single  : fastq.size() == 1
+                        return [ meta, fastq.flatten() ]
+                    multiple: fastq.size() > 1
+                        return [ meta, fastq.flatten() ]
+            }
+            .set { ch_fastq }
     }
 
     /*
@@ -402,8 +403,10 @@ workflow CUTANDRUN {
         CAT_FASTQ (
             ch_fastq.multiple
         )
-        .mix(ch_fastq.single)
-        .set { ch_cat_fastq }
+
+        CAT_FASTQ.out.reads
+            .mix(ch_fastq.single)
+            .set { ch_cat_fastq }
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //ch_cat_fastq | view
@@ -418,8 +421,8 @@ workflow CUTANDRUN {
             params.skip_trimming
         )
         ch_trimmed_reads     = FASTQC_TRIMGALORE.out.reads
-        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
-        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_versions.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_versions.first().ifEmpty(null))
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //FASTQC_TRIMGALORE.out.reads | view

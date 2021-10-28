@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles } from '../common/functions'
+include { initOptions; saveFiles; getSoftwareName } from '../common/functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -21,11 +21,17 @@ process SAMPLESHEET_CHECK {
     path samplesheet
 
     output:
-    path '*.csv'
+    path '*.csv'        , emit: csv
+    path  "versions.yml", emit: versions
 
     script:  // This script is bundled with the pipeline, in nf-core/cutandrun/bin/
     """
     check_samplesheet.py $samplesheet samplesheet.valid.csv $params.igg_control
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
+    END_VERSIONS
     """
 }
 
