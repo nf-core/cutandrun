@@ -617,7 +617,7 @@ workflow CUTANDRUN {
         BEDTOOLS_GENOMECOV (
             ch_samtools_bam_scale,
             ch_dummy_file,
-            "bedgraph"
+            "bedGraph"
         )
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
         //BEDTOOLS_GENOMECOV.out.genomecov | view
@@ -627,7 +627,7 @@ workflow CUTANDRUN {
         */
         BEDTOOLS_SORT (
             BEDTOOLS_GENOMECOV.out.genomecov,
-            "bedgraph"
+            "bedGraph"
         )
 
         /*
