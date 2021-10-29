@@ -292,21 +292,19 @@ multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title
 /*
  * MODULES
  */
-include { INPUT_CHECK                     } from "../subworkflows/local/input_check"                   addParams( options: [:]                                        )
-include { CAT_FASTQ                       } from "../modules/nf-core/modules/cat/fastq/main"           addParams( options: cat_fastq_options                          )
-include { BEDTOOLS_GENOMECOV_SCALE        } from "../modules/local/bedtools_genomecov_scale"           addParams( options: modules["bedtools_genomecov_bedgraph"]     )
-include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_name_peak_bed"]               )
-include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]                             )
-include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"]               )
-include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"                          addParams( options: modules["awk_frag_bin"]                    )
-include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"               addParams( options: modules["samtools_frag_len"]               )
-include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"        addParams( options: modules["calc_frip"]                       )
-include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main" addParams( options: modules["calc_peak_repro"]                 )
-include { EXPORT_META                     } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]                     )
-include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]                     )
-include { GENERATE_REPORTS                } from "../modules/local/python/generate_reports"            addParams( options: modules["generate_reports"]                )
-include { GET_SOFTWARE_VERSIONS           } from "../modules/local/get_software_versions"              addParams( options: [publish_files : ["csv":""]]               )
-include { MULTIQC                         } from "../modules/local/multiqc"                            addParams( options: multiqc_options                            )
+include { INPUT_CHECK                     } from "../subworkflows/local/input_check"                   addParams( options: [:]                          )
+include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_name_peak_bed"] )
+include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]               )
+include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"] )
+include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"                          addParams( options: modules["awk_frag_bin"]      )
+include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"               addParams( options: modules["samtools_frag_len"] )
+include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"        addParams( options: modules["calc_frip"]         )
+include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main" addParams( options: modules["calc_peak_repro"]   )
+include { EXPORT_META                     } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]       )
+include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]       )
+include { GENERATE_REPORTS                } from "../modules/local/python/generate_reports"            addParams( options: modules["generate_reports"]  )
+include { GET_SOFTWARE_VERSIONS           } from "../modules/local/get_software_versions"              addParams( options: [publish_files : ["csv":""]] )
+include { MULTIQC                         } from "../modules/local/multiqc"                            addParams( options: multiqc_options              )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -332,15 +330,18 @@ include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows
 /*
  * MODULES
  */
-include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"            addParams( options: modules["ucsc_bedclip"]          )
-include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"   addParams( options: modules["ucsc_bedgraphtobigwig"] )
-include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"          addParams( options: modules["seacr"]                 )
-include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"          addParams( options: modules["seacr"]                 )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_gene"]   )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]  )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]   )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]  )
-include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"   addParams( options: bedtools_intersect_options       )
+include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"               addParams( options: cat_fastq_options                      )
+include { BEDTOOLS_GENOMECOV                                       } from "../modules/nf-core/modules/bedtools/genomecov/main"      addParams( options: modules["bedtools_genomecov_bedgraph"] )
+include { BEDTOOLS_SORT                                            } from "../modules/nf-core/modules/bedtools/sort/main"           addParams( options: modules["sort_bedgraph"]               )
+include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"            addParams( options: modules["ucsc_bedclip"]                )
+include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"   addParams( options: modules["ucsc_bedgraphtobigwig"]       )
+include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"          addParams( options: modules["seacr"]                       )
+include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"          addParams( options: modules["seacr"]                       )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_gene"]         )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]        )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]         )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]        )
+include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"   addParams( options: bedtools_intersect_options             )
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -613,17 +614,27 @@ workflow CUTANDRUN {
         /*
         * MODULE: Convert bam files to bedgraph
         */
-        BEDTOOLS_GENOMECOV_SCALE (
-            ch_samtools_bam_scale
+        BEDTOOLS_GENOMECOV (
+            ch_samtools_bam_scale,
+            ch_dummy_file,
+            "bedgraph"
         )
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
-        //BEDTOOLS_GENOMECOV_SCALE.out.bedgraph | view
+        //BEDTOOLS_GENOMECOV.out.genomecov | view
+
+        /*
+        * MODULE: Sort bedgraph
+        */
+        BEDTOOLS_SORT (
+            BEDTOOLS_GENOMECOV.out.genomecov,
+            "bedgraph"
+        )
 
         /*
         * MODULE: Clip off bedgraphs so none overlap beyond chromosome edge
         */
         UCSC_BEDCLIP (
-            BEDTOOLS_GENOMECOV_SCALE.out.bedgraph,
+            BEDTOOLS_SORT.out.sort,
             PREPARE_GENOME.out.chrom_sizes
         )
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
@@ -643,7 +654,7 @@ workflow CUTANDRUN {
         /*
          * CHANNEL: Separate bedgraphs into target/control
          */
-        BEDTOOLS_GENOMECOV_SCALE.out.bedgraph.branch { it ->
+        BEDTOOLS_SORT.out.sort.branch { it ->
             target: it[0].group != "igg"
             control: it[0].group == "igg"
         }
