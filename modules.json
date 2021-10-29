@@ -15,6 +15,9 @@
             "bedtools/merge": {
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
             },
+            "bedtools/sort": {
+                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+            },
             "bowtie2/align": {
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
             },
