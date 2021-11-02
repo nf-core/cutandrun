@@ -35,7 +35,8 @@ peak_perc = 0
 print('Reading file')
 
 # Read file in using dask
-ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','overlap_1','key','a_name','b_name','count'], dtype={'overlap_1': 'float64'})
+ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','overlap_1','key','a_name','b_name','count'],
+    dtype={'chrom':str,'start':np.int64,'end':np.int64,'overlap_1':np.float64,'key':np.float64,'a_name':str,'b_name':str,'count':np.int64})
 
 # Find number of files
 numfiles = ddf_inter['b_name'].max().compute()
@@ -44,7 +45,8 @@ numfiles = ddf_inter['b_name'].max().compute()
 if isinstance(numfiles, str):
     print('Detected single file, reloading table')
     numfiles = 1
-    ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','overlap_1','overlap_2','key','name','count'], dtype={'overlap_1': 'float64', 'overlap_2': 'float64'})
+    ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','overlap_1','overlap_2','key','name','count'],
+        dtype={'chrom':str,'start':np.int64,'end':np.int64,'overlap_1':np.float64,'overlap_2':np.float64,'key':str,'name':str,'count':np.int64})
 
 print('Number of files: ' + str(numfiles))
 
