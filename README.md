@@ -76,13 +76,13 @@ The nf-core/cutandrun pipeline comes with documentation about the pipeline [usag
 
 ## Credits
 
-![The Francis Crick Institute](crick_logo.png)
-
 nf-core/cutandrun was originally written by Chris Cheshire ([@chris-cheshire](https://github.com/chris-cheshire)) and Charlotte West ([@charlotte-west](https://github.com/charlotte-west)) from [Luscombe Lab](https://www.crick.ac.uk/research/labs/nicholas-luscombe) at [The Francis Crick Institute](https://www.crick.ac.uk/), London, UK.
 
 The pipeline structure and parts of the downstream analysis were adapted from the original CUT&Tag analysis [protocol](https://yezhengstat.github.io/CUTTag_tutorial/) from the [Henikoff Lab](https://research.fredhutch.org/henikoff/en.html).
 
 We thank Harshil Patel ([@drpatelh](https://github.com/drpatelh)) and everyone in the Luscombe Lab ([@luslab](https://github.com/luslab)) for their extensive assistance in the development of this pipeline.
+
+<a href="https://www.crick.ac.uk/"><img src="docs/images/crick_logo.png" alt="The Francis Crick Institute" width="300"/></a>
 
 ## Contributions and Support
 
