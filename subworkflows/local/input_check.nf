@@ -4,9 +4,8 @@
 
 params.options = [:]
 
-include {
-    SAMPLESHEET_CHECK;
-    get_samplesheet_paths } from "../../modules/local/python/samplesheet_check" addParams( options: params.options )
+include { SAMPLESHEET_CHECK }     from "../../modules/local/python/samplesheet_check" addParams( options: params.options )
+include { get_samplesheet_paths } from "../../modules/local/python/samplesheet_check" addParams( options: params.options )
 
 workflow INPUT_CHECK {
     take:
