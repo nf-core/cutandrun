@@ -82,6 +82,8 @@ The pipeline structure and parts of the downstream analysis were adapted from th
 
 We thank Harshil Patel ([@drpatelh](https://github.com/drpatelh)) and everyone in the Luscombe Lab ([@luslab](https://github.com/luslab)) for their extensive assistance in the development of this pipeline.
 
+![[The Francis Crick Institute](https://www.crick.ac.uk/)](docs/images/crick_logo.png)
+
 ## Contributions and Support
 
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
