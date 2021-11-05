@@ -1,0 +1,44 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "https://raw.githubusercontent.com/nf-core/cutandrun/master/assets/schema_input.json",
+    "title": "nf-core/cutandrun pipeline - params.input schema",
+    "description": "Schema for the file provided with params.input",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "group": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Sample group must be provided and cannot contain spaces"
+            },
+            "replicate": {
+                "type": "integer",
+                "pattern": "^[0-9]*$",
+                "errorMessage": "Biological Replicate number within the group - technical replicates must have the same replicate number"
+            },
+            "control_group": {
+                "type": "integer",
+                "pattern": "^[0-9]*$",
+                "errorMessage": "Group ID that matches to the IgG control group (if provided) - otherwise set to 0"
+            },
+            "fastq_1": {
+                "type": "string",
+                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
+                "errorMessage": "FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+            },
+            "fastq_2": {
+                "type": "string",
+                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
+                "errorMessage": "FastQ file for reads 2 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+            }
+        },
+        "required": [
+            "sample",
+            "replicate",
+            "control_group",
+            "fastq_1",
+            "fastq_2"
+        ]
+    }
+}

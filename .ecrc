@@ -1,0 +1,3 @@
+{
+    "Exclude": ["README.md", "docs/output.md", "docs/usage.md", "\\.bed$", "conf/igenomes.config"]
+}

@@ -16,8 +16,12 @@
             "properties": {
                 "input": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/csv",
+                    "pattern": "^\\S+\\.csv$",
+                    "schema": "assets/schema_input.json",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location.",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re//usage#samplesheet-input).",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {
@@ -32,11 +36,92 @@
                     "fa_icon": "fas fa-envelope",
                     "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
+                },
+                "multiqc_title": {
+                    "type": "string",
+                    "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
+                    "fa_icon": "fas fa-file-signature"
+                },
+                "save_reference": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save reference data to output directory"
+                },
+                "save_merged_fastq": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save any technical replicates that were merged to output directory"
+                },
+                "save_trimmed": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save trimmed fastqs to output directory"
+                },
+                "save_spikein_aligned": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save bam files aligned to the spike-in genome to output directory"
+                },
+                "save_unaligned": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save unaligned sequences to output directory"
+                },
+                "save_align_intermed": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save alignment intermediates to output directory (WARNING: can be very large)"
+                },
+                "aligner": {
+                    "type": "string",
+                    "default": "bowtie2",
+                    "hidden": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Select aligner"
                 }
             }
         },
-        "reference_genome_options": {
-            "title": "Reference genome options",
+        "trimming_options": {
+            "title": "Trimming Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "clip_r1": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "clip_r2": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "three_prime_clip_r1": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "three_prime_clip_r2": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "trim_nextseq": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                }
+            },
+            "fa_icon": "fas fa-cut"
+        },
+        "reference_data_options": {
+            "title": "Reference data options",
             "type": "object",
             "fa_icon": "fas fa-dna",
             "description": "Reference genome related files and options required for the workflow.",
@@ -47,16 +132,51 @@
                     "fa_icon": "fas fa-book",
                     "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`. \n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
                 },
+                "bowtie2": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to bowtie2 index"
+                },
+                "gtf": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to GTF annotation file"
+                },
+                "blacklist": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to genome blacklist"
+                },
+                "spikein_genome": {
+                    "type": "string",
+                    "default": "K12-MG1655",
+                    "fa_icon": "fas fa-book",
+                    "description": "Name of the igenome reference for the spike-in genome"
+                },
+                "spikein_bowtie2": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to spike-in bowtie2 index"
+                },
+                "spikein_fasta": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to spike-in fasta"
+                },
                 "fasta": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "description": "Path to FASTA genome file.",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified.",
+                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
                     "fa_icon": "far fa-file-code"
                 },
                 "igenomes_base": {
                     "type": "string",
+                    "format": "directory-path",
                     "description": "Directory / URL base for iGenomes references.",
-                    "default": "s3://ngi-igenomes/igenomes/",
+                    "default": "s3://ngi-igenomes/igenomes",
                     "fa_icon": "fas fa-cloud-download-alt",
                     "hidden": true
                 },
@@ -68,6 +188,140 @@
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
                 }
             }
+        },
+        "pipeline_options": {
+            "title": "Pipeline Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "minimum_alignment_q_score": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-sort-numeric-down",
+                    "description": "Filter reads below a q-score threshold"
+                },
+                "dedup_target_reads": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-clone",
+                    "description": "Deduplicate non-control reads"
+                },
+                "normalisation_c": {
+                    "type": "integer",
+                    "default": 10000,
+                    "hidden": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Normalisation constant"
+                },
+                "igg_control": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies if the samplesheet contains an IgG control"
+                },
+                "peak_threshold": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Threshold for peak calling when no IgG is present"
+                },
+                "gene_bed": {
+                    "type": "string",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Path to gene bed file"
+                },
+                "replicate_threshold": {
+                    "type": "integer",
+                    "default": 1,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Minimum number of overlapping replicates needed for a consensus peak"
+                }
+            },
+            "fa_icon": "fas fa-cog"
+        },
+        "flow_switching_options": {
+            "title": "Flow switching options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "only_genome": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to reference preparation"
+                },
+                "only_input": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to input checking"
+                },
+                "only_preqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to pre-alignment"
+                },
+                "only_alignment": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to alignment"
+                },
+                "only_filtering": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to q-filtering"
+                },
+                "only_peak_calling": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Run pipeline up to peak calling"
+                },
+                "skip_fastqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips fastqc reporting"
+                },
+                "skip_trimming": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips trimming"
+                },
+                "skip_removeduplicates": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips de-duplication"
+                },
+                "skip_scale": {
+                    "type": "boolean",
+                    "description": "Skips scalefactor normalisation",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "skip_reporting": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips reporting"
+                },
+                "skip_igv": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips igv session generation"
+                },
+                "skip_heatmaps": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips deeptools heatmaps"
+                },
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skips multiqc"
+                },
+                "skip_upset_plots": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Skip upset plot calculation"
+                }
+            },
+            "fa_icon": "fas fa-exchange-alt"
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -94,6 +348,12 @@
                 "hostnames": {
                     "type": "string",
                     "description": "Institutional configs hostname.",
+                    "hidden": true,
+                    "fa_icon": "fas fa-users-cog"
+                },
+                "config_profile_name": {
+                    "type": "string",
+                    "description": "Institutional config name.",
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
                 },
@@ -137,6 +397,7 @@
                     "description": "Maximum amount of memory that can be requested for any single job.",
                     "default": "128.GB",
                     "fa_icon": "fas fa-memory",
+                    "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
                     "hidden": true,
                     "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
                 },
@@ -145,6 +406,7 @@
                     "description": "Maximum amount of time that can be requested for any single job.",
                     "default": "240.h",
                     "fa_icon": "far fa-clock",
+                    "pattern": "^(\\d+\\.?\\s*(s|m|h|day)\\s*)+$",
                     "hidden": true,
                     "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
                 }
@@ -193,11 +455,12 @@
                     "fa_icon": "fas fa-remove-format",
                     "hidden": true
                 },
-                "tracedir": {
+                "max_multiqc_email_size": {
                     "type": "string",
-                    "description": "Directory to keep pipeline Nextflow logs and reports.",
-                    "default": "${params.outdir}/pipeline_info",
-                    "fa_icon": "fas fa-cogs",
+                    "description": "File size limit when attaching MultiQC reports to summary emails.",
+                    "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
+                    "default": "25.MB",
+                    "fa_icon": "fas fa-file-upload",
                     "hidden": true
                 },
                 "monochrome_logs": {
@@ -206,28 +469,32 @@
                     "fa_icon": "fas fa-palette",
                     "hidden": true
                 },
-                "skip_multiqc": {
-                    "type": "boolean",
-                    "description": "Skip MultiQC.",
-                    "fa_icon": "fas fa-fast-forward"
-                },
                 "multiqc_config": {
                     "type": "string",
                     "description": "Custom config file to supply to MultiQC.",
                     "fa_icon": "fas fa-cog",
                     "hidden": true
                 },
-                "multiqc_title": {
+                "tracedir": {
                     "type": "string",
-                    "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
-                    "fa_icon": "fas fa-file-signature"
-                },
-                "max_multiqc_email_size": {
-                    "type": "string",
-                    "description": "File size limit when attaching MultiQC reports to summary emails.",
-                    "default": "25.MB",
-                    "fa_icon": "fas fa-file-upload",
+                    "description": "Directory to keep pipeline Nextflow logs and reports.",
+                    "default": "${params.outdir}/pipeline_info",
+                    "fa_icon": "fas fa-cogs",
                     "hidden": true
+                },
+                "validate_params": {
+                    "type": "boolean",
+                    "description": "Boolean whether to validate parameters against the schema at runtime",
+                    "default": true,
+                    "fa_icon": "fas fa-check-square",
+                    "hidden": true
+                },
+                "show_hidden_params": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-eye-slash",
+                    "description": "Show all params when using `--help`",
+                    "hidden": true,
+                    "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
                 },
                 "enable_conda": {
                     "type": "boolean",
@@ -250,7 +517,16 @@
             "$ref": "#/definitions/input_output_options"
         },
         {
-            "$ref": "#/definitions/reference_genome_options"
+            "$ref": "#/definitions/trimming_options"
+        },
+        {
+            "$ref": "#/definitions/reference_data_options"
+        },
+        {
+            "$ref": "#/definitions/pipeline_options"
+        },
+        {
+            "$ref": "#/definitions/flow_switching_options"
         },
         {
             "$ref": "#/definitions/institutional_config_options"

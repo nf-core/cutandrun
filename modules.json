@@ -1,0 +1,77 @@
+{
+    "name": "nf-core/cutandrun",
+    "homePage": "https://github.com/nf-core/cutandrun",
+    "repos": {
+        "nf-core/modules": {
+            "bedtools/bamtobed": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "bedtools/genomecov": {
+                "git_sha": "e8b33e6eb1be2a03abdd2c06068f9a5cebc02bb4"
+            },
+            "bedtools/intersect": {
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+            },
+            "bedtools/merge": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "bedtools/sort": {
+                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+            },
+            "bowtie2/align": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "bowtie2/build": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "cat/fastq": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "deeptools/computematrix": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "deeptools/plotheatmap": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "fastqc": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "gunzip": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "picard/markduplicates": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "samtools/flagstat": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "samtools/idxstats": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "samtools/index": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "samtools/sort": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "samtools/stats": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "samtools/view": {
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+            },
+            "seacr/callpeak": {
+                "git_sha": "4d89d6b2f0c478ac7ef80ece5cad44fdf7ffd614"
+            },
+            "ucsc/bedclip": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "ucsc/bedgraphtobigwig": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            },
+            "untar": {
+                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+            }
+        }
+    }
+}

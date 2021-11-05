@@ -3,7 +3,15 @@ work/
 data/
 results/
 .DS_Store
-tests/
 testing/
 testing*
 *.pyc
+
+.local
+.config
+.bash_history
+
+R_sessionInfo.log
+
+.vscode/
+profile.svg
