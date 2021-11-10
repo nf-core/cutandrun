@@ -19,23 +19,30 @@ workflow CONSENSUS_PEAKS {
     bed //  channel: [ val(meta), [ bed ], count]
 
     main:
+    ch_versions = Channel.empty()
 
     // Sort bed files
     SORT ( bed )
+    ch_versions = ch_versions.mix(SORT.out.versions)
+
 
     // Merge peaks
     BEDTOOLS_MERGE ( SORT.out.file )
+    ch_versions = ch_versions.mix(BEDTOOLS_MERGE.out.versions)
 
     // Filter peaks on minimum replicate consensus
     AWK ( BEDTOOLS_MERGE.out.bed )
+    ch_versions = ch_versions.mix(AWK.out.versions)
 
     // Plot consensus peak sets
     if(params.run_peak_plotting) {
         PLOT_CONSENSUS_PEAKS ( BEDTOOLS_MERGE.out.bed.collect{it[1]}.ifEmpty([]) )
+        ch_versions = ch_versions.mix(PLOT_CONSENSUS_PEAKS.out.versions)
+
     }
 
     emit:
     bed               = BEDTOOLS_MERGE.out.bed        // channel: [ val(meta), [ bed ] ]
     filtered_bed      = AWK.out.file                  // channel: [ val(meta), [ bed ] ]
-    bedtools_versions = BEDTOOLS_MERGE.out.versions   // path: *.version.txt
+    versions          = ch_versions                   // channel: [ versions.yml       ]
 }

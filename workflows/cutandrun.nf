@@ -761,6 +761,8 @@ workflow CUTANDRUN {
         CONSENSUS_PEAKS_ALL (
             ch_seacr_bed_all
         )
+        ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
+
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //CONSENSUS_PEAKS_ALL.out.bed | view
 
@@ -793,6 +795,8 @@ workflow CUTANDRUN {
         CONSENSUS_PEAKS (
             ch_seacr_bed_group
         )
+        ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
+
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //CONSENSUS_PEAKS.out.bed | view
 
