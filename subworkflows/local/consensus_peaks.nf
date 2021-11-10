@@ -23,8 +23,6 @@ workflow CONSENSUS_PEAKS {
 
     // Sort bed files
     SORT ( bed )
-    ch_versions = ch_versions.mix(SORT.out.versions)
-
 
     // Merge peaks
     BEDTOOLS_MERGE ( SORT.out.file )
