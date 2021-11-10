@@ -33,7 +33,7 @@ process SAMTOOLS_CUSTOMVIEW {
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:
-        ${getSoftwareName(task.process)}: \$(samtools --version 2>&1 | sed 's/^.*samtools //; s/Using.*\$//')
+        ${getSoftwareName(task.process)}: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
     END_VERSIONS
     """
 }
