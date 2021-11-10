@@ -421,8 +421,8 @@ workflow CUTANDRUN {
             params.skip_trimming
         )
         ch_trimmed_reads     = FASTQC_TRIMGALORE.out.reads
-        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_versions.first().ifEmpty(null))
-        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_versions.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_versions)
+        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //FASTQC_TRIMGALORE.out.reads | view
@@ -452,7 +452,7 @@ workflow CUTANDRUN {
                 PREPARE_GENOME.out.bowtie2_index,
                 PREPARE_GENOME.out.bowtie2_spikein_index
             )
-            ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.bowtie2_versions.first().ifEmpty(null))
+            ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.bowtie2_versions)
             ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
             ch_orig_spikein_bam           = ALIGN_BOWTIE2.out.orig_spikein_bam
             ch_bowtie2_log                = ALIGN_BOWTIE2.out.bowtie2_log
@@ -505,7 +505,7 @@ workflow CUTANDRUN {
         ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
         ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
         ch_markduplicates_metrics = MARK_DUPLICATES_PICARD.out.metrics
-        ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_versions.first().ifEmpty(null))
+        ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
@@ -640,7 +640,7 @@ workflow CUTANDRUN {
             UCSC_BEDCLIP.out.bedgraph,
             PREPARE_GENOME.out.chrom_sizes
         )
-        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions)
         //EXAMPLE CHANNEL STRUCT: [[META], BIGWIG]
         //UCSC_BEDGRAPHTOBIGWIG.out.bigwig | view
 
@@ -692,7 +692,7 @@ workflow CUTANDRUN {
                 params.peak_threshold
             )
             ch_seacr_bed = SEACR_CALLPEAK.out.bed
-            //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions.first().ifEmpty(null))
+            //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //SEACR_CALLPEAK.out.bed | view
         }
@@ -714,7 +714,7 @@ workflow CUTANDRUN {
                 params.peak_threshold
             )
             ch_seacr_bed = SEACR_CALLPEAK_NOIGG.out.bed
-            //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.version.first().ifEmpty(null))
+            //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.versions)
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //SEACR_NO_IGG.out.bed | view
         }
@@ -801,7 +801,7 @@ workflow CUTANDRUN {
         CALCULATE_FRAGMENTS (
             ch_samtools_bam
         )
-        ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.bedtools_versions.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.bedtools_versions)
         //EXAMPLE CHANNEL STRUCT: NO CHANGE
         //CALCULATE_FRAGMENTS.out.bed | view
 
@@ -898,7 +898,7 @@ workflow CUTANDRUN {
                 ch_bigwig_no_igg,
                 PREPARE_GENOME.out.bed
             )
-            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions.first().ifEmpty(null))
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions)
 
             /*
             * MODULE: Calculate DeepTools heatmap
@@ -1030,7 +1030,7 @@ workflow CUTANDRUN {
             ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
         )
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
-        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions)
     }
 
     /*
