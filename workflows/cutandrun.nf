@@ -538,13 +538,16 @@ workflow CUTANDRUN {
             ch_bowtie2_log,
             ch_bt2_to_csv_awk
         )
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
 
         ANNOTATE_BT2_SPIKEIN_META (
             ANNOTATE_BT2_META.out.output,
             ch_bowtie2_spikein_log,
             ch_bt2_to_csv_awk
         )
-        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
+        ch_samtools_bam      = ANNOTATE_BT2_SPIKEIN_META.out.output
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
+
     }
     // META-DATA example state:
     //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
@@ -562,7 +565,9 @@ workflow CUTANDRUN {
             ch_markduplicates_metrics,
             ch_dummy_file.collect()
         )
-        ch_samtools_bam = ANNOTATE_DEDUP_META.out.output
+        ch_samtools_bam      = ANNOTATE_DEDUP_META.out.output
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_DEDUP_META.out.versions)
+
     }
     //EXAMPLE CHANNEL STRUCT: [[META + dedup_library:unknown library, dedup_unpaired_reads_examined:0, dedup_read_pairs_examined:350, dedup_secondary_or_supplementary_rds:0,
     // dedup_unmapped_reads:0, dedup_unpaired_read_duplicates:0, dedup_read_pair_duplicates:0, dedup_read_pair_optical_duplicates:0, dedup_percent_duplication:0,
