@@ -971,7 +971,6 @@ workflow CUTANDRUN {
         )
         ch_samtools_bam_ctrl = ch_samtools_bam
         ch_samtools_bam      = ANNOTATE_FRIP_META.out.output
-        ch_software_versions = ch_software_versions.mix(ANNOTATE_FRIP_META.out.versions)
         //ch_samtools_bam | view
 
         /*
