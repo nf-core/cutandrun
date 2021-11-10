@@ -20,22 +20,27 @@ workflow CALCULATE_FRAGMENTS {
     bam // channel: [ val(meta), [ bam ] ]
 
     main:
+    ch_versions = Channel.empty()
 
     /*
      * Filter BAM file
      */
     SAMTOOLS_VIEW ( bam )
+    ch_versions = ch_versions.mix(SAMTOOLS_VIEW.out.versions)
 
     /*
     * Sort BAM file
     */
     SAMTOOLS_SORT ( SAMTOOLS_VIEW.out.bam )
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
 
     // Convert to bed file
     BEDTOOLS_BAMTOBED ( SAMTOOLS_SORT.out.bam  )
+    ch_versions = ch_versions.mix(BEDTOOLS_BAMTOBED.out.versions)
 
     // Keep the read pairs that are on the same chromosome and fragment length less than 1000bp.
     AWK ( BEDTOOLS_BAMTOBED.out.bed  )
+    ch_versions = ch_versions.mix(AWK.out.versions)
 
     // Only extract the fragment related columns
     CUT ( AWK.out.file )
@@ -44,7 +49,5 @@ workflow CALCULATE_FRAGMENTS {
     bed              = CUT.out.file                   // channel: [ val(meta), [ bed ] ]
     bam              = SAMTOOLS_SORT.out.bam          // channel: [ val(meta), [ bam ] ]
 
-    samtools_versions = SAMTOOLS_SORT.out.versions      //    path: *.version.txt
-    bedtools_versions = BEDTOOLS_BAMTOBED.out.versions  //    path: *.version.txt
-    awk_versions      = AWK.out.versions                //    path: *.version.txt
+    versions         = ch_versions                    // channel: [ versions.yml ]
 }

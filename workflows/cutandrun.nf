@@ -806,7 +806,7 @@ workflow CUTANDRUN {
         CALCULATE_FRAGMENTS (
             ch_samtools_bam
         )
-        ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.bedtools_versions)
+        ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.versions)
         //EXAMPLE CHANNEL STRUCT: NO CHANGE
         //CALCULATE_FRAGMENTS.out.bed | view
 
