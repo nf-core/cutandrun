@@ -1020,7 +1020,6 @@ workflow CUTANDRUN {
             CALCULATE_PEAK_REPROD.out.csv
         )
         ch_samtools_bam = ANNOTATE_PEAK_REPRO_META.out.output
-        ch_software_versions = ch_software_versions.mix(ANNOTATE_PEAK_REPRO_META.out.versions)
         //ch_samtools_bam | view
 
         /*
