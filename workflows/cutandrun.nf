@@ -421,8 +421,7 @@ workflow CUTANDRUN {
             params.skip_trimming
         )
         ch_trimmed_reads     = FASTQC_TRIMGALORE.out.reads
-        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_versions)
-        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_versions)
+        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //FASTQC_TRIMGALORE.out.reads | view
