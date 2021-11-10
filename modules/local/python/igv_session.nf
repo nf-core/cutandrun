@@ -23,7 +23,7 @@ process IGV_SESSION {
 
     output:
     path('*.{txt,xml,bed,bigWig,fa,gtf}', includeInputs:true)
-    path  "versions.yml"     , emit: versions
+    path  "versions.yml"                , emit: versions
 
 
     script:
