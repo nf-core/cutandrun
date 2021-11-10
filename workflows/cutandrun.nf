@@ -721,7 +721,8 @@ workflow CUTANDRUN {
                 ch_bedgraph_target_fctrl,
                 params.peak_threshold
             )
-            ch_seacr_bed = SEACR_CALLPEAK_NOIGG.out.bed
+            ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
+            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
             //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.versions)
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //SEACR_NO_IGG.out.bed | view
@@ -733,6 +734,7 @@ workflow CUTANDRUN {
         AWK_NAME_PEAK_BED (
             ch_seacr_bed
         )
+        ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //AWK_NAME_PEAK_BED.out.file | view
 
@@ -843,6 +845,7 @@ workflow CUTANDRUN {
         SAMTOOLS_CUSTOMVIEW (
             ch_bam_bai
         )
+        ch_software_versions = ch_software_versions.mix(SAMTOOLS_CUSTOMVIEW.out.versions)
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
     }
 
@@ -865,6 +868,7 @@ workflow CUTANDRUN {
                 ch_seacr_bed.collect{it[1]}.ifEmpty([]),
                 UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
             )
+            ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
         if (run_deep_tools){
@@ -874,6 +878,7 @@ workflow CUTANDRUN {
             AWK_EDIT_PEAK_BED (
                 ch_seacr_bed
             )
+            ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
             //AWK_EDIT_PEAK_BED.out.file | view
 
             /*
@@ -918,7 +923,7 @@ workflow CUTANDRUN {
             DEEPTOOLS_PLOTHEATMAP_GENE (
                 DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
             )
-
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
@@ -955,6 +960,7 @@ workflow CUTANDRUN {
         CALCULATE_FRIP (
             ch_bam_bai_bed
         )
+        ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
 
         /*
         * SUBWORKFLOW: Annotate meta-data with frip stats
@@ -964,7 +970,8 @@ workflow CUTANDRUN {
             CALCULATE_FRIP.out.frips
         )
         ch_samtools_bam_ctrl = ch_samtools_bam
-        ch_samtools_bam = ANNOTATE_FRIP_META.out.output
+        ch_samtools_bam      = ANNOTATE_FRIP_META.out.output
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_FRIP_META.out.versions)
         //ch_samtools_bam | view
 
         /*
@@ -992,6 +999,7 @@ workflow CUTANDRUN {
             ch_beds_intersect,
             "bed"
         )
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_INTERSECT.out.versions)
         //EXAMPLE CHANNEL STRUCT: [[META], BED]
         //BEDTOOLS_INTERSECT.out.intersect | view
 
@@ -1001,6 +1009,7 @@ workflow CUTANDRUN {
         CALCULATE_PEAK_REPROD (
             BEDTOOLS_INTERSECT.out.intersect
         )
+        ch_software_versions = ch_software_versions.mix(CALCULATE_PEAK_REPROD.out.versions)
         //EXAMPLE CHANNEL STRUCT: [[META], CSV]
         //CALCULATE_PEAK_REPROD.out.csv
 
@@ -1012,6 +1021,7 @@ workflow CUTANDRUN {
             CALCULATE_PEAK_REPROD.out.csv
         )
         ch_samtools_bam = ANNOTATE_PEAK_REPRO_META.out.output
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_PEAK_REPRO_META.out.versions)
         //ch_samtools_bam | view
 
         /*
