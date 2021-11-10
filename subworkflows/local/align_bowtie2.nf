@@ -9,8 +9,8 @@ params.samtools_spikein_options = [:]
 
 include { BOWTIE2_ALIGN                                  } from "../../modules/nf-core/modules/bowtie2/align/main" addParams( options: params.align_options, save_unaligned: params.save_unaligned                              )
 include { BOWTIE2_ALIGN as BOWTIE2_SPIKEIN_ALIGN         } from "../../modules/nf-core/modules/bowtie2/align/main" addParams( options: params.spikein_align_options, save_unaligned: false                                      )
-include { BAM_SORT_SAMTOOLS                              } from "../nf-core/bam_sort_samtools"                      addParams( samtools_sort_options: params.samtools_options, options: params.samtools_options                  )
-include { BAM_SORT_SAMTOOLS as BAM_SORT_SAMTOOLS_SPIKEIN } from "../nf-core/bam_sort_samtools"                      addParams( samtools_sort_options: params.samtools_spikein_options, options: params.samtools_spikein_options  )
+include { BAM_SORT_SAMTOOLS                              } from "../nf-core/bam_sort_samtools"                     addParams( samtools_sort_options: params.samtools_options, options: params.samtools_options                  )
+include { BAM_SORT_SAMTOOLS as BAM_SORT_SAMTOOLS_SPIKEIN } from "../nf-core/bam_sort_samtools"                     addParams( samtools_sort_options: params.samtools_spikein_options, options: params.samtools_spikein_options  )
 
 workflow ALIGN_BOWTIE2 {
     take:
@@ -19,10 +19,13 @@ workflow ALIGN_BOWTIE2 {
     spikein_index // channel: /path/to/bowtie2/spikein/index/
 
     main:
+    ch_versions = Channel.empty()
+
     /*
      * Map reads with BOWTIE2 to target genome
      */
     BOWTIE2_ALIGN ( reads, index )
+    ch_versions = ch_versions.mix(BOWTIE2_ALIGN.out.versions)
 
     /*
      * Map reads with BOWTIE2 to spike-in genome
@@ -33,11 +36,12 @@ workflow ALIGN_BOWTIE2 {
      * Sort, index BAM file and run samtools stats, flagstat and idxstats
      */
     BAM_SORT_SAMTOOLS         ( BOWTIE2_ALIGN.out.bam         )
+    ch_versions = ch_versions.mix(BAM_SORT_SAMTOOLS.out.versions)
+
     BAM_SORT_SAMTOOLS_SPIKEIN ( BOWTIE2_SPIKEIN_ALIGN.out.bam )
 
     emit:
-    bowtie2_versions     = BOWTIE2_ALIGN.out.versions             // path: *.version.txt
-    samtools_versions    = BAM_SORT_SAMTOOLS.out.versions         // path: *.version.txt
+    versions             = ch_versions                            // channel: [ versions.yml ]
 
     orig_bam             = BOWTIE2_ALIGN.out.bam                  // channel: [ val(meta), bam ]
     orig_spikein_bam     = BOWTIE2_SPIKEIN_ALIGN.out.bam          // channel: [ val(meta), bam ]
