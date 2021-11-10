@@ -378,7 +378,6 @@ workflow CUTANDRUN {
         INPUT_CHECK (
             ch_input
         )
-        ch_software_versions = ch_software_versions.mix(INPUT_CHECK.out.versions)
         
         INPUT_CHECK.out.reads
             .map {
