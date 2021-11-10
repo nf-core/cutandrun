@@ -23,11 +23,14 @@ workflow PREPARE_GENOME {
     prepare_tool_indices // list: tools to prepare indices for
 
     main:
+    ch_versions = Channel.empty()
+
     /*
     * Uncompress genome fasta file if required
     */
     if (params.fasta.endsWith(".gz")) {
-        ch_fasta = GUNZIP_FASTA ( params.fasta ).gunzip
+        ch_fasta    = GUNZIP_FASTA ( params.fasta ).gunzip
+        ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
         ch_fasta = file(params.fasta)
     }
@@ -37,6 +40,7 @@ workflow PREPARE_GENOME {
     */
     if (params.spikein_fasta.endsWith(".gz")) {
         ch_spikein_fasta = GUNZIP_SPIKEIN_FASTA ( params.spikein_fasta ).gunzip
+        ch_versions      = ch_versions.mix(GUNZIP_SPIKEIN_FASTA.out.versions)
     } else {
         ch_spikein_fasta = file(params.spikein_fasta)
     }
@@ -46,7 +50,8 @@ workflow PREPARE_GENOME {
     */
     ch_gtf = Channel.empty()
     if (params.gtf.endsWith(".gz")) {
-        ch_gtf = GUNZIP_GTF ( params.gtf ).gunzip
+        ch_gtf      = GUNZIP_GTF ( params.gtf ).gunzip
+        ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
     } else {
         ch_gtf = file(params.gtf)
     }
@@ -58,6 +63,7 @@ workflow PREPARE_GENOME {
     if (params.gene_bed){
         if (params.gene_bed.endsWith(".gz")) {
             ch_gene_bed = GUNZIP_BED ( params.gene_bed ).gunzip
+            ch_versions = ch_versions.mix(GUNZIP_BED.out.versions)
         } else {
             ch_gene_bed = file(params.gene_bed)
         }
@@ -67,6 +73,8 @@ workflow PREPARE_GENOME {
     * Create chromosome sizes file
     */
     ch_chrom_sizes = GET_CHROM_SIZES ( ch_fasta ).sizes
+    ch_versions    = ch_versions.mix(GET_CHROM_SIZES.out.versions)
+
 
     /*
     * Create chromosome sizes file for spike_in
@@ -83,22 +91,25 @@ workflow PREPARE_GENOME {
         if (params.bowtie2) {
             if (params.bowtie2.endsWith(".tar.gz")) {
                 ch_bt2_index = UNTAR_BT2_INDEX ( params.bowtie2 ).untar
+                ch_versions  = ch_versions.mix(UNTAR_BT2_INDEX.out.versions)
             } else {
                 ch_bt2_index = file(params.bowtie2)
             }
         } else {
-            ch_bt2_index   = BOWTIE2_BUILD ( ch_fasta ).index
-            ch_bt2_versions = BOWTIE2_BUILD.out.versions
+            ch_bt2_index = BOWTIE2_BUILD ( ch_fasta ).index
+            ch_versions  = ch_versions.mix(BOWTIE2_BUILD.out.versions)
         }
 
         if (params.spikein_bowtie2) {
             if (params.spikein_bowtie2.endsWith(".tar.gz")) {
                 ch_bt2_spikein_index = UNTAR_SPIKEIN_BT2_INDEX ( params.spikein_bowtie2 ).untar
+                ch_versions          = ch_versions.mix(UNTAR_SPIKEIN_BT2_INDEX.out.versions)
             } else {
                 ch_bt2_spikein_index = file(params.spikein_bowtie2)
             }
         } else {
-            ch_bt2_spikein_index   = BOWTIE2_SPIKEIN_BUILD ( ch_spikein_fasta ).index
+            ch_bt2_spikein_index = BOWTIE2_SPIKEIN_BUILD ( ch_spikein_fasta ).index
+            ch_versions          = ch_versions.mix(BOWTIE2_SPIKEIN_BUILD.out.versions)
         }
     }
 
@@ -110,6 +121,6 @@ workflow PREPARE_GENOME {
     bed                    = ch_gene_bed                 // path: genome.bed
     bowtie2_index          = ch_bt2_index                // path: bt2/index/
     bowtie2_spikein_index  = ch_bt2_spikein_index        // path: bt2/index/
-    bowtie2_versions       = ch_bt2_versions              // path: *.version.txt
-    samtools_versions      = GET_CHROM_SIZES.out.versions // path: *.version.txt
+    
+    versions               = ch_versions                 // channel: [ versions.yml ]
 }

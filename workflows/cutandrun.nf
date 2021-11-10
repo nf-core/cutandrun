@@ -368,8 +368,7 @@ workflow CUTANDRUN {
         PREPARE_GENOME (
             prepare_tool_indices
         )
-        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.bowtie2_versions)
-        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.samtools_versions)
+        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.versions)
     }
 
     /*
