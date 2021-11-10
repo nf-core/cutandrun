@@ -546,7 +546,7 @@ workflow CUTANDRUN {
             ch_bt2_to_csv_awk
         )
         ch_samtools_bam      = ANNOTATE_BT2_SPIKEIN_META.out.output
-        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_SPIKEIN_META.out.versions)
 
     }
     // META-DATA example state:
