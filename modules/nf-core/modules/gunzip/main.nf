@@ -22,7 +22,7 @@ process GUNZIP {
     path archive
 
     output:
-    path "$gunzip",       emit: gunzip
+    path "$gunzip"      , emit: gunzip
     path "versions.yml" , emit: versions
 
     script:
