@@ -36,8 +36,8 @@ workflow ALIGN_BOWTIE2 {
     BAM_SORT_SAMTOOLS_SPIKEIN ( BOWTIE2_SPIKEIN_ALIGN.out.bam )
 
     emit:
-    bowtie2_versions     = BOWTIE2_ALIGN.out.versions              // path: *.version.txt
-    samtools_versions    = BAM_SORT_SAMTOOLS.out.versions          // path: *.version.txt
+    bowtie2_versions     = BOWTIE2_ALIGN.out.versions             // path: *.version.txt
+    samtools_versions    = BAM_SORT_SAMTOOLS.out.versions         // path: *.version.txt
 
     orig_bam             = BOWTIE2_ALIGN.out.bam                  // channel: [ val(meta), bam ]
     orig_spikein_bam     = BOWTIE2_SPIKEIN_ALIGN.out.bam          // channel: [ val(meta), bam ]
