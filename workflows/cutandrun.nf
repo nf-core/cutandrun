@@ -378,6 +378,7 @@ workflow CUTANDRUN {
         INPUT_CHECK (
             ch_input
         )
+        ch_software_versions = ch_software_versions.mix(INPUT_CHECK.out.versions)
         
         INPUT_CHECK.out.reads
             .map {
@@ -402,6 +403,7 @@ workflow CUTANDRUN {
         CAT_FASTQ (
             ch_fastq.multiple
         )
+        ch_software_versions = ch_software_versions.mix(CAT_FASTQ.out.versions)
 
         CAT_FASTQ.out.reads
             .mix(ch_fastq.single)
@@ -485,6 +487,7 @@ workflow CUTANDRUN {
         ch_samtools_stats         = SAMTOOLS_VIEW_SORT_STATS.out.stats
         ch_samtools_flagstat      = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
         ch_samtools_idxstats      = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
+        ch_software_versions      = ch_software_versions.mix(SAMTOOLS_VIEW_SORT_STATS.out.versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
@@ -545,8 +548,6 @@ workflow CUTANDRUN {
             ch_bt2_to_csv_awk
         )
         ch_samtools_bam      = ANNOTATE_BT2_SPIKEIN_META.out.output
-        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_SPIKEIN_META.out.versions)
-
     }
     // META-DATA example state:
     //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
@@ -624,6 +625,7 @@ workflow CUTANDRUN {
         BEDTOOLS_GENOMECOV_SCALE (
             ch_samtools_bam_scale
         )
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_GENOMECOV_SCALE.out.versions)
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
         //BEDTOOLS_GENOMECOV_SCALE.out.bedgraph | view
 
@@ -634,6 +636,7 @@ workflow CUTANDRUN {
             BEDTOOLS_GENOMECOV_SCALE.out.bedgraph,
             PREPARE_GENOME.out.chrom_sizes
         )
+        ch_software_versions = ch_software_versions.mix(UCSC_BEDCLIP.out.versions)
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
         //UCSC_BEDCLIP.out.bedgraph | view
 
@@ -695,7 +698,8 @@ workflow CUTANDRUN {
                 ch_bedgraph_paired,
                 params.peak_threshold
             )
-            ch_seacr_bed = SEACR_CALLPEAK.out.bed
+            ch_seacr_bed         = SEACR_CALLPEAK.out.bed
+            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
             //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //SEACR_CALLPEAK.out.bed | view

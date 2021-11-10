@@ -25,7 +25,7 @@ process AWK {
 
     output:
     tuple val(meta), path("*.awk.*"), emit: file
-    path  "versions.yml"              , emit: versions
+    path  "versions.yml"            , emit: versions
     
     script:
     def software = getSoftwareName(task.process)
