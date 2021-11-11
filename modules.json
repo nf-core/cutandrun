@@ -16,7 +16,7 @@
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "bedtools/sort": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "2959b4ba070d138d1577acc48d35cc669fbef972"
             },
             "bowtie2/align": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
