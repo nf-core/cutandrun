@@ -22,9 +22,10 @@ process CUSTOM_DUMPSOFTWAREVERSIONS {
     path versions
 
     output:
-    path "software_versions.yml"    , emit: yml
-    path "software_versions_mqc.yml", emit: mqc_yml
-    path "versions.yml"             , emit: versions
+    path "software_versions.yml"           , emit: yml
+    path "software_versions_mqc.yml"       , emit: mqc_yml
+    path "software_versions_unique_mqc.yml", emit: mqc_unique_yml
+    path "local_versions.yml"              , emit: versions
 
     script:
     """
@@ -72,6 +73,53 @@ process CUSTOM_DUMPSOFTWAREVERSIONS {
         html.append("</table>")
         return "\\n".join(html)
 
+    def _make_versions_unique_html(versions):
+        unique_versions = []
+
+        for process, tmp_versions in sorted(versions.items()):
+            for i, (tool, version) in enumerate(sorted(tmp_versions.items())):
+                tool_version = tool + "=" + version
+                if tool_version not in unique_versions:
+                    unique_versions.append(tool_version)
+
+        unique_versions.sort()
+
+        html = [
+            dedent(
+                '''\\
+                <style>
+                #nf-core-versions-unique tbody:nth-child(even) {
+                    background-color: #f2f2f2;
+                }
+                </style>
+                <table class="table" style="width:100%" id="nf-core-versions-unique">
+                    <thead>
+                        <tr>
+                            <th> Software </th>
+                            <th> Version  </th>
+                        </tr>
+                    </thead>
+                '''
+            )
+        ]
+
+        for tool_version in unique_versions:
+            tool_version_split = tool_version.split('=')
+            html.append("<tbody>")
+            html.append(
+                dedent(
+                    f'''\\
+                    <tr>
+                        <td><samp>{tool_version_split[0]}</samp></td>
+                        <td><samp>{tool_version_split[1]}</samp></td>
+                    </tr>
+                    '''
+                )
+            )
+            html.append("</tbody>")
+        html.append("</table>")
+        return "\\n".join(html)
+
     module_versions = {}
     module_versions["${getProcessName(task.process)}"] = {
         'python': platform.python_version(),
@@ -88,19 +136,32 @@ process CUSTOM_DUMPSOFTWAREVERSIONS {
 
     versions_mqc = {
         'id': 'software_versions',
-        'section_name': '${workflow.manifest.name} Software Versions',
+        'section_name': '${workflow.manifest.name} Software Versions by Process',
         'section_href': 'https://github.com/${workflow.manifest.name}',
         'plot_type': 'html',
         'description': 'are collected at run time from the software output.',
         'data': _make_versions_html(workflow_versions)
     }
 
+    versions_mqc_unique = {
+        'id': 'software_versions_unique',
+        'section_name': '${workflow.manifest.name} Software Versions',
+        'section_href': 'https://github.com/${workflow.manifest.name}',
+        'plot_type': 'html',
+        'description': 'are collected at run time from the software output.',
+        'data': _make_versions_unique_html(workflow_versions)
+    }
+
     with open("software_versions.yml", 'w') as f:
         yaml.dump(workflow_versions, f, default_flow_style=False)
+
     with open("software_versions_mqc.yml", 'w') as f:
         yaml.dump(versions_mqc, f, default_flow_style=False)
 
-    with open('versions.yml', 'w') as f:
+    with open("software_versions_unique_mqc.yml", 'w') as f:
+        yaml.dump(versions_mqc_unique, f, default_flow_style=False)
+
+    with open('local_versions.yml', 'w') as f:
         yaml.dump(module_versions, f, default_flow_style=False)
     """
 }

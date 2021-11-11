@@ -341,7 +341,7 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../mo
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_gene"]         )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_peaks"]        )
 include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"       addParams( options: bedtools_intersect_options             )
-include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main' addParams( options: [publish_files : ['_versions.yml':'']] )
+include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from '../modules/local/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] ) // LOCAL FOR NOW WHILE PR IS DISCUSSED
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -1082,6 +1082,7 @@ workflow CUTANDRUN {
             ch_multiqc_config,
             ch_multiqc_custom_config.collect().ifEmpty([]),
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
+            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_unique_yml.collect(),
             ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml"),
             FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
