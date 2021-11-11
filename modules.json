@@ -6,11 +6,17 @@
             "bedtools/bamtobed": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
+            "bedtools/genomecov": {
+                "git_sha": "e8b33e6eb1be2a03abdd2c06068f9a5cebc02bb4"
+            },
             "bedtools/intersect": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "bedtools/merge": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+            },
+            "bedtools/sort": {
+                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
             },
             "bowtie2/align": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
