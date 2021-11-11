@@ -22,7 +22,7 @@ process GUNZIP {
     path archive
 
     output:
-    path "$gunzip"      , emit: gunzip
+    path "$gunzip",       emit: gunzip
     path "versions.yml" , emit: versions
 
     script:
@@ -32,6 +32,7 @@ process GUNZIP {
         -f \\
         $options.args \\
         $archive
+
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:
         ${getSoftwareName(task.process)}: \$(echo \$(gunzip --version 2>&1) | sed 's/^.*(gzip) //; s/ Copyright.*\$//')
