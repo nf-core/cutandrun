@@ -12,9 +12,9 @@ process SAMTOOLS_CUSTOMVIEW {
 
     conda (params.enable_conda ? "bioconda::samtools=1.14" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/samtools:1.14--h9402c20_2"
+        container "https://depot.galaxyproject.org/singularity/samtools:1.14--hb421002_0"
     } else {
-        container "quay.io/biocontainers/samtools:1.14--h9402c20_2"
+        container "quay.io/biocontainers/samtools:1.14--hb421002_0"
     }
 
     input:

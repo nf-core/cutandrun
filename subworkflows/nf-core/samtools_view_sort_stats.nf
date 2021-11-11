@@ -20,7 +20,7 @@ workflow SAMTOOLS_VIEW_SORT_STATS {
     /*
      * Filter BAM file
      */
-    SAMTOOLS_VIEW ( bam )
+    SAMTOOLS_VIEW ( bam, [] )
     ch_versions = ch_versions.mix(SAMTOOLS_VIEW.out.versions)
 
     /*
