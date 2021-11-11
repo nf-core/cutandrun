@@ -36,6 +36,9 @@
             "fastqc": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
+            "gunzip": {
+                "git_sha": "e560fbbc3ed68e62bc810a50f552394056f81762"
+            },
             "picard/markduplicates": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
