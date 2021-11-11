@@ -303,7 +303,6 @@ include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calcu
 include { EXPORT_META                     } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]       )
 include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]       )
 include { GENERATE_REPORTS                } from "../modules/local/python/generate_reports"            addParams( options: modules["generate_reports"]  )
-include { GET_SOFTWARE_VERSIONS           } from "../modules/local/get_software_versions"              addParams( options: [publish_files : ["csv":""]] )
 include { MULTIQC                         } from "../modules/local/multiqc"                            addParams( options: multiqc_options              )
 
 /*
@@ -330,18 +329,19 @@ include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows
 /*
  * MODULES
  */
-include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"               addParams( options: cat_fastq_options                      )
-include { BEDTOOLS_GENOMECOV                                       } from "../modules/nf-core/modules/bedtools/genomecov/main"      addParams( options: modules["bedtools_genomecov_bedgraph"] )
-include { BEDTOOLS_SORT                                            } from "../modules/nf-core/modules/bedtools/sort/main"           addParams( options: modules["sort_bedgraph"]               )
-include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"            addParams( options: modules["ucsc_bedclip"]                )
-include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"   addParams( options: modules["ucsc_bedgraphtobigwig"]       )
-include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"          addParams( options: modules["seacr"]                       )
-include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"          addParams( options: modules["seacr"]                       )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_gene"]         )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]        )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]         )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]        )
-include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"   addParams( options: bedtools_intersect_options             )
+include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"                   addParams( options: cat_fastq_options                      )
+include { BEDTOOLS_GENOMECOV                                       } from "../modules/nf-core/modules/bedtools/genomecov/main"          addParams( options: modules["bedtools_genomecov_bedgraph"] )
+include { BEDTOOLS_SORT                                            } from "../modules/nf-core/modules/bedtools/sort/main"               addParams( options: modules["sort_bedgraph"]               )
+include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"                addParams( options: modules["ucsc_bedclip"]                )
+include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"       addParams( options: modules["ucsc_bedgraphtobigwig"]       )
+include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
+include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_gene"]         )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_peaks"]        )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_gene"]         )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_peaks"]        )
+include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"       addParams( options: bedtools_intersect_options             )
+include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main' addParams( options: [publish_files : ['_versions.yml':'']] )
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -627,7 +627,7 @@ workflow CUTANDRUN {
             ch_dummy_file,
             "bedGraph"
         )
-        ch_software_versions = ch_software_versions.mix(BEDTOOLS_GENOMECOV_SCALE.out.versions)
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_GENOMECOV.out.versions)
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
         //BEDTOOLS_GENOMECOV.out.genomecov | view
 
@@ -638,12 +638,13 @@ workflow CUTANDRUN {
             BEDTOOLS_GENOMECOV.out.genomecov,
             "bedGraph"
         )
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_SORT.out.versions)
 
         /*
         * MODULE: Clip off bedgraphs so none overlap beyond chromosome edge
         */
         UCSC_BEDCLIP (
-            BEDTOOLS_SORT.out.sort,
+            BEDTOOLS_SORT.out.sorted,
             PREPARE_GENOME.out.chrom_sizes
         )
         ch_software_versions = ch_software_versions.mix(UCSC_BEDCLIP.out.versions)
@@ -664,7 +665,7 @@ workflow CUTANDRUN {
         /*
          * CHANNEL: Separate bedgraphs into target/control
          */
-        BEDTOOLS_SORT.out.sort.branch { it ->
+        BEDTOOLS_SORT.out.sorted.branch { it ->
             target: it[0].group != "igg"
             control: it[0].group == "igg"
         }
