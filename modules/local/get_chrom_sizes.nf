@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles } from './common/functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './common/functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -27,13 +27,17 @@ process GET_CHROM_SIZES {
     output:
     path '*.sizes'      , emit: sizes
     path '*.fai'        , emit: fai
-    path "*.version.txt", emit: version
+    path  "versions.yml", emit: versions
 
     script:
     def software = 'samtools'
     """
     samtools faidx $fasta
     cut -f 1,2 ${fasta}.fai > ${fasta}.sizes
-    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
-    """
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+    END_VERSIONS
+    """ 
 }
