@@ -18,6 +18,8 @@ workflow ANNOTATE_META_AWK {
     script
 
     main:
+    ch_versions = Channel.empty()
+
     // Strip out the sample id from the meta in the passthrough
     ch_paths = passthrough.map { row -> [row[0].id, row[0], row[1..-1]].flatten() }
 
@@ -25,6 +27,7 @@ workflow ANNOTATE_META_AWK {
     // Can run awk in script mode with a file from assets or with a setup of command line args
     if(params.script_mode) {
         AWK_SCRIPT ( report, script )
+        ch_versions = ch_versions.mix(AWK_SCRIPT.out.versions)
 
         AWK_SCRIPT.out.file
             .splitCsv(header:true)
@@ -39,6 +42,7 @@ workflow ANNOTATE_META_AWK {
     }
     else {
         AWK ( report )
+        ch_versions = ch_versions.mix(AWK.out.versions)
 
         AWK.out.file
             .splitCsv(header:true)
@@ -53,5 +57,7 @@ workflow ANNOTATE_META_AWK {
     }
 
     emit:
-    output = ch_annotated_meta // channel: [ val(annotated_meta), [ passthrough ] ]
+    output     = ch_annotated_meta // channel: [ val(annotated_meta), [ passthrough ] ]
+    versions   = ch_versions       // channel: [ versions.yml ]
+
 }

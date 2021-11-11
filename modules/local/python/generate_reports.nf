@@ -1,4 +1,4 @@
-include { initOptions; saveFiles; getSoftwareName } from '../common/functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../common/functions'
 
 params.options = [:]
 options    = initOptions(params.options)
@@ -20,11 +20,11 @@ process GENERATE_REPORTS {
     path frag_len_header_multiqc
 
     output:
-    path '*.pdf',             emit: pdf
-    path '*.csv',             emit: csv
-    path '*.png',             emit: png
+    path '*.pdf'             , emit: pdf
+    path '*.csv'             , emit: csv
+    path '*.png'             , emit: png
     path '*frag_len_mqc.yaml', emit: frag_len_multiqc
-    path '*.version.txt',     emit: version
+    path  "versions.yml"     , emit: versions
 
     script:
     def meta_data_resolved = meta_data ? meta_data : meta_data_ctrl
@@ -43,7 +43,10 @@ process GENERATE_REPORTS {
         cat $frag_len_header_multiqc 03_03_frag_len_mqc.txt > frag_len_mqc.yaml
     fi
 
-    python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\" > python.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
+    END_VERSIONS
     """
 
 }

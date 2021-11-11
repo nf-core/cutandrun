@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './common/functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './common/functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -21,6 +21,7 @@ process MULTIQC {
     path multiqc_config
     path multiqc_custom_config
     path software_versions
+    path software_versions_unique
     path workflow_summary
     path ('fastqc/*')
     path ('trimgalore/fastqc/*')

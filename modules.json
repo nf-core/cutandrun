@@ -4,7 +4,7 @@
     "repos": {
         "nf-core/modules": {
             "bedtools/bamtobed": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "bedtools/genomecov": {
                 "git_sha": "e8b33e6eb1be2a03abdd2c06068f9a5cebc02bb4"
@@ -13,64 +13,61 @@
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "bedtools/merge": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "bedtools/sort": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "2959b4ba070d138d1577acc48d35cc669fbef972"
             },
             "bowtie2/align": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "bowtie2/build": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "cat/fastq": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "deeptools/computematrix": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "deeptools/plotheatmap": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "fastqc": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
-            },
-            "gunzip": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "picard/markduplicates": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/flagstat": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/idxstats": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/index": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/sort": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/stats": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "samtools/view": {
-                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "seacr/callpeak": {
                 "git_sha": "4d89d6b2f0c478ac7ef80ece5cad44fdf7ffd614"
             },
             "ucsc/bedclip": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "ucsc/bedgraphtobigwig": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "untar": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             }
         }
     }
