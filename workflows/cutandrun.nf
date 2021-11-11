@@ -379,7 +379,7 @@ workflow CUTANDRUN {
         INPUT_CHECK (
             ch_input
         )
-        
+
         INPUT_CHECK.out.reads
             .map {
                 meta, fastq ->

@@ -19,7 +19,7 @@ process CALCULATE_FRIP {
     output:
     tuple val(meta), path('frips.csv'), emit: frips
     path  "versions.yml"              , emit: versions
-    
+
     script:
     """
     frip.py \\

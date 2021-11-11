@@ -64,7 +64,7 @@ workflow MARK_DUPLICATES_PICARD {
     emit:
     bam      = ch_bam                            // channel: [ val(meta), [ bam ] ]
     metrics                                      // channel: [ val(meta), [ metrics ] ]
-    
+
     bai      = SAMTOOLS_INDEX.out.bai            // channel: [ val(meta), [ bai ] ]
     stats    = BAM_STATS_SAMTOOLS.out.stats      // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_STATS_SAMTOOLS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
