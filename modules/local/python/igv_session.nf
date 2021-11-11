@@ -58,7 +58,7 @@ process IGV_SESSION {
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:
-        ${getSoftwareName(task.process)}: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
+        python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
     END_VERSIONS
     """
 }

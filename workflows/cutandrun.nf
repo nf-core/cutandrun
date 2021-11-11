@@ -867,7 +867,7 @@ workflow CUTANDRUN {
                 ch_seacr_bed.collect{it[1]}.ifEmpty([]),
                 UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
             )
-            ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
+            // ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
         if (run_deep_tools){
@@ -1055,14 +1055,6 @@ workflow CUTANDRUN {
     /*
     * MODULE: Collect software versions used in pipeline
     */
-    ch_software_versions
-        .map { it -> if (it) [ it.baseName, it ] }
-        .groupTuple()
-        .map { it[1][0] }
-        .flatten()
-        .collect()
-        .set { ch_software_versions }
-
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_software_versions.unique().collectFile()
     )
