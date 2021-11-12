@@ -121,6 +121,6 @@ workflow PREPARE_GENOME {
     bed                    = ch_gene_bed                 // path: genome.bed
     bowtie2_index          = ch_bt2_index                // path: bt2/index/
     bowtie2_spikein_index  = ch_bt2_spikein_index        // path: bt2/index/
-    
+
     versions               = ch_versions                 // channel: [ versions.yml ]
 }

@@ -64,7 +64,7 @@ process TRIMGALORE {
             $c_r1 \\
             $tpc_r1 \\
             ${prefix}.fastq.gz
-        
+
         cat <<-END_VERSIONS > versions.yml
         ${getProcessName(task.process)}:
             ${getSoftwareName(task.process)}: \$(echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//')
@@ -86,7 +86,7 @@ process TRIMGALORE {
             $tpc_r2 \\
             ${meta.id}_1.fastq.gz \\
             ${meta.id}_2.fastq.gz
-        
+
         cat <<-END_VERSIONS > versions.yml
         ${getProcessName(task.process)}:
             ${getSoftwareName(task.process)}: \$(echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//')
