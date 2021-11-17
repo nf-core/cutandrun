@@ -27,6 +27,9 @@
             "cat/fastq": {
                 "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
             },
+            "custom/getchromsizes": {
+                "git_sha": "13b8a16f4a6945af9df146b67972eb70b52e9844"
+            },
             "deeptools/computematrix": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
