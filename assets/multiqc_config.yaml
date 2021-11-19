@@ -46,6 +46,12 @@ module_order:
     - picard
     - custom_content
 
+custom_content:
+  order:
+    - fragment_lengths
+    - software_versions
+    - software_versions_unique
+
 # Don't show % Dups in the General Stats table (we have this from Picard)
 table_columns_visible:
     FastQC:

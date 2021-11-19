@@ -1,4 +1,4 @@
-include { initOptions; saveFiles; getSoftwareName } from '../common/functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../common/functions'
 
 params.options   = [:]
 options          = initOptions(params.options)
@@ -25,7 +25,7 @@ process AWK {
 
     output:
     tuple val(meta), path("*.awk.*"), emit: file
-    path "*.version.txt",             emit: version
+    path  "versions.yml"            , emit: versions
 
     script:
     def software = getSoftwareName(task.process)
@@ -33,6 +33,10 @@ process AWK {
     def ext   = options.ext ? "${options.ext}" : "txt"
     """
     awk $options.args $options.command $input $options.command2 > ${prefix}.awk.${ext}
-    awk -W version | head -n 1 | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}" > ${software}.version.txt
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(awk -W version | head -n 1 | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}")
+    END_VERSIONS
     """
 }

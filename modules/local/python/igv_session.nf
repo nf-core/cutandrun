@@ -1,4 +1,4 @@
-include { initOptions; saveFiles; getSoftwareName } from '../common/functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../common/functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,6 +23,8 @@ process IGV_SESSION {
 
     output:
     path('*.{txt,xml,bed,bigWig,fa,gtf}', includeInputs:true)
+    path  "versions.yml"                , emit: versions
+
 
     script:
     output = ''
@@ -53,6 +55,11 @@ process IGV_SESSION {
     find -L * -iname "*.gtf" -exec echo -e {}"\\t0,48,73" \\; > gtf.igv.txt
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt $genome --path_prefix './'
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
+    END_VERSIONS
     """
 }
 
