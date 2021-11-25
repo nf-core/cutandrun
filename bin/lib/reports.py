@@ -129,10 +129,22 @@ class Reports:
             # Create dataframe from csv file for each file and save to a list
             dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None, names=['Size','Occurrences'])
             frag_base_i = os.path.basename(dt_frag_list[i])
-            sample_id = frag_base_i.split(".")[0]
-            sample_id_split = sample_id.rsplit("_", 1)
-            rep_i = sample_id_split[1]
-            group_i = sample_id_split[0]
+
+            #  split txt files on dots
+            sample_id_list = frag_base_i.split(".")
+            
+            # join list on the elements of the sample id 
+            separator = ""
+            sample_id = separator.join(sample_id_list[0:-2])
+
+            # split sample id on underscores
+            sample_id_split_list = sample_id.split("_")
+
+            #  take first element of this list for group id
+            group_i = separator.join(sample_id_split_list[0:-1])
+
+            #  take last element of this list for replicate number
+            rep_i = sample_id_split_list[-1]
 
             # Create long forms of fragment histograms
             dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
@@ -203,10 +215,23 @@ class Reports:
         for i in list(range(len(seacr_bed_list))):
             seacr_bed_i = pd.read_csv(seacr_bed_list[i], sep='\t', header=None, usecols=[0,1,2,3,4], names=['chrom','start','end','total_signal','max_signal'])
             bed_base_i = os.path.basename(seacr_bed_list[i])
-            sample_id = bed_base_i.split(".")[0]
-            sample_id_split = sample_id.rsplit("_", 1)
-            rep_i = sample_id_split[1]
-            group_i = sample_id_split[0]
+
+            #  split bed files on dots
+            bed_id_list = bed_base_i.split(".")            
+
+            # join list on the elements of the sample id 
+            separator = ""
+            sample_id = separator.join(bed_id_list[0:-4])
+
+            # split sample id on underscores
+            sample_id_split_list = sample_id.split("_")
+
+            #  take first element of this list for group id
+            group_i = separator.join(sample_id_split_list[0:-1])
+
+            # take last element fo this list for replicate number
+            rep_i = sample_id_split_list[-1]
+
             seacr_bed_i['group'] = np.repeat(group_i, seacr_bed_i.shape[0])
             seacr_bed_i['replicate'] = np.repeat(rep_i, seacr_bed_i.shape[0])
 

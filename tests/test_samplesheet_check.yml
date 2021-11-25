@@ -70,3 +70,10 @@
     - samplesheet_M_M
   files:
     - path: results/pipeline_info/samplesheet.valid.csv
+
+- name: test_samplesheet_check_group_name_with_dot
+  command: nextflow run main.nf -profile docker,test --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet/test-GSE145187-small-dot.csv -c tests/config/nextflow.config
+  tags:
+    - samplesheet_group_dot
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
