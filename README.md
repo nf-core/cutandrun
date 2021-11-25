@@ -22,6 +22,8 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 The pipeline has been developed with continuous integration (CI) in mind. nf-core code and module linting as well as a battery of over 100 unit and integration tests run on pull request to the main repository and on release of the pipeline. On official release, automated CI tests run the pipeline on a full-sized dataset on the AWS cloud infrastructure. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources. The results obtained from the full-sized test can be viewed on the [nf-core website](https://nf-co.re/cutandrun/results).
 
+![pipeline_diagram](docs/images/cutandrun-flow-diagram-v1-0_2.png)
+
 ## Pipeline summary
 
 1. Check input files
