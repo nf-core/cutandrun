@@ -31,27 +31,44 @@ args = parser.parse_args()
 
 # Init
 peak_perc = 0
+numfiles = 0
+num_columns = 0
 
 print('Reading file')
 
-# Read file in using dask
-ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','overlap_1','key','a_name','b_name','count'],
-    dtype={'chrom':str,'start':np.int64,'end':np.int64,'overlap_1':np.float64,'key':np.float64,'a_name':str,'b_name':str,'count':np.int64})
+# Read first line
+first_line = None
+with open(args.intersect, "r") as file:
+    for line in file:
+        first_line = line
+        break
 
-# Find number of files
-numfiles = ddf_inter['b_name'].max().compute()
-
-# Check for table format
-if isinstance(numfiles, str):
-    print('Detected single file, reloading table')
+if first_line is not None:
+    first_line_split = first_line.split('\t')
+    num_columns = len(first_line_split)
     numfiles = 1
-    ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','overlap_1','overlap_2','key','name','count'],
-        dtype={'chrom':str,'start':np.int64,'end':np.int64,'overlap_1':np.float64,'overlap_2':np.float64,'key':str,'name':str,'count':np.int64})
 
-print('Number of files: ' + str(numfiles))
-
-# Check for empty file
 if numfiles != 0:
+    print('Number of columns: ' + str(num_columns))
+
+    ddf_inter = None
+    if num_columns == 6:
+        # Read file in using dask
+        ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','key','file_num','count'],
+            dtype={'chrom':str,'start':np.int64,'end':np.int64,'key':str, 'file_num':np.int32, 'count':np.int32})
+        numfiles = ddf_inter['file_num'].max().compute()
+
+    elif num_columns == 5:
+        # Read file in using dask
+        ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','key','count'],
+            dtype={'chrom':str,'start':np.int64,'end':np.int64,'key':str, 'file_num':np.int32, 'count':np.int32})
+        numfiles = 1
+    else:
+        print('Invalid file format detected')
+        exit(1)
+
+    print('Number of files: ' + str(numfiles))
+
     # Find total number of peaks
     ddf_inter_grouped = ddf_inter.groupby(by=["key"]).size()
     df_inter_grouped = ddf_inter_grouped.compute()
@@ -73,6 +90,8 @@ if numfiles != 0:
 
         # Calc peak percentage
         peak_perc = (overlap_peaks / total_peaks) * 100
+else:
+    print('Empty file detected')
 
 # Create string and write to file
 output_string = str(peak_perc)
