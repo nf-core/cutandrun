@@ -132,8 +132,8 @@ class Reports:
 
             #  split txt files on dots
             sample_id_list = frag_base_i.split(".")
-            
-            # join list on the elements of the sample id 
+
+            # join list on the elements of the sample id
             separator = ""
             sample_id = separator.join(sample_id_list[0:-2])
 
@@ -217,9 +217,9 @@ class Reports:
             bed_base_i = os.path.basename(seacr_bed_list[i])
 
             #  split bed files on dots
-            bed_id_list = bed_base_i.split(".")            
+            bed_id_list = bed_base_i.split(".")
 
-            # join list on the elements of the sample id 
+            # join list on the elements of the sample id
             separator = ""
             sample_id = separator.join(bed_id_list[0:-4])
 
