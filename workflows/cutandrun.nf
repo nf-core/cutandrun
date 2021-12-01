@@ -264,6 +264,16 @@ else if(params.save_align_intermed) {
     picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
 
+// Peak caller parameter
+params.peakcaller = [:]
+
+// Check peakcaller options
+callerList = ['seacr', 'macs2']
+callers = params.peakcaller ? params.peakcaller.split(',').collect{ it.trim().toLowerCase() } : []
+if ((callerList + callers).unique().size() != callerList.size()) {
+    exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${callerList.join(', ')}"
+}
+
 // Consensus peak options
 def awk_threshold           = modules["awk_threshold"]
 awk_threshold.command   = "' \$10 >= " + params.replicate_threshold.toString() + " {print \$0}'"
@@ -336,6 +346,8 @@ include { UCSC_BEDCLIP                                             } from "../mo
 include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"       addParams( options: modules["ucsc_bedgraphtobigwig"]       )
 include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
+include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"              addParams( options: modules["macs2"]                       )
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/macs2/callpeak/main"              addParams( options: modules["macs2"]                       )
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_gene"]         )
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_peaks"]        )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_gene"]         )
@@ -674,6 +686,9 @@ workflow CUTANDRUN {
         //ch_bedgraph_split.control | view
 
         ch_seacr_bed = Channel.empty()
+        ch_macs2_bed = Channel.empty()
+        ch_peaks_bed = Channel.empty()
+
         if(params.igg_control) {
             /*
             * CHANNEL: Pull control groups
@@ -703,17 +718,30 @@ workflow CUTANDRUN {
             //ch_bedgraph_paired | view
 
             /*
-             * MODULE: Call peaks with IgG control
+             * MODULE: Call peaks using SEACR with IgG control
              */
-            SEACR_CALLPEAK (
-                ch_bedgraph_paired,
-                params.peak_threshold
-            )
-            ch_seacr_bed         = SEACR_CALLPEAK.out.bed
-            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
-            //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
-            // EXAMPLE CHANNEL STRUCT: [[META], BED]
-            //SEACR_CALLPEAK.out.bed | view
+            if('seacr' in callers) {
+                SEACR_CALLPEAK (
+                    ch_bedgraph_paired,
+                    params.peak_threshold
+                )
+                ch_seacr_bed         = SEACR_CALLPEAK.out.bed
+                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
+                //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //SEACR_CALLPEAK.out.bed | view
+            }
+
+            if('macs2' in callers) {
+                MACS2_CALLPEAK (
+                    //tuple val(meta), path(ipbam), path(controlbam)
+                    //val   macs2_gsize
+                    //
+                    params.macs2_gsize
+                )
+                ch_macs2_bed         = MACS2_CALLPEAK.out.bed
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+            }   
         }
         else {
             /*
@@ -728,22 +756,42 @@ workflow CUTANDRUN {
             /*
             * MODULE: Call peaks without IgG Control
             */
-            SEACR_CALLPEAK_NOIGG (
-                ch_bedgraph_target_fctrl,
-                params.peak_threshold
-            )
-            ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
-            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
-            //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.versions)
-            // EXAMPLE CHANNEL STRUCT: [[META], BED]
-            //SEACR_NO_IGG.out.bed | view
+            if('seacr' in callers) {
+                SEACR_CALLPEAK_NOIGG (
+                    ch_bedgraph_target_fctrl,
+                    params.peak_threshold
+                )
+                ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
+                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
+                //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //SEACR_NO_IGG.out.bed | view
+            }
+
+            if('macs2' in callers) {
+                MACS2_CALLPEAK_NOIGG (
+                    //tuple val(meta), path(ipbam), path(controlbam)
+                    //val   macs2_gsize
+                    //
+                    params.macs2_gsize
+                )
+                ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.bed
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
+            }
+        // Store output of primary peakcaller in the output channel
+        if(callers[0] == 'seacr') {
+                ch_peaks_bed = ch_seacr_bed
         }
+        else {
+            ch_peaks_bed = ch_macs2_bed
+        }
+    }
 
         /*
         * MODULE: Add sample identifier column to peak beds
         */
         AWK_NAME_PEAK_BED (
-            ch_seacr_bed
+            ch_peaks_bed
         )
         ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
