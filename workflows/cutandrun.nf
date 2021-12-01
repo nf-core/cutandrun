@@ -269,7 +269,7 @@ params.peakcaller = [:]
 
 // Check peakcaller options
 callerList = ['seacr', 'macs2']
-callers = params.peakcaller ? params.peakcaller.split(',').collect{ it.trim().toLowerCase() } : []
+callers = params.peakcaller ? params.peakcaller.split(',').collect{ it.trim().toLowerCase() } : ['seacr']
 if ((callerList + callers).unique().size() != callerList.size()) {
     exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${callerList.join(', ')}"
 }
@@ -782,10 +782,9 @@ workflow CUTANDRUN {
         if(callers[0] == 'seacr') {
                 ch_peaks_bed = ch_seacr_bed
         }
-        else {
+        if(callers[0] == 'macs2') {
             ch_peaks_bed = ch_macs2_bed
         }
-    }
 
         /*
         * MODULE: Add sample identifier column to peak beds
