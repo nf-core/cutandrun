@@ -264,6 +264,10 @@ else if(params.save_align_intermed) {
     picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
 
+// Peak caller options
+macs2_callpeak_options      = modules["macs2"]
+macs2_callpeak_options.args = macs2_callpeak_options.args + " -q " + params.macs_fdr + " -p " + params.macs_pvalue
+
 // Peak caller parameter
 params.peakcaller = [:]
 
@@ -346,8 +350,8 @@ include { UCSC_BEDCLIP                                             } from "../mo
 include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"       addParams( options: modules["ucsc_bedgraphtobigwig"]       )
 include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
-include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"              addParams( options: modules["macs2"]                       )
-include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/macs2/callpeak/main"              addParams( options: modules["macs2"]                       )
+include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"              addParams( options: macs2_callpeak_options                 )
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/macs2/callpeak/main"              addParams( options: macs2_callpeak_options                 )
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_gene"]         )
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_peaks"]        )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_gene"]         )
@@ -808,8 +812,8 @@ workflow CUTANDRUN {
                 * CHANNEL: Add fake control channel
                 */
                 ch_samtools_bam_split.target
-                .map{ row-> [ row[0], row[1], [] ] }
-                .set { ch_samtools_bam_target_fctrl }
+                    .map{ row-> [ row[0], row[1], [] ] }
+                    .set { ch_samtools_bam_target_fctrl }
                 // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
                 // ch_samtools_bam_target_fctrl | view
 
