@@ -745,16 +745,16 @@ workflow CUTANDRUN {
                          control: it[0].group == "igg"
                      }
                  .set { ch_samtools_bam_split }
-                ch_samtools_bam_split.target | view
+                // ch_samtools_bam_split.target | view
 
-                // /*      
-                // * CHANNEL: Pull control groups
-                // */
-                // ch_samtools_bam_split.target.map{
-                //     row -> [row[0].control_group, row]
-                // }
-                // .set { ch_bam_target_ctrlgrp }
-                // //ch_bam_target_ctrlgrp | view
+                /*      
+                * CHANNEL: Pull control groups
+                */
+                ch_samtools_bam_split.target.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bam_target_ctrlgrp }
+                ch_bam_target_ctrlgrp | view
 
                 // ch_samtools_bam_split.control.map{
                 //     row -> [row[0].control_group, row]
