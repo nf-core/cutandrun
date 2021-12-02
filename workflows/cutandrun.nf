@@ -743,7 +743,7 @@ workflow CUTANDRUN {
                         control: it[0].group == "igg"
                     }
                 .set { ch_samtools_bam_split }
-
+                ch_samtools_bam_split | view
                 /*      
                 * CHANNEL: Pull control groups
                 */
