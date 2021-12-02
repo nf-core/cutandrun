@@ -767,7 +767,7 @@ workflow CUTANDRUN {
                     .map{
                         row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
                 }
-                .set(ch_bam_paired)
+                    .set(ch_bam_paired)
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
                 //ch_bam_paired | view
 
