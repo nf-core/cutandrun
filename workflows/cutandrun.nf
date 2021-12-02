@@ -760,7 +760,7 @@ workflow CUTANDRUN {
                      row -> [row[0].control_group, row]
                  }
                  .set { ch_bam_control_ctrlgrp }
-                 ch_bam_control_ctrlgrp | view
+                // ch_bam_control_ctrlgrp | view
 
                 /*
                 * CHANNEL: Create target/control pairings
