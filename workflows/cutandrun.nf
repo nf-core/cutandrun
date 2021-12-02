@@ -741,6 +741,9 @@ workflow CUTANDRUN {
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+                //ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //MACS2_CALLPEAK.out.bed | view
             }   
         }
         else {
@@ -777,6 +780,9 @@ workflow CUTANDRUN {
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
+                //ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //MACS2_CALLPEAK_NOIGG.out.bed | view
             }
         // Store output of primary peakcaller in the output channel
         if(callers[0] == 'seacr') {
@@ -814,15 +820,15 @@ workflow CUTANDRUN {
             .map { row ->
                 [ row[0], row[1] ]
             }
-            .set { ch_seacr_bed_all }
+            .set { ch_peaks_bed_all }
         // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
-        //ch_seacr_bed_all | view
+        //ch_peaks_bed_all | view
 
         /*
         * SUBWORKFLOW: Construct group consensus peaks
         */
         CONSENSUS_PEAKS_ALL (
-            ch_seacr_bed_all
+            ch_peaks_bed_all
         )
         ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
 
@@ -847,16 +853,16 @@ workflow CUTANDRUN {
             .map { row ->
                 [ row[0], row[1] ]
             }
-            .set { ch_seacr_bed_group }
+            .set { ch_peaks_bed_group }
         // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
-        //ch_seacr_bed_group | view
+        //ch_peaks_bed_group | view
 
         /*
         * SUBWORKFLOW: Construct group consensus peaks
         * where there is more than 1 replicate in a group
         */
         CONSENSUS_PEAKS (
-            ch_seacr_bed_group
+            ch_peaks_bed_group
         )
         ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
 
@@ -923,7 +929,7 @@ workflow CUTANDRUN {
             IGV_SESSION (
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
-                ch_seacr_bed.collect{it[1]}.ifEmpty([]),
+                ch_peaks_bed.collect{it[1]}.ifEmpty([]),
                 UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
             )
             // ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
@@ -934,7 +940,7 @@ workflow CUTANDRUN {
             * MODULE: Extract max signal from peak beds
             */
             AWK_EDIT_PEAK_BED (
-                ch_seacr_bed
+                ch_peaks_bed
             )
             ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
             //AWK_EDIT_PEAK_BED.out.file | view
@@ -944,15 +950,15 @@ workflow CUTANDRUN {
             */
             AWK_EDIT_PEAK_BED.out.file
                 .map { row -> [row[0].id, row ].flatten()}
-                .set { ch_seacr_bed_id }
-            //ch_seacr_bed_id | view
+                .set { ch_peaks_bed_id }
+            //ch_peaks_bed_id | view
 
             /*
             * CHANNEL: Join beds and bigwigs on id
             */
             ch_bigwig_no_igg
                 .map { row -> [row[0].id, row ].flatten()}
-                .join ( ch_seacr_bed_id )
+                .join ( ch_peaks_bed_id )
                 .set { ch_dt_peaks }
             //ch_dt_peaks | view
 
@@ -963,8 +969,8 @@ workflow CUTANDRUN {
 
             ch_dt_peaks
                 .map { row -> row[-1] }
-                .set { ch_ordered_seacr_max }
-            //ch_ordered_seacr_max | view
+                .set { ch_ordered_peaks_max }
+            //ch_ordered_peaks_max | view
 
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
@@ -987,7 +993,7 @@ workflow CUTANDRUN {
             */
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
                 ch_ordered_bigwig,
-                ch_ordered_seacr_max
+                ch_ordered_peaks_max
             )
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
@@ -1006,7 +1012,7 @@ workflow CUTANDRUN {
         ch_samtools_bam
             .map { row -> [row[0].id, row ].flatten()}
             .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
-            .join ( ch_seacr_bed.map { row -> [row[0].id, row ].flatten()} )
+            .join ( ch_peaks_bed.map { row -> [row[0].id, row ].flatten()} )
             .map { row -> [row[1], row[2], row[4], row[6]] }
             .set { ch_bam_bai_bed }
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, BED]
@@ -1034,7 +1040,7 @@ workflow CUTANDRUN {
         /*
         * CHANNEL: Per group, create a channel per one against all combination
         */
-        ch_seacr_bed_group
+        ch_peaks_bed_group
             .flatMap{
                 row ->
                 new_output = []
@@ -1104,7 +1110,7 @@ workflow CUTANDRUN {
             EXPORT_META_CTRL.out.csv,                   // meta-data report stats
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
             AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
-            ch_seacr_bed.collect{it[1]},                // peak beds
+            ch_peaks_bed.collect{it[1]},                // peak beds
             ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
         )
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
