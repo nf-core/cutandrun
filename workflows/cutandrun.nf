@@ -815,7 +815,7 @@ workflow CUTANDRUN {
                     .map{ row-> [ row[0], row[1], [] ] }
                     .set { ch_samtools_bam_target_fctrl }
                 // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
-                // ch_samtools_bam_target_fctrl | view
+                ch_samtools_bam_target_fctrl | view
 
                 MACS2_CALLPEAK_NOIGG (
                     ch_samtools_bam_target_fctrl,
