@@ -762,16 +762,16 @@ workflow CUTANDRUN {
                  .set { ch_bam_control_ctrlgrp }
                  ch_bam_control_ctrlgrp | view
 
-                // /*
-                // * CHANNEL: Create target/control pairings
-                // */
-                // // Create pairs of controls (IgG) with target samples if they are supplied
-                // ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp).map{
-                //     row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
-                // }    
-                // .set(ch_bam_paired)
-                // // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
-                // //ch_bam_paired | view
+                /*
+                * CHANNEL: Create target/control pairings
+                */
+                // Create pairs of controls (IgG) with target samples if they are supplied
+                ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp).map{
+                     row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                 }    
+                 .set(ch_bam_paired)
+                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
+                 ch_bam_paired | view
 
                 // MACS2_CALLPEAK (
                 //     ch_bam_paired,
