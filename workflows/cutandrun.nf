@@ -682,8 +682,8 @@ workflow CUTANDRUN {
             control: it[0].group == "igg"
         }
         .set { ch_bedgraph_split }
-        //ch_bedgraph_split.target | view
-        //ch_bedgraph_split.control | view
+        ch_bedgraph_split.target | view
+        ch_bedgraph_split.control | view
 
         ch_seacr_bed = Channel.empty()
         ch_macs2_bed = Channel.empty()
@@ -691,36 +691,36 @@ workflow CUTANDRUN {
 
         if(params.igg_control) {
             /*
-            * CHANNEL: Pull control groups
-            */
-            ch_bedgraph_split.target.map{
-                row -> [row[0].control_group, row]
-            }
-            .set { ch_bg_target_ctrlgrp }
-            //ch_bg_target_ctrlgrp | view
-
-            ch_bedgraph_split.control.map{
-                row -> [row[0].control_group, row]
-            }
-            .set { ch_bg_control_ctrlgrp }
-            //ch_bg_control_ctrlgrp | view
-
-            /*
-            * CHANNEL: Create target/control pairings
-            */
-            // Create pairs of controls (IgG) with target samples if they are supplied
-            ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp)
-                .map {
-                    row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
-                }
-                .set{ ch_bedgraph_paired }
-            // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
-            //ch_bedgraph_paired | view
-
-            /*
              * MODULE: Call peaks using SEACR with IgG control
              */
             if('seacr' in callers) {
+                    /*
+                * CHANNEL: Pull control groups
+                */
+                ch_bedgraph_split.target.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bg_target_ctrlgrp }
+                //ch_bg_target_ctrlgrp | view
+
+                ch_bedgraph_split.control.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bg_control_ctrlgrp }
+                //ch_bg_control_ctrlgrp | view
+
+                /*
+                * CHANNEL: Create target/control pairings
+                */
+                // Create pairs of controls (IgG) with target samples if they are supplied
+                ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp)
+                    .map {
+                        row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                    }
+                    .set{ ch_bedgraph_paired }
+                // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
+                //ch_bedgraph_paired | view
+                
                 SEACR_CALLPEAK (
                     ch_bedgraph_paired,
                     params.peak_threshold
@@ -734,9 +734,7 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 MACS2_CALLPEAK (
-                    //tuple val(meta), path(ipbam), path(controlbam)
-                    //val   macs2_gsize
-                    //
+                    //ch_bedgraph_paired,
                     params.macs2_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK.out.bed
@@ -748,18 +746,18 @@ workflow CUTANDRUN {
         }
         else {
             /*
-            * CHANNEL: Add fake control channel
-            */
-            ch_bedgraph_split.target
-                .map{ row-> [ row[0], row[1], [] ] }
-                .set { ch_bedgraph_target_fctrl }
-            // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
-            // ch_bedgraph_target_fctrl | view
-
-            /*
             * MODULE: Call peaks without IgG Control
             */
             if('seacr' in callers) {
+                /*
+                * CHANNEL: Add fake control channel
+                */
+                ch_bedgraph_split.target
+                    .map{ row-> [ row[0], row[1], [] ] }
+                    .set { ch_bedgraph_target_fctrl }
+                // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
+                // ch_bedgraph_target_fctrl | view
+
                 SEACR_CALLPEAK_NOIGG (
                     ch_bedgraph_target_fctrl,
                     params.peak_threshold
@@ -773,9 +771,7 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 MACS2_CALLPEAK_NOIGG (
-                    //tuple val(meta), path(ipbam), path(controlbam)
-                    //val   macs2_gsize
-                    //
+                    //ch_bedgraph_target_fctrl,
                     params.macs2_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.bed
