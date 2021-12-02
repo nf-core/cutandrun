@@ -682,8 +682,8 @@ workflow CUTANDRUN {
             control: it[0].group == "igg"
         }
         .set { ch_bedgraph_split }
-        ch_bedgraph_split.target | view
-        ch_bedgraph_split.control | view
+        //ch_bedgraph_split.target | view
+        //ch_bedgraph_split.control | view
 
         ch_seacr_bed = Channel.empty()
         ch_macs2_bed = Channel.empty()
@@ -694,7 +694,7 @@ workflow CUTANDRUN {
              * MODULE: Call peaks using SEACR with IgG control
              */
             if('seacr' in callers) {
-                    /*
+                /*
                 * CHANNEL: Pull control groups
                 */
                 ch_bedgraph_split.target.map{
@@ -733,8 +733,42 @@ workflow CUTANDRUN {
             }
 
             if('macs2' in callers) {
+                ch_samtools_bam
+                .branch{ it ->
+                        target: it[0].group != "igg"
+                        control: it[0].group == "igg"
+                    }
+                .set { ch_samtools_bam_split }
+
+                /*      
+                * CHANNEL: Pull control groups
+                */
+                ch_samtools_bam_split.target.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bam_target_ctrlgrp }
+                //ch_bam_target_ctrlgrp | view
+
+                ch_samtools_bam_split.control.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bam_control_ctrlgrp }
+                //ch_bam_control_ctrlgrp | view
+
+                /*
+                * CHANNEL: Create target/control pairings
+                */
+                // Create pairs of controls (IgG) with target samples if they are supplied
+                ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp)
+                    .map{
+                        row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                }
+                .set(ch_bam_paired)
+                // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
+                //ch_bam_paired | view
+
                 MACS2_CALLPEAK (
-                    //ch_bedgraph_paired,
+                    ch_bam_paired,
                     params.macs2_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK.out.bed
@@ -770,8 +804,17 @@ workflow CUTANDRUN {
             }
 
             if('macs2' in callers) {
+                /*
+                * CHANNEL: Add fake control channel
+                */
+                ch_samtools_bam_split.target
+                .map{ row-> [ row[0], row[1], [] ] }
+                .set { ch_samtools_bam_target_fctrl }
+                // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
+                // ch_samtools_bam_target_fctrl | view
+
                 MACS2_CALLPEAK_NOIGG (
-                    //ch_bedgraph_target_fctrl,
+                    ch_samtools_bam_target_fctrl,
                     params.macs2_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.bed
