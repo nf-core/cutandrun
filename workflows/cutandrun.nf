@@ -823,6 +823,7 @@ workflow CUTANDRUN {
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 //MACS2_CALLPEAK_NOIGG.out.bed | view
             }
+        }
         // Store output of primary peakcaller in the output channel
         if(callers[0] == 'seacr') {
                 ch_peaks_bed = ch_seacr_bed
