@@ -738,13 +738,15 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 ch_samtools_bam | view
+                
                 ch_samtools_bam
                 .branch{ it ->
                         target: it[0].group != "igg"
                         control: it[0].group == "igg"
                     }
                 .set { ch_samtools_bam_split }
-                ch_samtools_bam_split | view
+                //ch_samtools_bam_split | view
+
                 /*      
                 * CHANNEL: Pull control groups
                 */
@@ -752,13 +754,13 @@ workflow CUTANDRUN {
                     row -> [row[0].control_group, row]
                 }
                 .set { ch_bam_target_ctrlgrp }
-                ch_bam_target_ctrlgrp | view
+                //ch_bam_target_ctrlgrp | view
 
                 ch_samtools_bam_split.control.map{
                     row -> [row[0].control_group, row]
                 }
                 .set { ch_bam_control_ctrlgrp }
-                ch_bam_control_ctrlgrp | view
+                //ch_bam_control_ctrlgrp | view
 
                 /*
                 * CHANNEL: Create target/control pairings
@@ -767,8 +769,8 @@ workflow CUTANDRUN {
                 ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp)
                     .map{
                         row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
-                }
-                    .set(ch_bam_paired)
+                }    
+                .set(ch_bam_paired)
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
                 //ch_bam_paired | view
 
