@@ -754,7 +754,7 @@ workflow CUTANDRUN {
                     row -> [row[0].control_group, row]
                 }
                 .set { ch_bam_target_ctrlgrp }
-                ch_bam_target_ctrlgrp | view
+                //ch_bam_target_ctrlgrp | view
 
                 ch_samtools_bam_split.control.map{
                      row -> [row[0].control_group, row]
