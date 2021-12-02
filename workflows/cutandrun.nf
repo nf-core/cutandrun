@@ -737,6 +737,7 @@ workflow CUTANDRUN {
             }
 
             if('macs2' in callers) {
+                ch_samtools_bam | view
                 ch_samtools_bam
                 .branch{ it ->
                         target: it[0].group != "igg"
