@@ -772,7 +772,7 @@ workflow CUTANDRUN {
                     }    
                     .set{ch_bam_paired}
                 //  // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
-                  ch_bam_paired | view
+                // ch_bam_paired | view
 
                 // MACS2_CALLPEAK (
                 //     ch_bam_paired,
