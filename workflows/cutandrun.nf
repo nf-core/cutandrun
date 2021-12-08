@@ -266,7 +266,7 @@ else if(params.save_align_intermed) {
 
 // Peak caller options
 macs2_callpeak_options      = modules["macs2"]
-macs2_callpeak_options.args = macs2_callpeak_options.args + " -q " + params.macs_fdr + " -p " + params.macs_pvalue
+macs2_callpeak_options.args = macs2_callpeak_options.args + " -p " + params.macs_pvalue
 
 // Peak caller parameter
 params.peakcaller = [:]
