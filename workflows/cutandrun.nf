@@ -774,13 +774,13 @@ workflow CUTANDRUN {
                 //  // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
                 // ch_bam_paired | view
 
-                // MACS2_CALLPEAK (
-                //     ch_bam_paired,
-                //     params.macs2_gsize
-                // )
-                // ch_macs2_bed         = MACS2_CALLPEAK.out.bed
-                // ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
-                //ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+                /MACS2_CALLPEAK (
+                     ch_bam_paired,
+                     params.macs2_gsize
+                )
+                ch_macs2_bed         = MACS2_CALLPEAK.out.bed
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 //MACS2_CALLPEAK.out.bed | view
             }   
