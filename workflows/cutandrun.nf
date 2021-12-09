@@ -1039,7 +1039,7 @@ workflow CUTANDRUN {
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
             ch_ordered_peaks_max
-                .filter { it -> it.size() > 300}
+                .filter { it -> it.size() > 345}
                 .set { ch_ordered_peaks_max }
 
             ch_ordered_peaks_max | view
