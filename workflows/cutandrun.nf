@@ -1035,15 +1035,14 @@ workflow CUTANDRUN {
                 DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
-            /*
-            * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
-            */
+            
             ch_ordered_peaks_max
                 .filter { it -> it.size() > 345}
                 .set { ch_ordered_peaks_max }
 
-            ch_ordered_peaks_max | view
-
+            /*
+            * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
+            */
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
                 ch_ordered_bigwig,
                 ch_ordered_peaks_max
