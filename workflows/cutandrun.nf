@@ -1038,6 +1038,8 @@ workflow CUTANDRUN {
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
+            ch_ordered_peaks_max | view
+
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
                 ch_ordered_bigwig,
                 ch_ordered_peaks_max
@@ -1167,8 +1169,6 @@ workflow CUTANDRUN {
     /*
     * MODULE: Collect software versions used in pipeline
     */
-    ch_software_versions.unique() | view
-    
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_software_versions.unique().collectFile()
     )
