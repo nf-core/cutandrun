@@ -1163,6 +1163,7 @@ workflow CUTANDRUN {
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions)
     }
+    ch_peaks_bed | view
 
     /*
     * MODULE: Collect software versions used in pipeline
