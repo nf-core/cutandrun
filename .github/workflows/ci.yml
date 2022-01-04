@@ -18,13 +18,21 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
-      NXF_VER: ${{ matrix.nxf_ver }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       matrix:
-        # Nextflow versions: check pipeline minimum and current latest
-        nxf_ver: ['21.10.3', '']
+        # Nextflow versions
+        include:
+          # Test pipeline minimum Nextflow version
+          - NXF_VER: '21.10.3'
+            NXF_EDGE: ''
+          # Test pipeline latest Nextflow version
+          - NXF_VER: ''
+            NXF_EDGE: ''
+          # Test latest edge release of Nextflow
+          - NXF_VER: ''
+            NXF_EDGE: '1'
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -58,13 +66,18 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
-      NXF_VER: ${{ matrix.nxf_ver }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       matrix:
-        # Nextflow versions: check pipeline minimum and current latest
-        nxf_ver: ['21.10.3', '']
+        # Nextflow versions
+        include:
+          # Test pipeline minimum Nextflow version
+          - NXF_VER: '21.10.3'
+            NXF_EDGE: ''
+          # Test pipeline latest Nextflow version
+          - NXF_VER: ''
+            NXF_EDGE: ''
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -88,44 +101,6 @@ jobs:
       - name: Run pipeline with test data
         run: |
           nextflow run ${GITHUB_WORKSPACE} -profile docker,test_full_small_local_zip
-
-  #####################################
-  ### EDGE VERSION INTEGRATION TEST ###
-  #####################################
-  test_edge:
-    name: Run standard pipeline test (edge version)
-    # Only run on push if this is the nf-core dev branch (merged PRs)
-    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
-    runs-on: ubuntu-latest
-    env:
-      NXF_VER: ''
-      NXF_EDGE: 1
-      NXF_ANSI_LOG: false
-      CAPSULE_LOG: none
-    steps:
-      - name: Check out pipeline code
-        uses: actions/checkout@v2
-
-      - name: Install Nextflow
-        run: |
-          wget -qO- get.nextflow.io | bash
-          sudo mv nextflow /usr/local/bin/
-          nextflow self-update
-
-      # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
-      # files during pipelie execution
-      - name: Download data
-        run: |
-          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20.fa.gz
-          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-bowtie2.tar.gz
-          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz
-          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.bed.gz
-          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.fa.gz
-          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.tar.gz
-
-      - name: Run pipeline with test data
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
 
   ##############################
   ###      UNIT TESTS        ###
