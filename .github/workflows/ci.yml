@@ -20,10 +20,15 @@ jobs:
     env:
       NXF_VER: ${{ matrix.nxf_ver }}
       NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     strategy:
       matrix:
-        # Nextflow versions: check pipeline minimum and current latest
-        nxf_ver: ['21.04.3', '']
+        # Nextflow versions
+        include:
+          # Test pipeline minimum Nextflow version
+          - NXF_VER: '21.10.3'
+          # Test latest nextflow version
+          - NXF_VER: ''
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -59,10 +64,11 @@ jobs:
     env:
       NXF_VER: ${{ matrix.nxf_ver }}
       NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     strategy:
       matrix:
-        # We only run this on the specified nextflow version for the pipeline
-        nxf_ver: ['']
+        # Nextflow versions: check pipeline minimum and current latest
+        nxf_ver: ['21.10.3', '']
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -99,6 +105,7 @@ jobs:
       NXF_VER: ''
       NXF_EDGE: 1
       NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -133,10 +140,11 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     strategy:
       fail-fast: false
       matrix:
-        nxf_version: ["21.10.3"]
+        nxf_version: ['21.10.3', '']
         tags: ["samplesheet", "verify_output_input", "verify_output_align_short", "verify_output_align_long", "verify_output_peak_calling", "verify_output_reporting", "verify_output_save", "verify_output_skip"]
     steps:
       - uses: actions/checkout@v2
