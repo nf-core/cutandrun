@@ -20,6 +20,7 @@ jobs:
     env:
       NXF_VER: ${{ matrix.nxf_ver }}
       NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
@@ -59,6 +60,7 @@ jobs:
     env:
       NXF_VER: ${{ matrix.nxf_ver }}
       NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
@@ -99,6 +101,7 @@ jobs:
       NXF_VER: ''
       NXF_EDGE: 1
       NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -133,6 +136,7 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     strategy:
       fail-fast: false
       matrix:
