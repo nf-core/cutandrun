@@ -32,7 +32,7 @@ jobs:
             NXF_EDGE: ''
           # Test latest edge release of Nextflow
           - NXF_VER: ''
-            NXF_EDGE: '1'
+            NXF_EDGE: 1
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
