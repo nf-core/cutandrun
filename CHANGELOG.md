@@ -33,3 +33,28 @@ We thank Harshil Patel ([@drpatelh](https://github.com/drpatelh)) and everyone i
     2. Heatmap peak analysis ([`deepTools`](https://github.com/deeptools/deepTools/))
 13. Genome browser session ([`IGV`](https://software.broadinstitute.org/software/igv/))
 14. Present QC for raw read, alignment and duplicate reads ([`MultiQC`](http://multiqc.info/))
+
+## [1.1] - 2022-01-05
+
+### Enhancements & fixes
+
+* Updated pipeline template to nf-core/tools `2.2`
+* [[#71](https://github.com/nf-core/cutandrun/issues/71)] - Bumped Nextflow version `21.04.0` -> `21.10.3`
+* Added pipeline diagram to [[README](https://github.com/nf-core/cutandrun/blob/master/README.md)]
+* Upgraded all modules (local and nf-core) to support the new versioning system
+* The module `getchromsizes` was submitted to nf-core and moved from `local` to `nf-core`
+* [[#57](https://github.com/nf-core/cutandrun/issues/57), [#66](https://github.com/nf-core/cutandrun/issues/66)] - Upgraded version reporting in multiqc to support both software version by module and unique software versions. This improves detection of multi-version software usage in the pipeline
+* [[#54](https://github.com/nf-core/cutandrun/issues/54)] - Fixed pipeline error where dots in sample ids inside the sample sheet were not correctly handled
+* [[#75](https://github.com/nf-core/cutandrun/issues/75)] - Fixed error caused by emtpy peak files being passed to the `CALCULATE_FRIP` and `CALCULATE_PEAK_REPROD` python reporting modules
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+| Dependency | Old version | New version |
+|------------|-------------|-------------|
+| `samtools` | 1.13        | 1.14        |
+
+> **NB:** Dependency has been __updated__ if both old and new version information is present.
+> **NB:** Dependency has been __added__ if just the new version information is present.
+> **NB:** Dependency has been __removed__ if version information isn't present.
