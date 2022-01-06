@@ -539,7 +539,7 @@ class Reports:
 
         ## add peak width column
         self.seacr_beds['peak_width'] = self.seacr_beds['end'] - self.seacr_beds['start']
-        self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs()
+        self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs().astype('float64')
 
         ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate", palette = "viridis")
         ax.xaxis.set_tick_params(labelrotation=45)
