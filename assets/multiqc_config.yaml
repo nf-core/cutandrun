@@ -51,7 +51,9 @@ custom_content:
     - fragment_lengths
     - software_versions
     - software_versions_unique
-
+extra_fn_clean_exts:
+    - '_val_1'
+    - '_val_2'
 # Don't show % Dups in the General Stats table (we have this from Picard)
 table_columns_visible:
     FastQC:
