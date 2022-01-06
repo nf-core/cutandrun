@@ -880,7 +880,8 @@ workflow CUTANDRUN {
                 ch_seacr_bed.collect{it[1]}.ifEmpty([]),
                 UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
             )
-            // ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
+            //TODO - this version ouptut causes an error for an unknown reason
+            //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
         if (run_deep_tools){
