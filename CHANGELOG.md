@@ -43,9 +43,11 @@ We thank Harshil Patel ([@drpatelh](https://github.com/drpatelh)) and everyone i
 * Added pipeline diagram to [[README](https://github.com/nf-core/cutandrun/blob/master/README.md)]
 * Upgraded all modules (local and nf-core) to support the new versioning system
 * The module `getchromsizes` was submitted to nf-core and moved from `local` to `nf-core`
+* Added support for GFF files in IGV session generation
 * [[#57](https://github.com/nf-core/cutandrun/issues/57), [#66](https://github.com/nf-core/cutandrun/issues/66)] - Upgraded version reporting in multiqc to support both software version by module and unique software versions. This improves detection of multi-version software usage in the pipeline
 * [[#54](https://github.com/nf-core/cutandrun/issues/54)] - Fixed pipeline error where dots in sample ids inside the sample sheet were not correctly handled
 * [[#75](https://github.com/nf-core/cutandrun/issues/75)] - Fixed error caused by emtpy peak files being passed to the `CALCULATE_FRIP` and `CALCULATE_PEAK_REPROD` python reporting modules
+* [[#83]](https://github.com/nf-core/cutandrun/issues/83) - Fixed error in violin chart generation with cast to int64
 
 ### Software dependencies
 
