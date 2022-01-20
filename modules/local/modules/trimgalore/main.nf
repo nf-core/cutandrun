@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../../common/functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -22,9 +22,9 @@ process TRIMGALORE {
     tuple val(meta), path(reads)
 
     output:
-    tuple val(meta), path("*trimmed.fastq.gz"), emit: reads
-    tuple val(meta), path("*report.txt")      , emit: log
-    path "*.version.txt"                      , emit: version
+    tuple val(meta), path("*trimmed.fastq.gz")  , emit: reads
+    tuple val(meta), path("*report.txt")        , emit: log
+    path  "versions.yml"                        , emit: versions
 
     tuple val(meta), path("*.html"), emit: html optional true
     tuple val(meta), path("*.zip") , emit: zip optional true
@@ -64,7 +64,12 @@ process TRIMGALORE {
             $c_r1 \\
             $tpc_r1 \\
             ${prefix}.fastq.gz
-        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${software}.version.txt
+
+        cat <<-END_VERSIONS > versions.yml
+        ${getProcessName(task.process)}:
+            ${getSoftwareName(task.process)}: \$(echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//')
+            cutadapt: \$(cutadapt --version)
+        END_VERSIONS
         """
     } else {
         """
@@ -81,7 +86,12 @@ process TRIMGALORE {
             $tpc_r2 \\
             ${meta.id}_1.fastq.gz \\
             ${meta.id}_2.fastq.gz
-        echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//' > ${software}.version.txt
+
+        cat <<-END_VERSIONS > versions.yml
+        ${getProcessName(task.process)}:
+            ${getSoftwareName(task.process)}: \$(echo \$(trim_galore --version 2>&1) | sed 's/^.*version //; s/Last.*\$//')
+            cutadapt: \$(cutadapt --version)
+        END_VERSIONS
 
         mv ${meta.id}_1_val_1.fq.gz ${prefix_1}.fastq.gz
         mv ${meta.id}_2_val_2.fq.gz ${prefix_2}.fastq.gz

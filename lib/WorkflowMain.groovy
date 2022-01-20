@@ -59,6 +59,9 @@ class WorkflowMain {
         // Print parameter summary log to screen
         log.info paramsSummaryLog(workflow, params, log)
 
+        // Check that a -profile or Nextflow config has been provided to run the pipeline
+        NfcoreTemplate.checkConfigProvided(workflow, log)
+
         // Check that conda channels are set-up correctly
         if (params.enable_conda) {
             Utils.checkCondaChannels(log)
@@ -67,10 +70,7 @@ class WorkflowMain {
         // Check AWS batch settings
         NfcoreTemplate.awsBatch(workflow, params)
 
-        // Check the hostnames against configured profiles
-        NfcoreTemplate.hostName(workflow, params, log)
-
-        // Check at least one form of input has been provided
+        // Check input has been provided
         if (!params.input) {
             log.error "Please specify an input for the pipeline e.g. '--input samplsheet.csv'."
             System.exit(1)
@@ -82,9 +82,7 @@ class WorkflowMain {
     //
     public static String getGenomeAttribute(params, attribute) {
         def val = ''
-        if (params.attribute) {
-            val = params.attribute
-        } else if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
+        if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
             if (params.genomes[ params.genome ].containsKey(attribute)) {
                 val = params.genomes[ params.genome ][ attribute ]
             }
@@ -97,9 +95,7 @@ class WorkflowMain {
     //
     public static String getGenomeAttributeSpikeIn(params, attribute) {
         def val = ''
-        if (params.attribute) {
-            val = params.attribute
-        } else if (params.genomes && params.spikein_genome && params.genomes.containsKey(params.spikein_genome)) {
+        if (params.genomes && params.spikein_genome && params.genomes.containsKey(params.spikein_genome)) {
             if (params.genomes[ params.spikein_genome ].containsKey(attribute)) {
                 val = params.genomes[ params.spikein_genome ][ attribute ]
             }

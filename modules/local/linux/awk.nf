@@ -1,4 +1,4 @@
-include { initOptions; saveFiles; getSoftwareName } from '../common/functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../common/functions'
 
 params.options   = [:]
 options          = initOptions(params.options)
@@ -13,7 +13,7 @@ process AWK {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
-    conda (params.enable_conda ? "conda-forge::sed=4.7" : null)
+    conda (params.enable_conda ? "conda-forge::gawk=5.1.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://containers.biocontainers.pro/s3/SingImgsRepo/biocontainers/v1.2.0_cv1/biocontainers_v1.2.0_cv1.img"
     } else {
@@ -25,7 +25,7 @@ process AWK {
 
     output:
     tuple val(meta), path("*.awk.*"), emit: file
-    path "*.version.txt",             emit: version
+    path  "versions.yml"            , emit: versions
 
     script:
     def software = getSoftwareName(task.process)
@@ -33,6 +33,10 @@ process AWK {
     def ext   = options.ext ? "${options.ext}" : "txt"
     """
     awk $options.args $options.command $input $options.command2 > ${prefix}.awk.${ext}
-    awk -W version | head -n 1 | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}" > ${software}.version.txt
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(awk -W version | head -n 1 | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}")
+    END_VERSIONS
     """
 }

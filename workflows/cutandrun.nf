@@ -23,7 +23,7 @@ checkPathParamList = [
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters that cannot be checked in the groovy lib as we want a channel for them
-if (params.input)     { ch_input     = file(params.input)     } else { exit 1, "Input samplesheet not specified!"     }
+if (params.input) { ch_input = file(params.input) } else { exit 1, "Input samplesheet not specified!" }
 
 ch_blacklist = Channel.empty()
 if (params.blacklist) {
@@ -292,19 +292,19 @@ multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title
 /*
  * MODULES
  */
-include { INPUT_CHECK                     } from "../subworkflows/local/input_check"                   addParams( options: [:]                          )
-include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_name_peak_bed"] )
-include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]               )
-include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"] )
-include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"                          addParams( options: modules["awk_frag_bin"]      )
-include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"               addParams( options: modules["samtools_frag_len"] )
-include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"        addParams( options: modules["calc_frip"]         )
-include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main" addParams( options: modules["calc_peak_repro"]   )
-include { EXPORT_META                     } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]       )
-include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]       )
-include { GENERATE_REPORTS                } from "../modules/local/python/generate_reports"            addParams( options: modules["generate_reports"]  )
-include { GET_SOFTWARE_VERSIONS           } from "../modules/local/get_software_versions"              addParams( options: [publish_files : ["csv":""]] )
-include { MULTIQC                         } from "../modules/local/multiqc"                            addParams( options: multiqc_options              )
+include { INPUT_CHECK                     } from "../subworkflows/local/input_check"                   addParams( options: [:]                            )
+include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_name_peak_bed"]   )
+include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]                 )
+include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"]   )
+include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"                          addParams( options: modules["awk_frag_bin"]        )
+include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"               addParams( options: modules["samtools_frag_len"]   )
+include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"        addParams( options: modules["calc_frip"]           )
+include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"                          addParams( options: modules["calc_peak_repro_cut"] )
+include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main" addParams( options: modules["calc_peak_repro"]     )
+include { EXPORT_META                     } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]         )
+include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]         )
+include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"      addParams( options: modules["generate_reports"]    )
+include { MULTIQC                         } from "../modules/local/multiqc"                            addParams( options: multiqc_options                )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -330,18 +330,19 @@ include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows
 /*
  * MODULES
  */
-include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"               addParams( options: cat_fastq_options                      )
-include { BEDTOOLS_GENOMECOV                                       } from "../modules/nf-core/modules/bedtools/genomecov/main"      addParams( options: modules["bedtools_genomecov_bedgraph"] )
-include { BEDTOOLS_SORT                                            } from "../modules/nf-core/modules/bedtools/sort/main"           addParams( options: modules["sort_bedgraph"]               )
-include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"            addParams( options: modules["ucsc_bedclip"]                )
-include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"   addParams( options: modules["ucsc_bedgraphtobigwig"]       )
-include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"          addParams( options: modules["seacr"]                       )
-include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"          addParams( options: modules["seacr"]                       )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_gene"]         )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main" addParams( options: modules["dt_compute_mat_peaks"]        )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_gene"]         )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"   addParams( options: modules["dt_plotheatmap_peaks"]        )
-include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"   addParams( options: bedtools_intersect_options             )
+include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"                   addParams( options: cat_fastq_options                      )
+include { BEDTOOLS_GENOMECOV                                       } from "../modules/nf-core/modules/bedtools/genomecov/main"          addParams( options: modules["bedtools_genomecov_bedgraph"] )
+include { BEDTOOLS_SORT                                            } from "../modules/nf-core/modules/bedtools/sort/main"               addParams( options: modules["sort_bedgraph"]               )
+include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"                addParams( options: modules["ucsc_bedclip"]                )
+include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"       addParams( options: modules["ucsc_bedgraphtobigwig"]       )
+include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
+include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_gene"]         )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_peaks"]        )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_gene"]         )
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_peaks"]        )
+include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"       addParams( options: bedtools_intersect_options             )
+include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from '../modules/local/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] ) // LOCAL FOR NOW WHILE PR IS DISCUSSED
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -369,8 +370,7 @@ workflow CUTANDRUN {
         PREPARE_GENOME (
             prepare_tool_indices
         )
-        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.bowtie2_version.ifEmpty(null))
-        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.samtools_version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.versions)
     }
 
     /*
@@ -380,19 +380,21 @@ workflow CUTANDRUN {
         INPUT_CHECK (
             ch_input
         )
-        .map {
-            meta, fastq ->
-                meta.id = meta.id.split("_")[0..-2].join("_")
-                [ meta, fastq ] }
-        .groupTuple(by: [0])
-        .branch {
-            meta, fastq ->
-                single  : fastq.size() == 1
-                    return [ meta, fastq.flatten() ]
-                multiple: fastq.size() > 1
-                    return [ meta, fastq.flatten() ]
-        }
-        .set { ch_fastq }
+
+        INPUT_CHECK.out.reads
+            .map {
+                meta, fastq ->
+                    meta.id = meta.id.split("_")[0..-2].join("_")
+                    [ meta, fastq ] }
+            .groupTuple(by: [0])
+            .branch {
+                meta, fastq ->
+                    single  : fastq.size() == 1
+                        return [ meta, fastq.flatten() ]
+                    multiple: fastq.size() > 1
+                        return [ meta, fastq.flatten() ]
+            }
+            .set { ch_fastq }
     }
 
     /*
@@ -402,8 +404,11 @@ workflow CUTANDRUN {
         CAT_FASTQ (
             ch_fastq.multiple
         )
-        .mix(ch_fastq.single)
-        .set { ch_cat_fastq }
+        ch_software_versions = ch_software_versions.mix(CAT_FASTQ.out.versions)
+
+        CAT_FASTQ.out.reads
+            .mix(ch_fastq.single)
+            .set { ch_cat_fastq }
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //ch_cat_fastq | view
@@ -418,8 +423,7 @@ workflow CUTANDRUN {
             params.skip_trimming
         )
         ch_trimmed_reads     = FASTQC_TRIMGALORE.out.reads
-        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
-        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //FASTQC_TRIMGALORE.out.reads | view
@@ -449,7 +453,7 @@ workflow CUTANDRUN {
                 PREPARE_GENOME.out.bowtie2_index,
                 PREPARE_GENOME.out.bowtie2_spikein_index
             )
-            ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.bowtie2_version.first().ifEmpty(null))
+            ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.versions)
             ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
             ch_orig_spikein_bam           = ALIGN_BOWTIE2.out.orig_spikein_bam
             ch_bowtie2_log                = ALIGN_BOWTIE2.out.bowtie2_log
@@ -484,6 +488,7 @@ workflow CUTANDRUN {
         ch_samtools_stats         = SAMTOOLS_VIEW_SORT_STATS.out.stats
         ch_samtools_flagstat      = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
         ch_samtools_idxstats      = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
+        ch_software_versions      = ch_software_versions.mix(SAMTOOLS_VIEW_SORT_STATS.out.versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
@@ -502,7 +507,7 @@ workflow CUTANDRUN {
         ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
         ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
         ch_markduplicates_metrics = MARK_DUPLICATES_PICARD.out.metrics
-        ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
+        ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
@@ -521,6 +526,7 @@ workflow CUTANDRUN {
         ch_samtools_flagstat = DEDUP_PICARD.out.flagstat
         ch_samtools_idxstats = DEDUP_PICARD.out.idxstats
         ch_dedup_multiqc     = DEDUP_PICARD.out.metrics
+        ch_software_versions = ch_software_versions.mix(DEDUP_PICARD.out.versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
@@ -535,13 +541,14 @@ workflow CUTANDRUN {
             ch_bowtie2_log,
             ch_bt2_to_csv_awk
         )
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
 
         ANNOTATE_BT2_SPIKEIN_META (
             ANNOTATE_BT2_META.out.output,
             ch_bowtie2_spikein_log,
             ch_bt2_to_csv_awk
         )
-        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
+        ch_samtools_bam      = ANNOTATE_BT2_SPIKEIN_META.out.output
     }
     // META-DATA example state:
     //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
@@ -559,7 +566,9 @@ workflow CUTANDRUN {
             ch_markduplicates_metrics,
             ch_dummy_file.collect()
         )
-        ch_samtools_bam = ANNOTATE_DEDUP_META.out.output
+        ch_samtools_bam      = ANNOTATE_DEDUP_META.out.output
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_DEDUP_META.out.versions)
+
     }
     //EXAMPLE CHANNEL STRUCT: [[META + dedup_library:unknown library, dedup_unpaired_reads_examined:0, dedup_read_pairs_examined:350, dedup_secondary_or_supplementary_rds:0,
     // dedup_unmapped_reads:0, dedup_unpaired_read_duplicates:0, dedup_read_pair_duplicates:0, dedup_read_pair_optical_duplicates:0, dedup_percent_duplication:0,
@@ -619,6 +628,7 @@ workflow CUTANDRUN {
             ch_dummy_file,
             "bedGraph"
         )
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_GENOMECOV.out.versions)
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
         //BEDTOOLS_GENOMECOV.out.genomecov | view
 
@@ -629,14 +639,16 @@ workflow CUTANDRUN {
             BEDTOOLS_GENOMECOV.out.genomecov,
             "bedGraph"
         )
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_SORT.out.versions)
 
         /*
         * MODULE: Clip off bedgraphs so none overlap beyond chromosome edge
         */
         UCSC_BEDCLIP (
-            BEDTOOLS_SORT.out.sort,
+            BEDTOOLS_SORT.out.sorted,
             PREPARE_GENOME.out.chrom_sizes
         )
+        ch_software_versions = ch_software_versions.mix(UCSC_BEDCLIP.out.versions)
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
         //UCSC_BEDCLIP.out.bedgraph | view
 
@@ -647,14 +659,14 @@ workflow CUTANDRUN {
             UCSC_BEDCLIP.out.bedgraph,
             PREPARE_GENOME.out.chrom_sizes
         )
-        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions)
         //EXAMPLE CHANNEL STRUCT: [[META], BIGWIG]
         //UCSC_BEDGRAPHTOBIGWIG.out.bigwig | view
 
         /*
          * CHANNEL: Separate bedgraphs into target/control
          */
-        BEDTOOLS_SORT.out.sort.branch { it ->
+        BEDTOOLS_SORT.out.sorted.branch { it ->
             target: it[0].group != "igg"
             control: it[0].group == "igg"
         }
@@ -698,8 +710,9 @@ workflow CUTANDRUN {
                 ch_bedgraph_paired,
                 params.peak_threshold
             )
-            ch_seacr_bed = SEACR_CALLPEAK.out.bed
-            //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.version.first().ifEmpty(null))
+            ch_seacr_bed         = SEACR_CALLPEAK.out.bed
+            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
+            //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //SEACR_CALLPEAK.out.bed | view
         }
@@ -720,8 +733,9 @@ workflow CUTANDRUN {
                 ch_bedgraph_target_fctrl,
                 params.peak_threshold
             )
-            ch_seacr_bed = SEACR_CALLPEAK_NOIGG.out.bed
-            //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.version.first().ifEmpty(null))
+            ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
+            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
+            //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.versions)
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //SEACR_NO_IGG.out.bed | view
         }
@@ -732,6 +746,7 @@ workflow CUTANDRUN {
         AWK_NAME_PEAK_BED (
             ch_seacr_bed
         )
+        ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //AWK_NAME_PEAK_BED.out.file | view
 
@@ -763,6 +778,8 @@ workflow CUTANDRUN {
         CONSENSUS_PEAKS_ALL (
             ch_seacr_bed_all
         )
+        ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
+
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //CONSENSUS_PEAKS_ALL.out.bed | view
 
@@ -795,6 +812,8 @@ workflow CUTANDRUN {
         CONSENSUS_PEAKS (
             ch_seacr_bed_group
         )
+        ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
+
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //CONSENSUS_PEAKS.out.bed | view
 
@@ -808,7 +827,7 @@ workflow CUTANDRUN {
         CALCULATE_FRAGMENTS (
             ch_samtools_bam
         )
-        ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.bedtools_version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.versions)
         //EXAMPLE CHANNEL STRUCT: NO CHANGE
         //CALCULATE_FRAGMENTS.out.bed | view
 
@@ -838,6 +857,7 @@ workflow CUTANDRUN {
         SAMTOOLS_CUSTOMVIEW (
             ch_bam_bai
         )
+        ch_software_versions = ch_software_versions.mix(SAMTOOLS_CUSTOMVIEW.out.versions)
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
     }
 
@@ -860,6 +880,8 @@ workflow CUTANDRUN {
                 ch_seacr_bed.collect{it[1]}.ifEmpty([]),
                 UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
             )
+            //TODO - this version ouptut causes an error for an unknown reason
+            //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
         if (run_deep_tools){
@@ -869,6 +891,7 @@ workflow CUTANDRUN {
             AWK_EDIT_PEAK_BED (
                 ch_seacr_bed
             )
+            ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
             //AWK_EDIT_PEAK_BED.out.file | view
 
             /*
@@ -905,7 +928,7 @@ workflow CUTANDRUN {
                 ch_bigwig_no_igg,
                 PREPARE_GENOME.out.bed
             )
-            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.version.first().ifEmpty(null))
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions)
 
             /*
             * MODULE: Calculate DeepTools heatmap
@@ -913,7 +936,7 @@ workflow CUTANDRUN {
             DEEPTOOLS_PLOTHEATMAP_GENE (
                 DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
             )
-
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
@@ -950,6 +973,7 @@ workflow CUTANDRUN {
         CALCULATE_FRIP (
             ch_bam_bai_bed
         )
+        ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
 
         /*
         * SUBWORKFLOW: Annotate meta-data with frip stats
@@ -959,13 +983,40 @@ workflow CUTANDRUN {
             CALCULATE_FRIP.out.frips
         )
         ch_samtools_bam_ctrl = ch_samtools_bam
-        ch_samtools_bam = ANNOTATE_FRIP_META.out.output
+        ch_samtools_bam      = ANNOTATE_FRIP_META.out.output
         //ch_samtools_bam | view
+
+        /*
+        * MODULE: Trim unwanted columns for downstream reporting
+        */
+        CUT_CALC_REPROD (
+            AWK_NAME_PEAK_BED.out.file
+        )
+
+        /*
+        * CHANNEL: Group samples based on group
+        */
+        CUT_CALC_REPROD.out.file
+            .map { row -> [ row[0].group, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", row[0] )
+                [ new_meta, row[1].flatten() ]
+            }
+            .map { row ->
+                [ row[0], row[1], row[1].size() ]
+            }
+            .filter { row -> row[2] > 1 }
+            .map { row ->
+                [ row[0], row[1] ]
+            }
+        .set { ch_seacr_bed_group_2 }
 
         /*
         * CHANNEL: Per group, create a channel per one against all combination
         */
-        ch_seacr_bed_group
+        ch_seacr_bed_group_2
             .flatMap{
                 row ->
                 new_output = []
@@ -987,6 +1038,7 @@ workflow CUTANDRUN {
             ch_beds_intersect,
             "bed"
         )
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_INTERSECT.out.versions)
         //EXAMPLE CHANNEL STRUCT: [[META], BED]
         //BEDTOOLS_INTERSECT.out.intersect | view
 
@@ -996,6 +1048,7 @@ workflow CUTANDRUN {
         CALCULATE_PEAK_REPROD (
             BEDTOOLS_INTERSECT.out.intersect
         )
+        ch_software_versions = ch_software_versions.mix(CALCULATE_PEAK_REPROD.out.versions)
         //EXAMPLE CHANNEL STRUCT: [[META], CSV]
         //CALCULATE_PEAK_REPROD.out.csv
 
@@ -1037,22 +1090,14 @@ workflow CUTANDRUN {
             ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
         )
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
-        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions)
     }
 
     /*
     * MODULE: Collect software versions used in pipeline
     */
-    ch_software_versions
-        .map { it -> if (it) [ it.baseName, it ] }
-        .groupTuple()
-        .map { it[1][0] }
-        .flatten()
-        .collect()
-        .set { ch_software_versions }
-
-    GET_SOFTWARE_VERSIONS (
-        ch_software_versions.map { it }.collect()
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_software_versions.unique().collectFile()
     )
 
     /*
@@ -1065,7 +1110,8 @@ workflow CUTANDRUN {
         MULTIQC (
             ch_multiqc_config,
             ch_multiqc_custom_config.collect().ifEmpty([]),
-            GET_SOFTWARE_VERSIONS.out.yaml.collect(),
+            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
+            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_unique_yml.collect(),
             ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml"),
             FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),

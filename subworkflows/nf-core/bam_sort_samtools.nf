@@ -14,15 +14,18 @@ workflow BAM_SORT_SAMTOOLS {
     ch_bam // channel: [ val(meta), [ bam ] ]
 
     main:
+    ch_versions = Channel.empty()
     /*
     * SORT BAM file
     */
     SAMTOOLS_SORT      ( ch_bam )
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
 
     /*
     * Index BAM file
     */
     SAMTOOLS_INDEX     ( SAMTOOLS_SORT.out.bam )
+    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions)
 
     // Join bam/bai
     ch_bam_sample_id = SAMTOOLS_SORT.out.bam.map  { row -> [row[0].id, row] }
@@ -33,6 +36,7 @@ workflow BAM_SORT_SAMTOOLS {
     * Run samtools stats, flagstat and idxstats
     */
     BAM_STATS_SAMTOOLS ( ch_bam_bai )
+    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions)
 
     emit:
     bam      = SAMTOOLS_SORT.out.bam           // channel: [ val(meta), [ bam ] ]
@@ -40,5 +44,5 @@ workflow BAM_SORT_SAMTOOLS {
     stats    = BAM_STATS_SAMTOOLS.out.stats    // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_STATS_SAMTOOLS.out.flagstat // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_STATS_SAMTOOLS.out.idxstats // channel: [ val(meta), [ idxstats ] ]
-    version  = SAMTOOLS_SORT.out.version       // path: *.version.txt
+    versions = ch_versions                     // channel: [ versions.yml ]
 }

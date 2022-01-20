@@ -1,4 +1,4 @@
-include { initOptions; saveFiles; getSoftwareName } from '../common/functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../common/functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -17,8 +17,8 @@ process PLOT_CONSENSUS_PEAKS {
     path(consensus_peaks)
 
     output:
-    path ("*.pdf"), optional:true, emit: pdf
-    path '*.version.txt', emit: version
+    path ("*.pdf")      , optional:true, emit: pdf
+    path  "versions.yml", emit: versions
 
     script:
     """
@@ -26,7 +26,10 @@ process PLOT_CONSENSUS_PEAKS {
         --peaks "*.peaks.bed" \\
         --outpath .
 
-    python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\" > python.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
+    END_VERSIONS
     """
 
 }
