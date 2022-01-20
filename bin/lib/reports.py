@@ -132,8 +132,8 @@ class Reports:
 
             #  split txt files on dots
             sample_id_list = frag_base_i.split(".")
-            
-            # join list on the elements of the sample id 
+
+            # join list on the elements of the sample id
             separator = ""
             sample_id = separator.join(sample_id_list[0:-2])
 
@@ -217,9 +217,9 @@ class Reports:
             bed_base_i = os.path.basename(seacr_bed_list[i])
 
             #  split bed files on dots
-            bed_id_list = bed_base_i.split(".")            
+            bed_id_list = bed_base_i.split(".")
 
-            # join list on the elements of the sample id 
+            # join list on the elements of the sample id
             separator = ""
             sample_id = separator.join(bed_id_list[0:-4])
 
@@ -539,7 +539,7 @@ class Reports:
 
         ## add peak width column
         self.seacr_beds['peak_width'] = self.seacr_beds['end'] - self.seacr_beds['start']
-        self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs()
+        self.seacr_beds['peak_width'] = self.seacr_beds['peak_width'].abs().astype('float64')
 
         ax = sns.violinplot(data=self.seacr_beds, x="group", y="peak_width", hue="replicate", palette = "viridis")
         ax.xaxis.set_tick_params(labelrotation=45)

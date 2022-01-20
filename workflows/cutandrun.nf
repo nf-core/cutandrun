@@ -306,18 +306,19 @@ multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title
 /*
  * MODULES
  */
-include { INPUT_CHECK                     } from "../subworkflows/local/input_check"                   addParams( options: [:]                          )
-include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_name_peak_bed"] )
-include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]               )
-include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"] )
-include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"                          addParams( options: modules["awk_frag_bin"]      )
-include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"               addParams( options: modules["samtools_frag_len"] )
-include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"        addParams( options: modules["calc_frip"]         )
-include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main" addParams( options: modules["calc_peak_repro"]   )
-include { EXPORT_META                     } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]       )
-include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]       )
-include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"      addParams( options: modules["generate_reports"]  )
-include { MULTIQC                         } from "../modules/local/multiqc"                            addParams( options: multiqc_options              )
+include { INPUT_CHECK                     } from "../subworkflows/local/input_check"                   addParams( options: [:]                            )
+include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_name_peak_bed"]   )
+include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]                 )
+include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"]   )
+include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"                          addParams( options: modules["awk_frag_bin"]        )
+include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"               addParams( options: modules["samtools_frag_len"]   )
+include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"        addParams( options: modules["calc_frip"]           )
+include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"                          addParams( options: modules["calc_peak_repro_cut"] )
+include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main" addParams( options: modules["calc_peak_repro"]     )
+include { EXPORT_META                     } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]         )
+include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]         )
+include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"      addParams( options: modules["generate_reports"]    )
+include { MULTIQC                         } from "../modules/local/multiqc"                            addParams( options: multiqc_options                )
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -979,7 +980,8 @@ workflow CUTANDRUN {
                 ch_peaks_bed.collect{it[1]}.ifEmpty([]),
                 UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
             )
-            // ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
+            //TODO - this version ouptut causes an error for an unknown reason
+            //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
         if (run_deep_tools){
@@ -1090,9 +1092,36 @@ workflow CUTANDRUN {
         //ch_samtools_bam | view
 
         /*
+        * MODULE: Trim unwanted columns for downstream reporting
+        */
+        CUT_CALC_REPROD (
+            AWK_NAME_PEAK_BED.out.file
+        )
+
+        /*
+        * CHANNEL: Group samples based on group
+        */
+        CUT_CALC_REPROD.out.file
+            .map { row -> [ row[0].group, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", row[0] )
+                [ new_meta, row[1].flatten() ]
+            }
+            .map { row ->
+                [ row[0], row[1], row[1].size() ]
+            }
+            .filter { row -> row[2] > 1 }
+            .map { row ->
+                [ row[0], row[1] ]
+            }
+        .set { ch_seacr_bed_group_2 }
+
+        /*
         * CHANNEL: Per group, create a channel per one against all combination
         */
-        ch_peaks_bed_group
+        ch_seacr_bed_group_2
             .flatMap{
                 row ->
                 new_output = []
