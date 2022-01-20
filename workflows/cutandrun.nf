@@ -59,7 +59,7 @@ ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkI
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 // Header files for MultiQC
-ch_frag_len_header_multiqc       = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
+ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
 
 /*
 ========================================================================================
