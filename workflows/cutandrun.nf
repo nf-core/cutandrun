@@ -738,8 +738,6 @@ workflow CUTANDRUN {
             }
 
             if('macs2' in callers) {
-                // ch_samtools_bam | view
-
                 ch_samtools_bam
                  .branch{ it ->
                          target: it[0].group != "igg"
@@ -780,7 +778,6 @@ workflow CUTANDRUN {
                      params.macs2_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK.out.bed
-                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 //MACS2_CALLPEAK.out.bed | view
