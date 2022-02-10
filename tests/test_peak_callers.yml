@@ -1,0 +1,49 @@
+- name: test_peak_callers_seacr
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller seacr -c tests/config/nextflow.config
+  tags:
+    - test_peak_callers
+    - test_peak_callers_seacr
+  files:
+    - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.seacr.peaks.bed.stringent.bed
+
+- name: test_peak_callers_macs2
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller macs2 -c tests/config/nextflow.config
+  tags:
+    - test_peak_callers
+    - test_peak_callers_macs2
+  files:
+    - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.macs2.peaks.bed_summits.bed
+  
+- name: test_peak_callers_invalid_name
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller test -c tests/config/nextflow.config
+  tags:
+    - test_peak_callers
+    - test_peak_callers_invalid
+  exit_code: 1
+
+- name: test_peak_callers_seacr_macs2
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller seacr,macs2 -c tests/config/nextflow.config
+  tags:
+    - test_peak_callers
+    - test_peak_callers_seacr_macs2
+  files:
+    - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.seacr.peaks.bed.stringent.bed
+    - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.macs2.peaks.bed_summits.bed
+
+- name: test_peak_callers_macs2_seacr
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller macs2,seacr -c tests/config/nextflow.config
+  tags:
+    - test_peak_callers
+    - test_peak_callers_macs2_seacr
+  files:
+    - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.seacr.peaks.bed.stringent.bed
+    - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.macs2.peaks.bed_summits.bed
+
+  - name: test_peak_callers_seacr_macs2_noigg
+  command: nextflow run main.nf -profile docker,test_no_igg --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller seacr,macs2 -c tests/config/nextflow.config
+  tags:
+    - test_peak_callers
+    - test_peak_callers_seacr_macs2_noigg
+  files:
+    - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.seacr.peaks.bed.stringent.bed
+    - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.macs2.peaks.bed_summits.bed

@@ -809,6 +809,14 @@ workflow CUTANDRUN {
             }
 
             if('macs2' in callers) {
+                ch_samtools_bam
+                 .branch{ it ->
+                         target: it[0].group != "igg"
+                         control: it[0].group == "igg"
+                     }
+                 .set { ch_samtools_bam_split }
+                // ch_samtools_bam_split.target | view
+
                 /*
                 * CHANNEL: Add fake control channel
                 */
@@ -816,7 +824,7 @@ workflow CUTANDRUN {
                     .map{ row-> [ row[0], row[1], [] ] }
                     .set { ch_samtools_bam_target_fctrl }
                 // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
-                ch_samtools_bam_target_fctrl | view
+                //ch_samtools_bam_target_fctrl | view
 
                 MACS2_CALLPEAK_NOIGG (
                     ch_samtools_bam_target_fctrl,
