@@ -725,7 +725,7 @@ workflow CUTANDRUN {
                     .set{ ch_bedgraph_paired }
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
                 //ch_bedgraph_paired | view
-                
+
                 SEACR_CALLPEAK (
                     ch_bedgraph_paired,
                     params.peak_threshold
@@ -739,14 +739,14 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 ch_samtools_bam
-                 .branch{ it ->
-                         target: it[0].group != "igg"
-                         control: it[0].group == "igg"
+                    .branch{ it ->
+                        target: it[0].group != "igg"
+                        control: it[0].group == "igg"
                      }
-                 .set { ch_samtools_bam_split }
+                    .set { ch_samtools_bam_split }
                 // ch_samtools_bam_split.target | view
 
-                /*      
+                /*
                 * CHANNEL: Pull control groups
                 */
                 ch_samtools_bam_split.target.map{
@@ -756,9 +756,9 @@ workflow CUTANDRUN {
                 //ch_bam_target_ctrlgrp | view
 
                 ch_samtools_bam_split.control.map{
-                     row -> [row[0].control_group, row]
-                 }
-                 .set { ch_bam_control_ctrlgrp }
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bam_control_ctrlgrp }
                 // ch_bam_control_ctrlgrp | view
 
                 /*
@@ -767,15 +767,15 @@ workflow CUTANDRUN {
                 // Create pairs of controls (IgG) with target samples if they are supplied
                 ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp)
                     .map{
-                      row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                        row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
                     }    
                     .set{ch_bam_paired}
-                //  // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
+                // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
                 // ch_bam_paired | view
 
                 MACS2_CALLPEAK (
-                     ch_bam_paired,
-                     params.macs2_gsize
+                    ch_bam_paired,
+                    params.macs2_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
@@ -810,11 +810,11 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 ch_samtools_bam
-                 .branch{ it ->
-                         target: it[0].group != "igg"
-                         control: it[0].group == "igg"
-                     }
-                 .set { ch_samtools_bam_split }
+                    .branch{ it ->
+                        target: it[0].group != "igg"
+                        control: it[0].group == "igg"
+                    }
+                .set { ch_samtools_bam_split }
                 // ch_samtools_bam_split.target | view
 
                 /*
@@ -884,7 +884,6 @@ workflow CUTANDRUN {
             ch_peaks_bed_all
         )
         ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
-
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //CONSENSUS_PEAKS_ALL.out.bed | view
 
