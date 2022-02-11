@@ -59,7 +59,7 @@ ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkI
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 // Header files for MultiQC
-ch_frag_len_header_multiqc       = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
+ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
 
 /*
 ========================================================================================
@@ -264,6 +264,20 @@ else if(params.save_align_intermed) {
     picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
 }
 
+// Peak caller options
+macs2_callpeak_options      = modules["macs2"]
+macs2_callpeak_options.args = macs2_callpeak_options.args + " -p " + params.macs_pvalue
+
+// Peak caller parameter
+params.peakcaller = [:]
+
+// Check peakcaller options
+callerList = ['seacr', 'macs2']
+callers = params.peakcaller ? params.peakcaller.split(',').collect{ it.trim().toLowerCase() } : ['seacr']
+if ((callerList + callers).unique().size() != callerList.size()) {
+    exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${callerList.join(', ')}"
+}
+
 // Consensus peak options
 def awk_threshold           = modules["awk_threshold"]
 awk_threshold.command   = "' \$10 >= " + params.replicate_threshold.toString() + " {print \$0}'"
@@ -337,6 +351,8 @@ include { UCSC_BEDCLIP                                             } from "../mo
 include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"       addParams( options: modules["ucsc_bedgraphtobigwig"]       )
 include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
+include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"              addParams( options: macs2_callpeak_options                 )
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/macs2/callpeak/main"              addParams( options: macs2_callpeak_options                 )
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_gene"]         )
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_peaks"]        )
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_gene"]         )
@@ -675,76 +691,165 @@ workflow CUTANDRUN {
         //ch_bedgraph_split.control | view
 
         ch_seacr_bed = Channel.empty()
+        ch_macs2_bed = Channel.empty()
+        ch_peaks_bed = Channel.empty()
+
         if(params.igg_control) {
             /*
-            * CHANNEL: Pull control groups
-            */
-            ch_bedgraph_split.target.map{
-                row -> [row[0].control_group, row]
-            }
-            .set { ch_bg_target_ctrlgrp }
-            //ch_bg_target_ctrlgrp | view
-
-            ch_bedgraph_split.control.map{
-                row -> [row[0].control_group, row]
-            }
-            .set { ch_bg_control_ctrlgrp }
-            //ch_bg_control_ctrlgrp | view
-
-            /*
-            * CHANNEL: Create target/control pairings
-            */
-            // Create pairs of controls (IgG) with target samples if they are supplied
-            ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp)
-                .map {
-                    row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
-                }
-                .set{ ch_bedgraph_paired }
-            // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
-            //ch_bedgraph_paired | view
-
-            /*
-             * MODULE: Call peaks with IgG control
+             * MODULE: Call peaks using SEACR with IgG control
              */
-            SEACR_CALLPEAK (
-                ch_bedgraph_paired,
-                params.peak_threshold
-            )
-            ch_seacr_bed         = SEACR_CALLPEAK.out.bed
-            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
-            //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
-            // EXAMPLE CHANNEL STRUCT: [[META], BED]
-            //SEACR_CALLPEAK.out.bed | view
+            if('seacr' in callers) {
+                /*
+                * CHANNEL: Pull control groups
+                */
+                ch_bedgraph_split.target.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bg_target_ctrlgrp }
+                //ch_bg_target_ctrlgrp | view
+
+                ch_bedgraph_split.control.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bg_control_ctrlgrp }
+                //ch_bg_control_ctrlgrp | view
+
+                /*
+                * CHANNEL: Create target/control pairings
+                */
+                // Create pairs of controls (IgG) with target samples if they are supplied
+                ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp)
+                    .map {
+                        row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                    }
+                    .set{ ch_bedgraph_paired }
+                // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
+                //ch_bedgraph_paired | view
+
+                SEACR_CALLPEAK (
+                    ch_bedgraph_paired,
+                    params.peak_threshold
+                )
+                ch_seacr_bed         = SEACR_CALLPEAK.out.bed
+                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
+                //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //SEACR_CALLPEAK.out.bed | view
+            }
+
+            if('macs2' in callers) {
+                ch_samtools_bam
+                    .branch{ it ->
+                        target: it[0].group != "igg"
+                        control: it[0].group == "igg"
+                    }
+                    .set { ch_samtools_bam_split }
+                // ch_samtools_bam_split.target | view
+
+                /*
+                * CHANNEL: Pull control groups
+                */
+                ch_samtools_bam_split.target.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bam_target_ctrlgrp }
+                //ch_bam_target_ctrlgrp | view
+
+                ch_samtools_bam_split.control.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bam_control_ctrlgrp }
+                // ch_bam_control_ctrlgrp | view
+
+                /*
+                * CHANNEL: Create target/control pairings
+                */
+                // Create pairs of controls (IgG) with target samples if they are supplied
+                ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp)
+                    .map{
+                        row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                    }
+                    .set{ch_bam_paired}
+                // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
+                // ch_bam_paired | view
+
+                MACS2_CALLPEAK (
+                    ch_bam_paired,
+                    params.macs2_gsize
+                )
+                ch_macs2_bed         = MACS2_CALLPEAK.out.bed
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //MACS2_CALLPEAK.out.bed | view
+            }
         }
         else {
             /*
-            * CHANNEL: Add fake control channel
-            */
-            ch_bedgraph_split.target
-                .map{ row-> [ row[0], row[1], [] ] }
-                .set { ch_bedgraph_target_fctrl }
-            // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
-            // ch_bedgraph_target_fctrl | view
-
-            /*
             * MODULE: Call peaks without IgG Control
             */
-            SEACR_CALLPEAK_NOIGG (
-                ch_bedgraph_target_fctrl,
-                params.peak_threshold
-            )
-            ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
-            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
-            //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.versions)
-            // EXAMPLE CHANNEL STRUCT: [[META], BED]
-            //SEACR_NO_IGG.out.bed | view
+            if('seacr' in callers) {
+                /*
+                * CHANNEL: Add fake control channel
+                */
+                ch_bedgraph_split.target
+                    .map{ row-> [ row[0], row[1], [] ] }
+                    .set { ch_bedgraph_target_fctrl }
+                // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
+                // ch_bedgraph_target_fctrl | view
+
+                SEACR_CALLPEAK_NOIGG (
+                    ch_bedgraph_target_fctrl,
+                    params.peak_threshold
+                )
+                ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
+                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
+                //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //SEACR_NO_IGG.out.bed | view
+            }
+
+            if('macs2' in callers) {
+                ch_samtools_bam
+                    .branch{ it ->
+                        target: it[0].group != "igg"
+                        control: it[0].group == "igg"
+                    }
+                .set { ch_samtools_bam_split }
+                // ch_samtools_bam_split.target | view
+
+                /*
+                * CHANNEL: Add fake control channel
+                */
+                ch_samtools_bam_split.target
+                    .map{ row-> [ row[0], row[1], [] ] }
+                    .set { ch_samtools_bam_target_fctrl }
+                // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
+                //ch_samtools_bam_target_fctrl | view
+
+                MACS2_CALLPEAK_NOIGG (
+                    ch_samtools_bam_target_fctrl,
+                    params.macs2_gsize
+                )
+                ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.bed
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
+                //ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //MACS2_CALLPEAK_NOIGG.out.bed | view
+            }
+        }
+        // Store output of primary peakcaller in the output channel
+        if(callers[0] == 'seacr') {
+                ch_peaks_bed = ch_seacr_bed
+        }
+        if(callers[0] == 'macs2') {
+            ch_peaks_bed = ch_macs2_bed
         }
 
         /*
         * MODULE: Add sample identifier column to peak beds
         */
         AWK_NAME_PEAK_BED (
-            ch_seacr_bed
+            ch_peaks_bed
         )
         ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
@@ -768,18 +873,17 @@ workflow CUTANDRUN {
             .map { row ->
                 [ row[0], row[1] ]
             }
-            .set { ch_seacr_bed_all }
+            .set { ch_peaks_bed_all }
         // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
-        //ch_seacr_bed_all | view
+        //ch_peaks_bed_all | view
 
         /*
         * SUBWORKFLOW: Construct group consensus peaks
         */
         CONSENSUS_PEAKS_ALL (
-            ch_seacr_bed_all
+            ch_peaks_bed_all
         )
         ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
-
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //CONSENSUS_PEAKS_ALL.out.bed | view
 
@@ -801,16 +905,16 @@ workflow CUTANDRUN {
             .map { row ->
                 [ row[0], row[1] ]
             }
-            .set { ch_seacr_bed_group }
+            .set { ch_peaks_bed_group }
         // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
-        //ch_seacr_bed_group | view
+        //ch_peaks_bed_group | view
 
         /*
         * SUBWORKFLOW: Construct group consensus peaks
         * where there is more than 1 replicate in a group
         */
         CONSENSUS_PEAKS (
-            ch_seacr_bed_group
+            ch_peaks_bed_group
         )
         ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
 
@@ -877,7 +981,7 @@ workflow CUTANDRUN {
             IGV_SESSION (
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
-                ch_seacr_bed.collect{it[1]}.ifEmpty([]),
+                ch_peaks_bed.collect{it[1]}.ifEmpty([]),
                 UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
             )
             //TODO - this version ouptut causes an error for an unknown reason
@@ -889,7 +993,7 @@ workflow CUTANDRUN {
             * MODULE: Extract max signal from peak beds
             */
             AWK_EDIT_PEAK_BED (
-                ch_seacr_bed
+                ch_peaks_bed
             )
             ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
             //AWK_EDIT_PEAK_BED.out.file | view
@@ -899,15 +1003,15 @@ workflow CUTANDRUN {
             */
             AWK_EDIT_PEAK_BED.out.file
                 .map { row -> [row[0].id, row ].flatten()}
-                .set { ch_seacr_bed_id }
-            //ch_seacr_bed_id | view
+                .set { ch_peaks_bed_id }
+            //ch_peaks_bed_id | view
 
             /*
             * CHANNEL: Join beds and bigwigs on id
             */
             ch_bigwig_no_igg
                 .map { row -> [row[0].id, row ].flatten()}
-                .join ( ch_seacr_bed_id )
+                .join ( ch_peaks_bed_id )
                 .set { ch_dt_peaks }
             //ch_dt_peaks | view
 
@@ -918,8 +1022,8 @@ workflow CUTANDRUN {
 
             ch_dt_peaks
                 .map { row -> row[-1] }
-                .set { ch_ordered_seacr_max }
-            //ch_ordered_seacr_max | view
+                .set { ch_ordered_peaks_max }
+            //ch_ordered_peaks_max | view
 
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
@@ -937,12 +1041,17 @@ workflow CUTANDRUN {
                 DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
+
+            ch_ordered_peaks_max
+                .filter { it -> it.size() > 345}
+                .set { ch_ordered_peaks_max }
+
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
                 ch_ordered_bigwig,
-                ch_ordered_seacr_max
+                ch_ordered_peaks_max
             )
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
@@ -961,7 +1070,7 @@ workflow CUTANDRUN {
         ch_samtools_bam
             .map { row -> [row[0].id, row ].flatten()}
             .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
-            .join ( ch_seacr_bed.map { row -> [row[0].id, row ].flatten()} )
+            .join ( ch_peaks_bed.map { row -> [row[0].id, row ].flatten()} )
             .map { row -> [row[1], row[2], row[4], row[6]] }
             .set { ch_bam_bai_bed }
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, BED]
@@ -1086,7 +1195,7 @@ workflow CUTANDRUN {
             EXPORT_META_CTRL.out.csv,                   // meta-data report stats
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
             AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
-            ch_seacr_bed.collect{it[1]},                // peak beds
+            ch_peaks_bed.collect{it[1]},                // peak beds
             ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
         )
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc

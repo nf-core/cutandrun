@@ -145,7 +145,22 @@ jobs:
       fail-fast: false
       matrix:
         nxf_version: ['21.10.3', '']
-        tags: ["samplesheet", "verify_output_input", "verify_output_align_short", "verify_output_align_long", "verify_output_peak_calling", "verify_output_reporting", "verify_output_save", "verify_output_skip"]
+        tags:
+          - samplesheet
+          - verify_output_input
+          - verify_output_peak_calling
+          - verify_output_reporting
+          - verify_output_save
+          - verify_output_skip
+          - verify_output_align_only_q_filter
+          - verify_output_align_duplicates_mark
+          - verify_output_align_duplicates_remove
+          - verify_output_align_duplicates_remove_target
+          - verify_output_align_intermed
+          - verify_output_align_only_align
+          - verify_output_align_save_spikein_align
+          - verify_output_align_save_unaligned
+          - test_peak_callers
     steps:
       - uses: actions/checkout@v2
 

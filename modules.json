@@ -42,6 +42,9 @@
             "gunzip": {
                 "git_sha": "e560fbbc3ed68e62bc810a50f552394056f81762"
             },
+            "macs2/callpeak": {
+                "git_sha": "20d8250d9f39ddb05dfb437603aaf99b5c0b2b41"
+            },
             "picard/markduplicates": {
                 "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
             },
