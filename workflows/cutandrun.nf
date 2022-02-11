@@ -742,7 +742,7 @@ workflow CUTANDRUN {
                     .branch{ it ->
                         target: it[0].group != "igg"
                         control: it[0].group == "igg"
-                     }
+                    }
                     .set { ch_samtools_bam_split }
                 // ch_samtools_bam_split.target | view
 
@@ -768,7 +768,7 @@ workflow CUTANDRUN {
                 ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp)
                     .map{
                         row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
-                    }    
+                    }
                     .set{ch_bam_paired}
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
                 // ch_bam_paired | view
@@ -781,7 +781,7 @@ workflow CUTANDRUN {
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 //MACS2_CALLPEAK.out.bed | view
-            }   
+            }
         }
         else {
             /*
@@ -1041,7 +1041,7 @@ workflow CUTANDRUN {
                 DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
-            
+
             ch_ordered_peaks_max
                 .filter { it -> it.size() > 345}
                 .set { ch_ordered_peaks_max }
