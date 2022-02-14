@@ -63,110 +63,12 @@ ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.tx
 
 /*
 ========================================================================================
-    RESOLVE FLOW SWITCHING
-========================================================================================
-*/
-
-def run_genome_prep        = true
-def run_input_check        = true
-def run_cat_fastq          = true
-def run_trim_galore_fastqc = true
-def run_alignment          = true
-def run_q_filter           = false
-def run_mark_dups          = true
-def run_remove_dups        = true
-def run_peak_calling       = true
-def run_reporting          = true
-def run_deep_tools         = true
-def run_multiqc            = true
-def run_peak_plotting      = true
-
-if(params.minimum_alignment_q_score > 0)           { run_q_filter      = true  }
-if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups   = false }
-if(!params.gene_bed || params.skip_heatmaps)       { run_deep_tools    = false }
-if(params.skip_multiqc)                            { run_multiqc       = false }
-if(params.skip_upset_plots)                        { run_peak_plotting = false }
-if(params.skip_reporting) {
-    run_reporting     = false
-    run_multiqc       = false
-    run_peak_plotting = false
-}
-
-if(params.only_input) {
-    run_genome_prep        = false
-    run_cat_fastq          = false
-    run_trim_galore_fastqc = false
-    run_alignment          = false
-    run_q_filter           = false
-    run_mark_dups          = false
-    run_remove_dups        = false
-    run_peak_calling       = false
-    run_reporting          = false
-    run_multiqc            = false
-}
-
-if(params.only_genome) {
-    run_input_check        = false
-    run_cat_fastq          = false
-    run_trim_galore_fastqc = false
-    run_alignment          = false
-    run_q_filter           = false
-    run_mark_dups          = false
-    run_remove_dups        = false
-    run_peak_calling       = false
-    run_reporting          = false
-    run_multiqc            = false
-}
-
-if(params.only_preqc) {
-    run_genome_prep  = false
-    run_alignment    = false
-    run_q_filter     = false
-    run_mark_dups    = false
-    run_remove_dups  = false
-    run_peak_calling = false
-    run_reporting    = false
-    run_multiqc      = false
-}
-
-if(params.only_alignment) {
-    run_q_filter     = false
-    run_mark_dups    = false
-    run_remove_dups  = false
-    run_peak_calling = false
-    run_reporting    = false
-    run_multiqc      = false
-}
-
-if(params.only_filtering) {
-    run_mark_dups    = false
-    run_remove_dups  = false
-    run_peak_calling = false
-    run_reporting    = false
-    run_multiqc      = true
-}
-
-if(params.only_peak_calling) {
-    run_reporting = false
-    run_multiqc   = true
-}
-
-/*
-========================================================================================
     INIALISE PARAMETERS AND OPTIONS
 ========================================================================================
 */
 
 // Init
 def prepare_tool_indices = ["bowtie2"]
-
-// // Pre QC
-// def trimgalore_options = modules["trimgalore"]
-// if(!params.skip_fastqc) { trimgalore_options.args += " --fastqc" }
-
-// // Trimming
-// trimgalore_options.args  += params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ""
-// if (params.save_trimmed) { trimgalore_options.publish_files.put("fastq.gz","") }
 
 // // Spikein alignment options
 // def bowtie2_spikein_align_options = modules["bowtie2_spikein_align"]
@@ -308,6 +210,7 @@ include { INPUT_CHECK                     } from "../subworkflows/local/input_ch
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
 include { PREPARE_GENOME                                 } from "../subworkflows/local/prepare_genome"
+include { FASTQC_TRIMGALORE                              } from "../subworkflows/local/fastqc_trimgalore"
 // include { ALIGN_BOWTIE2                                  } from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options, samtools_options: samtools_sort_options )
 // include { ANNOTATE_META_AWK as ANNOTATE_BT2_META         } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
 // include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
@@ -315,7 +218,6 @@ include { PREPARE_GENOME                                 } from "../subworkflows
 // include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"], run_peak_plotting: run_peak_plotting)
 // include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "", meta_prefix: "dedup_", script_mode: false )
 // include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], samtools_sort_options: modules["calc_frag_samtools_sort"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
-// include { FASTQC_TRIMGALORE                              } from "../subworkflows/local/fastqc_trimgalore"        addParams( fastqc_options: modules["fastqc"], trimgalore_options: trimgalore_options )
 // include { ANNOTATE_META_CSV as ANNOTATE_FRIP_META        } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_frip_options"] )
 // include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_peak_repro_options"] )
 
@@ -366,7 +268,7 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Uncompress and prepare reference genome files
      */
-    if(run_genome_prep) {
+    if(params.run_genome_prep) {
         PREPARE_GENOME (
             prepare_tool_indices
         )
@@ -376,7 +278,7 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Read in samplesheet, validate and stage input files
      */
-    if(run_input_check) {
+    if(params.run_input_check) {
         INPUT_CHECK (
             ch_input
         )
@@ -400,7 +302,7 @@ workflow CUTANDRUN {
     /*
      * MODULE: Concatenate FastQ files from same sample if required
      */
-    if(run_cat_fastq) {
+    if(params.run_cat_fastq) {
         CAT_FASTQ (
             ch_fastq.multiple
         )
@@ -416,15 +318,15 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Read QC, trim adapters and perform post-trim read QC
      */
-    // if(run_trim_galore_fastqc) {
-    //     FASTQC_TRIMGALORE (
-    //         ch_cat_fastq,
-    //         params.skip_fastqc,
-    //         params.skip_trimming
-    //     )
-    //     ch_trimmed_reads     = FASTQC_TRIMGALORE.out.reads
-    //     ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.versions)
-    // }
+    if(params.run_trim_galore_fastqc) {
+        FASTQC_TRIMGALORE (
+            ch_cat_fastq,
+            params.skip_fastqc,
+            params.skip_trimming
+        )
+        ch_trimmed_reads     = FASTQC_TRIMGALORE.out.reads
+        ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.versions)
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //FASTQC_TRIMGALORE.out.reads | view
 
@@ -619,7 +521,7 @@ workflow CUTANDRUN {
     //EXAMPLE CHANNEL STRUCT: [[META], BAM]
     //ch_samtools_bam | view
 
-    if(run_peak_calling) {
+    if(params.run_peak_calling) {
         /*
         * MODULE: Convert bam files to bedgraph
         */
@@ -948,8 +850,8 @@ workflow CUTANDRUN {
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
     }
 
-    if(run_reporting) {
-        if(!params.skip_igv) {
+    if(params.run_reporting) {
+        if(params.run_igv) {
             /*
             * CHANNEL: Remove IgG from bigwig channel
             */
@@ -971,7 +873,7 @@ workflow CUTANDRUN {
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
-        if (run_deep_tools) {
+        if (params.run_deep_tools) {
             /*
             * MODULE: Extract max signal from peak beds
             */
