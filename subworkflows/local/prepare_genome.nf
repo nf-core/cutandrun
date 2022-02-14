@@ -8,8 +8,8 @@ include { GUNZIP as GUNZIP_GTF                       } from '../../modules/nf-co
 include { GUNZIP as GUNZIP_BED                       } from '../../modules/nf-core/modules/gunzip/main.nf'
 include { CUSTOM_GETCHROMSIZES as TARGET_CHROMSIZES  } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
 include { CUSTOM_GETCHROMSIZES as SPIKEIN_CHROMSIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
-include { UNTAR as UNTAR_BT2_INDEX                   } from '../../modules/nf-core/modules/untar/main.nf'
-include { UNTAR as UNTAR_SPIKEIN_BT2_INDEX           } from '../../modules/nf-core/modules/untar/main.nf'
+include { UNTAR as UNTAR_INDEX_TARGET                } from '../../modules/nf-core/modules/untar/main.nf'
+include { UNTAR as UNTAR_INDEX_SPIKEIN               } from '../../modules/nf-core/modules/untar/main.nf'
 include { BOWTIE2_BUILD as BOWTIE2_BUILD_TARGET      } from '../../modules/nf-core/modules/bowtie2/build/main'
 include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN     } from '../../modules/nf-core/modules/bowtie2/build/main'
 
@@ -84,8 +84,8 @@ workflow PREPARE_GENOME {
     if ("bowtie2" in prepare_tool_indices) {
         if (params.bowtie2) {
             if (params.bowtie2.endsWith(".tar.gz")) {
-                ch_bt2_index = UNTAR_BT2_INDEX ( params.bowtie2 ).untar
-                ch_versions  = ch_versions.mix(UNTAR_BT2_INDEX.out.versions)
+                ch_bt2_index = UNTAR_INDEX_TARGET ( params.bowtie2 ).untar
+                ch_versions  = ch_versions.mix(UNTAR_INDEX_TARGET.out.versions)
             } else {
                 ch_bt2_index = file(params.bowtie2)
             }
@@ -96,8 +96,8 @@ workflow PREPARE_GENOME {
 
         if (params.spikein_bowtie2) {
             if (params.spikein_bowtie2.endsWith(".tar.gz")) {
-                ch_bt2_spikein_index = UNTAR_SPIKEIN_BT2_INDEX ( params.spikein_bowtie2 ).untar
-                ch_versions          = ch_versions.mix(UNTAR_SPIKEIN_BT2_INDEX.out.versions)
+                ch_bt2_spikein_index = UNTAR_INDEX_SPIKEIN ( params.spikein_bowtie2 ).untar
+                ch_versions          = ch_versions.mix(UNTAR_INDEX_SPIKEIN.out.versions)
             } else {
                 ch_bt2_spikein_index = file(params.spikein_bowtie2)
             }
