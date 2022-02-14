@@ -1,8 +1,3 @@
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../common/functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process PLOT_CONSENSUS_PEAKS {
     label 'process_low'
     publishDir "${params.outdir}",

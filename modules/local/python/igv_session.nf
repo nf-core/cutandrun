@@ -1,8 +1,3 @@
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../common/functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 colour_pallete = ['38,70,83', '231,111,81', '42,157,143', '244,162,97', '233,196,106']
 
 process IGV_SESSION {
@@ -25,6 +20,8 @@ process IGV_SESSION {
     path('*.{txt,xml,bed,bigWig,fa,gtf}', includeInputs:true)
     path  "versions.yml"                , emit: versions
 
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     output = ''
@@ -57,13 +54,8 @@ process IGV_SESSION {
     igv_files_to_session.py igv_session.xml igv_files.txt $genome --path_prefix './'
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
+    "${task.process}":
         python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
     END_VERSIONS
     """
 }
-
-// find -L * -iname "*.gtf" -exec echo -e {}"\\t0,0,178" \\; > gtf.igv.txt
-// find -L * -iname "*.bed" -exec echo -e {}"\\t0,0,178" \\; > bed.igv.txt
-// find -L * -iname "*.bigWig" -exec echo -e {}"\\t0,0,178" \\; > bigwig.igv.txt
-// cat *.txt > igv_files.txt
