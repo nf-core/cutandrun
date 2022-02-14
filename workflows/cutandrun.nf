@@ -160,10 +160,6 @@ if(params.only_peak_calling) {
 // Init
 def prepare_tool_indices = ["bowtie2"]
 
-// // Replicate merging
-// def cat_fastq_options = modules["cat_fastq"]
-// if (!params.save_merged_fastq) { cat_fastq_options["publish_files"] = false }
-
 // // Pre QC
 // def trimgalore_options = modules["trimgalore"]
 // if(!params.skip_fastqc) { trimgalore_options.args += " --fastqc" }
@@ -332,7 +328,7 @@ include { PREPARE_GENOME                                 } from "../subworkflows
 /*
  * MODULES
  */
-// include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"                   addParams( options: cat_fastq_options                      )
+include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"
 // include { BEDTOOLS_GENOMECOV                                       } from "../modules/nf-core/modules/bedtools/genomecov/main"          addParams( options: modules["bedtools_genomecov_bedgraph"] )
 // include { BEDTOOLS_SORT                                            } from "../modules/nf-core/modules/bedtools/sort/main"               addParams( options: modules["sort_bedgraph"]               )
 // include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"                addParams( options: modules["ucsc_bedclip"]                )
@@ -404,16 +400,16 @@ workflow CUTANDRUN {
     /*
      * MODULE: Concatenate FastQ files from same sample if required
      */
-    // if(run_cat_fastq) {
-    //     CAT_FASTQ (
-    //         ch_fastq.multiple
-    //     )
-    //     ch_software_versions = ch_software_versions.mix(CAT_FASTQ.out.versions)
+    if(run_cat_fastq) {
+        CAT_FASTQ (
+            ch_fastq.multiple
+        )
+        ch_software_versions = ch_software_versions.mix(CAT_FASTQ.out.versions)
 
-    //     CAT_FASTQ.out.reads
-    //         .mix(ch_fastq.single)
-    //         .set { ch_cat_fastq }
-    // }
+        CAT_FASTQ.out.reads
+            .mix(ch_fastq.single)
+            .set { ch_cat_fastq }
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
     //ch_cat_fastq | view
 
