@@ -235,6 +235,22 @@
                     "default": 1,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
+                },
+                "peakcaller": {
+                    "type": "string",
+                    "default": null
+                },
+                "macs2_pvalue": {
+                    "type": "number",
+                    "default": 0.05
+                },
+                "macs2_gsize": {
+                    "type": "integer",
+                    "default": 2700000000
+                },
+                "run_narrow_peak": {
+                    "type": "string",
+                    "default": "false"
                 }
             },
             "fa_icon": "fas fa-cog"
