@@ -294,7 +294,7 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
 /*
  * MODULES
  */
-// include { INPUT_CHECK                     } from "../subworkflows/local/input_check"                   addParams( options: [:]                            )
+include { INPUT_CHECK                     } from "../subworkflows/local/input_check"
 // include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_name_peak_bed"]   )
 // include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]                 )
 // include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"]   )
@@ -380,26 +380,26 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Read in samplesheet, validate and stage input files
      */
-    // if(run_input_check) {
-    //     INPUT_CHECK (
-    //         ch_input
-    //     )
+    if(run_input_check) {
+        INPUT_CHECK (
+            ch_input
+        )
 
-    //     INPUT_CHECK.out.reads
-    //         .map {
-    //             meta, fastq ->
-    //                 meta.id = meta.id.split("_")[0..-2].join("_")
-    //                 [ meta, fastq ] }
-    //         .groupTuple(by: [0])
-    //         .branch {
-    //             meta, fastq ->
-    //                 single  : fastq.size() == 1
-    //                     return [ meta, fastq.flatten() ]
-    //                 multiple: fastq.size() > 1
-    //                     return [ meta, fastq.flatten() ]
-    //         }
-    //         .set { ch_fastq }
-    // }
+        INPUT_CHECK.out.reads
+            .map {
+                meta, fastq ->
+                    meta.id = meta.id.split("_")[0..-2].join("_")
+                    [ meta, fastq ] }
+            .groupTuple(by: [0])
+            .branch {
+                meta, fastq ->
+                    single  : fastq.size() == 1
+                        return [ meta, fastq.flatten() ]
+                    multiple: fastq.size() > 1
+                        return [ meta, fastq.flatten() ]
+            }
+            .set { ch_fastq }
+    }
 
     /*
      * MODULE: Concatenate FastQ files from same sample if required
