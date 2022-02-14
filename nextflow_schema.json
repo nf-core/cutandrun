@@ -231,7 +231,7 @@
                     "description": "Path to gene bed file"
                 },
                 "replicate_threshold": {
-                    "type": "integer",
+                    "type": "number",
                     "default": 1,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
@@ -245,7 +245,7 @@
                     "default": 0.05
                 },
                 "macs2_gsize": {
-                    "type": "integer",
+                    "type": "number",
                     "default": 2700000000
                 },
                 "run_narrow_peak": {
