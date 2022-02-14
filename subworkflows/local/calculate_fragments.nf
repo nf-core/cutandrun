@@ -2,18 +2,11 @@
  * Calculate bed fragments from bam file
  */
 
-params.samtools_options      = [:]
-params.samtools_view_options = [:]
-params.samtools_sort_options = [:]
-params.bamtobed_options      = [:]
-params.awk_options           = [:]
-params.cut_options           = [:]
-
-include { SAMTOOLS_VIEW      } from "../../modules/nf-core/modules/samtools/view/main"     addParams( options: params.samtools_view_options )
-include { SAMTOOLS_SORT      } from "../../modules/nf-core/modules/samtools/sort/main"     addParams( options: params.samtools_sort_options )
-include { BEDTOOLS_BAMTOBED  } from "../../modules/nf-core/modules/bedtools/bamtobed/main" addParams( options: params.bamtobed_options      )
-include { AWK                } from "../../modules/local/linux/awk"                        addParams( options: params.awk_options           )
-include { CUT                } from "../../modules/local/linux/cut"                        addParams( options: params.cut_options           )
+include { SAMTOOLS_VIEW      } from '../../modules/nf-core/modules/samtools/view/main'
+include { SAMTOOLS_SORT      } from '../../modules/nf-core/modules/samtools/sort/main'
+include { BEDTOOLS_BAMTOBED  } from '../../modules/nf-core/modules/bedtools/bamtobed/main'
+include { AWK                } from '../../modules/local/linux/awk'
+include { CUT                } from '../../modules/local/linux/cut'
 
 workflow CALCULATE_FRAGMENTS {
     take:
@@ -48,6 +41,5 @@ workflow CALCULATE_FRAGMENTS {
     emit:
     bed              = CUT.out.file                   // channel: [ val(meta), [ bed ] ]
     bam              = SAMTOOLS_SORT.out.bam          // channel: [ val(meta), [ bam ] ]
-
     versions         = ch_versions                    // channel: [ versions.yml ]
 }

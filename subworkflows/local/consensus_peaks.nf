@@ -2,21 +2,18 @@
  * Create group consensus peaks
  */
 
-params.bedtools_merge_options = [:]
-params.sort_options           = [:]
-params.plot_peak_options      = [:]
-params.awk_threshold_options  = [:]
-params.run_peak_plotting      = true
 
-include { SORT                 } from "../../modules/local/linux/sort"                    addParams( options: params.sort_options           )
-include { BEDTOOLS_MERGE       } from "../../modules/nf-core/modules/bedtools/merge/main" addParams( options: params.bedtools_merge_options )
-include { AWK                  } from "../../modules/local/linux/awk"                     addParams( options: params.awk_threshold_options  )
-include { PLOT_CONSENSUS_PEAKS } from "../../modules/local/python/plot_consensus_peaks"   addParams( options: params.plot_peak_options      )
+include { SORT                 } from '../../modules/local/linux/sort'
+include { BEDTOOLS_MERGE       } from '../../modules/nf-core/modules/bedtools/merge/main'
+include { AWK                  } from '../../modules/local/linux/awk'
+include { PLOT_CONSENSUS_PEAKS } from '../../modules/local/python/plot_consensus_peaks'
 
 workflow CONSENSUS_PEAKS {
 
     take:
-    bed //  channel: [ val(meta), [ bed ], count]
+    bed       //  channel: [ val(meta), [ bed ], count]
+    skip_plot // boolean: true/false
+
 
     main:
     ch_versions = Channel.empty()
@@ -33,10 +30,9 @@ workflow CONSENSUS_PEAKS {
     ch_versions = ch_versions.mix(AWK.out.versions)
 
     // Plot consensus peak sets
-    if(params.run_peak_plotting) {
+    if(!skip_plot) {
         PLOT_CONSENSUS_PEAKS ( BEDTOOLS_MERGE.out.bed.collect{it[1]}.ifEmpty([]) )
         ch_versions = ch_versions.mix(PLOT_CONSENSUS_PEAKS.out.versions)
-
     }
 
     emit:

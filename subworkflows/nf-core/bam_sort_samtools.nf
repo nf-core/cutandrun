@@ -2,12 +2,9 @@
  * Sort, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-params.options = [:]
-params.samtools_sort_options = [:]
-
-include { SAMTOOLS_SORT      } from '../../modules/nf-core/modules/samtools/sort/main'  addParams( options: params.samtools_sort_options )
-include { SAMTOOLS_INDEX     } from '../../modules/nf-core/modules/samtools/index/main' addParams( options: params.options               )
-include { BAM_STATS_SAMTOOLS } from './bam_stats_samtools'                              addParams( options: params.options               )
+include { SAMTOOLS_SORT      } from '../../modules/nf-core/modules/samtools/sort/main'
+include { SAMTOOLS_INDEX     } from '../../modules/nf-core/modules/samtools/index/main'
+include { BAM_STATS_SAMTOOLS } from './bam_stats_samtools'
 
 workflow BAM_SORT_SAMTOOLS {
     take:
@@ -18,14 +15,14 @@ workflow BAM_SORT_SAMTOOLS {
     /*
     * SORT BAM file
     */
-    SAMTOOLS_SORT      ( ch_bam )
-    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
+    SAMTOOLS_SORT ( ch_bam )
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
 
     /*
     * Index BAM file
     */
-    SAMTOOLS_INDEX     ( SAMTOOLS_SORT.out.bam )
-    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions)
+    SAMTOOLS_INDEX ( SAMTOOLS_SORT.out.bam )
+    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
 
     // Join bam/bai
     ch_bam_sample_id = SAMTOOLS_SORT.out.bam.map  { row -> [row[0].id, row] }

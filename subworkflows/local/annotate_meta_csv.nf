@@ -2,13 +2,13 @@
  * Annotate the pipeline meta data with a csv file
  */
 
-params.options     = [:]
-params.meta_suffix = ""
-params.meta_prefix = ""
-
 workflow ANNOTATE_META_CSV {
-    take: passthrough
-    take: reports
+    take: 
+    passthrough // channel 
+    reports     // file
+    meta_suffix // string
+    meta_prefix // string
+
     main:
 
     main:
@@ -18,7 +18,7 @@ workflow ANNOTATE_META_CSV {
     reports.splitCsv(header:true)
         .map { row ->
             new_meta = [:]
-            row[1].each{ k, v -> new_meta.put(params.meta_prefix + k + params.meta_suffix, v) }
+            row[1].each{ k, v -> new_meta.put(meta_prefix + k + meta_suffix, v) }
             [row[0].id, new_meta]
         }
         .join ( ch_paths )

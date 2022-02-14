@@ -2,21 +2,16 @@
  * Uncompress and prepare reference genome files
 */
 
-params.genome_options            = [:]
-params.spikein_genome_options    = [:]
-params.bt2_index_options         = [:]
-params.bt2_spikein_index_options = [:]
-
-include { GUNZIP as GUNZIP_FASTA                     } from "../../modules/nf-core/modules/gunzip/main.nf"     addParams( options: params.genome_options            )
-include { GUNZIP as GUNZIP_SPIKEIN_FASTA             } from "../../modules/nf-core/modules/gunzip/main.nf"     addParams( options: params.spikein_genome_options    )
-include { GUNZIP as GUNZIP_GTF                       } from "../../modules/nf-core/modules/gunzip/main.nf"     addParams( options: params.genome_options            )
-include { GUNZIP as GUNZIP_BED                       } from "../../modules/nf-core/modules/gunzip/main.nf"     addParams( options: params.genome_options            )
-include { CUSTOM_GETCHROMSIZES                            } from "../../modules/nf-core/modules/custom/getchromsizes/main.nf"              addParams( options: params.genome_options            )
-include { CUSTOM_GETCHROMSIZES as GET_SPIKEIN_CHROM_SIZES } from "../../modules/nf-core/modules/custom/getchromsizes/main.nf"               addParams( options: params.spikein_genome_options    )
-include { UNTAR as UNTAR_BT2_INDEX                   } from "../../modules/nf-core/modules/untar/main.nf"      addParams( options: params.bt2_index_options         )
-include { UNTAR as UNTAR_SPIKEIN_BT2_INDEX           } from "../../modules/nf-core/modules/untar/main.nf"      addParams( options: params.bt2_spikein_index_options )
-include { BOWTIE2_BUILD                              } from "../../modules/nf-core/modules/bowtie2/build/main" addParams( options: params.bt2_index_options         )
-include { BOWTIE2_BUILD as BOWTIE2_SPIKEIN_BUILD     } from "../../modules/nf-core/modules/bowtie2/build/main" addParams( options: params.bt2_spikein_index_options )
+include { GUNZIP as GUNZIP_FASTA                          } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { GUNZIP as GUNZIP_SPIKEIN_FASTA                  } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { GUNZIP as GUNZIP_GTF                            } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { GUNZIP as GUNZIP_BED                            } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { CUSTOM_GETCHROMSIZES                            } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
+include { CUSTOM_GETCHROMSIZES as GET_SPIKEIN_CHROM_SIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
+include { UNTAR as UNTAR_BT2_INDEX                        } from '../../modules/nf-core/modules/untar/main.nf'
+include { UNTAR as UNTAR_SPIKEIN_BT2_INDEX                } from '../../modules/nf-core/modules/untar/main.nf'
+include { BOWTIE2_BUILD                                   } from '../../modules/nf-core/modules/bowtie2/build/main'
+include { BOWTIE2_BUILD as BOWTIE2_SPIKEIN_BUILD          } from '../../modules/nf-core/modules/bowtie2/build/main'
 
 workflow PREPARE_GENOME {
     take:
@@ -75,7 +70,6 @@ workflow PREPARE_GENOME {
     ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( ch_fasta ).sizes
     ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
 
-
     /*
     * Create chromosome sizes file for spike_in
     */
@@ -86,7 +80,7 @@ workflow PREPARE_GENOME {
     */
     ch_bt2_index         = Channel.empty()
     ch_bt2_spikein_index = Channel.empty()
-    ch_bt2_versions       = Channel.empty()
+    ch_bt2_versions      = Channel.empty()
     if ("bowtie2" in prepare_tool_indices) {
         if (params.bowtie2) {
             if (params.bowtie2.endsWith(".tar.gz")) {

@@ -3,19 +3,17 @@
  * generated from processing a report text file with an awk script
  */
 
-params.options     = [:]
-params.meta_suffix = ""
-params.meta_prefix = ""
-params.script_mode = false
-
-include { AWK_SCRIPT } from "../../modules/local/linux/awk_script" addParams( options: params.options )
-include { AWK }        from "../../modules/local/linux/awk"        addParams( options: params.options )
+include { AWK_SCRIPT } from '../../modules/local/linux/awk_script'
+include { AWK }        from '../../modules/local/linux/awk'
 
 workflow ANNOTATE_META_AWK {
     take:
     passthrough
     report
     script
+    meta_suffix // string
+    meta_prefix // string
+    script_mode // bool
 
     main:
     ch_versions = Channel.empty()
@@ -25,7 +23,7 @@ workflow ANNOTATE_META_AWK {
 
     ch_annotated_meta = Channel.empty()
     // Can run awk in script mode with a file from assets or with a setup of command line args
-    if(params.script_mode) {
+    if(script_mode) {
         AWK_SCRIPT ( report, script )
         ch_versions = ch_versions.mix(AWK_SCRIPT.out.versions)
 
@@ -33,7 +31,7 @@ workflow ANNOTATE_META_AWK {
             .splitCsv(header:true)
             .map { row ->
                 new_meta = [:]
-                row[1].each{ k, v -> new_meta.put(params.meta_prefix + k + params.meta_suffix, v) }
+                row[1].each{ k, v -> new_meta.put(meta_prefix + k + meta_suffix, v) }
                 [row[0].id, new_meta]
             }
             .join ( ch_paths )
@@ -48,7 +46,7 @@ workflow ANNOTATE_META_AWK {
             .splitCsv(header:true)
             .map { row ->
                 new_meta = [:]
-                row[1].each{ k, v -> new_meta.put(params.meta_prefix + k + params.meta_suffix, v) }
+                row[1].each{ k, v -> new_meta.put(meta_prefix + k + meta_suffix, v) }
                 [row[0].id, new_meta]
             }
             .join ( ch_paths )
@@ -59,5 +57,4 @@ workflow ANNOTATE_META_AWK {
     emit:
     output     = ch_annotated_meta // channel: [ val(annotated_meta), [ passthrough ] ]
     versions   = ch_versions       // channel: [ versions.yml ]
-
 }
