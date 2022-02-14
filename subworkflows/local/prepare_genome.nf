@@ -2,16 +2,16 @@
  * Uncompress and prepare reference genome files
 */
 
-include { GUNZIP as GUNZIP_FASTA                          } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { GUNZIP as GUNZIP_SPIKEIN_FASTA                  } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { GUNZIP as GUNZIP_GTF                            } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { GUNZIP as GUNZIP_BED                            } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { CUSTOM_GETCHROMSIZES                            } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
-include { CUSTOM_GETCHROMSIZES as GET_SPIKEIN_CHROM_SIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
-include { UNTAR as UNTAR_BT2_INDEX                        } from '../../modules/nf-core/modules/untar/main.nf'
-include { UNTAR as UNTAR_SPIKEIN_BT2_INDEX                } from '../../modules/nf-core/modules/untar/main.nf'
-include { BOWTIE2_BUILD                                   } from '../../modules/nf-core/modules/bowtie2/build/main'
-include { BOWTIE2_BUILD as BOWTIE2_SPIKEIN_BUILD          } from '../../modules/nf-core/modules/bowtie2/build/main'
+include { GUNZIP as GUNZIP_FASTA                     } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { GUNZIP as GUNZIP_SPIKEIN_FASTA             } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { GUNZIP as GUNZIP_GTF                       } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { GUNZIP as GUNZIP_BED                       } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { CUSTOM_GETCHROMSIZES as TARGET_CHROMSIZES  } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
+include { CUSTOM_GETCHROMSIZES as SPIKEIN_CHROMSIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
+include { UNTAR as UNTAR_BT2_INDEX                   } from '../../modules/nf-core/modules/untar/main.nf'
+include { UNTAR as UNTAR_SPIKEIN_BT2_INDEX           } from '../../modules/nf-core/modules/untar/main.nf'
+include { BOWTIE2_BUILD as BOWTIE2_BUILD_TARGET      } from '../../modules/nf-core/modules/bowtie2/build/main'
+include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN     } from '../../modules/nf-core/modules/bowtie2/build/main'
 
 workflow PREPARE_GENOME {
     take:
@@ -24,7 +24,7 @@ workflow PREPARE_GENOME {
     * Uncompress genome fasta file if required
     */
     if (params.fasta.endsWith(".gz")) {
-        ch_fasta    = GUNZIP_FASTA ( params.fasta ).gunzip
+        ch_fasta    = GUNZIP_FASTA ( [ [:], params.fasta ] ).gunzip.map { it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
         ch_fasta = file(params.fasta)
@@ -34,7 +34,7 @@ workflow PREPARE_GENOME {
     * Uncompress spike-in genome fasta file if required
     */
     if (params.spikein_fasta.endsWith(".gz")) {
-        ch_spikein_fasta = GUNZIP_SPIKEIN_FASTA ( params.spikein_fasta ).gunzip
+        ch_spikein_fasta = GUNZIP_SPIKEIN_FASTA ( [ [:], params.spikein_fasta ] ).gunzip.map { it[1] }
         ch_versions      = ch_versions.mix(GUNZIP_SPIKEIN_FASTA.out.versions)
     } else {
         ch_spikein_fasta = file(params.spikein_fasta)
@@ -45,7 +45,7 @@ workflow PREPARE_GENOME {
     */
     ch_gtf = Channel.empty()
     if (params.gtf.endsWith(".gz")) {
-        ch_gtf      = GUNZIP_GTF ( params.gtf ).gunzip
+        ch_gtf      = GUNZIP_GTF ( [ [:], params.gtf ] ).gunzip.map { it[1] }
         ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
     } else {
         ch_gtf = file(params.gtf)
@@ -57,7 +57,7 @@ workflow PREPARE_GENOME {
     ch_gene_bed = Channel.empty()
     if (params.gene_bed){
         if (params.gene_bed.endsWith(".gz")) {
-            ch_gene_bed = GUNZIP_BED ( params.gene_bed ).gunzip
+            ch_gene_bed = GUNZIP_BED ( [ [:], params.gene_bed ] ).gunzip.map { it[1] }
             ch_versions = ch_versions.mix(GUNZIP_BED.out.versions)
         } else {
             ch_gene_bed = file(params.gene_bed)
@@ -67,13 +67,13 @@ workflow PREPARE_GENOME {
     /*
     * Create chromosome sizes file
     */
-    ch_chrom_sizes = CUSTOM_GETCHROMSIZES ( ch_fasta ).sizes
-    ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
+    ch_chrom_sizes = TARGET_CHROMSIZES ( ch_fasta ).sizes
+    ch_versions    = ch_versions.mix(TARGET_CHROMSIZES.out.versions)
 
     /*
     * Create chromosome sizes file for spike_in
     */
-    ch_spikein_chrom_sizes = GET_SPIKEIN_CHROM_SIZES ( ch_spikein_fasta ).sizes
+    ch_spikein_chrom_sizes = SPIKEIN_CHROMSIZES ( ch_spikein_fasta ).sizes
 
     /*
     * Uncompress Bowtie2 index or generate from scratch if required for both genomes
@@ -90,8 +90,8 @@ workflow PREPARE_GENOME {
                 ch_bt2_index = file(params.bowtie2)
             }
         } else {
-            ch_bt2_index = BOWTIE2_BUILD ( ch_fasta ).index
-            ch_versions  = ch_versions.mix(BOWTIE2_BUILD.out.versions)
+            ch_bt2_index = BOWTIE2_BUILD_TARGET ( ch_fasta ).index
+            ch_versions  = ch_versions.mix(BOWTIE2_BUILD_TARGET.out.versions)
         }
 
         if (params.spikein_bowtie2) {
@@ -102,8 +102,8 @@ workflow PREPARE_GENOME {
                 ch_bt2_spikein_index = file(params.spikein_bowtie2)
             }
         } else {
-            ch_bt2_spikein_index = BOWTIE2_SPIKEIN_BUILD ( ch_spikein_fasta ).index
-            ch_versions          = ch_versions.mix(BOWTIE2_SPIKEIN_BUILD.out.versions)
+            ch_bt2_spikein_index = BOWTIE2_BUILD_SPIKEIN ( ch_spikein_fasta ).index
+            ch_versions          = ch_versions.mix(BOWTIE2_BUILD_SPIKEIN.out.versions)
         }
     }
 

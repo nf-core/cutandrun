@@ -160,12 +160,6 @@ if(params.only_peak_calling) {
 // Init
 def prepare_tool_indices = ["bowtie2"]
 
-// Genome
-def genome_options                = params.save_reference ? [publish_dir: "00_genome/target"]        : [publish_files: false]
-def spikein_genome_options        = params.save_reference ? [publish_dir: "00_genome/spikein"]       : [publish_files: false]
-def bowtie2_index_options         = params.save_reference ? [publish_dir: "00_genome/target/index"]  : [publish_files: false]
-def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "00_genome/spikein/index"] : [publish_files: false]
-
 // // Replicate merging
 // def cat_fastq_options = modules["cat_fastq"]
 // if (!params.save_merged_fastq) { cat_fastq_options["publish_files"] = false }
@@ -352,7 +346,7 @@ include { PREPARE_GENOME                                 } from "../subworkflows
 // include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_gene"]         )
 // include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_peaks"]        )
 // include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"       addParams( options: bedtools_intersect_options             )
-// include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from '../modules/local/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] )
+include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/modules/custom/dumpsoftwareversions/main"
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -1198,9 +1192,9 @@ workflow CUTANDRUN {
     /*
     * MODULE: Collect software versions used in pipeline
     */
-    // CUSTOM_DUMPSOFTWAREVERSIONS (
-    //     ch_software_versions.unique().collectFile()
-    // )
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_software_versions.unique().collectFile()
+    )
 
     /*
      * MODULE: Multiqc

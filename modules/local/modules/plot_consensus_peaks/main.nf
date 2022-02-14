@@ -22,7 +22,7 @@ process PLOT_CONSENSUS_PEAKS {
         --outpath .
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
+    "${task.process}":
         python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
     END_VERSIONS
     """
