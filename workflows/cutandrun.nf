@@ -70,23 +70,6 @@ ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.tx
 // Init
 def prepare_tool_indices = ["bowtie2"]
 
-// // Q Filter options
-// samtools_qfilter_options   = modules["samtools_qfilter"]
-// samtools_view_options      = modules["samtools_view_qfilter"]
-// samtools_view_options.args = "-b -q " + params.minimum_alignment_q_score
-// if(!run_mark_dups && !run_remove_dups) {
-//     samtools_view_options.publish_dir      = "02_alignment/${params.aligner}/target"
-//     samtools_view_options.publish_files    = ["bam":""]
-//     samtools_qfilter_options.publish_dir   = "02_alignment/${params.aligner}/target"
-//     samtools_qfilter_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-// }
-// else if(params.save_align_intermed) {
-//     samtools_view_options.publish_dir      = "02_alignment/${params.aligner}/target/intermed/qfilter"
-//     samtools_view_options.publish_files    = ["bam":""]
-//     samtools_qfilter_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/qfilter"
-//     samtools_qfilter_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-// }
-
 // // Mark duplicates options
 // picard_markduplicates_options          = modules["picard_markduplicates"]
 // picard_markduplicates_samtools_options = modules["picard_markduplicates_samtools"]
@@ -227,7 +210,7 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../mo
  */
 // include { MARK_DUPLICATES_PICARD                 } from "../subworkflows/nf-core/mark_duplicates_picard"   addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false          )
 // include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"   addParams( markduplicates_options: picard_deduplicates_options, samtools_options: picard_deduplicates_samtools_options, control_only: dedup_control_only )
-// include { SAMTOOLS_VIEW_SORT_STATS               } from "../subworkflows/nf-core/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options, samtools_sort_options: modules["samtools_sort"]     )
+include { SAMTOOLS_VIEW_SORT_STATS               } from "../subworkflows/nf-core/samtools_view_sort_stats"
 
 /*
 ========================================================================================
@@ -356,20 +339,19 @@ workflow CUTANDRUN {
      *  SUBWORKFLOW: Filter reads based on quality metrics
      *  http://biofinysics.blogspot.com/2014/05/how-does-bowtie2-assign-mapq-scores.html
      */
-    // if (run_q_filter) {
-    //     SAMTOOLS_VIEW_SORT_STATS (
-    //         ch_samtools_bam
-    //     )
-    //     ch_samtools_bam           = SAMTOOLS_VIEW_SORT_STATS.out.bam
-    //     ch_samtools_bai           = SAMTOOLS_VIEW_SORT_STATS.out.bai
-    //     ch_samtools_stats         = SAMTOOLS_VIEW_SORT_STATS.out.stats
-    //     ch_samtools_flagstat      = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
-    //     ch_samtools_idxstats      = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
-    //     ch_software_versions      = ch_software_versions.mix(SAMTOOLS_VIEW_SORT_STATS.out.versions)
-    // }
+    if (params.run_q_filter) {
+        SAMTOOLS_VIEW_SORT_STATS (
+            ch_samtools_bam
+        )
+        ch_samtools_bam      = SAMTOOLS_VIEW_SORT_STATS.out.bam
+        ch_samtools_bai      = SAMTOOLS_VIEW_SORT_STATS.out.bai
+        ch_samtools_stats    = SAMTOOLS_VIEW_SORT_STATS.out.stats
+        ch_samtools_flagstat = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
+        ch_samtools_idxstats = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
+        ch_software_versions = ch_software_versions.mix(SAMTOOLS_VIEW_SORT_STATS.out.versions)
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
-
     /*
      * SUBWORKFLOW: Mark duplicates on all samples
      */
