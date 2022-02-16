@@ -70,30 +70,6 @@ ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.tx
 // Init
 def prepare_tool_indices = ["bowtie2"]
 
-// // Spikein alignment options
-// def bowtie2_spikein_align_options = modules["bowtie2_spikein_align"]
-// def samtools_spikein_sort_options = modules["samtools_spikein_sort"]
-// if (params.save_spikein_aligned) {
-//     samtools_spikein_sort_options.publish_dir   = "02_alignment/${params.aligner}/spikein"
-//     samtools_spikein_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-// }
-
-// // Main alignment options
-// def bowtie2_align_options = modules["bowtie2_align"]
-// def samtools_sort_options = modules["samtools_sort"]
-// if(params.only_alignment || (!run_q_filter && !run_mark_dups && !run_remove_dups)) {
-//     samtools_sort_options.publish_dir   = "02_alignment/${params.aligner}/target"
-//     samtools_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-// }
-// else if(params.save_align_intermed) {
-//     samtools_sort_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/align"
-//     samtools_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-// }
-// if(params.save_unaligned) {
-//     bowtie2_align_options.publish_dir = "02_alignment/${params.aligner}/target"
-//     bowtie2_align_options.publish_files = ["gz":""]
-// }
-
 // // Q Filter options
 // samtools_qfilter_options   = modules["samtools_qfilter"]
 // samtools_view_options      = modules["samtools_view_qfilter"]
@@ -211,7 +187,7 @@ include { INPUT_CHECK                     } from "../subworkflows/local/input_ch
  */
 include { PREPARE_GENOME                                 } from "../subworkflows/local/prepare_genome"
 include { FASTQC_TRIMGALORE                              } from "../subworkflows/local/fastqc_trimgalore"
-// include { ALIGN_BOWTIE2                                  } from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options, samtools_options: samtools_sort_options )
+include { ALIGN_BOWTIE2                                  } from "../subworkflows/local/align_bowtie2"
 // include { ANNOTATE_META_AWK as ANNOTATE_BT2_META         } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
 // include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
 // include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"], run_peak_plotting: run_peak_plotting)
@@ -347,33 +323,32 @@ workflow CUTANDRUN {
     ch_samtools_spikein_stats     = Channel.empty()
     ch_samtools_spikein_flagstat  = Channel.empty()
     ch_samtools_spikein_idxstats  = Channel.empty()
-    // if(run_alignment) {
+    if(params.run_alignment) {
+        if (params.aligner == "bowtie2") {
+            ALIGN_BOWTIE2 (
+                ch_trimmed_reads,
+                PREPARE_GENOME.out.bowtie2_index,
+                PREPARE_GENOME.out.bowtie2_spikein_index
+            )
+            ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.versions)
+            ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
+            ch_orig_spikein_bam           = ALIGN_BOWTIE2.out.orig_spikein_bam
+            ch_bowtie2_log                = ALIGN_BOWTIE2.out.bowtie2_log
+            ch_bowtie2_spikein_log        = ALIGN_BOWTIE2.out.bowtie2_spikein_log
 
-    //     if (params.aligner == "bowtie2") {
-    //         ALIGN_BOWTIE2 (
-    //             ch_trimmed_reads,
-    //             PREPARE_GENOME.out.bowtie2_index,
-    //             PREPARE_GENOME.out.bowtie2_spikein_index
-    //         )
-    //         ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.versions)
-    //         ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
-    //         ch_orig_spikein_bam           = ALIGN_BOWTIE2.out.orig_spikein_bam
-    //         ch_bowtie2_log                = ALIGN_BOWTIE2.out.bowtie2_log
-    //         ch_bowtie2_spikein_log        = ALIGN_BOWTIE2.out.bowtie2_spikein_log
+            ch_samtools_bam               = ALIGN_BOWTIE2.out.bam
+            ch_samtools_bai               = ALIGN_BOWTIE2.out.bai
+            ch_samtools_stats             = ALIGN_BOWTIE2.out.stats
+            ch_samtools_flagstat          = ALIGN_BOWTIE2.out.flagstat
+            ch_samtools_idxstats          = ALIGN_BOWTIE2.out.idxstats
 
-    //         ch_samtools_bam               = ALIGN_BOWTIE2.out.bam
-    //         ch_samtools_bai               = ALIGN_BOWTIE2.out.bai
-    //         ch_samtools_stats             = ALIGN_BOWTIE2.out.stats
-    //         ch_samtools_flagstat          = ALIGN_BOWTIE2.out.flagstat
-    //         ch_samtools_idxstats          = ALIGN_BOWTIE2.out.idxstats
-
-    //         ch_samtools_spikein_bam       = ALIGN_BOWTIE2.out.spikein_bam
-    //         ch_samtools_spikein_bai       = ALIGN_BOWTIE2.out.spikein_bai
-    //         ch_samtools_spikein_stats     = ALIGN_BOWTIE2.out.spikein_stats
-    //         ch_samtools_spikein_flagstat  = ALIGN_BOWTIE2.out.spikein_flagstat
-    //         ch_samtools_spikein_idxstats  = ALIGN_BOWTIE2.out.spikein_idxstats
-    //     }
-    // }
+            ch_samtools_spikein_bam       = ALIGN_BOWTIE2.out.spikein_bam
+            ch_samtools_spikein_bai       = ALIGN_BOWTIE2.out.spikein_bai
+            ch_samtools_spikein_stats     = ALIGN_BOWTIE2.out.spikein_stats
+            ch_samtools_spikein_flagstat  = ALIGN_BOWTIE2.out.spikein_flagstat
+            ch_samtools_spikein_idxstats  = ALIGN_BOWTIE2.out.spikein_idxstats
+        }
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
 
