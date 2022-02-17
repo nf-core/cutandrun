@@ -70,48 +70,6 @@ ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.tx
 // Init
 def prepare_tool_indices = ["bowtie2"]
 
-// // Mark duplicates options
-// picard_markduplicates_options          = modules["picard_markduplicates"]
-// picard_markduplicates_samtools_options = modules["picard_markduplicates_samtools"]
-// if(!run_remove_dups) {
-//     picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/markdup"
-//     picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-//     picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/markdup"
-//     picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-// }
-// else if(params.save_align_intermed) {
-//     picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/intermed/markdup"
-//     picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-//     picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/markdup"
-//     picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-// }
-
-// // Remove duplicates options
-// def dedup_control_only = true
-// if(params.dedup_target_reads) { dedup_control_only = false }
-
-// picard_deduplicates_options          = modules["picard_dedup"]
-// picard_deduplicates_samtools_options = modules["picard_dedup_samtools"]
-// if(run_remove_dups) {
-//     picard_deduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/dedup"
-//     picard_deduplicates_options.publish_files          = ["bam":"","metrics.txt": "picard_metrics"]
-//     picard_deduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/dedup"
-//     picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-
-//     if(dedup_control_only) {
-//         picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/markdup"
-//         picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-//         picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/markdup"
-//         picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-//     }
-// }
-// else if(params.save_align_intermed) {
-//     picard_deduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/intermed/dedup"
-//     picard_deduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-//     picard_deduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/dedup"
-//     picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-// }
-
 // // Peak caller options
 // macs2_callpeak_options      = modules["macs2"]
 // macs2_callpeak_options.args = macs2_callpeak_options.args + " -p " + params.macs_pvalue
@@ -208,8 +166,8 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../mo
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
  */
-// include { MARK_DUPLICATES_PICARD                 } from "../subworkflows/nf-core/mark_duplicates_picard"   addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false          )
-// include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"   addParams( markduplicates_options: picard_deduplicates_options, samtools_options: picard_deduplicates_samtools_options, control_only: dedup_control_only )
+include { MARK_DUPLICATES_PICARD                 } from "../subworkflows/nf-core/mark_duplicates_picard"
+include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"
 include { SAMTOOLS_VIEW_SORT_STATS               } from "../subworkflows/nf-core/samtools_view_sort_stats"
 
 /*
@@ -352,22 +310,24 @@ workflow CUTANDRUN {
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
+
     /*
      * SUBWORKFLOW: Mark duplicates on all samples
      */
-    // ch_markduplicates_metrics = Channel.empty()
-    // if (run_mark_dups) {
-    //     MARK_DUPLICATES_PICARD (
-    //         ch_samtools_bam
-    //     )
-    //     ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
-    //     ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
-    //     ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
-    //     ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
-    //     ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
-    //     ch_markduplicates_metrics = MARK_DUPLICATES_PICARD.out.metrics
-    //     ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.versions)
-    // }
+    ch_markduplicates_metrics = Channel.empty()
+    if (params.run_mark_dups) {
+        MARK_DUPLICATES_PICARD (
+            ch_samtools_bam,
+            params.dedup_control_only
+        )
+        ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
+        ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
+        ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
+        ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
+        ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
+        ch_markduplicates_metrics = MARK_DUPLICATES_PICARD.out.metrics
+        ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.versions)
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
 
