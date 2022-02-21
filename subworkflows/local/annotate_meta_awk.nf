@@ -11,8 +11,8 @@ workflow ANNOTATE_META_AWK {
     passthrough
     report
     script
-    meta_suffix // string
     meta_prefix // string
+    meta_suffix // string
     script_mode // bool
 
     main:

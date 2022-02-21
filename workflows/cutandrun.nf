@@ -129,11 +129,11 @@ include { INPUT_CHECK                     } from "../subworkflows/local/input_ch
 include { PREPARE_GENOME                                 } from "../subworkflows/local/prepare_genome"
 include { FASTQC_TRIMGALORE                              } from "../subworkflows/local/fastqc_trimgalore"
 include { ALIGN_BOWTIE2                                  } from "../subworkflows/local/align_bowtie2"
-// include { ANNOTATE_META_AWK as ANNOTATE_BT2_META         } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
-// include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_META         } from "../subworkflows/local/annotate_meta_awk"
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from "../subworkflows/local/annotate_meta_awk"
+include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows/local/annotate_meta_awk"
 // include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"], run_peak_plotting: run_peak_plotting)
 // include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"], run_peak_plotting: run_peak_plotting)
-// include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "", meta_prefix: "dedup_", script_mode: false )
 // include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], samtools_sort_options: modules["calc_frag_samtools_sort"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
 // include { ANNOTATE_META_CSV as ANNOTATE_FRIP_META        } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_frip_options"] )
 // include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_peak_repro_options"] )
@@ -355,21 +355,27 @@ workflow CUTANDRUN {
      * SUBWORKFLOW: Annotate meta-data with aligner stats for target and spike-in
      * the meta-data is annotated additivley so we only need to track the final channel output
      */
-    // if (params.aligner == "bowtie2" && run_alignment) {
-    //     ANNOTATE_BT2_META (
-    //         ch_samtools_bam,
-    //         ch_bowtie2_log,
-    //         ch_bt2_to_csv_awk
-    //     )
-    //     ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
+    if (params.aligner == "bowtie2" && params.run_alignment) {
+        ANNOTATE_BT2_META (
+            ch_samtools_bam,
+            ch_bowtie2_log,
+            ch_bt2_to_csv_awk,
+            "",
+            "_target",
+            true
+        )
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
 
-    //     ANNOTATE_BT2_SPIKEIN_META (
-    //         ANNOTATE_BT2_META.out.output,
-    //         ch_bowtie2_spikein_log,
-    //         ch_bt2_to_csv_awk
-    //     )
-    //     ch_samtools_bam      = ANNOTATE_BT2_SPIKEIN_META.out.output
-    // }
+        ANNOTATE_BT2_SPIKEIN_META (
+            ANNOTATE_BT2_META.out.output,
+            ch_bowtie2_spikein_log,
+            ch_bt2_to_csv_awk,
+            "",
+            "_spikein",
+            true
+        )
+        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
+    }
     // META-DATA example state:
     //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
     // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
@@ -380,16 +386,18 @@ workflow CUTANDRUN {
     /*
     * SUBWORKFLOW: Annotate meta-data with duplication stats
     */
-    // if (run_mark_dups) {
-    //     ANNOTATE_DEDUP_META(
-    //         ch_samtools_bam,
-    //         ch_markduplicates_metrics,
-    //         ch_dummy_file.collect()
-    //     )
-    //     ch_samtools_bam      = ANNOTATE_DEDUP_META.out.output
-    //     ch_software_versions = ch_software_versions.mix(ANNOTATE_DEDUP_META.out.versions)
-
-    // }
+    if (params.run_mark_dups) {
+        ANNOTATE_DEDUP_META(
+            ch_samtools_bam,
+            ch_markduplicates_metrics,
+            ch_dummy_file.collect(),
+            "",
+            "dedup_",
+            false
+        )
+        ch_samtools_bam      = ANNOTATE_DEDUP_META.out.output
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_DEDUP_META.out.versions)
+    }
     //EXAMPLE CHANNEL STRUCT: [[META + dedup_library:unknown library, dedup_unpaired_reads_examined:0, dedup_read_pairs_examined:350, dedup_secondary_or_supplementary_rds:0,
     // dedup_unmapped_reads:0, dedup_unpaired_read_duplicates:0, dedup_read_pair_duplicates:0, dedup_read_pair_optical_duplicates:0, dedup_percent_duplication:0,
     // dedup_estimated_library_size:], BAM]
