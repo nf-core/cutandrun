@@ -166,9 +166,9 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../mo
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
  */
-include { MARK_DUPLICATES_PICARD                 } from "../subworkflows/nf-core/mark_duplicates_picard"
-include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"
-include { SAMTOOLS_VIEW_SORT_STATS               } from "../subworkflows/nf-core/samtools_view_sort_stats"
+include { MARK_DUPLICATES_PICARD                       } from "../subworkflows/nf-core/mark_duplicates_picard"
+include { MARK_DUPLICATES_PICARD as DEDUPLICATE_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"
+include { SAMTOOLS_VIEW_SORT_STATS                     } from "../subworkflows/nf-core/samtools_view_sort_stats"
 
 /*
 ========================================================================================
@@ -318,7 +318,7 @@ workflow CUTANDRUN {
     if (params.run_mark_dups) {
         MARK_DUPLICATES_PICARD (
             ch_samtools_bam,
-            params.dedup_control_only
+            false
         )
         ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
         ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
@@ -334,19 +334,20 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Remove duplicates - default is on IgG controls only
      */
-    // ch_dedup_multiqc = Channel.empty()
-    // if (run_remove_dups) {
-    //     DEDUP_PICARD (
-    //         ch_samtools_bam
-    //     )
-    //     ch_samtools_bam      = DEDUP_PICARD.out.bam
-    //     ch_samtools_bai      = DEDUP_PICARD.out.bai
-    //     ch_samtools_stats    = DEDUP_PICARD.out.stats
-    //     ch_samtools_flagstat = DEDUP_PICARD.out.flagstat
-    //     ch_samtools_idxstats = DEDUP_PICARD.out.idxstats
-    //     ch_dedup_multiqc     = DEDUP_PICARD.out.metrics
-    //     ch_software_versions = ch_software_versions.mix(DEDUP_PICARD.out.versions)
-    // }
+    ch_dedup_multiqc = Channel.empty()
+    if (params.run_remove_dups) {
+        DEDUPLICATE_PICARD (
+            ch_samtools_bam,
+            params.dedup_control_only
+        )
+        ch_samtools_bam      = DEDUPLICATE_PICARD.out.bam
+        ch_samtools_bai      = DEDUPLICATE_PICARD.out.bai
+        ch_samtools_stats    = DEDUPLICATE_PICARD.out.stats
+        ch_samtools_flagstat = DEDUPLICATE_PICARD.out.flagstat
+        ch_samtools_idxstats = DEDUPLICATE_PICARD.out.idxstats
+        ch_dedup_multiqc     = DEDUPLICATE_PICARD.out.metrics
+        ch_software_versions = ch_software_versions.mix(DEDUPLICATE_PICARD.out.versions)
+    }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
 
