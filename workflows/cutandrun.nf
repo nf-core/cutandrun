@@ -148,10 +148,10 @@ include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows
  * MODULES
  */
 include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"
-// include { BEDTOOLS_GENOMECOV                                       } from "../modules/nf-core/modules/bedtools/genomecov/main"          addParams( options: modules["bedtools_genomecov_bedgraph"] )
-// include { BEDTOOLS_SORT                                            } from "../modules/nf-core/modules/bedtools/sort/main"               addParams( options: modules["sort_bedgraph"]               )
-// include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"                addParams( options: modules["ucsc_bedclip"]                )
-// include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"       addParams( options: modules["ucsc_bedgraphtobigwig"]       )
+include { BEDTOOLS_GENOMECOV                                       } from "../modules/nf-core/modules/bedtools/genomecov/main"
+include { BEDTOOLS_SORT                                            } from "../modules/nf-core/modules/bedtools/sort/main"
+include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"
+include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"
 // include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
 // include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
 // include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"              addParams( options: macs2_callpeak_options                 )
@@ -407,43 +407,43 @@ workflow CUTANDRUN {
      * CHANNEL: Calculate scale factor for each sample based on a constant devided by the number
      *          of reads aligned to the spike-in genome.
      */
-    // if (!params.skip_scale) {
-    //     ch_samtools_bam
-    //         .map { row ->
-    //             def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
-    //             [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
-    //         }
-    //         .set { ch_scale_factor }
-    // } else {
-    //     ch_samtools_bam
-    //         .map { row ->
-    //             [ row[0].id, 1 ]
-    //         }
-    //         .set { ch_scale_factor }
-    // }
+    if (!params.skip_scale) {
+        ch_samtools_bam
+            .map { row ->
+                def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
+                [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
+            }
+            .set { ch_scale_factor }
+    } else {
+        ch_samtools_bam
+            .map { row ->
+                [ row[0].id, 1 ]
+            }
+            .set { ch_scale_factor }
+    }
     // EXAMPLE CHANNEL STRUCT: [id, scale_factor]
     //ch_scale_factor | view
 
     /*
      * CHANNEL: Create a channel with the scale factor as a seperate value
      */
-    // ch_samtools_bam
-    //     .map { row -> [row[0].id, row ].flatten()}
-    //     .join ( ch_scale_factor )
-    //     .map { row -> row[1..(row.size() - 1)] }
-    //     .map { row ->
-    //         row[0].put("scale_factor", row[2])
-    //         [ row[0], row[1], row[2] ] }
-    //     .set { ch_samtools_bam_scale }
+    ch_samtools_bam
+        .map { row -> [row[0].id, row ].flatten()}
+        .join ( ch_scale_factor )
+        .map { row -> row[1..(row.size() - 1)] }
+        .map { row ->
+            row[0].put("scale_factor", row[2])
+            [ row[0], row[1], row[2] ] }
+        .set { ch_samtools_bam_scale }
     //EXAMPLE CHANNEL STRUCT: [[META + scale_factor:10000], BAM, SCALE_FACTOR]
     //ch_samtools_bam_scale | view
 
     /*
      * CHANNEL: Add the scale factor values to the main meta-data stream
      */
-    // ch_samtools_bam_scale
-    //     .map { row -> [ row[0], row[1] ] }
-    //     .set { ch_samtools_bam }
+    ch_samtools_bam_scale
+        .map { row -> [ row[0], row[1] ] }
+        .set { ch_samtools_bam }
     //EXAMPLE CHANNEL STRUCT: [[META], BAM]
     //ch_samtools_bam | view
 
@@ -451,54 +451,54 @@ workflow CUTANDRUN {
         /*
         * MODULE: Convert bam files to bedgraph
         */
-        // BEDTOOLS_GENOMECOV (
-        //     ch_samtools_bam_scale,
-        //     ch_dummy_file,
-        //     "bedGraph"
-        // )
-        // ch_software_versions = ch_software_versions.mix(BEDTOOLS_GENOMECOV.out.versions)
+        BEDTOOLS_GENOMECOV (
+            ch_samtools_bam_scale,
+            ch_dummy_file,
+            "bedGraph"
+        )
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_GENOMECOV.out.versions)
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
         //BEDTOOLS_GENOMECOV.out.genomecov | view
 
         /*
         * MODULE: Sort bedgraph
         */
-        // BEDTOOLS_SORT (
-        //     BEDTOOLS_GENOMECOV.out.genomecov,
-        //     "bedGraph"
-        // )
-        // ch_software_versions = ch_software_versions.mix(BEDTOOLS_SORT.out.versions)
+        BEDTOOLS_SORT (
+            BEDTOOLS_GENOMECOV.out.genomecov,
+            "bedGraph"
+        )
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_SORT.out.versions)
 
         /*
         * MODULE: Clip off bedgraphs so none overlap beyond chromosome edge
         */
-        // UCSC_BEDCLIP (
-        //     BEDTOOLS_SORT.out.sorted,
-        //     PREPARE_GENOME.out.chrom_sizes
-        // )
-        // ch_software_versions = ch_software_versions.mix(UCSC_BEDCLIP.out.versions)
+        UCSC_BEDCLIP (
+            BEDTOOLS_SORT.out.sorted,
+            PREPARE_GENOME.out.chrom_sizes
+        )
+        ch_software_versions = ch_software_versions.mix(UCSC_BEDCLIP.out.versions)
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
         //UCSC_BEDCLIP.out.bedgraph | view
 
         /*
         * MODULE: Convert bedgraph to bigwig
         */
-        // UCSC_BEDGRAPHTOBIGWIG (
-        //     UCSC_BEDCLIP.out.bedgraph,
-        //     PREPARE_GENOME.out.chrom_sizes
-        // )
-        // ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions)
+        UCSC_BEDGRAPHTOBIGWIG (
+            UCSC_BEDCLIP.out.bedgraph,
+            PREPARE_GENOME.out.chrom_sizes
+        )
+        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions)
         //EXAMPLE CHANNEL STRUCT: [[META], BIGWIG]
         //UCSC_BEDGRAPHTOBIGWIG.out.bigwig | view
 
         /*
          * CHANNEL: Separate bedgraphs into target/control
          */
-        // BEDTOOLS_SORT.out.sorted.branch { it ->
-        //     target: it[0].group != "igg"
-        //     control: it[0].group == "igg"
-        // }
-        // .set { ch_bedgraph_split }
+        BEDTOOLS_SORT.out.sorted.branch { it ->
+            target: it[0].group != "igg"
+            control: it[0].group == "igg"
+        }
+        .set { ch_bedgraph_split }
         //ch_bedgraph_split.target | view
         //ch_bedgraph_split.control | view
 
