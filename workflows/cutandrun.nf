@@ -76,12 +76,6 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
     exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}"
 }
 
-// // Consensus peak options
-// def awk_threshold           = modules["awk_threshold"]
-// awk_threshold.command   = "' \$10 >= " + params.replicate_threshold.toString() + " {print \$0}'"
-// def awk_all_threshold       = modules["awk_threshold"]
-// awk_threshold.command   = "' \$10 >= 1 {print \$0}'"
-
 // // Meta annotation options
 // def awk_bt2_options         = modules["awk_bt2"]
 // def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
@@ -105,7 +99,7 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
  * MODULES
  */
 include { INPUT_CHECK                     } from "../subworkflows/local/input_check"
-// include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_name_peak_bed"]   )
+include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
 // include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]                 )
 // include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"]   )
 // include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"                          addParams( options: modules["awk_frag_bin"]        )
@@ -127,8 +121,8 @@ include { ALIGN_BOWTIE2                                  } from "../subworkflows
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_META         } from "../subworkflows/local/annotate_meta_awk"
 include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from "../subworkflows/local/annotate_meta_awk"
 include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows/local/annotate_meta_awk"
-// include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"], run_peak_plotting: run_peak_plotting)
-// include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"], run_peak_plotting: run_peak_plotting)
+include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"
+include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"
 // include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], samtools_sort_options: modules["calc_frag_samtools_sort"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
 // include { ANNOTATE_META_CSV as ANNOTATE_FRIP_META        } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_frip_options"] )
 // include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_peak_repro_options"] )
@@ -345,6 +339,8 @@ workflow CUTANDRUN {
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
+
+    
 
     /*
      * SUBWORKFLOW: Annotate meta-data with aligner stats for target and spike-in
@@ -635,89 +631,94 @@ workflow CUTANDRUN {
                 // MACS2_CALLPEAK_NOIGG.out.bed | view
             }
         }
-        
+
         // Store output of primary peakcaller in the output channel
-        // if(callers[0] == 'seacr') {
-        //         ch_peaks_bed = ch_seacr_bed
-        // }
-        // if(callers[0] == 'macs2') {
-        //     ch_peaks_bed = ch_macs2_bed
-        // }
+        if(callers[0] == 'seacr') {
+                ch_peaks_bed = ch_seacr_bed
+        }
+        if(callers[0] == 'macs2') {
+            ch_peaks_bed = ch_macs2_bed
+        }
 
         /*
         * MODULE: Add sample identifier column to peak beds
         */
-        // AWK_NAME_PEAK_BED (
-        //     ch_peaks_bed
-        // )
-        // ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
+        AWK_NAME_PEAK_BED (
+            ch_peaks_bed
+        )
+        ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //AWK_NAME_PEAK_BED.out.file | view
 
-        /*
-        * CHANNEL: Group all samples
-        */
-        // AWK_NAME_PEAK_BED.out.file
-        //     .map { row -> [ 1, row[1] ] }
-        //     .groupTuple(by: [0])
-        //     .map { row ->
-        //         new_meta = [:]
-        //         new_meta.put( "id", "all_samples" )
-        //         [ new_meta, row[1].flatten() ]
-        //     }
-        //     .map { row ->
-        //         [ row[0], row[1], row[1].size() ]
-        //     }
-        //     .filter { row -> row[2] > 1 }
-        //     .map { row ->
-        //         [ row[0], row[1] ]
-        //     }
-        //     .set { ch_peaks_bed_all }
-        // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
-        //ch_peaks_bed_all | view
+        if(params.run_consensus_all) {
+            /*
+            * CHANNEL: Group all samples, filter where the number in the group is > 1
+            */
+            AWK_NAME_PEAK_BED.out.file
+            .map { row -> [ 1, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", "all_samples" )
+                [ new_meta, row[1].flatten() ]
+            }
+            .map { row ->
+                [ row[0], row[1], row[1].size() ]
+            }
+            .filter { row -> row[2] > 1 }
+            .map { row ->
+                [ row[0], row[1] ]
+            }
+            .set { ch_peaks_bed_all }
+            // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
+            //ch_peaks_bed_all | view
 
-        /*
-        * SUBWORKFLOW: Construct group consensus peaks
-        */
-        // CONSENSUS_PEAKS_ALL (
-        //     ch_peaks_bed_all
-        // )
-        // ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
-        // EXAMPLE CHANNEL STRUCT: [[META], BED]
-        //CONSENSUS_PEAKS_ALL.out.bed | view
+            /*
+            * SUBWORKFLOW: Construct group consensus peaks
+            */
+            CONSENSUS_PEAKS_ALL (
+                ch_peaks_bed_all,
+                params.skip_upset_plots
+            )
+            ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
+            // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //CONSENSUS_PEAKS_ALL.out.bed | view
 
-        /*
-        * CHANNEL: Group samples based on group
-        */
-        // AWK_NAME_PEAK_BED.out.file
-        //     .map { row -> [ row[0].group, row[1] ] }
-        //     .groupTuple(by: [0])
-        //     .map { row ->
-        //         new_meta = [:]
-        //         new_meta.put( "id", row[0] )
-        //         [ new_meta, row[1].flatten() ]
-        //     }
-        //     .map { row ->
-        //         [ row[0], row[1], row[1].size() ]
-        //     }
-        //     .filter { row -> row[2] > 1 }
-        //     .map { row ->
-        //         [ row[0], row[1] ]
-        //     }
-        //     .set { ch_peaks_bed_group }
-        // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
-        //ch_peaks_bed_group | view
+        } else {
+            /*
+            * CHANNEL: Group samples based on group
+            */
+            AWK_NAME_PEAK_BED.out.file
+            .map { row -> [ row[0].group, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", row[0] )
+                [ new_meta, row[1].flatten() ]
+            }
+            .map { row ->
+                [ row[0], row[1], row[1].size() ]
+            }
+            .filter { row -> row[2] > 1 }
+            .map { row ->
+                [ row[0], row[1] ]
+            }
+            .set { ch_peaks_bed_group }
+            // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
+            //ch_peaks_bed_group | view
 
-        /*
-        * SUBWORKFLOW: Construct group consensus peaks
-        * where there is more than 1 replicate in a group
-        */
-        // CONSENSUS_PEAKS (
-        //     ch_peaks_bed_group
-        // )
-        // ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
-        // EXAMPLE CHANNEL STRUCT: [[META], BED]
-        //CONSENSUS_PEAKS.out.bed | view
+            /*
+            * SUBWORKFLOW: Construct group consensus peaks
+            * where there is more than 1 replicate in a group
+            */
+            CONSENSUS_PEAKS (
+                ch_peaks_bed_group,
+                params.skip_upset_plots
+            )
+            ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
+            // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //CONSENSUS_PEAKS.out.bed | view
+        }
 
         /*
         * SUBWORKFLOW: Calculate fragment bed from bams
