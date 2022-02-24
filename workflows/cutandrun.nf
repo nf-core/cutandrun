@@ -76,19 +76,6 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
     exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}"
 }
 
-// // Meta annotation options
-// def awk_bt2_options         = modules["awk_bt2"]
-// def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
-// def awk_dedup_options       = modules["awk_dedup"]
-
-// // Reporting options
-// def bedtools_intersect_options = modules["bedtools_intersect"]
-// bedtools_intersect_options.args = "-C -sorted"
-
-// // Multi QC
-// def multiqc_options = modules["multiqc"]
-// multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ""
-
 /*
 ========================================================================================
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -104,13 +91,13 @@ include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"
 include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
 include { IGV_SESSION                     } from "../modules/local/python/igv_session"
 include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
-// include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"        addParams( options: modules["calc_frip"]           )
-// include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"                          addParams( options: modules["calc_peak_repro_cut"] )
-// include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main" addParams( options: modules["calc_peak_repro"]     )
-// include { EXPORT_META                     } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]         )
-// include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]         )
-// include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"      addParams( options: modules["generate_reports"]    )
-// include { MULTIQC                         } from "../modules/local/multiqc"                            addParams( options: multiqc_options                )
+include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
+include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
+include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
+include { EXPORT_META                     } from "../modules/local/export_meta"
+include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"
+include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"
+include { MULTIQC                         } from "../modules/local/multiqc"
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -124,8 +111,8 @@ include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows
 include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"
 include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"
 include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"
-// include { ANNOTATE_META_CSV as ANNOTATE_FRIP_META        } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_frip_options"] )
-// include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_peak_repro_options"] )
+include { ANNOTATE_META_CSV as ANNOTATE_FRIP_META        } from "../subworkflows/local/annotate_meta_csv"
+include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows/local/annotate_meta_csv"
 
 /*
 ========================================================================================
@@ -149,7 +136,7 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../mo
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
-// include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"       addParams( options: bedtools_intersect_options             )
+include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"
 include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/modules/custom/dumpsoftwareversions/main"
 
 /*
@@ -382,8 +369,8 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             ch_markduplicates_metrics,
             ch_dummy_file.collect(),
-            "",
             "dedup_",
+            "",
             false
         )
         ch_samtools_bam      = ANNOTATE_DEDUP_META.out.output
@@ -866,139 +853,143 @@ workflow CUTANDRUN {
         /*
         * CHANNEL: Join bams and beds on id
         */
-        // ch_samtools_bam
-        //     .map { row -> [row[0].id, row ].flatten()}
-        //     .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
-        //     .join ( ch_peaks_bed.map { row -> [row[0].id, row ].flatten()} )
-        //     .map { row -> [row[1], row[2], row[4], row[6]] }
-        // .set { ch_bam_bai_bed }
+        ch_samtools_bam
+            .map { row -> [row[0].id, row ].flatten()}
+            .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
+            .join ( ch_peaks_bed.map { row -> [row[0].id, row ].flatten()} )
+            .map { row -> [row[1], row[2], row[4], row[6]] }
+            .set { ch_bam_bai_bed }
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, BED]
         //ch_bam_bai_bed | view
 
         /*
         * MODULE: Calculate Frip scores for samples
         */
-        // CALCULATE_FRIP (
-        //     ch_bam_bai_bed
-        // )
-        // ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
+        CALCULATE_FRIP (
+            ch_bam_bai_bed
+        )
+        ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
 
         /*
         * SUBWORKFLOW: Annotate meta-data with frip stats
         */
-        // ANNOTATE_FRIP_META (
-        //     ch_samtools_bam,
-        //     CALCULATE_FRIP.out.frips
-        // )
-        // ch_samtools_bam_ctrl = ch_samtools_bam
-        // ch_samtools_bam      = ANNOTATE_FRIP_META.out.output
+        ANNOTATE_FRIP_META (
+            ch_samtools_bam,
+            CALCULATE_FRIP.out.frips,
+            "",
+            ""
+        )
+        ch_samtools_bam_ctrl = ch_samtools_bam
+        ch_samtools_bam      = ANNOTATE_FRIP_META.out.output
         //ch_samtools_bam | view
 
         /*
         * MODULE: Trim unwanted columns for downstream reporting
         */
-        // CUT_CALC_REPROD (
-        //     AWK_NAME_PEAK_BED.out.file
-        // )
+        CUT_CALC_REPROD (
+            AWK_NAME_PEAK_BED.out.file
+        )
 
         /*
         * CHANNEL: Group samples based on group
         */
-        // CUT_CALC_REPROD.out.file
-        //     .map { row -> [ row[0].group, row[1] ] }
-        //     .groupTuple(by: [0])
-        //     .map { row ->
-        //         new_meta = [:]
-        //         new_meta.put( "id", row[0] )
-        //         [ new_meta, row[1].flatten() ]
-        //     }
-        //     .map { row ->
-        //         [ row[0], row[1], row[1].size() ]
-        //     }
-        //     .filter { row -> row[2] > 1 }
-        //     .map { row ->
-        //         [ row[0], row[1] ]
-        //     }
-        // .set { ch_seacr_bed_group_2 }
+        CUT_CALC_REPROD.out.file
+            .map { row -> [ row[0].group, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                new_meta = [:]
+                new_meta.put( "id", row[0] )
+                [ new_meta, row[1].flatten() ]
+            }
+            .map { row ->
+                [ row[0], row[1], row[1].size() ]
+            }
+            .filter { row -> row[2] > 1 }
+            .map { row ->
+                [ row[0], row[1] ]
+            }
+        .set { ch_seacr_bed_group_2 }
 
         /*
         * CHANNEL: Per group, create a channel per one against all combination
         */
-        // ch_seacr_bed_group_2
-        //     .flatMap{
-        //         row ->
-        //         new_output = []
-        //         row[1].each{ file ->
-        //             files_copy = row[1].collect()
-        //             files_copy.remove(files_copy.indexOf(file))
-        //             new_output.add([[id: file.name.split("\\.")[0]], file, files_copy])
-        //         }
-        //         new_output
-        //     }
-        // .set { ch_beds_intersect }
+        ch_seacr_bed_group_2
+            .flatMap{
+                row ->
+                new_output = []
+                row[1].each{ file ->
+                    files_copy = row[1].collect()
+                    files_copy.remove(files_copy.indexOf(file))
+                    new_output.add([[id: file.name.split("\\.")[0]], file, files_copy])
+                }
+                new_output
+            }
+        .set { ch_beds_intersect }
         //EXAMPLE CHANNEL STRUCT: [[META], BED (-a), [BED...n] (-b)]
         //ch_beds_intersect | view
 
         /*
         * MODULE: Find intra-group overlap
         */
-        // BEDTOOLS_INTERSECT (
-        //     ch_beds_intersect,
-        //     "bed"
-        // )
-        // ch_software_versions = ch_software_versions.mix(BEDTOOLS_INTERSECT.out.versions)
+        BEDTOOLS_INTERSECT (
+            ch_beds_intersect,
+            "bed"
+        )
+        ch_software_versions = ch_software_versions.mix(BEDTOOLS_INTERSECT.out.versions)
         //EXAMPLE CHANNEL STRUCT: [[META], BED]
         //BEDTOOLS_INTERSECT.out.intersect | view
 
         /*
         * MODULE: Use overlap to calculate a peak repro %
         */
-        // CALCULATE_PEAK_REPROD (
-        //     BEDTOOLS_INTERSECT.out.intersect
-        // )
-        // ch_software_versions = ch_software_versions.mix(CALCULATE_PEAK_REPROD.out.versions)
+        CALCULATE_PEAK_REPROD (
+            BEDTOOLS_INTERSECT.out.intersect
+        )
+        ch_software_versions = ch_software_versions.mix(CALCULATE_PEAK_REPROD.out.versions)
         //EXAMPLE CHANNEL STRUCT: [[META], CSV]
         //CALCULATE_PEAK_REPROD.out.csv
 
         /*
         * SUBWORKFLOW: Annotate meta-data with peak stats
         */
-        // ANNOTATE_PEAK_REPRO_META (
-        //     ch_samtools_bam,
-        //     CALCULATE_PEAK_REPROD.out.csv
-        // )
-        // ch_samtools_bam = ANNOTATE_PEAK_REPRO_META.out.output
+        ANNOTATE_PEAK_REPRO_META (
+            ch_samtools_bam,
+            CALCULATE_PEAK_REPROD.out.csv,
+            "",
+            ""
+        )
+        ch_samtools_bam = ANNOTATE_PEAK_REPRO_META.out.output
         //ch_samtools_bam | view
 
         /*
         * MODULE: Export meta-data to csv file
         */
-        // EXPORT_META (
-        //     ch_samtools_bam.collect{it[0]},
-        //     "meta_table"
-        // )
+        EXPORT_META (
+            ch_samtools_bam.collect{it[0]},
+            "meta_table"
+        )
 
         /*
         * MODULE: Export meta-data to csv file
         */
-        // EXPORT_META_CTRL (
-        //     ch_samtools_bam_ctrl.collect{it[0]},
-        //     "meta_table_ctrl"
-        // )
+        EXPORT_META_CTRL (
+            ch_samtools_bam_ctrl.collect{it[0]},
+            "meta_table_ctrl"
+        )
 
         /*
         * MODULE: Generate python reporting using mixture of meta-data and direct file processing
         */
-        // GENERATE_REPORTS(
-        //     EXPORT_META.out.csv.collect().ifEmpty([]),  // meta-data report stats
-        //     EXPORT_META_CTRL.out.csv,                   // meta-data report stats
-        //     SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
-        //     AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
-        //     ch_peaks_bed.collect{it[1]},                // peak beds
-        //     ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
-        // )
-        // ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
-        // ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions)
+        GENERATE_REPORTS(
+            EXPORT_META.out.csv.collect().ifEmpty([]),  // meta-data report stats
+            EXPORT_META_CTRL.out.csv,                   // meta-data report stats
+            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
+            AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
+            ch_peaks_bed.collect{it[1]},                // peak beds
+            ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
+        )
+        ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
+        ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions)
     }
 
     /*
