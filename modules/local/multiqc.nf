@@ -16,7 +16,7 @@ process MULTIQC {
     path ('trimgalore/fastqc/*')
     path ('trimgalore/*')
     path ('bowtie2/*')
-    path ('bowtie2/*')
+    path ('bowtie2_spikein/*')
     path ('samtools/stats/*')
     path ('samtools/flagstat/*')
     path ('samtools/idxstats/*')

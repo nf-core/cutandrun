@@ -1002,29 +1002,29 @@ workflow CUTANDRUN {
     /*
      * MODULE: Multiqc
      */
-    // if (run_multiqc) {
-    //     workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
-    //     ch_workflow_summary = Channel.value(workflow_summary)
+    if (params.run_multiqc) {
+        workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
+        ch_workflow_summary = Channel.value(workflow_summary)
 
-    //     MULTIQC (
-    //         ch_multiqc_config,
-    //         ch_multiqc_custom_config.collect().ifEmpty([]),
-    //         CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
-    //         CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_unique_yml.collect(),
-    //         ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml"),
-    //         FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-    //         FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-    //         FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
-    //         ch_bowtie2_log.collect{it[1]}.ifEmpty([]),
-    //         ch_bowtie2_spikein_log.collect{it[1]}.ifEmpty([]),
-    //         ch_samtools_stats.collect{it[1]}.ifEmpty([]),
-    //         ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
-    //         ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
-    //         ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
-    //         ch_frag_len_multiqc.collect().ifEmpty([])
-    //     )
-    //     multiqc_report = MULTIQC.out.report.toList()
-    // }
+        MULTIQC (
+            ch_multiqc_config,
+            ch_multiqc_custom_config.collect().ifEmpty([]),
+            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
+            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_unique_yml.collect(),
+            ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml"),
+            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+            ch_bowtie2_log.collect{it[1]}.ifEmpty([]),
+            ch_bowtie2_spikein_log.collect{it[1]}.ifEmpty([]),
+            ch_samtools_stats.collect{it[1]}.ifEmpty([]),
+            ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
+            ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
+            ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
+            ch_frag_len_multiqc.collect().ifEmpty([])
+        )
+        multiqc_report = MULTIQC.out.report.toList()
+    }
 }
 
 ////////////////////////////////////////////////////

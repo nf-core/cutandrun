@@ -29,7 +29,7 @@ process GENERATE_REPORTS {
     reporting.py gen_reports \\
         --meta $meta_data_resolved \\
         --meta_ctrl $meta_data_ctrl \\
-        --raw_frag "*.frag_len.txt" \\
+        --raw_frag "*.frags.len.txt" \\
         --bin_frag "*bin500.awk.bed" \\
         --seacr_bed "*bed*.bed" \\
         --output . \\
