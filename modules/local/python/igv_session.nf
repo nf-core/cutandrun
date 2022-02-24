@@ -3,9 +3,6 @@ colour_pallete = ['38,70,83', '231,111,81', '42,157,143', '244,162,97', '233,196
 process IGV_SESSION {
     tag "igv"
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:'pipeline_info', publish_id:'') }
 
     conda     (params.enable_conda ? "conda-forge::python=3.8.3" : null)
     container "quay.io/biocontainers/python:3.8.3"

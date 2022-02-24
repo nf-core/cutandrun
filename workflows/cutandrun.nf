@@ -102,8 +102,8 @@ include { INPUT_CHECK                     } from "../subworkflows/local/input_ch
 include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
 include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"
 include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
-// include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]                 )
-// include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"]   )
+include { IGV_SESSION                     } from "../modules/local/python/igv_session"
+include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
 // include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"        addParams( options: modules["calc_frip"]           )
 // include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"                          addParams( options: modules["calc_peak_repro_cut"] )
 // include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main" addParams( options: modules["calc_peak_repro"]     )
@@ -145,10 +145,10 @@ include { SEACR_CALLPEAK                                           } from "../mo
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"
 include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"
 include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/macs2/callpeak/main"
-// include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_gene"]         )
-// include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_peaks"]        )
-// include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_gene"]         )
-// include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_peaks"]        )
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
 // include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"       addParams( options: bedtools_intersect_options             )
 include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/modules/custom/dumpsoftwareversions/main"
 
@@ -768,21 +768,20 @@ workflow CUTANDRUN {
             /*
             * CHANNEL: Remove IgG from bigwig channel
             */
-            // UCSC_BEDGRAPHTOBIGWIG.out.bigwig
-            //     .filter { it[0].group != "igg" }
-            //     .set { ch_bigwig_no_igg }
+            UCSC_BEDGRAPHTOBIGWIG.out.bigwig
+                .filter { it[0].group != "igg" }
+                .set { ch_bigwig_no_igg }
             //ch_bigwig_no_igg | view
 
             /*
             * MODULE: Create igv session
             */
-            // IGV_SESSION (
-            //     PREPARE_GENOME.out.fasta,
-            //     PREPARE_GENOME.out.gtf,
-            //     ch_peaks_bed.collect{it[1]}.ifEmpty([]), 
-            //     UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
-            // )
-            //TODO - this version ouptut causes an error for an unknown reason
+            IGV_SESSION (
+                PREPARE_GENOME.out.fasta,
+                PREPARE_GENOME.out.gtf,
+                ch_peaks_bed.collect{it[1]}.ifEmpty([]), 
+                UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
+            )
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
@@ -790,76 +789,78 @@ workflow CUTANDRUN {
             /*
             * MODULE: Extract max signal from peak beds
             */
-            // AWK_EDIT_PEAK_BED (
-            //     ch_peaks_bed
-            // )
-            // ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
+            AWK_EDIT_PEAK_BED (
+                ch_peaks_bed
+            )
+            ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
             //AWK_EDIT_PEAK_BED.out.file | view
 
             /*
             * CHANNEL: Structure output for join on id
             */
-            // AWK_EDIT_PEAK_BED.out.file
-            //     .map { row -> [row[0].id, row ].flatten()}
-            //     .set { ch_peaks_bed_id }
+            AWK_EDIT_PEAK_BED.out.file
+                .map { row -> [row[0].id, row ].flatten()}
+                .set { ch_peaks_bed_id }
             //ch_peaks_bed_id | view
 
             /*
             * CHANNEL: Join beds and bigwigs on id
             */
-            // ch_bigwig_no_igg
-            //     .map { row -> [row[0].id, row ].flatten()}
-            //     .join ( ch_peaks_bed_id )
-            //     .set { ch_dt_peaks }
+            ch_bigwig_no_igg
+                .map { row -> [row[0].id, row ].flatten()}
+                .join ( ch_peaks_bed_id )
+                .set { ch_dt_peaks }
             //ch_dt_peaks | view
 
-            // ch_dt_peaks
-            //     .map { row -> row[1,2] }
-            //     .set { ch_ordered_bigwig }
+            ch_dt_peaks
+                .map { row -> row[1,2] }
+                .set { ch_ordered_bigwig }
             //ch_ordered_bigwig | view
 
-            // ch_dt_peaks
-            //     .map { row -> row[-1] }
-            //     .set { ch_ordered_peaks_max }
+            ch_dt_peaks
+                .map { row -> row[-1] }
+                .set { ch_ordered_peaks_max }
             //ch_ordered_peaks_max | view
 
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
             */
-            // DEEPTOOLS_COMPUTEMATRIX_GENE (
-            //     ch_bigwig_no_igg,
-            //     PREPARE_GENOME.out.bed
-            // )
-            // ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions)
+            DEEPTOOLS_COMPUTEMATRIX_GENE (
+                ch_bigwig_no_igg,
+                PREPARE_GENOME.out.bed
+            )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions)
 
             /*
             * MODULE: Calculate DeepTools heatmap
             */
-            // DEEPTOOLS_PLOTHEATMAP_GENE (
-            //     DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
-            // )
-            // ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
+            DEEPTOOLS_PLOTHEATMAP_GENE (
+                DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
+            )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
 
-            // ch_ordered_peaks_max
-            //     .filter { it -> it.size() > 345}
-            //     .set { ch_ordered_peaks_max }
+            // Run if not empty file size > 1 byte
+            ch_ordered_peaks_max
+                .filter { it -> it.size() > 1}
+                .set { ch_ordered_peaks_max_notempty }
+            //ch_ordered_peaks_max_notempty | view
 
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
-            // DEEPTOOLS_COMPUTEMATRIX_PEAKS (
-            //     ch_ordered_bigwig,
-            //     ch_ordered_peaks_max
-            // )
+            DEEPTOOLS_COMPUTEMATRIX_PEAKS (
+                ch_ordered_bigwig,
+                ch_ordered_peaks_max_notempty
+            )
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
 
             /*
             * MODULE: Calculate DeepTools heatmap
             */
-            // DEEPTOOLS_PLOTHEATMAP_PEAKS (
-            //     DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
-            // )
+            DEEPTOOLS_PLOTHEATMAP_PEAKS (
+                DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
+            )
         }
 
         /*
