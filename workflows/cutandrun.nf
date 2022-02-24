@@ -327,8 +327,6 @@ workflow CUTANDRUN {
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
     //ch_samtools_bam | view
 
-    
-
     /*
      * SUBWORKFLOW: Annotate meta-data with aligner stats for target and spike-in
      * the meta-data is annotated additivley so we only need to track the final channel output

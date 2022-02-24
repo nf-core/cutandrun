@@ -3,8 +3,8 @@
  */
 
 workflow ANNOTATE_META_CSV {
-    take: 
-    passthrough // channel 
+    take:
+    passthrough // channel
     reports     // file
     meta_suffix // string
     meta_prefix // string
