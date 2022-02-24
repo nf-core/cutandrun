@@ -100,10 +100,10 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
  */
 include { INPUT_CHECK                     } from "../subworkflows/local/input_check"
 include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
+include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"
+include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
 // include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]                 )
 // include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"]   )
-// include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"                          addParams( options: modules["awk_frag_bin"]        )
-// include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"               addParams( options: modules["samtools_frag_len"]   )
 // include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"        addParams( options: modules["calc_frip"]           )
 // include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"                          addParams( options: modules["calc_peak_repro_cut"] )
 // include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main" addParams( options: modules["calc_peak_repro"]     )
@@ -123,7 +123,7 @@ include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from "../subworkflows
 include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows/local/annotate_meta_awk"
 include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"
 include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"
-// include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], samtools_sort_options: modules["calc_frag_samtools_sort"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
+include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"
 // include { ANNOTATE_META_CSV as ANNOTATE_FRIP_META        } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_frip_options"] )
 // include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_peak_repro_options"] )
 
@@ -727,39 +727,38 @@ workflow CUTANDRUN {
         * - Keep the read pairs that are on the same chromosome and fragment length less than 1000bp
         * - Only extract the fragment related columns using cut
         */
-        // CALCULATE_FRAGMENTS (
-        //     ch_samtools_bam
-        // )
-        // ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.versions)
+        CALCULATE_FRAGMENTS (
+            ch_samtools_bam
+        )
+        ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.versions)
         //EXAMPLE CHANNEL STRUCT: NO CHANGE
         //CALCULATE_FRAGMENTS.out.bed | view
 
         /*
         * MODULE: Bin the fragments into 500bp bins ready for downstream reporting
         */
-        // AWK_FRAG_BIN(
-        //     CALCULATE_FRAGMENTS.out.bed
-        // )
+        AWK_FRAG_BIN(
+            CALCULATE_FRAGMENTS.out.bed
+        )
         //AWK_FRAG_BIN.out.file | view
 
 
         /*
         * CHANNEL: Combine bam and bai files on id
         */
-        // ch_samtools_bam
-        //     .map { row -> [row[0].id, row ].flatten()}
-        //     .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
-        //     .map { row -> [row[1], row[2], row[4]] }
-        //     .set { ch_bam_bai }
+        ch_samtools_bam.map { row -> [row[0].id, row ].flatten()}
+        .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
+        .map { row -> [row[1], row[2], row[4]] }
+        .set { ch_bam_bai }
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
         //ch_bam_bai | view
 
         /*
         * MODULE: Calculate fragment lengths
         */
-        // SAMTOOLS_CUSTOMVIEW (
-        //     ch_bam_bai
-        // )
+        SAMTOOLS_CUSTOMVIEW (
+            ch_bam_bai
+        )
         // ch_software_versions = ch_software_versions.mix(SAMTOOLS_CUSTOMVIEW.out.versions)
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
     }
