@@ -28,7 +28,7 @@
       should_exist: false
 
 - name: test_verify_output_skip_reporting_heatmaps
-  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_reporting true
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_heatmaps true
   tags:
     - verify_output
     - verify_output_reporting
@@ -41,7 +41,7 @@
     - path: results/06_reporting/heatmaps/igv/igv_session.xml
 
 - name: test_verify_output_skip_reporting_multiqc
-  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_reporting true
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_multiqc true
   tags:
     - verify_output
     - verify_output_reporting

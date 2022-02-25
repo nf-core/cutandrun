@@ -748,16 +748,16 @@ workflow CUTANDRUN {
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
     }
 
+    /*
+    * CHANNEL: Remove IgG from bigwig channel
+    */
+    UCSC_BEDGRAPHTOBIGWIG.out.bigwig
+        .filter { it[0].group != "igg" }
+        .set { ch_bigwig_no_igg }
+    //ch_bigwig_no_igg | view
+
     if(params.run_reporting) {
         if(params.run_igv) {
-            /*
-            * CHANNEL: Remove IgG from bigwig channel
-            */
-            UCSC_BEDGRAPHTOBIGWIG.out.bigwig
-                .filter { it[0].group != "igg" }
-                .set { ch_bigwig_no_igg }
-            //ch_bigwig_no_igg | view
-
             /*
             * MODULE: Create igv session
             */
