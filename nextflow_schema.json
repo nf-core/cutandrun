@@ -238,7 +238,7 @@
                 },
                 "peakcaller": {
                     "type": "string",
-                    "default": null
+                    "default": "None"
                 },
                 "macs2_pvalue": {
                     "type": "number",
@@ -249,8 +249,12 @@
                     "default": 2700000000
                 },
                 "run_narrow_peak": {
-                    "type": "string",
+                    "type": "boolean",
                     "default": "false"
+                },
+                "consensus_peak_mode": {
+                    "type": "string",
+                    "default": "group"
                 }
             },
             "fa_icon": "fas fa-cog"
