@@ -2,7 +2,6 @@
   command: nextflow run main.nf -profile docker,test_full_small --only_peak_calling true --skip_fastqc true -c tests/config/nextflow.config
   tags:
     - verify_output
-    - verify_output_peak_calling
     - verify_output_peak_calling_only_peak_calling
   files:
     - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph

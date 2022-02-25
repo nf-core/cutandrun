@@ -18,8 +18,8 @@
   command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_igv true
   tags:
     - verify_output
-    - verify_output/reporting
-    - verify_output/reporting/skip_igv
+    - verify_output_reporting
+    - verify_output_reporting_skip_igv
   files:
     - path: results/06_reporting/qc/merged_report.pdf
     - path: results/06_reporting/multiqc/multiqc_report.html
@@ -31,8 +31,8 @@
   command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_reporting true
   tags:
     - verify_output
-    - verify_output/reporting
-    - verify_output/reporting/skip_heatmaps
+    - verify_output_reporting
+    - verify_output_reporting_skip_heatmaps
   files:
     - path: results/06_reporting/qc/merged_report.pdf
     - path: results/06_reporting/multiqc/multiqc_report.html
@@ -44,8 +44,8 @@
   command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_reporting true
   tags:
     - verify_output
-    - verify_output/reporting
-    - verify_output/reporting/skip_multiqc
+    - verify_output_reporting
+    - verify_output_reporting_skip_multiqc
   files:
     - path: results/06_reporting/qc/merged_report.pdf
     - path: results/06_reporting/multiqc/multiqc_report.html

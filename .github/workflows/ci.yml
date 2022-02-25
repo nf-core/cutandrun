@@ -146,21 +146,25 @@ jobs:
       matrix:
         nxf_version: ['21.10.3', '']
         tags:
+          - params
           - samplesheet
-          - verify_output_input
-          - verify_output_peak_calling
-          - verify_output_reporting
-          - verify_output_save
-          - verify_output_skip
-          - verify_output_align_only_q_filter
-          - verify_output_align_duplicates_mark
-          - verify_output_align_duplicates_remove
-          - verify_output_align_duplicates_remove_target
+          - verify_output_save_ref
+          - verify_output_only_input
+          - verify_output_save_merged
+          - verify_output_skip_fastqc
+          - verify_output_save_trimmed
+          - verify_output_skip_trimming
           - verify_output_align_intermed
           - verify_output_align_only_align
           - verify_output_align_save_spikein_align
           - verify_output_align_save_unaligned
+          - verify_output_only_filtering
+          - verify_output_align_duplicates_mark
+          - verify_output_align_duplicates_remove
+          - verify_output_align_duplicates_remove_target
+          - verify_output_peak_calling_only_peak_calling
           - test_peak_callers
+          - verify_output_reporting
     steps:
       - uses: actions/checkout@v2
 
