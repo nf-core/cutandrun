@@ -1,5 +1,3 @@
-
-   
 process MACS2_CALLPEAK {
     tag "$meta.id"
     label 'process_medium'
@@ -46,6 +44,7 @@ process MACS2_CALLPEAK {
         --name $prefix \\
         --treatment $ipbam \\
         $control
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         macs2: \$(macs2 --version | sed -e "s/macs2 //g")

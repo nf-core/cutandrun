@@ -25,6 +25,7 @@ process SAMTOOLS_FLAGSTAT {
         --threads ${task.cpus-1} \\
         $bam \\
         > ${bam}.flagstat
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')

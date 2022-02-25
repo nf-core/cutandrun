@@ -25,6 +25,7 @@ process GUNZIP {
         -f \\
         $args \\
         $archive
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         gunzip: \$(echo \$(gunzip --version 2>&1) | sed 's/^.*(gzip) //; s/ Copyright.*\$//')
