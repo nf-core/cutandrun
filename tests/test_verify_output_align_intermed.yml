@@ -5,11 +5,12 @@
     - verify_output_align
     - verify_output_align_intermed
   files:
-    - path: results/02_alignment/bowtie2/target/intermed/align/h3k27me3_R1.target.sorted.bam
-    - path: results/02_alignment/bowtie2/target/intermed/qfilter/h3k27me3_R1.target.filtered.bam
-    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.bam
-    - path: results/02_alignment/bowtie2/target/markdup/igg_R1.target.markdup.bam
-    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.bam.bai
-    - path: results/02_alignment/bowtie2/target/markdup/igg_R1.target.markdup.bam.bai
-    - path: results/02_alignment/bowtie2/target/markdup/samtools_stats/h3k27me3_R1.target.markdup.bam.flagstat
-    - path: results/02_alignment/bowtie2/target/markdup/samtools_stats/igg_R1.target.markdup.bam.flagstat
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.bam
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.filtered.bam
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.sorted.bam
+    - path: results/02_alignment/bowtie2/target/igg_R1.target.dedup.bam
+    - path: results/02_alignment/bowtie2/target/igg_R1.target.filtered.bam
+    - path: results/02_alignment/bowtie2/target/igg_R1.target.markdup.bam
+    - path: results/02_alignment/bowtie2/target/igg_R1.target.sorted.bam
+
