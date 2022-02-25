@@ -9,5 +9,5 @@
     - path: results/02_alignment/bowtie2/target/igg_R1.target.sorted.bam
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.sorted.bam.bai
     - path: results/02_alignment/bowtie2/target/igg_R1.target.sorted.bam.bai
-    - path: results/02_alignment/bowtie2/target/samtools_stats/h3k27me3_R1.target.sorted.bam.flagstat
-    - path: results/02_alignment/bowtie2/target/samtools_stats/igg_R1.target.sorted.bam.flagstat
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.sorted.bam.flagstat
+    - path: results/02_alignment/bowtie2/target/igg_R1.target.sorted.bam.flagstat
