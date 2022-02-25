@@ -30,6 +30,7 @@ process SEACR_CALLPEAK {
         $function_switch \\
         $args \\
         $prefix
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         seacr: $VERSION

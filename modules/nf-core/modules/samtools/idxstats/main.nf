@@ -24,6 +24,7 @@ process SAMTOOLS_IDXSTATS {
         idxstats \\
         $bam \\
         > ${bam}.idxstats
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
