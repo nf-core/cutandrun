@@ -1,5 +1,5 @@
 - name: test_param_check_custom_genome_blacklist
-  command: nextflow run main.nf -profile docker,test_fasta_only --only_input true --gtf https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz --blacklist ./assets/blacklists/GRCh37-blacklist.bed -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test_fasta_only --only_input true --gtf https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz --blacklist ./assets/blacklists/hg38-blacklist.bed -c tests/config/nextflow.config
   tags:
     - params
     - params_customgenome
