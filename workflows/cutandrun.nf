@@ -748,14 +748,6 @@ workflow CUTANDRUN {
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
     }
 
-    /*
-    * CHANNEL: Remove IgG from bigwig channel
-    */
-    UCSC_BEDGRAPHTOBIGWIG.out.bigwig
-        .filter { it[0].group != "igg" }
-        .set { ch_bigwig_no_igg }
-    //ch_bigwig_no_igg | view
-
     if(params.run_reporting) {
         if(params.run_igv) {
             /*
@@ -770,7 +762,7 @@ workflow CUTANDRUN {
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
-        if (params.run_deep_tools) {
+        if (params.run_deep_tools && params.run_peak_calling) {
             /*
             * MODULE: Extract max signal from peak beds
             */
@@ -787,6 +779,14 @@ workflow CUTANDRUN {
                 .map { row -> [row[0].id, row ].flatten()}
                 .set { ch_peaks_bed_id }
             //ch_peaks_bed_id | view
+
+            /*
+            * CHANNEL: Remove IgG from bigwig channel
+            */
+            UCSC_BEDGRAPHTOBIGWIG.out.bigwig
+                .filter { it[0].group != "igg" }
+                .set { ch_bigwig_no_igg }
+            //ch_bigwig_no_igg | view
 
             /*
             * CHANNEL: Join beds and bigwigs on id
