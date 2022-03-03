@@ -76,6 +76,11 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
     exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}"
 }
 
+conseneus_mode_list = ['group', 'all']
+if (!(params.consensus_peak_mode in conseneus_mode_list)) {
+    exit 1, "Invalid conseneus mode option: ${params.consensus_peak_mode}. Valid options: ${conseneus_mode_list.join(', ')}"
+}
+
 /*
 ========================================================================================
     IMPORT LOCAL MODULES/SUBWORKFLOWS

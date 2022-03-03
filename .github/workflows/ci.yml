@@ -164,6 +164,9 @@ jobs:
           - verify_output_align_duplicates_remove_target
           - verify_output_peak_calling_only_peak_calling
           - test_peak_callers
+          - test_conseneus_peaks_group
+          - test_conseneus_peaks_all
+          - test_conseneus_peaks_invalid
           - verify_output_reporting
     steps:
       - uses: actions/checkout@v2
