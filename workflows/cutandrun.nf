@@ -70,15 +70,21 @@ ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.tx
 // Init aligners
 def prepare_tool_indices = ["bowtie2"]
 
+// Check normalisation mode params
+def norm_mode_list = ["Spikein", "RPKM", "CPM", "BPM", "RPGC", "None" ]
+if (!(params.normalisation_mode in norm_mode_list)) {
+    exit 1, "Invalid normalisation mode option: ${params.normalisation_mode}. Valid options: ${norm_mode_list.join(', ')}"
+}
+
 // Check peak caller params
-caller_list = ['seacr', 'macs2']
+def caller_list = ['seacr', 'macs2']
 callers = params.peakcaller ? params.peakcaller.split(',').collect{ it.trim().toLowerCase() } : ['seacr']
 if ((caller_list + callers).unique().size() != caller_list.size()) {
     exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}"
 }
 
 // Check consensus peak mode params 
-conseneus_mode_list = ['group', 'all']
+def conseneus_mode_list = ['group', 'all']
 if (!(params.consensus_peak_mode in conseneus_mode_list)) {
     exit 1, "Invalid conseneus mode option: ${params.consensus_peak_mode}. Valid options: ${conseneus_mode_list.join(', ')}"
 }
@@ -131,10 +137,6 @@ include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows
  * MODULES
  */
 include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"
-include { BEDTOOLS_GENOMECOV                                       } from "../modules/nf-core/modules/bedtools/genomecov/main"
-include { BEDTOOLS_SORT                                            } from "../modules/nf-core/modules/bedtools/sort/main"
-include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"
-include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"
 include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"
 include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"
@@ -152,6 +154,7 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../mo
 include { MARK_DUPLICATES_PICARD                       } from "../subworkflows/nf-core/mark_duplicates_picard"
 include { MARK_DUPLICATES_PICARD as DEDUPLICATE_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"
 include { SAMTOOLS_VIEW_SORT_STATS                     } from "../subworkflows/nf-core/samtools_view_sort_stats"
+include { PREPARE_PEAKCALLING                          } from "../subworkflows/nf-core/prepare_peakcalling"
 
 /*
 ========================================================================================
@@ -386,98 +389,28 @@ workflow CUTANDRUN {
     // dedup_estimated_library_size:], BAM]
     //ch_samtools_bam | view
 
-    /*
-     * CHANNEL: Calculate scale factor for each sample based on a constant devided by the number
-     *          of reads aligned to the spike-in genome.
-     */
-    if (!params.skip_scale) {
-        ch_samtools_bam
-            .map { row ->
-                def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
-                [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
-            }
-            .set { ch_scale_factor }
-    } else {
-        ch_samtools_bam
-            .map { row ->
-                [ row[0].id, 1 ]
-            }
-            .set { ch_scale_factor }
-    }
-    // EXAMPLE CHANNEL STRUCT: [id, scale_factor]
-    //ch_scale_factor | view
-
-    /*
-     * CHANNEL: Create a channel with the scale factor as a seperate value
-     */
-    ch_samtools_bam
-        .map { row -> [row[0].id, row ].flatten()}
-        .join ( ch_scale_factor )
-        .map { row -> row[1..(row.size() - 1)] }
-        .map { row ->
-            row[0].put("scale_factor", row[2])
-            [ row[0], row[1], row[2] ] }
-        .set { ch_samtools_bam_scale }
-    //EXAMPLE CHANNEL STRUCT: [[META + scale_factor:10000], BAM, SCALE_FACTOR]
-    //ch_samtools_bam_scale | view
-
-    /*
-     * CHANNEL: Add the scale factor values to the main meta-data stream
-     */
-    ch_samtools_bam_scale
-        .map { row -> [ row[0], row[1] ] }
-        .set { ch_samtools_bam }
-    //EXAMPLE CHANNEL STRUCT: [[META], BAM]
-    //ch_samtools_bam | view
-
+    ch_bedgraph = Channel.empty()
+    ch_bigwig   = Channel.empty()
     if(params.run_peak_calling) {
         /*
-        * MODULE: Convert bam files to bedgraph
+        * SUBWORKFLOW: Convert bam files to bedgraph/bigwig and apply configured normalisation strategy
         */
-        BEDTOOLS_GENOMECOV (
-            ch_samtools_bam_scale,
+        PREPARE_PEAKCALLING(
+            ch_samtools_bam,
+            ch_samtools_bai,
+            PREPARE_GENOME.out.chrom_sizes,
             ch_dummy_file,
-            "bedGraph"
+            params.normalisation_mode,
         )
-        ch_software_versions = ch_software_versions.mix(BEDTOOLS_GENOMECOV.out.versions)
-        //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
-        //BEDTOOLS_GENOMECOV.out.genomecov | view
-
-        /*
-        * MODULE: Sort bedgraph
-        */
-        BEDTOOLS_SORT (
-            BEDTOOLS_GENOMECOV.out.genomecov,
-            "bedGraph"
-        )
-        ch_software_versions = ch_software_versions.mix(BEDTOOLS_SORT.out.versions)
-
-        /*
-        * MODULE: Clip off bedgraphs so none overlap beyond chromosome edge
-        */
-        UCSC_BEDCLIP (
-            BEDTOOLS_SORT.out.sorted,
-            PREPARE_GENOME.out.chrom_sizes
-        )
-        ch_software_versions = ch_software_versions.mix(UCSC_BEDCLIP.out.versions)
-        //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
-        //UCSC_BEDCLIP.out.bedgraph | view
-
-        /*
-        * MODULE: Convert bedgraph to bigwig
-        */
-        UCSC_BEDGRAPHTOBIGWIG (
-            UCSC_BEDCLIP.out.bedgraph,
-            PREPARE_GENOME.out.chrom_sizes
-        )
-        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions)
-        //EXAMPLE CHANNEL STRUCT: [[META], BIGWIG]
-        //UCSC_BEDGRAPHTOBIGWIG.out.bigwig | view
+        ch_samtools_bam      = PREPARE_PEAKCALLING.out.bam
+        ch_bedgraph          = PREPARE_PEAKCALLING.out.bedgraph
+        ch_bigwig            = PREPARE_PEAKCALLING.out.bigwig
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_DEDUP_META.out.versions)
 
         /*
          * CHANNEL: Separate bedgraphs into target/control
          */
-        BEDTOOLS_SORT.out.sorted.branch { it ->
+        ch_bedgraph.branch { it ->
             target: it[0].group != "igg"
             control: it[0].group == "igg"
         }
@@ -764,7 +697,7 @@ workflow CUTANDRUN {
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
                 ch_peaks_bed.collect{it[1]}.ifEmpty([]),
-                UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
+                ch_bigwig.collect{it[1]}.ifEmpty([])
             )
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
@@ -790,7 +723,7 @@ workflow CUTANDRUN {
             /*
             * CHANNEL: Remove IgG from bigwig channel
             */
-            UCSC_BEDGRAPHTOBIGWIG.out.bigwig
+            ch_bigwig
                 .filter { it[0].group != "igg" }
                 .set { ch_bigwig_no_igg }
             //ch_bigwig_no_igg | view
