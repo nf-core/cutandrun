@@ -99,9 +99,14 @@ class Reports:
 
         self.metadata_noctrl_table = pd.read_csv(self.meta_path, sep=',')
         self.metadata_table = pd.read_csv(self.meta_ctrl_path, sep=',')
+
         self.duplicate_info = False
         if 'dedup_percent_duplication' in self.metadata_table.columns:
             self.duplicate_info = True
+
+        self.scale_factor_info = False
+        if 'scale_factor' in self.metadata_table.columns:
+            self.scale_factor_info = True
 
         # Make new perctenage alignment columns
         self.metadata_table['target_alignment_rate'] = self.metadata_table.loc[:, ('bt2_total_aligned_target')] / self.metadata_table.loc[:, ('bt2_total_reads_target')] * 100
@@ -303,10 +308,11 @@ class Reports:
         data["04_replicate_heatmap"] = data5
 
         # Plot section 6
-        multi_plot, data6 = self.scale_factor_summary()
-        plots["05_01_scale_factor"] = multi_plot[0]
-        plots["05_02_frag_count"] = multi_plot[1]
-        data["05_scale_factor_summary"] = data6
+        if self.scale_factor_info == True:
+            multi_plot, data6 = self.scale_factor_summary()
+            plots["05_01_scale_factor"] = multi_plot[0]
+            plots["05_02_frag_count"] = multi_plot[1]
+            data["05_scale_factor_summary"] = data6
 
         # Plot 7a
         plot7a, data7a = self.no_of_peaks()
