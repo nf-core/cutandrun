@@ -14,7 +14,7 @@ process IGV_SESSION {
     path bigwig
 
     output:
-    path('*.{txt,xml,bed,bigWig,fa,gtf}', includeInputs:true)
+    path('*.{txt,xml,bed,bigWig,fa,gtf,gff}', includeInputs:true)
     path  "versions.yml"                , emit: versions
 
     when:
@@ -47,6 +47,7 @@ process IGV_SESSION {
     """
     echo "$output" > exp_files.txt
     find -L * -iname "*.gtf" -exec echo -e {}"\\t0,48,73" \\; > gtf.igv.txt
+    find -L * -iname "*.gff" -exec echo -e {}"\\t0,48,73" \\; > gff.igv.txt
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt $genome --path_prefix './'
 
