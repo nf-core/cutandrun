@@ -3,7 +3,7 @@
  */
 
 include { BEDTOOLS_GENOMECOV    } from "../../modules/nf-core/modules/bedtools/genomecov/main"
-include { DEEPTOOLS_BAMCOVERAGE } from "../../modules/nf-core/modules/deeptools/bamcoverage/main"
+include { DEEPTOOLS_BAMCOVERAGE } from "../../modules/local/modules/deeptools/bamcoverage/main"
 include { BEDTOOLS_SORT         } from "../../modules/nf-core/modules/bedtools/sort/main"
 include { UCSC_BEDCLIP          } from "../../modules/nf-core/modules/ucsc/bedclip/main"
 include { UCSC_BEDGRAPHTOBIGWIG } from "../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"
@@ -95,10 +95,50 @@ workflow PREPARE_PEAKCALLING {
         //ch_bam_bai | view
 
         /*
+        * CHANNEL: Split files based on igg or not
+        */
+        ch_bam_bai.branch { it ->
+            target: it[0].group != "igg"
+            control: it[0].group == "igg"
+        }
+        .set { ch_bam_bai_split }
+
+        /*
+        * CHANNEL: Assign scale factor of 1 to target files
+        */
+        ch_bam_bai_split.target
+            .map { row ->
+                [ row[0], row[1], row[2], 1 ]
+            }
+        .set { ch_bam_bai_split_target }
+        // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, SCALE_FACTOR]
+        //ch_bam_bai_split_target | view
+
+        /*
+        * CHANNEL: Assign igg scale factor to target files
+        */
+        ch_bam_bai_split.control
+            .map { row ->
+                [ row[0], row[1], row[2], params.igg_scale_factor ]
+            }
+        .set { ch_bam_bai_split_igg }
+        // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, SCALE_FACTOR]
+        //ch_bam_bai_split_igg | view
+
+        /*
+        * CHANNEL: Mix the split channels back up
+        */
+        ch_bam_bai_split_target
+            .mix(ch_bam_bai_split_igg)
+        .set { ch_bam_bai_scale_factor }
+         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, SCALE_FACTOR]
+        //ch_bam_bai_scale_factor | view
+        
+        /*
         * MODULE: Convert bam files to bedgraph and normalise
         */
         DEEPTOOLS_BAMCOVERAGE (
-            ch_bam_bai
+            ch_bam_bai_scale_factor
         )
         ch_versions = ch_versions.mix(DEEPTOOLS_BAMCOVERAGE.out.versions)
         ch_bedgraph = DEEPTOOLS_BAMCOVERAGE.out.bedgraph
