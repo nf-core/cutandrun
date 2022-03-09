@@ -1,5 +1,5 @@
 process EXPORT_META {
-    label 'process_low'
+    label 'process_min'
 
     conda (params.enable_conda ? "conda-forge::gawk=5.1.0" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
