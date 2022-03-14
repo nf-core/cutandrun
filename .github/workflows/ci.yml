@@ -184,7 +184,10 @@ jobs:
           - test_conseneus_peaks_group
           - test_conseneus_peaks_all
           - test_conseneus_peaks_invalid
-          - verify_output_reporting
+          - verify_output_reporting_skip_reporting
+          - verify_output_reporting_skip_igv
+          - verify_output_reporting_skip_heatmaps
+          - verify_output_reporting_skip_multiqc
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
