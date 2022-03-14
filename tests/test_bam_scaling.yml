@@ -1,0 +1,62 @@
+- name: test_bam_scale_none
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --normalisation_mode None -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_none
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+      contains:
+        - "chr20	171984	172009	1"
+
+- name: test_bam_scale_spikein
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --normalisation_mode Spikein -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_spikein
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+      contains:
+        - "chr20	171984	172009	10000"
+
+- name: test_bam_scale_cpm
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --normalisation_mode CPM -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_cpm
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+      contains:
+        - "chr20	171984	172009	1607.72"
+
+- name: test_bam_scale_rpkm
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --normalisation_mode RPKM -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_rpkm
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+      contains:
+        - "chr20	171984	172009	1.60772e+06"
+
+- name: test_bam_scale_bpm
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --normalisation_mode BPM -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_bpm
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+      contains:
+        - "chr20	171984	172009	1607.72"
+
+- name: test_bam_scale_cpm_iggscale
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --normalisation_mode CPM --igg_scale_factor 0.1 -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_cpm_iggscale
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+      contains:
+        - "chr20	171984	172009	1607.72"
+    - path: results/03_peak_calling/01_bam_to_bedgraph/igg_R1.sorted.bedGraph
+      contains:
+        - "chr20	606391	606415	285.714"

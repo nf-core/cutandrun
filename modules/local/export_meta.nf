@@ -1,20 +1,10 @@
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from './common/functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process EXPORT_META {
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
-    conda (params.enable_conda ? null : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://containers.biocontainers.pro/s3/SingImgsRepo/biocontainers/v1.2.0_cv1/biocontainers_v1.2.0_cv1.img"
-    } else {
-        container "biocontainers/biocontainers:v1.2.0_cv1"
-    }
+    conda (params.enable_conda ? "conda-forge::gawk=5.1.0" : null)
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/gawk:5.1.0' :
+        'quay.io/biocontainers/gawk:5.1.0' }"
 
     input:
     val meta
@@ -22,6 +12,9 @@ process EXPORT_META {
 
     output:
     path "*.csv", emit: csv
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def header = [:]

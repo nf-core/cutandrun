@@ -1,22 +1,11 @@
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../common/functions'
-
-
-params.options = [:]
-options    = initOptions(params.options)
-
 process AWK_SCRIPT {
     tag "$meta.id"
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
     conda (params.enable_conda ? "conda-forge::gawk=5.1.0" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://containers.biocontainers.pro/s3/SingImgsRepo/biocontainers/v1.2.0_cv1/biocontainers_v1.2.0_cv1.img"
-    } else {
-        container "biocontainers/biocontainers:v1.2.0_cv1"
-    }
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/gawk:5.1.0' :
+        'quay.io/biocontainers/gawk:5.1.0' }"
 
     input:
     tuple val(meta), path(input)
@@ -26,15 +15,18 @@ process AWK_SCRIPT {
     tuple val(meta), path("*.awk.txt"), emit: file
     path  "versions.yml"              , emit: versions
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
-    def software = getSoftwareName(task.process)
-    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def args   = task.ext.args ?: ''
+    def prefix = task.ext.suffix ? "${meta.id}${task.ext.suffix}" : "${meta.id}"
     """
-    awk $options.args -f $script $input > ${prefix}.awk.txt
+    awk $args -f $script $input > ${prefix}.awk.txt
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
-        ${getSoftwareName(task.process)}: \$(awk -W version | head -n 1 | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}")
+    "${task.process}":
+        awk: \$(awk -Wversion 2>/dev/null | head -n 1 | awk '{split(\$0,a,","); print a[1];}' | egrep -o "([0-9]{1,}\\.)+[0-9]{1,}")
     END_VERSIONS
     """
 }

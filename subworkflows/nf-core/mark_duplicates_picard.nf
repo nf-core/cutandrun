@@ -2,17 +2,14 @@
  * Picard MarkDuplicates, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-params.markduplicates_options = [:]
-params.samtools_options       = [:]
-params.control_only           = false
-
-include { PICARD_MARKDUPLICATES } from '../../modules/nf-core/modules/picard/markduplicates/main' addParams( options: params.markduplicates_options )
-include { SAMTOOLS_INDEX        } from '../../modules/nf-core/modules/samtools/index/main'        addParams( options: params.samtools_options       )
-include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'                                     addParams( options: params.samtools_options       )
+include { PICARD_MARKDUPLICATES } from '../../modules/nf-core/modules/picard/markduplicates/main'
+include { SAMTOOLS_INDEX        } from '../../modules/nf-core/modules/samtools/index/main'
+include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'
 
 workflow MARK_DUPLICATES_PICARD {
     take:
     bam // channel: [ val(meta), [ bam ] ]
+    control_only //boolean
 
     main:
     /*
@@ -21,7 +18,7 @@ workflow MARK_DUPLICATES_PICARD {
     ch_bam      = Channel.empty()
     metrics     = Channel.empty()
     ch_versions = Channel.empty()
-    if( !params.control_only ) {
+    if( !control_only ) {
         PICARD_MARKDUPLICATES ( bam )
         ch_bam      = PICARD_MARKDUPLICATES.out.bam
         metrics     = PICARD_MARKDUPLICATES.out.metrics
