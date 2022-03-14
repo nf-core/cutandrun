@@ -49,9 +49,11 @@ jobs:
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.fa.gz
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.tar.gz
 
-      - name: Run pipeline
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
+      - name: Run Pipeline
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
+          attempt_limit: 2
 
   ##############################
   ### LARGE INTEGRATION TEST ###
@@ -89,9 +91,11 @@ jobs:
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.fa.gz
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.tar.gz
 
-      - name: Run pipeline with test data
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile docker,test_full_small_local_zip
+      - name: Run Pipeline
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: nextflow run ${GITHUB_WORKSPACE} -profile docker,test_full_small_local_zip
+          attempt_limit: 2
 
   #####################################
   ### EDGE VERSION INTEGRATION TEST ###
@@ -127,9 +131,11 @@ jobs:
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.fa.gz
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.tar.gz
 
-      - name: Run pipeline with test data
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
+      - name: Run Pipeline
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
+          attempt_limit: 2
 
   ##############################
   ###      UNIT TESTS        ###
