@@ -11,11 +11,11 @@
       should_exist: false
     - path: results/04_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
       should_exist: false
-    - path: results/04_reporting/heatmaps/igv/igv_session.xml
+    - path: results/04_reporting/igv/igv_session.xml
       should_exist: false
 
 - name: test_verify_output_skip_reporting_igv
-  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_igv true
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_igv true -c tests/config/nextflow.config
   tags:
     - verify_output
     - verify_output_reporting
@@ -24,11 +24,11 @@
     - path: results/04_reporting/qc/merged_report.pdf
     - path: results/04_reporting/multiqc/multiqc_report.html
     - path: results/04_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
-    - path: results/04_reporting/heatmaps/igv/igv_session.xml
+    - path: results/04_reporting/igv/igv_session.xml
       should_exist: false
 
 - name: test_verify_output_skip_reporting_heatmaps
-  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_heatmaps true
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_heatmaps true -c tests/config/nextflow.config
   tags:
     - verify_output
     - verify_output_reporting
@@ -38,10 +38,10 @@
     - path: results/04_reporting/multiqc/multiqc_report.html
     - path: results/04_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
       should_exist: false
-    - path: results/04_reporting/heatmaps/igv/igv_session.xml
+    - path: results/04_reporting/igv/igv_session.xml
 
 - name: test_verify_output_skip_reporting_multiqc
-  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_multiqc true
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_multiqc true -c tests/config/nextflow.config
   tags:
     - verify_output
     - verify_output_reporting
@@ -51,4 +51,4 @@
     - path: results/04_reporting/multiqc/multiqc_report.html
       should_exist: false
     - path: results/04_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
-    - path: results/04_reporting/heatmaps/igv/igv_session.xml
+    - path: results/04_reporting/igv/igv_session.xml
