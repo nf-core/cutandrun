@@ -213,11 +213,23 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "Normalisation constant"
                 },
+                "normalisation_binsize": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "igg_scale_factor": {
+                    "type": "integer",
+                    "default": 1
+                },
                 "igg_control": {
                     "type": "boolean",
                     "default": true,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Specifies if the samplesheet contains an IgG control"
+                },
+                "normalisation_mode": {
+                    "type": "string",
+                    "default": "Spikein"
                 },
                 "peak_threshold": {
                     "type": "number",
@@ -249,8 +261,7 @@
                     "default": 2700000000
                 },
                 "run_narrow_peak": {
-                    "type": "boolean",
-                    "default": "false"
+                    "type": "boolean"
                 },
                 "consensus_peak_mode": {
                     "type": "string",
@@ -309,11 +320,6 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-align-justify",
                     "description": "Skips de-duplication"
-                },
-                "skip_scale": {
-                    "type": "boolean",
-                    "description": "Skips scalefactor normalisation",
-                    "fa_icon": "fas fa-align-justify"
                 },
                 "skip_reporting": {
                     "type": "boolean",
