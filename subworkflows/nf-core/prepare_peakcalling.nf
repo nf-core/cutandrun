@@ -131,9 +131,9 @@ workflow PREPARE_PEAKCALLING {
         ch_bam_bai_split_target
             .mix(ch_bam_bai_split_igg)
         .set { ch_bam_bai_scale_factor }
-         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, SCALE_FACTOR]
+        // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, SCALE_FACTOR]
         //ch_bam_bai_scale_factor | view
-        
+
         /*
         * MODULE: Convert bam files to bedgraph and normalise
         */
