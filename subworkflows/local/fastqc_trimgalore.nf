@@ -2,11 +2,8 @@
  * Read QC, read trimming and post trim QC
  */
 
-params.fastqc_options     = [:]
-params.trimgalore_options = [:]
-
-include { FASTQC     } from '../../modules/nf-core/modules/fastqc/main'   addParams( options: params.fastqc_options     )
-include { TRIMGALORE } from '../../modules/local/modules/trimgalore/main' addParams( options: params.trimgalore_options )
+include { FASTQC     } from '../../modules/nf-core/modules/fastqc/main'
+include { TRIMGALORE } from '../../modules/local/modules/trimgalore/main'
 
 workflow FASTQC_TRIMGALORE {
     take:

@@ -5,50 +5,50 @@
     - verify_output_reporting
     - verify_output_reporting_skip_reporting
   files:
-    - path: results/06_reporting/qc/merged_report.pdf
+    - path: results/04_reporting/qc/merged_report.pdf
       should_exist: false
-    - path: results/06_reporting/multiqc/multiqc_report.html
+    - path: results/04_reporting/multiqc/multiqc_report.html
       should_exist: false
-    - path: results/06_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
+    - path: results/04_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
       should_exist: false
-    - path: results/06_reporting/heatmaps/igv/igv_session.xml
+    - path: results/04_reporting/heatmaps/igv/igv_session.xml
       should_exist: false
 
 - name: test_verify_output_skip_reporting_igv
   command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_igv true
   tags:
     - verify_output
-    - verify_output/reporting
-    - verify_output/reporting/skip_igv
+    - verify_output_reporting
+    - verify_output_reporting_skip_igv
   files:
-    - path: results/06_reporting/qc/merged_report.pdf
-    - path: results/06_reporting/multiqc/multiqc_report.html
-    - path: results/06_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
-    - path: results/06_reporting/heatmaps/igv/igv_session.xml
+    - path: results/04_reporting/qc/merged_report.pdf
+    - path: results/04_reporting/multiqc/multiqc_report.html
+    - path: results/04_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
+    - path: results/04_reporting/heatmaps/igv/igv_session.xml
       should_exist: false
 
 - name: test_verify_output_skip_reporting_heatmaps
-  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_reporting true
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_heatmaps true
   tags:
     - verify_output
-    - verify_output/reporting
-    - verify_output/reporting/skip_heatmaps
+    - verify_output_reporting
+    - verify_output_reporting_skip_heatmaps
   files:
-    - path: results/06_reporting/qc/merged_report.pdf
-    - path: results/06_reporting/multiqc/multiqc_report.html
-    - path: results/06_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
+    - path: results/04_reporting/qc/merged_report.pdf
+    - path: results/04_reporting/multiqc/multiqc_report.html
+    - path: results/04_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
       should_exist: false
-    - path: results/06_reporting/heatmaps/igv/igv_session.xml
+    - path: results/04_reporting/heatmaps/igv/igv_session.xml
 
 - name: test_verify_output_skip_reporting_multiqc
-  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_reporting true
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_multiqc true
   tags:
     - verify_output
-    - verify_output/reporting
-    - verify_output/reporting/skip_multiqc
+    - verify_output_reporting
+    - verify_output_reporting_skip_multiqc
   files:
-    - path: results/06_reporting/qc/merged_report.pdf
-    - path: results/06_reporting/multiqc/multiqc_report.html
+    - path: results/04_reporting/qc/merged_report.pdf
+    - path: results/04_reporting/multiqc/multiqc_report.html
       should_exist: false
-    - path: results/06_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
-    - path: results/06_reporting/heatmaps/igv/igv_session.xml
+    - path: results/04_reporting/heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf
+    - path: results/04_reporting/heatmaps/igv/igv_session.xml

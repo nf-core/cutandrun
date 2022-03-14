@@ -37,11 +37,11 @@ module_order:
     - bowtie2:
         name: 'Bowtie2 (target)'
         path_filters:
-            - "./bowtie2/*target.bowtie2.log"
+            - "./bowtie2/*.bowtie2.log"
     - bowtie2:
         name: 'Bowtie2 (spike-in)'
         path_filters:
-            - "./bowtie2/*spikein.bowtie2.log"
+            - "./bowtie2_spikein/*.bowtie2.log"
     - samtools
     - picard
     - custom_content

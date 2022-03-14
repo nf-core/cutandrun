@@ -1,14 +1,7 @@
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
-
-params.options = [:]
-options    = initOptions(params.options)
-
 process GENERATE_REPORTS {
     label 'process_medium'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
+    conda (params.enable_conda ? "conda-forge::python=3.8.3 conda-forge::pandas=1.3.3" : null)
     container "luslab/cutandrun-dev-reporting:latest"
 
     input:
@@ -26,6 +19,9 @@ process GENERATE_REPORTS {
     path '*frag_len_mqc.yaml', emit: frag_len_multiqc
     path  "versions.yml"     , emit: versions
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
     def meta_data_resolved = meta_data ? meta_data : meta_data_ctrl
 
@@ -33,7 +29,7 @@ process GENERATE_REPORTS {
     reporting.py gen_reports \\
         --meta $meta_data_resolved \\
         --meta_ctrl $meta_data_ctrl \\
-        --raw_frag "*.frag_len.txt" \\
+        --raw_frag "*.frags.len.txt" \\
         --bin_frag "*bin500.awk.bed" \\
         --seacr_bed "*bed*.bed" \\
         --output . \\
@@ -44,7 +40,7 @@ process GENERATE_REPORTS {
     fi
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
+    "${task.process}":
         python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
     END_VERSIONS
     """
