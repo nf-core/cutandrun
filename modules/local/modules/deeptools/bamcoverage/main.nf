@@ -8,7 +8,7 @@ process DEEPTOOLS_BAMCOVERAGE {
         'quay.io/biocontainers/deeptools:3.5.1--py_0' }"
 
     input:
-    tuple val(meta), path(input), path(input_index)
+    tuple val(meta), path(input), path(input_index), val(scale)
 
     output:
     tuple val(meta), path("*.bigWig")   , emit: bigwig, optional: true
@@ -26,6 +26,7 @@ process DEEPTOOLS_BAMCOVERAGE {
     bamCoverage \
     --bam $input \
     $args \
+    --scaleFactor ${scale} \
     --numberOfProcessors ${task.cpus} \
     --outFileName ${prefix}
 

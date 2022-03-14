@@ -71,7 +71,7 @@ ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.tx
 def prepare_tool_indices = ["bowtie2"]
 
 // Check normalisation mode params
-def norm_mode_list = ["Spikein", "RPKM", "CPM", "BPM", "RPGC", "None" ]
+def norm_mode_list = ["Spikein", "RPKM", "CPM", "BPM", "None" ]
 if (!(params.normalisation_mode in norm_mode_list)) {
     exit 1, "Invalid normalisation mode option: ${params.normalisation_mode}. Valid options: ${norm_mode_list.join(', ')}"
 }
