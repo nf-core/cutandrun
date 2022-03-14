@@ -169,7 +169,12 @@ jobs:
           - test_bam_scale_rpkm
           - test_bam_scale_bpm
           - test_bam_scale_cpm_iggscale
-          - test_peak_callers
+          - test_peak_callers_seacr
+          - test_peak_callers_macs2
+          - test_peak_callers_invalid
+          - test_peak_callers_seacr_macs2
+          - test_peak_callers_macs2_seacr
+          - test_peak_callers_seacr_macs2_noigg
           - test_conseneus_peaks_group
           - test_conseneus_peaks_all
           - test_conseneus_peaks_invalid
