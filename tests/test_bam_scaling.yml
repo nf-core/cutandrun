@@ -39,7 +39,7 @@
         - "chr20	171984	172009	1.60772e+06"
 
 - name: test_bam_scale_bpm
-  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --normalisation_mode RPKM -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --normalisation_mode BPM -c tests/config/nextflow.config
   tags:
     - test_bam_scale
     - test_bam_scale_bpm

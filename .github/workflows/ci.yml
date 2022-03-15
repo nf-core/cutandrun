@@ -49,9 +49,11 @@ jobs:
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.fa.gz
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.tar.gz
 
-      - name: Run pipeline
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
+      - name: Run Pipeline
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
+          attempt_limit: 2
 
   ##############################
   ### LARGE INTEGRATION TEST ###
@@ -89,9 +91,11 @@ jobs:
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.fa.gz
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.tar.gz
 
-      - name: Run pipeline with test data
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile docker,test_full_small_local_zip
+      - name: Run Pipeline
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: nextflow run ${GITHUB_WORKSPACE} -profile docker,test_full_small_local_zip
+          attempt_limit: 2
 
   #####################################
   ### EDGE VERSION INTEGRATION TEST ###
@@ -127,9 +131,11 @@ jobs:
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.fa.gz
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.tar.gz
 
-      - name: Run pipeline with test data
-        run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
+      - name: Run Pipeline
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
+          attempt_limit: 2
 
   ##############################
   ###      UNIT TESTS        ###
@@ -169,39 +175,47 @@ jobs:
           - test_bam_scale_rpkm
           - test_bam_scale_bpm
           - test_bam_scale_cpm_iggscale
-          - test_peak_callers
+          - test_peak_callers_seacr
+          - test_peak_callers_macs2
+          - test_peak_callers_invalid
+          - test_peak_callers_seacr_macs2
+          - test_peak_callers_macs2_seacr
+          - test_peak_callers_seacr_macs2_noigg
           - test_conseneus_peaks_group
           - test_conseneus_peaks_all
           - test_conseneus_peaks_invalid
-          - verify_output_reporting
+          - verify_output_reporting_skip_reporting
+          - verify_output_reporting_skip_igv
+          - verify_output_reporting_skip_heatmaps
+          - verify_output_reporting_skip_multiqc
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Code
+        uses: actions/checkout@v2
 
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: "3.x"
 
-      - uses: actions/cache@v2
+      - name: Setup Pip Cache
+        uses: actions/cache@v2
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.x"
 
       - name: Install Python dependencies
         run: python -m pip install --upgrade pip pytest-workflow
 
-      - uses: actions/cache@v2
+      - name: Restore Keys
+        uses: actions/cache@v2
         with:
           path: /usr/local/bin/nextflow
           key: ${{ runner.os }}-nextflow-${{ matrix.nxf_version }}
           restore-keys: |
             ${{ runner.os }}-nextflow-
+
       - name: Install Nextflow
         env:
           NXF_VER: ${{ matrix.nxf_version }}
@@ -209,8 +223,12 @@ jobs:
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
+
       - name: Run pytest-workflow
-        run: pytest --tag ${{ matrix.tags }} --kwdof
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: pytest --tag ${{ matrix.tags }} --kwdof
+          attempt_limit: 3
 
       - name: Upload logs on failure
         if: failure()
