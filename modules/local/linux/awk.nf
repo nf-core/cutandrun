@@ -1,6 +1,6 @@
 process AWK {
     tag "$meta.id"
-    label 'process_min'
+    label 'process_ultralow'
 
     conda (params.enable_conda ? "conda-forge::gawk=5.1.0" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
