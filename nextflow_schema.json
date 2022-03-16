@@ -11,7 +11,8 @@
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
             "required": [
-                "input"
+                "input",
+                "outdir"
             ],
             "properties": {
                 "input": {
@@ -26,8 +27,8 @@
                 },
                 "outdir": {
                     "type": "string",
-                    "description": "Path to the output directory where the results will be saved.",
-                    "default": "./results",
+                    "format": "directory-path",
+                    "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
                     "fa_icon": "fas fa-folder-open"
                 },
                 "email": {
@@ -213,11 +214,23 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "Normalisation constant"
                 },
+                "normalisation_binsize": {
+                    "type": "integer",
+                    "default": 1
+                },
+                "igg_scale_factor": {
+                    "type": "number",
+                    "default": 1
+                },
                 "igg_control": {
                     "type": "boolean",
                     "default": true,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Specifies if the samplesheet contains an IgG control"
+                },
+                "normalisation_mode": {
+                    "type": "string",
+                    "default": "Spikein"
                 },
                 "peak_threshold": {
                     "type": "number",
@@ -249,8 +262,7 @@
                     "default": 2700000000
                 },
                 "run_narrow_peak": {
-                    "type": "boolean",
-                    "default": "false"
+                    "type": "boolean"
                 },
                 "consensus_peak_mode": {
                     "type": "string",
@@ -309,11 +321,6 @@
                     "type": "boolean",
                     "fa_icon": "fas fa-align-justify",
                     "description": "Skips de-duplication"
-                },
-                "skip_scale": {
-                    "type": "boolean",
-                    "description": "Skips scalefactor normalisation",
-                    "fa_icon": "fas fa-align-justify"
                 },
                 "skip_reporting": {
                     "type": "boolean",
@@ -515,13 +522,6 @@
                     "description": "Run this workflow with Conda. You can also use '-profile conda' instead of providing this parameter.",
                     "hidden": true,
                     "fa_icon": "fas fa-bacon"
-                },
-                "singularity_pull_docker_container": {
-                    "type": "boolean",
-                    "description": "Instead of directly downloading Singularity images for use with Singularity, force the workflow to pull and convert Docker containers instead.",
-                    "hidden": true,
-                    "fa_icon": "fas fa-toolbox",
-                    "help_text": "This may be useful for example if you are unable to directly pull Singularity containers to run the pipeline due to http/https proxy issues."
                 }
             }
         }
