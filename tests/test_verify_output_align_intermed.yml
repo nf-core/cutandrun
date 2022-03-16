@@ -13,4 +13,3 @@
     - path: results/02_alignment/bowtie2/target/igg_R1.target.filtered.bam
     - path: results/02_alignment/bowtie2/target/igg_R1.target.markdup.bam
     - path: results/02_alignment/bowtie2/target/igg_R1.target.sorted.bam
-
