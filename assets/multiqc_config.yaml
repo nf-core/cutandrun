@@ -11,7 +11,7 @@ report_section_order:
 export_plots: true
 
 report_header_info:
-  - Application Type: "CUT&RUN"
+    - Application Type: "CUT&RUN"
 
 # Run only these modules
 run_modules:
@@ -24,33 +24,33 @@ run_modules:
 
 module_order:
     - fastqc:
-        name: 'FastQC (raw)'
-        info: 'This section of the report shows FastQC results before adapter trimming.'
-        path_filters:
-            - './fastqc/*.zip'
+          name: 'FastQC (raw)'
+          info: 'This section of the report shows FastQC results before adapter trimming.'
+          path_filters:
+              - './fastqc/*.zip'
     - cutadapt
     - fastqc:
-        name: 'FastQC (trimmed)'
-        info: 'This section of the report shows FastQC results after adapter trimming.'
-        path_filters:
-            - './trimgalore/fastqc/*.zip'
+          name: 'FastQC (trimmed)'
+          info: 'This section of the report shows FastQC results after adapter trimming.'
+          path_filters:
+              - './trimgalore/fastqc/*.zip'
     - bowtie2:
-        name: 'Bowtie2 (target)'
-        path_filters:
-            - "./bowtie2/*.bowtie2.log"
+          name: 'Bowtie2 (target)'
+          path_filters:
+              - "./bowtie2/*.bowtie2.log"
     - bowtie2:
-        name: 'Bowtie2 (spike-in)'
-        path_filters:
-            - "./bowtie2_spikein/*.bowtie2.log"
+          name: 'Bowtie2 (spike-in)'
+          path_filters:
+              - "./bowtie2_spikein/*.bowtie2.log"
     - samtools
     - picard
     - custom_content
 
 custom_content:
-  order:
-    - fragment_lengths
-    - software_versions
-    - software_versions_unique
+    order:
+        - fragment_lengths
+        - software_versions
+        - software_versions_unique
 extra_fn_clean_exts:
     - '_val_1'
     - '_val_2'

@@ -5,9 +5,9 @@ channels:
   - bioconda
   - defaults
 dependencies:
-    # python version
-    - python=3.8.3
+  # python version
+  - python=3.8.3
 
-    # conda packages
-    - deeptools=3.5.*
-    - pysam=0.17.*
+  # conda packages
+  - deeptools=3.5.*
+  - pysam=0.17.*
