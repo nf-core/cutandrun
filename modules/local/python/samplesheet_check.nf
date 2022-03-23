@@ -1,6 +1,6 @@
 process SAMPLESHEET_CHECK {
     tag "$samplesheet"
-    label 'process_low'
+    label 'process_min'
 
     conda     (params.enable_conda ? "conda-forge::python=3.8.3" : null)
     container "quay.io/biocontainers/python:3.8.3"
