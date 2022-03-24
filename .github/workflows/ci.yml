@@ -39,7 +39,7 @@ jobs:
           sudo mv nextflow /usr/local/bin/
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
-      # files during pipelie execution
+      # files during pipelie execution
       - name: Download data
         run: |
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20.fa.gz
@@ -81,7 +81,7 @@ jobs:
           sudo mv nextflow /usr/local/bin/
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
-      # files during pipelie execution
+      # files during pipelie execution
       - name: Download data
         run: |
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20.fa.gz
@@ -121,7 +121,7 @@ jobs:
           nextflow self-update
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
-      # files during pipelie execution
+      # files during pipelie execution
       - name: Download data
         run: |
           wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20.fa.gz
