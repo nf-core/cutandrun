@@ -116,12 +116,6 @@ def check_samplesheet(file_in, file_out, igg_control):
                 print_error("Replicate id not an integer!", "Line", line)
             replicate = int(replicate)
 
-            ## Create control identity
-            if control != "":
-                    is_control = "0"
-            else:
-                is_control = "1"
-
             ## Check FastQ file extension
             for fastq in [fastq_1, fastq_2]:
                 if fastq:
@@ -139,11 +133,12 @@ def check_samplesheet(file_in, file_out, igg_control):
             ## Auto-detect paired-end/single-end
             sample_info = []
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = [sample, str(replicate), control, "0", fastq_1, fastq_2, is_control]
+                sample_info = [sample, str(replicate), control, "0", fastq_1, fastq_2]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = [sample, str(replicate), control, "1", fastq_1, fastq_2, is_control]
+                sample_info = [sample, str(replicate), control, "1", fastq_1, fastq_2]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
+
             ## Create sample mapping dictionary = {sample: {replicate : [ single_end, fastq_1, fastq_2 ]}}
             if sample not in sample_run_dict:
                 sample_run_dict[sample] = {}
@@ -154,7 +149,7 @@ def check_samplesheet(file_in, file_out, igg_control):
                     print_error("Samplesheet contains duplicate rows!", "Line", line)
                 else:
                     sample_run_dict[sample][replicate].append(sample_info)
-
+            
             ## Store unique sample names
             if sample not in sample_names_list:
                 sample_names_list.append(sample)
@@ -174,6 +169,20 @@ def check_samplesheet(file_in, file_out, igg_control):
             CTRL = ctrl
             print_error("Each control entry must match at least one group entry! Unmatched control entry: {}.".format(CTRL))
             sys.exit(1)
+
+    ## Create control identity variable
+    for sample in sorted(sample_run_dict.keys()):
+        for replicate in sorted(sample_run_dict[sample].keys()):
+            sample_info = sample_run_dict[sample][replicate][0]
+            if igg_control:
+                if sample_info[0] in control_names_list:
+                    sample_info.append("1")
+                    ## If control column not blanc, raise error
+                else:
+                    sample_info.append("0")
+            else: 
+                sample_info.append("0")
+            sample_run_dict[sample][replicate][0] = sample_info
 
     ## Check igg_control parameter is consistent with input groups
     if (igg_control == 'true' and not igg_present):
