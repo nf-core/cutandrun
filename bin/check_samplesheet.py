@@ -57,6 +57,7 @@ def check_samplesheet(file_in, file_out, igg_control):
     num_fastq_list     = []
     sample_names_list  = []
     control_names_list = []
+    is_control         = []
     sample_run_dict = {}
     with open(file_in, "r") as fin:
 
@@ -115,6 +116,12 @@ def check_samplesheet(file_in, file_out, igg_control):
                 print_error("Replicate id not an integer!", "Line", line)
             replicate = int(replicate)
 
+            ## Create control identity
+            if control != "":
+                    is_control = "0"
+            else:
+                is_control = "1"
+
             ## Check FastQ file extension
             for fastq in [fastq_1, fastq_2]:
                 if fastq:
@@ -132,9 +139,9 @@ def check_samplesheet(file_in, file_out, igg_control):
             ## Auto-detect paired-end/single-end
             sample_info = []
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = [sample, str(replicate), control, "0", fastq_1, fastq_2]
+                sample_info = [sample, str(replicate), control, "0", fastq_1, fastq_2, is_control]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = [sample, str(replicate), control, "1", fastq_1, fastq_2]
+                sample_info = [sample, str(replicate), control, "1", fastq_1, fastq_2, is_control]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
             ## Create sample mapping dictionary = {sample: {replicate : [ single_end, fastq_1, fastq_2 ]}}
@@ -147,7 +154,7 @@ def check_samplesheet(file_in, file_out, igg_control):
                     print_error("Samplesheet contains duplicate rows!", "Line", line)
                 else:
                     sample_run_dict[sample][replicate].append(sample_info)
-            
+
             ## Store unique group names
             if sample not in sample_names_list:
                 sample_names_list.append(sample)
@@ -183,7 +190,7 @@ def check_samplesheet(file_in, file_out, igg_control):
         make_dir(out_dir)
         with open(file_out, "w") as fout:
 
-            fout.write(",".join(["id", "group", "replicate", "control", "single_end", "fastq_1", "fastq_2"]) + "\n")
+            fout.write(",".join(["id", "group", "replicate", "control", "single_end", "fastq_1", "fastq_2", "is_control"]) + "\n")
             for sample in sorted(sample_run_dict.keys()):
 
                 ## Check that replicate ids are in format 1..<NUM_REPS>
