@@ -201,6 +201,8 @@ workflow CUTANDRUN {
             }
             .set { ch_fastq }
     }
+    // 
+    ch_fastq | view
 
     /*
      * MODULE: Concatenate FastQ files from same sample if required
