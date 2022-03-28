@@ -411,7 +411,7 @@ workflow CUTANDRUN {
          * CHANNEL: Separate bedgraphs into target/control
          */
         ch_bedgraph.branch { it ->
-            target: it[0].is_control  != 1
+            target:  it[0].is_control == 0
             control: it[0].is_control == 1
         }
         .set { ch_bedgraph_split }
@@ -465,7 +465,7 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 ch_samtools_bam.branch{ it ->
-                    target: it[0].is_control  != 1
+                    target:  it[0].is_control == 0
                     control: it[0].is_control == 1
                 }
                 .set { ch_samtools_bam_split }
@@ -532,7 +532,7 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 ch_samtools_bam.branch{ it ->
-                    target: it[0].is_control  != 1
+                    target:  it[0].is_control == 0
                     control: it[0].is_control == 1
                 }
                 .set { ch_samtools_bam_split }
@@ -724,7 +724,7 @@ workflow CUTANDRUN {
             * CHANNEL: Remove IgG from bigwig channel
             */
             ch_bigwig
-                .filter { it[0].is_control  != 1 }
+                .filter { it[0].is_control == 0 }
                 .set { ch_bigwig_no_igg }
             //ch_bigwig_no_igg | view
 
