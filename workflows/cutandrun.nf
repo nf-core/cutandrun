@@ -389,8 +389,6 @@ workflow CUTANDRUN {
     // dedup_estimated_library_size:], BAM]
     //ch_samtools_bam | view
 
-    ch_samtools_bai | view
-
     ch_bedgraph = Channel.empty()
     ch_bigwig   = Channel.empty()
     if(params.run_peak_calling) {
