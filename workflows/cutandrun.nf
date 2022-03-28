@@ -201,8 +201,6 @@ workflow CUTANDRUN {
             }
             .set { ch_fastq }
     }
-    // 
-    INPUT_CHECK.out.reads | view
 
     /*
      * MODULE: Concatenate FastQ files from same sample if required
@@ -279,7 +277,7 @@ workflow CUTANDRUN {
         }
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
-    ch_samtools_bam | view
+    // ch_samtools_bam | view
 
     /*
      *  SUBWORKFLOW: Filter reads based on quality metrics
@@ -390,6 +388,8 @@ workflow CUTANDRUN {
     // dedup_unmapped_reads:0, dedup_unpaired_read_duplicates:0, dedup_read_pair_duplicates:0, dedup_read_pair_optical_duplicates:0, dedup_percent_duplication:0,
     // dedup_estimated_library_size:], BAM]
     //ch_samtools_bam | view
+
+    ch_samtools_bai | view
 
     ch_bedgraph = Channel.empty()
     ch_bigwig   = Channel.empty()
