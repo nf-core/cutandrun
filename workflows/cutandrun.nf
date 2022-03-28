@@ -202,7 +202,7 @@ workflow CUTANDRUN {
             .set { ch_fastq }
     }
     // 
-    ch_fastq | view
+    INPUT_CHECK.out.reads | view
 
     /*
      * MODULE: Concatenate FastQ files from same sample if required
