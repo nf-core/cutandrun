@@ -155,7 +155,7 @@ def check_samplesheet(file_in, file_out, igg_control):
                 else:
                     sample_run_dict[sample][replicate].append(sample_info)
 
-            ## Store unique group names
+            ## Store unique sample names
             if sample not in sample_names_list:
                 sample_names_list.append(sample)
 
