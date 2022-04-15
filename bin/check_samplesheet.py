@@ -132,7 +132,7 @@ def check_samplesheet(file_in, file_out, igg_control):
                 else:
                     sample_run_dict[sample][replicate].append(sample_info)
 
-    ## Check igg_control parameter is consistent with input groups
+    ## Check igg_control parameter is consistent with input groups
     if (igg_control == 'true' and not igg_present):
         print("ERROR: No 'igg' group was found in " + str(file_in) + " If you are not supplying an IgG control, please specify --igg_control 'false' on command line.")
         sys.exit(1)
@@ -141,7 +141,7 @@ def check_samplesheet(file_in, file_out, igg_control):
         print("ERROR: Parameter --igg_control was set to false, but an 'igg' group was found in " + str(file_in) + ".")
         sys.exit(1)
 
-    ## Check control groups have unique ids that are the same as their replicate ids
+    ## Check control groups have unique ids that are the same as their replicate ids
     control_group_ids = []
     if igg_present:
         for key, data in sample_run_dict["igg"].items():
