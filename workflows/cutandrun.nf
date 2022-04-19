@@ -422,7 +422,7 @@ workflow CUTANDRUN {
         ch_macs2_bed = Channel.empty()
         ch_peaks_bed = Channel.empty()
 
-        if(params.igg_control) {
+        if(params.use_control) {
             /*
              * MODULE: Call peaks using SEACR with IgG control
              */

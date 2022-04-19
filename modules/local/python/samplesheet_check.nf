@@ -17,7 +17,7 @@ process SAMPLESHEET_CHECK {
 
     script:
     """
-    check_samplesheet.py $samplesheet samplesheet.valid.csv $params.igg_control
+    check_samplesheet.py $samplesheet samplesheet.valid.csv $params.use_control
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
