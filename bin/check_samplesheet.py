@@ -11,12 +11,12 @@ import argparse
 
 def parse_args(args=None):
     Description = "Reformat nf-core/cutandrun samplesheet file and check its contents."
-    Epilog = "Example usage: python check_samplesheet.py <FILE_IN> <FILE_OUT>"
+    Epilog = "Example usage: python check_samplesheet.py <FILE_IN> <FILE_OUT> <USE_CONTROL>"
 
     parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
     parser.add_argument("FILE_IN", help="Input samplesheet file.")
     parser.add_argument("FILE_OUT", help="Output file.")
-    parser.add_argument("IGG", help="Boolean for whether or not igg is given")
+    parser.add_argument("USE_CONTROL", help="Boolean for whether or not the user has specified the pipeline must normalise against a control")
     return parser.parse_args(args)
 
 
@@ -39,31 +39,32 @@ def print_error(error, context="Line", context_str=""):
     sys.exit(1)
 
 
-def check_samplesheet(file_in, file_out, igg_control):
+def check_samplesheet(file_in, file_out, use_control):
     """
     This function checks that the samplesheet follows the following structure:
 
     group,replicate,fastq_1,fastq_2,control
-    WT,1,WT_LIB1_REP1_1.fastq.gz,WT_LIB1_REP1_2.fastq.gz,IGG_group1
-    WT,1,WT_LIB2_REP1_1.fastq.gz,WT_LIB2_REP1_2.fastq.gz,IGG_group1
-    WT,2,WT_LIB1_REP2_1.fastq.gz,WT_LIB1_REP2_2.fastq.gz,IGG_group1
-    KO,1,KO_LIB1_REP1_1.fastq.gz,KO_LIB1_REP1_2.fastq.gz,IGG_group1
-    IGG_group1,1,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz, 
-    IGG_group1,2,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz, 
+    WT,1,WT_LIB1_REP1_1.fastq.gz,WT_LIB1_REP1_2.fastq.gz,CONTROL_GROUP
+    WT,1,WT_LIB2_REP1_1.fastq.gz,WT_LIB2_REP1_2.fastq.gz,CONTROL_GROUP
+    WT,2,WT_LIB1_REP2_1.fastq.gz,WT_LIB1_REP2_2.fastq.gz,CONTROL_GROUP
+    KO,1,KO_LIB1_REP1_1.fastq.gz,KO_LIB1_REP1_2.fastq.gz,CONTROL_GROUP
+    CONTROL_GROUP,1,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz, 
+    CONTROL_GROUP,2,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz, 
     """
 
-    igg_present = False
-
+    # Init
+    control_present = False
     num_fastq_list     = []
     sample_names_list  = []
     control_names_list = []
-    is_control         = []
-    sample_run_dict = {}
+    sample_run_dict    = {}
+
     with open(file_in, "r") as fin:
 
         ## Check header
         MIN_COLS = 3
         HEADER = ["group", "replicate", "fastq_1", "fastq_2", "control"]
+        HEADER_LEN = len(HEADER)
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
         if header[: len(HEADER)] != HEADER:
             print("ERROR: Please check samplesheet header -> {} != {}".format(",".join(header), ",".join(HEADER)))
@@ -74,12 +75,11 @@ def check_samplesheet(file_in, file_out, igg_control):
             lspl = [x.strip().strip('"') for x in line.strip().split(",")]
 
             ## Set control_present to true if the control column is not empty
-            if not igg_present:
-                if lspl[4] != "":
-                    igg_present = True 
+            if lspl[4] != "":
+                control_present = True
 
             ## Check valid number of columns per row
-            if len(lspl) != 5:
+            if len(lspl) != HEADER_LEN:
                 print_error(
                     "Invalid number of columns (should be {})!".format(len(HEADER)),
                     "Line",
@@ -112,8 +112,8 @@ def check_samplesheet(file_in, file_out, igg_control):
                 print_error("Control entry and sample entry must be different!", "Line", line)
 
             ## Check replicate entry is integer
-            if not replicate.isdigit():
-                print_error("Replicate id not an integer!", "Line", line)
+            if not replicate.isdigit() & int(replicate) > 0:
+                print_error("Replicate id not an integer or is not > 0!", "Line", line)
             replicate = int(replicate)
 
             ## Check FastQ file extension
@@ -161,23 +161,21 @@ def check_samplesheet(file_in, file_out, igg_control):
     ## Check data is either paired-end/single-end and not both
     if min(num_fastq_list) != max(num_fastq_list):
         print_error("Mixture of paired-end and single-end reads!")
-        sys.exit(1)
 
     ## Check control group exists
     for ctrl in control_names_list:
         if ctrl != "" and ctrl not in sample_names_list:
-            CTRL = ctrl
-            print_error("Each control entry must match at least one group entry! Unmatched control entry: {}.".format(CTRL))
-            sys.exit(1)
+            print_error("Each control entry must match at least one group entry! Unmatched control entry: {}.".format(ctrl))
 
     ## Create control identity variable
     for sample in sorted(sample_run_dict.keys()):
         for replicate in sorted(sample_run_dict[sample].keys()):
             sample_info = sample_run_dict[sample][replicate][0]
-            if igg_control:
+            if control_present:
                 if sample_info[0] in control_names_list:
                     sample_info.append("1")
-                    ## If control column not blanc, raise error
+                    if sample_info[2] != "":
+                        print_error("Control cannot have a control: {}.".format(sample_info[0]))
                 else:
                     sample_info.append("0")
             else: 
@@ -185,13 +183,11 @@ def check_samplesheet(file_in, file_out, igg_control):
             sample_run_dict[sample][replicate][0] = sample_info
 
     ## Check igg_control parameter is consistent with input groups
-    if (igg_control == 'true' and not igg_present):
-        print("ERROR: No 'igg' group was found in " + str(file_in) + " If you are not supplying an IgG control, please specify --igg_control 'false' on command line.")
-        sys.exit(1)
-
-    if (igg_control == 'false' and igg_present):
-        print("ERROR: Parameter --igg_control was set to false, but an 'igg' group was found in " + str(file_in) + ".")
-        sys.exit(1)
+    if (use_control == 'true' and not control_present):
+        print_error("ERROR: No 'control' group was found in " + str(file_in) + " If you are not supplying a control, please specify --igg_control 'false' on command line.")
+        
+    if (use_control == 'false' and control_present):
+        print("WARNING: Parameter --igg_control was set to false, but an 'igg' group was found in " + str(file_in) + ".")
 
     ## Write validated samplesheet with appropriate columns
     if len(sample_run_dict) > 0:
@@ -221,15 +217,6 @@ def check_samplesheet(file_in, file_out, igg_control):
                                 tech_rep[2]
                             )
 
-                    ## Check that multiple runs of the same sample are of the same datatype
-                    if not all(
-                        x[0] == sample_run_dict[sample][replicate][0][0] for x in sample_run_dict[sample][replicate]
-                    ):
-                        print_error(
-                            "Multiple runs of a sample must be of the same datatype!",
-                            "Group",
-                            sample,
-                        )
                     ## Write to file
                     for idx, sample_info in enumerate(sample_run_dict[sample][replicate]):
                         sample_id = "{}_R{}_T{}".format(sample, replicate, idx + 1)
@@ -238,8 +225,7 @@ def check_samplesheet(file_in, file_out, igg_control):
 
 def main(args=None):
     args = parse_args(args)
-    check_samplesheet(args.FILE_IN, args.FILE_OUT, args.IGG)
-
+    check_samplesheet(args.FILE_IN, args.FILE_OUT, args.USE_CONTROL)
 
 if __name__ == "__main__":
     sys.exit(main())
