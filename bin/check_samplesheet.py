@@ -112,9 +112,11 @@ def check_samplesheet(file_in, file_out, use_control):
                 print_error("Control entry and sample entry must be different!", "Line", line)
 
             ## Check replicate entry is integer
-            if not replicate.isdigit() & int(replicate) > 0:
-                print_error("Replicate id not an integer or is not > 0!", "Line", line)
+            if not replicate.isdigit():
+                print_error("Replicate id not an integer", "Line", line)
             replicate = int(replicate)
+            if replicate <= 0:
+                print_error("Replicate must be > 0", "Line", line)
 
             ## Check FastQ file extension
             for fastq in [fastq_1, fastq_2]:
@@ -170,24 +172,23 @@ def check_samplesheet(file_in, file_out, use_control):
     ## Create control identity variable
     for sample in sorted(sample_run_dict.keys()):
         for replicate in sorted(sample_run_dict[sample].keys()):
-            sample_info = sample_run_dict[sample][replicate][0]
-            if control_present:
-                if sample_info[0] in control_names_list:
-                    sample_info.append("1")
-                    if sample_info[2] != "":
-                        print_error("Control cannot have a control: {}.".format(sample_info[0]))
-                else:
+            for idx, sample_info in enumerate(sample_run_dict[sample][replicate]):
+                if control_present:
+                    if sample_info[0] in control_names_list:
+                        sample_info.append("1")
+                        if sample_info[2] != "":
+                            print_error("Control cannot have a control: {}.".format(sample_info[0]))
+                    else:
+                        sample_info.append("0")
+                else: 
                     sample_info.append("0")
-            else: 
-                sample_info.append("0")
-            sample_run_dict[sample][replicate][0] = sample_info
 
     ## Check igg_control parameter is consistent with input groups
     if (use_control == 'true' and not control_present):
-        print_error("ERROR: No 'control' group was found in " + str(file_in) + " If you are not supplying a control, please specify --igg_control 'false' on command line.")
+        print_error("ERROR: No 'control' group was found in " + str(file_in) + " If you are not supplying a control, please specify --use_control 'false' on command line.")
         
     if (use_control == 'false' and control_present):
-        print("WARNING: Parameter --igg_control was set to false, but an 'igg' group was found in " + str(file_in) + ".")
+        print("WARNING: Parameter --use_control was set to false, but an control group was found in " + str(file_in) + ".")
 
     ## Write validated samplesheet with appropriate columns
     if len(sample_run_dict) > 0:
@@ -202,7 +203,7 @@ def check_samplesheet(file_in, file_out, use_control):
                 uniq_rep_ids = set(sample_run_dict[sample].keys())
                 if len(uniq_rep_ids) != max(uniq_rep_ids):
                     print_error(
-                        "Replicate ids must start with 1..<num_replicates>!",
+                        "Replicate ids must start with 1!",
                         "Group",
                         sample,
                     )
