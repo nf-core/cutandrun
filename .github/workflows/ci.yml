@@ -26,9 +26,9 @@ jobs:
         # Nextflow versions
         include:
           # Test pipeline minimum Nextflow version
-          - NXF_VER: '21.10.3'
+          - NXF_VER: "21.10.3"
           # Test latest nextflow version
-          - NXF_VER: ''
+          - NXF_VER: ""
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -70,7 +70,7 @@ jobs:
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        nxf_ver: ['21.10.3', '']
+        nxf_ver: ["21.10.3", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -106,7 +106,7 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
-      NXF_VER: ''
+      NXF_VER: ""
       NXF_EDGE: 1
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
@@ -150,7 +150,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nxf_version: ['21.10.3', '']
+        nxf_version: ["21.10.3", ""]
         tags:
           - test_params
           - test_samplesheet
