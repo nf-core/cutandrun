@@ -57,6 +57,6 @@
     - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
       contains:
         - "chr20	171984	172009	1607.72"
-    - path: results/03_peak_calling/01_bam_to_bedgraph/igg_R1.sorted.bedGraph
+    - path: results/03_peak_calling/01_bam_to_bedgraph/igg_ctrl_R1.sorted.bedGraph
       contains:
         - "chr20	606391	606415	285.714"
