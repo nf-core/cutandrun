@@ -26,8 +26,8 @@ workflow MARK_DUPLICATES_PICARD {
     }
     else { // Split out non igg files and run only on these
         bam.branch { it ->
-            target: it[0].group != 'igg'
-            control: it[0].group == 'igg'
+            target:  it[0].is_control == 0
+            control: it[0].is_control == 1
         }
         .set { ch_split }
 
