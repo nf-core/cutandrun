@@ -98,8 +98,8 @@ workflow PREPARE_PEAKCALLING {
         * CHANNEL: Split files based on igg or not
         */
         ch_bam_bai.branch { it ->
-            target:  it[0].is_control == 0
-            control: it[0].is_control == 1
+            target:  it[0].is_control == false
+            control: it[0].is_control == true
         }
         .set { ch_bam_bai_split }
 

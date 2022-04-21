@@ -304,7 +304,7 @@ workflow CUTANDRUN {
     if (params.run_mark_dups) {
         MARK_DUPLICATES_PICARD (
             ch_samtools_bam,
-            false
+            true
         )
         ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
         ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
@@ -324,7 +324,7 @@ workflow CUTANDRUN {
     if (params.run_remove_dups) {
         DEDUPLICATE_PICARD (
             ch_samtools_bam,
-            params.dedup_control_only
+            params.dedup_target_reads
         )
         ch_samtools_bam      = DEDUPLICATE_PICARD.out.bam
         ch_samtools_bai      = DEDUPLICATE_PICARD.out.bai
@@ -411,8 +411,8 @@ workflow CUTANDRUN {
          * CHANNEL: Separate bedgraphs into target/control
          */
         ch_bedgraph.branch { it ->
-            target:  it[0].is_control == 0
-            control: it[0].is_control == 1
+            target:  it[0].is_control == false
+            control: it[0].is_control == true
         }
         .set { ch_bedgraph_split }
         //ch_bedgraph_split.target | view
@@ -465,8 +465,8 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 ch_samtools_bam.branch{ it ->
-                    target:  it[0].is_control == 0
-                    control: it[0].is_control == 1
+                    target:  it[0].is_control == false
+                    control: it[0].is_control == true
                 }
                 .set { ch_samtools_bam_split }
                 // ch_samtools_bam_split.target | view
@@ -532,8 +532,8 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 ch_samtools_bam.branch{ it ->
-                    target:  it[0].is_control == 0
-                    control: it[0].is_control == 1
+                    target:  it[0].is_control == false
+                    control: it[0].is_control == true
                 }
                 .set { ch_samtools_bam_split }
                 // ch_samtools_bam_split.target | view
@@ -724,7 +724,7 @@ workflow CUTANDRUN {
             * CHANNEL: Remove IgG from bigwig channel
             */
             ch_bigwig
-                .filter { it[0].is_control == 0 }
+                .filter { it[0].is_control == false }
                 .set { ch_bigwig_no_igg }
             //ch_bigwig_no_igg | view
 

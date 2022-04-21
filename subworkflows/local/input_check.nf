@@ -27,7 +27,7 @@ def get_samplesheet_paths(LinkedHashMap row) {
     meta.id            = row.id
     meta.group         = row.group
     meta.replicate     = row.replicate.toInteger()
-    meta.control_group = row.control_group
+    meta.control_group = row.control
     meta.single_end    = row.single_end.toBoolean()
     meta.is_control    = row.is_control.toBoolean()
 
