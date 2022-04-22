@@ -24,13 +24,13 @@ igg,1,1,READ1_FASTQ.gz,READ2_FASTQ.gz
 igg,2,2,READ1_FASTQ.gz,READ2_FASTQ.gz
 ```
 
-| Column         | Description                                                                                                 |
-|----------------|-------------------------------------------------------------------------------------------------------------|
-| `group`        | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
-| `replicate`    | Integer representing replicate number.                                                                      |
-| `control_group`    | Integer representing the IgG control group the target is assigned to.                                                                      |
-| `fastq_1`      | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
-| `fastq_2`      | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| Column          | Description                                                                                                 |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| `group`         | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
+| `replicate`     | Integer representing replicate number.                                                                      |
+| `control_group` | Integer representing the IgG control group the target is assigned to.                                       |
+| `fastq_1`       | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `fastq_2`       | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
