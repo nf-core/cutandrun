@@ -167,3 +167,19 @@
     - test_samplesheet
   files:
     - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test all multi-rep single-ctrl
+- name: test_samplesheet_multi_rep_single_ctrl
+  command: nextflow run main.nf -profile docker,test --only_input true --input https://raw.githubusercontent.com/luslab/test-datasets/cutandrun/samplesheet/test-GSE145187-all-multi-rep-single-ctrl.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test all multi-rep multi-single-ctrl
+- name: test_samplesheet_multi_rep_multi_single_ctrl
+  command: nextflow run main.nf -profile docker,test --only_input true --input https://raw.githubusercontent.com/luslab/test-datasets/cutandrun/samplesheet/test-GSE145187-all-multi-rep-multi-single-ctrl.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
