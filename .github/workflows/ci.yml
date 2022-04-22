@@ -181,6 +181,7 @@ jobs:
           - test_peak_callers_seacr_macs2
           - test_peak_callers_macs2_seacr
           - test_peak_callers_seacr_macs2_noigg
+          - test_peak_callers_ctrl_tests
           - test_conseneus_peaks_group
           - test_conseneus_peaks_all
           - test_conseneus_peaks_invalid
