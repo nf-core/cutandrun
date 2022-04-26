@@ -494,7 +494,7 @@ class Reports:
         plot_data = self.frag_bin500[self.frag_bin500.columns[-(len(self.frag_bin500.columns)-2):]]
         # plot_data = plot_data.fillna(0)
         corr_mat = plot_data.corr(method='pearson')
-        ax = sns.heatmap(corr_mat, annot=True)
+        ax = sns.heatmap(corr_mat, annot=True, vmin=0, vmax=1)
         fig.suptitle("Replicate Reproducibility (read counts in 500bp bins)")
 
         return fig, self.frag_bin500
