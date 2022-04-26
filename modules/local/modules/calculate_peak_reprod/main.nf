@@ -3,7 +3,7 @@ process CALCULATE_PEAK_REPROD {
     label 'process_ultralow'
 
     conda (params.enable_conda ? "conda-forge::python=3.8.3 conda-forge::dask=2021.9.1 conda-forge::pandas=1.3.3" : null)
-    container "luslab/cutandrun-dev-peakrepo:latest"
+    container "chrischeshire/nfcore-cutandrun:latest"
 
     input:
     tuple val(meta), path(bed)

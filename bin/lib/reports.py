@@ -178,6 +178,7 @@ class Reports:
 
         self.frag_hist['group'] = group_short
         self.frag_hist['replicate'] = rep_short
+        self.frag_hist = self.frag_hist.reset_index(drop=True)
         self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr} )
 
     def load_binned_frags(self):
