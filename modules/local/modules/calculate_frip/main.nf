@@ -1,6 +1,6 @@
 process CALCULATE_FRIP {
     tag "$meta.id"
-    label 'process_high'
+    label 'process_low'
 
     conda (params.enable_conda ? "conda-forge::python=3.8.3 bioconda::deeptools=3.5.* bioconda::pysam=0.17.*" : null)
     container "chrischeshire/nfcore-cutandrun:latest"

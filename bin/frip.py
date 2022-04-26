@@ -49,7 +49,7 @@ for idx, bam_file in enumerate(bam_file_list):
 
     if first_line is not None:
         print("Calculating " + bam_file + " using " + peak_file_list[idx])
-        cr = crpb.CountReadsPerBin([bam_file], bedFile=[peak_file_list[idx]], numberOfProcessors=int(args.threads))
+        cr = crpb.CountReadsPerBin([bam_file], bedFile=[peak_file_list[idx]], numberOfProcessors=int(1))
 
         # Calc the total number of reads in peaks per bam file
         reads_at_peaks = cr.run()
