@@ -819,7 +819,7 @@ workflow CUTANDRUN {
                 "",
                 ""
             )
-            ch_samtools_bam      = ANNOTATE_FRIP_META.out.output
+            ch_samtools_bam = ANNOTATE_FRIP_META.out.output
             //ch_samtools_bam | view
         }
        
@@ -900,6 +900,7 @@ workflow CUTANDRUN {
         )
         ch_samtools_bam = ANNOTATE_PEAK_REPRO_META.out.output
         //ch_samtools_bam | view
+        //ANNOTATE_PEAK_REPRO_META.out.output | view
 
         /*
         * MODULE: Export meta-data to csv file

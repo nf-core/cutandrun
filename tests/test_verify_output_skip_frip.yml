@@ -1,5 +1,5 @@
 - name: test_verify_output_skip_frip_true
-  command: nextflow run main.nf -profile docker,test --skip_frip true -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test_full_small --skip_frip true -c tests/config/nextflow.config
   tags:
     - verify_output_skip_frip
   files:
@@ -9,7 +9,7 @@
       should_exist: false
 
 - name: test_verify_output_skip_frip_false
-  command: nextflow run main.nf -profile docker,test --skip_frip false  -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test_full_small --skip_frip false  -c tests/config/nextflow.config
   tags:
     - verify_output_skip_frip
   files:
