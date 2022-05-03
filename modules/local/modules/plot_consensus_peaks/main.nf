@@ -2,7 +2,7 @@ process PLOT_CONSENSUS_PEAKS {
     label 'process_min'
 
     conda (params.enable_conda ? "conda-forge::python=3.8.3 conda-forge::numpy=1.20.* conda-forge::pandas=1.2.* conda-forge::upsetplot=0.4.4" : null)
-    container "luslab/cutandrun-dev-plot-consensus-peaks:latest"
+    container "chrischeshire/nfcore-cutandrun:latest"
 
     input:
     path(consensus_peaks)

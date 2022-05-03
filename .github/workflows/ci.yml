@@ -189,6 +189,7 @@ jobs:
           - verify_output_reporting_skip_igv
           - verify_output_reporting_skip_heatmaps
           - verify_output_reporting_skip_multiqc
+          - verify_output_skip_frip
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2

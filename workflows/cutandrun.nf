@@ -800,27 +800,29 @@ workflow CUTANDRUN {
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, BED]
         //ch_bam_bai_bed | view
 
-        /*
-        * MODULE: Calculate Frip scores for samples
-        */
-        CALCULATE_FRIP (
-            ch_bam_bai_bed
-        )
-        ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
-
-        /*
-        * SUBWORKFLOW: Annotate meta-data with frip stats
-        */
-        ANNOTATE_FRIP_META (
-            ch_samtools_bam,
-            CALCULATE_FRIP.out.frips,
-            "",
-            ""
-        )
         ch_samtools_bam_ctrl = ch_samtools_bam
-        ch_samtools_bam      = ANNOTATE_FRIP_META.out.output
-        //ch_samtools_bam | view
+        if(!params.skip_frip) {
+            /*
+            * MODULE: Calculate Frip scores for samples
+            */
+            CALCULATE_FRIP (
+                ch_bam_bai_bed
+            )
+            ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
 
+            /*
+            * SUBWORKFLOW: Annotate meta-data with frip stats
+            */
+            ANNOTATE_FRIP_META (
+                ch_samtools_bam,
+                CALCULATE_FRIP.out.frips,
+                "",
+                ""
+            )
+            ch_samtools_bam = ANNOTATE_FRIP_META.out.output
+            //ch_samtools_bam | view
+        }
+       
         /*
         * MODULE: Trim unwanted columns for downstream reporting
         */
@@ -898,6 +900,7 @@ workflow CUTANDRUN {
         )
         ch_samtools_bam = ANNOTATE_PEAK_REPRO_META.out.output
         //ch_samtools_bam | view
+        //ANNOTATE_PEAK_REPRO_META.out.output | view
 
         /*
         * MODULE: Export meta-data to csv file
