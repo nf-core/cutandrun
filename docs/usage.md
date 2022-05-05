@@ -61,8 +61,6 @@ When you run the above command, Nextflow automatically pulls the pipeline code f
 nextflow pull nf-core/cutandrun
 ```
 
-
-
 ## Pipeline Configuration Options
 
 Trimming
@@ -76,8 +74,6 @@ Normalisation
 peak calling
 
 consensus peaks
-
-
 
 ### Reproducibility
 
