@@ -215,7 +215,7 @@ workflow CUTANDRUN {
             .mix(ch_fastq.single)
             .set { ch_cat_fastq }
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [READS]]
     //ch_cat_fastq | view
 
     /*
@@ -230,7 +230,7 @@ workflow CUTANDRUN {
         ch_trimmed_reads     = FASTQC_TRIMGALORE.out.reads
         ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.versions)
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [READS]]
     //FASTQC_TRIMGALORE.out.reads | view
 
     /*
@@ -276,8 +276,8 @@ workflow CUTANDRUN {
             ch_samtools_spikein_idxstats  = ALIGN_BOWTIE2.out.spikein_idxstats
         }
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
-    //ch_samtools_bam | view
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
+    // ch_samtools_bam | view
 
     /*
      *  SUBWORKFLOW: Filter reads based on quality metrics
@@ -294,7 +294,7 @@ workflow CUTANDRUN {
         ch_samtools_idxstats = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
         ch_software_versions = ch_software_versions.mix(SAMTOOLS_VIEW_SORT_STATS.out.versions)
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
 
     /*
@@ -304,7 +304,7 @@ workflow CUTANDRUN {
     if (params.run_mark_dups) {
         MARK_DUPLICATES_PICARD (
             ch_samtools_bam,
-            false
+            true
         )
         ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
         ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
@@ -314,7 +314,7 @@ workflow CUTANDRUN {
         ch_markduplicates_metrics = MARK_DUPLICATES_PICARD.out.metrics
         ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.versions)
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
 
     /*
@@ -324,7 +324,7 @@ workflow CUTANDRUN {
     if (params.run_remove_dups) {
         DEDUPLICATE_PICARD (
             ch_samtools_bam,
-            params.dedup_control_only
+            params.dedup_target_reads
         )
         ch_samtools_bam      = DEDUPLICATE_PICARD.out.bam
         ch_samtools_bai      = DEDUPLICATE_PICARD.out.bai
@@ -334,7 +334,7 @@ workflow CUTANDRUN {
         ch_dedup_multiqc     = DEDUPLICATE_PICARD.out.metrics
         ch_software_versions = ch_software_versions.mix(DEDUPLICATE_PICARD.out.versions)
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
 
     /*
@@ -363,7 +363,7 @@ workflow CUTANDRUN {
         ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
     }
     // META-DATA example state:
-    //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+    //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false,
     // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
     // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], BAM]
     //ch_samtools_bam | view
@@ -411,8 +411,8 @@ workflow CUTANDRUN {
          * CHANNEL: Separate bedgraphs into target/control
          */
         ch_bedgraph.branch { it ->
-            target: it[0].group != "igg"
-            control: it[0].group == "igg"
+            target:  it[0].is_control == false
+            control: it[0].is_control == true
         }
         .set { ch_bedgraph_split }
         //ch_bedgraph_split.target | view
@@ -422,7 +422,7 @@ workflow CUTANDRUN {
         ch_macs2_bed = Channel.empty()
         ch_peaks_bed = Channel.empty()
 
-        if(params.igg_control) {
+        if(params.use_control) {
             /*
              * MODULE: Call peaks using SEACR with IgG control
              */
@@ -465,8 +465,8 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 ch_samtools_bam.branch{ it ->
-                    target: it[0].group != "igg"
-                    control: it[0].group == "igg"
+                    target:  it[0].is_control == false
+                    control: it[0].is_control == true
                 }
                 .set { ch_samtools_bam_split }
                 // ch_samtools_bam_split.target | view
@@ -532,8 +532,8 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 ch_samtools_bam.branch{ it ->
-                    target: it[0].group != "igg"
-                    control: it[0].group == "igg"
+                    target:  it[0].is_control == false
+                    control: it[0].is_control == true
                 }
                 .set { ch_samtools_bam_split }
                 // ch_samtools_bam_split.target | view
@@ -724,7 +724,7 @@ workflow CUTANDRUN {
             * CHANNEL: Remove IgG from bigwig channel
             */
             ch_bigwig
-                .filter { it[0].group != "igg" }
+                .filter { it[0].is_control == false }
                 .set { ch_bigwig_no_igg }
             //ch_bigwig_no_igg | view
 
@@ -800,27 +800,29 @@ workflow CUTANDRUN {
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, BED]
         //ch_bam_bai_bed | view
 
-        /*
-        * MODULE: Calculate Frip scores for samples
-        */
-        CALCULATE_FRIP (
-            ch_bam_bai_bed
-        )
-        ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
-
-        /*
-        * SUBWORKFLOW: Annotate meta-data with frip stats
-        */
-        ANNOTATE_FRIP_META (
-            ch_samtools_bam,
-            CALCULATE_FRIP.out.frips,
-            "",
-            ""
-        )
         ch_samtools_bam_ctrl = ch_samtools_bam
-        ch_samtools_bam      = ANNOTATE_FRIP_META.out.output
-        //ch_samtools_bam | view
+        if(!params.skip_frip) {
+            /*
+            * MODULE: Calculate Frip scores for samples
+            */
+            CALCULATE_FRIP (
+                ch_bam_bai_bed
+            )
+            ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
 
+            /*
+            * SUBWORKFLOW: Annotate meta-data with frip stats
+            */
+            ANNOTATE_FRIP_META (
+                ch_samtools_bam,
+                CALCULATE_FRIP.out.frips,
+                "",
+                ""
+            )
+            ch_samtools_bam = ANNOTATE_FRIP_META.out.output
+            //ch_samtools_bam | view
+        }
+       
         /*
         * MODULE: Trim unwanted columns for downstream reporting
         */
@@ -898,6 +900,7 @@ workflow CUTANDRUN {
         )
         ch_samtools_bam = ANNOTATE_PEAK_REPRO_META.out.output
         //ch_samtools_bam | view
+        //ANNOTATE_PEAK_REPRO_META.out.output | view
 
         /*
         * MODULE: Export meta-data to csv file

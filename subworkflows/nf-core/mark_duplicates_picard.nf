@@ -8,8 +8,8 @@ include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'
 
 workflow MARK_DUPLICATES_PICARD {
     take:
-    bam // channel: [ val(meta), [ bam ] ]
-    control_only //boolean
+    bam            // channel: [ val(meta), [ bam ] ]
+    process_target //boolean
 
     main:
     /*
@@ -18,25 +18,27 @@ workflow MARK_DUPLICATES_PICARD {
     ch_bam      = Channel.empty()
     metrics     = Channel.empty()
     ch_versions = Channel.empty()
-    if( !control_only ) {
+    if( process_target ) {
         PICARD_MARKDUPLICATES ( bam )
         ch_bam      = PICARD_MARKDUPLICATES.out.bam
         metrics     = PICARD_MARKDUPLICATES.out.metrics
         ch_versions = ch_versions.mix(PICARD_MARKDUPLICATES.out.versions)
     }
-    else { // Split out non igg files and run only on these
+    else { // Split out control files and run only on these
         bam.branch { it ->
-            target: it[0].group != 'igg'
-            control: it[0].group == 'igg'
+            target:  it[0].is_control == false
+            control: it[0].is_control == true
         }
         .set { ch_split }
+        //ch_split.target | view
+        //ch_split.control | view
 
         PICARD_MARKDUPLICATES ( ch_split.control )
         ch_bam      = PICARD_MARKDUPLICATES.out.bam.mix ( ch_split.target )
         metrics     = PICARD_MARKDUPLICATES.out.metrics
         ch_versions = ch_versions.mix(PICARD_MARKDUPLICATES.out.versions)
     }
-    //out_bam | view
+    //ch_bam | view
 
     /*
     * Index BAM file

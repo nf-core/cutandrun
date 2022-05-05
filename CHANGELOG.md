@@ -38,23 +38,23 @@ We thank Harshil Patel ([@drpatelh](https://github.com/drpatelh)) and everyone i
 
 ### Enhancements & fixes
 
-* Updated pipeline template to nf-core/tools `2.2`
-* [[#71](https://github.com/nf-core/cutandrun/issues/71)] - Bumped Nextflow version `21.04.0` -> `21.10.3`
-* Added pipeline diagram to [[README](https://github.com/nf-core/cutandrun/blob/master/README.md)]
-* Upgraded all modules (local and nf-core) to support the new versioning system
-* The module `getchromsizes` was submitted to nf-core and moved from `local` to `nf-core`
-* Added support for GFF files in IGV session generation
-* [[#57](https://github.com/nf-core/cutandrun/issues/57), [#66](https://github.com/nf-core/cutandrun/issues/66)] - Upgraded version reporting in multiqc to support both software version by module and unique software versions. This improves detection of multi-version software usage in the pipeline
-* [[#54](https://github.com/nf-core/cutandrun/issues/54)] - Fixed pipeline error where dots in sample ids inside the sample sheet were not correctly handled
-* [[#75](https://github.com/nf-core/cutandrun/issues/75)] - Fixed error caused by emtpy peak files being passed to the `CALCULATE_FRIP` and `CALCULATE_PEAK_REPROD` python reporting modules
-* [[#83]](https://github.com/nf-core/cutandrun/issues/83) - Fixed error in violin chart generation with cast to int64
+- Updated pipeline template to nf-core/tools `2.2`
+- [[#71](https://github.com/nf-core/cutandrun/issues/71)] - Bumped Nextflow version `21.04.0` -> `21.10.3`
+- Added pipeline diagram to [[README](https://github.com/nf-core/cutandrun/blob/master/README.md)]
+- Upgraded all modules (local and nf-core) to support the new versioning system
+- The module `getchromsizes` was submitted to nf-core and moved from `local` to `nf-core`
+- Added support for GFF files in IGV session generation
+- [[#57](https://github.com/nf-core/cutandrun/issues/57), [#66](https://github.com/nf-core/cutandrun/issues/66)] - Upgraded version reporting in multiqc to support both software version by module and unique software versions. This improves detection of multi-version software usage in the pipeline
+- [[#54](https://github.com/nf-core/cutandrun/issues/54)] - Fixed pipeline error where dots in sample ids inside the sample sheet were not correctly handled
+- [[#75](https://github.com/nf-core/cutandrun/issues/75)] - Fixed error caused by emtpy peak files being passed to the `CALCULATE_FRIP` and `CALCULATE_PEAK_REPROD` python reporting modules
+- [[#83]](https://github.com/nf-core/cutandrun/issues/83) - Fixed error in violin chart generation with cast to int64
 
 ### Software dependencies
 
 Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
 
 | Dependency | Old version | New version |
-|------------|-------------|-------------|
+| ---------- | ----------- | ----------- |
 | `samtools` | 1.13        | 1.14        |
 
 > **NB:** Dependency has been **updated** if both old and new version information is present.

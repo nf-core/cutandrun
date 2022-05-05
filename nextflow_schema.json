@@ -10,10 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": [
-                "input",
-                "outdir"
-            ],
+            "required": ["input", "outdir"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -31,13 +28,6 @@
                     "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
                     "fa_icon": "fas fa-folder-open"
                 },
-                "email": {
-                    "type": "string",
-                    "description": "Email address for completion summary.",
-                    "fa_icon": "fas fa-envelope",
-                    "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
-                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
-                },
                 "multiqc_title": {
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
@@ -46,86 +36,47 @@
                 "save_reference": {
                     "type": "boolean",
                     "fa_icon": "fas fa-folder-plus",
-                    "description": "Save reference data to output directory"
+                    "description": "Save genome reference data to the output directory"
                 },
                 "save_merged_fastq": {
                     "type": "boolean",
                     "fa_icon": "fas fa-folder-plus",
-                    "description": "Save any technical replicates that were merged to output directory"
+                    "description": "Save any technical replicate FASTQ files that were merged to the output directory"
                 },
                 "save_trimmed": {
                     "type": "boolean",
                     "fa_icon": "fas fa-folder-plus",
-                    "description": "Save trimmed fastqs to output directory"
+                    "description": "Save trimmed FASTQ file to the output directory"
                 },
                 "save_spikein_aligned": {
                     "type": "boolean",
                     "fa_icon": "fas fa-folder-plus",
-                    "description": "Save bam files aligned to the spike-in genome to output directory"
+                    "description": "Save BAM files aligned to the spike-in genome to the output directory"
                 },
                 "save_unaligned": {
                     "type": "boolean",
                     "fa_icon": "fas fa-folder-plus",
-                    "description": "Save unaligned sequences to output directory"
+                    "description": "Save unaligned sequences to the output directory"
                 },
                 "save_align_intermed": {
                     "type": "boolean",
                     "fa_icon": "fas fa-folder-plus",
-                    "description": "Save alignment intermediates to output directory (WARNING: can be very large)"
+                    "description": "Save alignment intermediates to the output directory (WARNING: can be very large)"
                 },
-                "aligner": {
+                "email": {
                     "type": "string",
-                    "default": "bowtie2",
-                    "hidden": true,
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Select aligner"
+                    "description": "Email address for completion summary.",
+                    "fa_icon": "fas fa-envelope",
+                    "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
+                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 }
             }
-        },
-        "trimming_options": {
-            "title": "Trimming Options",
-            "type": "object",
-            "description": "",
-            "default": "",
-            "properties": {
-                "clip_r1": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Trim galore param"
-                },
-                "clip_r2": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Trim galore param"
-                },
-                "three_prime_clip_r1": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Trim galore param"
-                },
-                "three_prime_clip_r2": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Trim galore param"
-                },
-                "trim_nextseq": {
-                    "type": "integer",
-                    "default": 0,
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Trim galore param"
-                }
-            },
-            "fa_icon": "fas fa-cut"
         },
         "reference_data_options": {
             "title": "Reference data options",
             "type": "object",
             "fa_icon": "fas fa-dna",
-            "description": "Reference genome related files and options required for the workflow.",
+            "description": "Reference genome related files and options.",
             "properties": {
                 "genome": {
                     "type": "string",
@@ -142,6 +93,11 @@
                     "type": "string",
                     "fa_icon": "fas fa-book",
                     "description": "Path to GTF annotation file"
+                },
+                "gene_bed": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to gene bed file"
                 },
                 "blacklist": {
                     "type": "string",
@@ -190,12 +146,149 @@
                 }
             }
         },
+        "flow_switching_options": {
+            "title": "Flow switching options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "only_input": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to input checking"
+                },
+                "only_genome": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to reference preparation"
+                },
+                "only_preqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to pre-alignment"
+                },
+                "only_alignment": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to alignment"
+                },
+                "only_filtering": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to q-filtering"
+                },
+                "only_peak_calling": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to peak calling"
+                },
+                "skip_fastqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips fastqc reporting"
+                },
+                "skip_trimming": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips trimming"
+                },
+                "skip_removeduplicates": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips de-duplication"
+                },
+                "skip_reporting": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips reporting"
+                },
+                "skip_igv": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips igv session generation"
+                },
+                "skip_heatmaps": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips deeptools heatmap generation"
+                },
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips multiqc"
+                },
+                "skip_upset_plots": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skip upset plot calculation"
+                },
+                "skip_frip": {
+                    "type": "boolean",
+                    "description": "Skip fragments in peaks calculation",
+                    "fa_icon": "fas fa-random"
+                }
+            },
+            "fa_icon": "fas fa-exchange-alt"
+        },
+        "trimming_options": {
+            "title": "Trimming Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "clip_r1": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "clip_r2": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "three_prime_clip_r1": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "three_prime_clip_r2": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                },
+                "trim_nextseq": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Trim galore param"
+                }
+            },
+            "fa_icon": "fas fa-cut"
+        },
         "pipeline_options": {
             "title": "Pipeline Options",
             "type": "object",
             "description": "",
             "default": "",
             "properties": {
+                "aligner": {
+                    "type": "string",
+                    "default": "bowtie2",
+                    "hidden": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Select aligner"
+                },
+                "normalisation_c": {
+                    "type": "integer",
+                    "default": 10000,
+                    "hidden": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Normalisation constant for spike-in read normalisation"
+                },
                 "minimum_alignment_q_score": {
                     "type": "integer",
                     "default": 0,
@@ -205,150 +298,75 @@
                 "dedup_target_reads": {
                     "type": "boolean",
                     "fa_icon": "fas fa-clone",
-                    "description": "Deduplicate non-control reads"
-                },
-                "normalisation_c": {
-                    "type": "integer",
-                    "default": 10000,
-                    "hidden": true,
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Normalisation constant"
-                },
-                "normalisation_binsize": {
-                    "type": "integer",
-                    "default": 1
-                },
-                "igg_scale_factor": {
-                    "type": "number",
-                    "default": 1
-                },
-                "igg_control": {
-                    "type": "boolean",
-                    "default": true,
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Specifies if the samplesheet contains an IgG control"
+                    "description": "De-duplicate target reads AND control reads (default is control only)"
                 },
                 "normalisation_mode": {
                     "type": "string",
-                    "default": "Spikein"
+                    "default": "Spikein",
+                    "fa_icon": "fab fa-buffer",
+                    "description": "Sets the target read normalisation mode. Options are: [\"Spikein\", \"RPKM\", \"CPM\", \"BPM\", \"None\" ]"
+                },
+                "normalisation_binsize": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "If normsalisation option is one of  \"RPKM\", \"CPM\", \"BPM\" - then the binsize that the reads count is calculated on is used.",
+                    "fa_icon": "fas fa-arrows-alt-h"
                 },
                 "peak_threshold": {
                     "type": "number",
                     "default": 0.05,
-                    "fa_icon": "fas fa-align-justify",
+                    "fa_icon": "fas fa-grip-lines",
                     "description": "Threshold for peak calling when no IgG is present"
                 },
-                "gene_bed": {
+                "peakcaller": {
                     "type": "string",
+                    "default": "seacr",
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Path to gene bed file"
+                    "description": "Selects the peak caller for the pipeline. Options are: [seacr, macs2]"
+                },
+                "use_control": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies whether to use a control to normalise peak calls against (e.g. IgG)"
+                },
+                "igg_scale_factor": {
+                    "type": "number",
+                    "default": 1,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies whether the background control is scaled prior to being used to normalise peaks."
+                },
+                "macs2_pvalue": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "P-value threshold for macs2 peak caller"
+                },
+                "macs2_gsize": {
+                    "type": "number",
+                    "default": 2700000000,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Genome size values for macs2 peak caller"
+                },
+                "run_narrow_peak": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies whether to run macs2 in narrow peak mode"
+                },
+                "consensus_peak_mode": {
+                    "type": "string",
+                    "default": "group",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies what samples to group together for consensus peaks. Options are [group, all]"
                 },
                 "replicate_threshold": {
                     "type": "number",
                     "default": 1,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
-                },
-                "peakcaller": {
-                    "type": "string",
-                    "default": "None"
-                },
-                "macs2_pvalue": {
-                    "type": "number",
-                    "default": 0.05
-                },
-                "macs2_gsize": {
-                    "type": "number",
-                    "default": 2700000000
-                },
-                "run_narrow_peak": {
-                    "type": "boolean"
-                },
-                "consensus_peak_mode": {
-                    "type": "string",
-                    "default": "group"
                 }
             },
             "fa_icon": "fas fa-cog"
-        },
-        "flow_switching_options": {
-            "title": "Flow switching options",
-            "type": "object",
-            "description": "",
-            "default": "",
-            "properties": {
-                "only_genome": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Run pipeline up to reference preparation"
-                },
-                "only_input": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Run pipeline up to input checking"
-                },
-                "only_preqc": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Run pipeline up to pre-alignment"
-                },
-                "only_alignment": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Run pipeline up to alignment"
-                },
-                "only_filtering": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Run pipeline up to q-filtering"
-                },
-                "only_peak_calling": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Run pipeline up to peak calling"
-                },
-                "skip_fastqc": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Skips fastqc reporting"
-                },
-                "skip_trimming": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Skips trimming"
-                },
-                "skip_removeduplicates": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Skips de-duplication"
-                },
-                "skip_reporting": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Skips reporting"
-                },
-                "skip_igv": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Skips igv session generation"
-                },
-                "skip_heatmaps": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Skips deeptools heatmaps"
-                },
-                "skip_multiqc": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Skips multiqc"
-                },
-                "skip_upset_plots": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Skip upset plot calculation"
-                }
-            },
-            "fa_icon": "fas fa-exchange-alt"
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -452,14 +470,7 @@
                     "description": "Method used to save pipeline results to output directory.",
                     "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
                     "fa_icon": "fas fa-copy",
-                    "enum": [
-                        "symlink",
-                        "rellink",
-                        "link",
-                        "copy",
-                        "copyNoFollow",
-                        "move"
-                    ],
+                    "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
                     "hidden": true
                 },
                 "email_on_fail": {
@@ -531,16 +542,16 @@
             "$ref": "#/definitions/input_output_options"
         },
         {
-            "$ref": "#/definitions/trimming_options"
-        },
-        {
             "$ref": "#/definitions/reference_data_options"
         },
         {
-            "$ref": "#/definitions/pipeline_options"
+            "$ref": "#/definitions/flow_switching_options"
         },
         {
-            "$ref": "#/definitions/flow_switching_options"
+            "$ref": "#/definitions/trimming_options"
+        },
+        {
+            "$ref": "#/definitions/pipeline_options"
         },
         {
             "$ref": "#/definitions/institutional_config_options"

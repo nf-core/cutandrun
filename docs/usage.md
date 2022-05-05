@@ -2,7 +2,7 @@
 
 ## :warning: Please read this documentation on the nf-core website: [https://nf-co.re/cutandrun/usage](https://nf-co.re/cutandrun/usage)
 
-nf-core/cutandrun is a best-practice bioinformatic analysis pipeline for CUT&Run and CUT&Tag experimental protocols that where developed to study protein-DNA interactions and epigenomic profiling.
+**nf-core/cutandrun** is a best-practice bioinformatic analysis pipeline for CUT&RUN and CUT&Tag experimental protocols that where developed to study protein-DNA interactions and epigenomic profiling.
 
 ## Samplesheet input
 
@@ -12,42 +12,27 @@ You will need to create a samplesheet file with information about the samples in
 --input <path to samplesheet file>
 ```
 
-An example sample sheet structure is shown below. This defines two target experimental groups for the histone marks h3k27me3 and h3k4me3 with two biological replicates per group. Each antibody target also had an IgG control performed alongside. The two IgG experiments are configured as biological replicates with the `igg` group keyword with a unique control group assignment. The target experiments are then assigned to the igg control group using the `control_group` column.
+An example sample sheet structure is shown below. This defines two target experimental groups for the histone marks h3k27me3 and h3k4me3 with two biological replicates per group. Each antibody target also has an IgG control. The two IgG experiments are configured as biological replicates in the same group named `igg_ctrl`. They are assigned as controls to the two other groups using the last `control` column. If there are an equal number of replicates assigned to the samples from the control group as is the case below, the IgG controls will automatically be assigned to the same replicate number. If there is a mismatch then the first rpelicate of the control group will be assigned to all.
 
 ```bash
-group,replicate,control_group,fastq_1,fastq_2
-h3k27me3,1,1,READ1_FASTQ.gz,READ2_FASTQ.gz
-h3k27me3,2,1,READ1_FASTQ.gz,READ2_FASTQ.gz
-h3k4me3,1,2,READ1_FASTQ.gz,READ2_FASTQ.gz
-h3k4me3,2,2,READ1_FASTQ.gz,READ2_FASTQ.gz
-igg,1,1,READ1_FASTQ.gz,READ2_FASTQ.gz
-igg,2,2,READ1_FASTQ.gz,READ2_FASTQ.gz
+group,replicate,fastq_1,fastq_2,control
+h3k27me3,1,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k27me3,2,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k4me3,1,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k4me3,2,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+igg_ctrl,1,READ1_FASTQ.gz,READ2_FASTQ.gz,
+igg_ctrl,2,READ1_FASTQ.gz,READ2_FASTQ.gz,
 ```
 
-| Column         | Description                                                                                                 |
-|----------------|-------------------------------------------------------------------------------------------------------------|
-| `group`        | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
-| `replicate`    | Integer representing replicate number.                                                                      |
-| `control_group`    | Integer representing the IgG control group the target is assigned to.                                                                      |
-| `fastq_1`      | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
-| `fastq_2`      | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| Column      | Description                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------------- |
+| `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
+| `replicate` | Integer representing replicate number.                                                                      |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `control`   | String representing the control group the target is assigned to.                                            |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
-
-### Multiple replicates and IgG controls
-
-To assign biological replicates to the same group use the same group identifier but increment the `replicate` column appropriately. To merge multiple fastq files from the same library or to merge technical replicate data, use identical `group` AND `replicate` column identifiers. The pipeline will automatically merge these samples and treat them as one biological replicate. An example of this type of sample sheet configuration is shown below where each biological replicate has two fastq files:
-
-```bash
-group,replicate,control_group,fastq_1,fastq_2
-h3k27me3,1,1,H3K27ME3_S1_L001_R1.fastq.gz,H3K27ME3_S1_L001_R2.fastq.gz
-h3k27me3,1,1,H3K27ME3_S2_L001_R1.fastq.gz,H3K27ME3_S2_L001_R2.fastq.gz
-h3k27me3,2,1,H3K27ME3_S3_L001_R1.fastq.gz,H3K27ME3_S3_L001_R2.fastq.gz
-h3k27me3,2,1,H3K27ME3_S4_L001_R1.fastq.gz,H3K27ME3_S4_L001_R2.fastq.gz
-igg,1,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
-```
-
-To add any IgG controls that were processed, use the `igg` keyword in the `group` column and increment as with the target samples. The IgG control will be used to normalising your experimental CUT&Run (OR CUT&Tag) data. It is _recommended_ to have an IgG control for normalising your experimental data and this is the default action for the pipeline. However, if you run the pipeline without IgG control data you must supply `--igg_control false`.
 
 ## Running the pipeline
 
@@ -62,9 +47,9 @@ This will launch the pipeline with the `docker` configuration profile. See below
 Note that the pipeline will create the following files in your working directory:
 
 ```console
-work            # Directory containing the nextflow working files
-results         # Finished results (configurable, see below)
-.nextflow_log   # Log file from Nextflow
+work                # Directory containing the nextflow working files
+<OUTIDR>            # Finished results in specified location (defined with --outdir)
+.nextflow_log       # Log file from Nextflow
 # Other nextflow hidden files, eg. history of pipeline runs and old logs.
 ```
 
@@ -75,6 +60,20 @@ When you run the above command, Nextflow automatically pulls the pipeline code f
 ```console
 nextflow pull nf-core/cutandrun
 ```
+
+## Pipeline Configuration Options
+
+Trimming
+
+Saving, skipping flow options
+
+Deduplication
+
+Normalisation
+
+peak calling
+
+consensus peaks
 
 ### Reproducibility
 
@@ -103,32 +102,25 @@ They are loaded in sequence, so later profiles can overwrite earlier profiles.
 
 If `-profile` is not specified, the pipeline will run locally and expect all software to be installed and available on the `PATH`. This is _not_ recommended.
 
-* `docker`
-    * A generic configuration profile to be used with [Docker](https://docker.com/)
-    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
-* `singularity`
-    * A generic configuration profile to be used with [Singularity](https://sylabs.io/docs/)
-    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
-* `podman`
-    * A generic configuration profile to be used with [Podman](https://podman.io/)
-    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
-* `shifter`
-    * A generic configuration profile to be used with [Shifter](https://nersc.gitlab.io/development/shifter/how-to-use/)
-    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
-* `charliecloud`
-    * A generic configuration profile to be used with [Charliecloud](https://hpc.github.io/charliecloud/)
-    * Pulls software from Docker Hub: [`nfcore/cutandrun`](https://hub.docker.com/r/nfcore/cutandrun/)
-* `conda`
-    * Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter or Charliecloud.
-    * A generic configuration profile to be used with [Conda](https://conda.io/docs/)
-    * Pulls most software from [Bioconda](https://bioconda.github.io/)
-* `test`
-    * A profile with a complete configuration for automated testing
-    * Includes links to test data so needs no other parameters
+- `docker`
+  - A generic configuration profile to be used with [Docker](https://docker.com/)
+- `singularity`
+  - A generic configuration profile to be used with [Singularity](https://sylabs.io/docs/)
+- `podman`
+  - A generic configuration profile to be used with [Podman](https://podman.io/)
+- `shifter`
+  - A generic configuration profile to be used with [Shifter](https://nersc.gitlab.io/development/shifter/how-to-use/)
+- `charliecloud`
+  - A generic configuration profile to be used with [Charliecloud](https://hpc.github.io/charliecloud/)
+- `conda`
+  - A generic configuration profile to be used with [Conda](https://conda.io/docs/). Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter or Charliecloud.
+- `test`
+  - A profile with a complete configuration for automated testing
+  - Includes links to test data so needs no other parameters
 
 ### `-resume`
 
-Specify this when restarting a pipeline. Nextflow will used cached results from any pipeline steps where the inputs are the same, continuing from where it got to previously.
+Specify this when restarting a pipeline. Nextflow will use cached results from any pipeline steps where the inputs are the same, continuing from where it got to previously. For input to be considered the same, not only the names must be identical but the files' contents as well. For more info about this parameter, see [this blog post](https://www.nextflow.io/blog/2019/demystifying-nextflow-resume.html).
 
 You can also supply a run name to resume a specific run: `-resume [run-name]`. Use the `nextflow log` command to show previous run names.
 
@@ -197,38 +189,40 @@ process {
 The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. If for some reason you need to use a different version of a particular tool with the pipeline then you just need to identify the `process` name and override the Nextflow `container` definition for that process using the `withName` declaration. For example, in the [nf-core/viralrecon](https://nf-co.re/viralrecon) pipeline a tool called [Pangolin](https://github.com/cov-lineages/pangolin) has been used during the COVID-19 pandemic to assign lineages to SARS-CoV-2 genome sequenced samples. Given that the lineage assignments change quite frequently it doesn't make sense to re-release the nf-core/viralrecon everytime a new version of Pangolin has been released. However, you can override the default container used by the pipeline by creating a custom config file and passing it as a command-line argument via `-c custom.config`.
 
 1. Check the default version used by the pipeline in the module file for [Pangolin](https://github.com/nf-core/viralrecon/blob/a85d5969f9025409e3618d6c280ef15ce417df65/modules/nf-core/software/pangolin/main.nf#L14-L19)
+
 2. Find the latest version of the Biocontainer available on [Quay.io](https://quay.io/repository/biocontainers/pangolin?tag=latest&tab=tags)
+
 3. Create the custom config accordingly:
 
-    * For Docker:
+   - For Docker:
 
-        ```nextflow
-        process {
-            withName: PANGOLIN {
-                container = 'quay.io/biocontainers/pangolin:3.0.5--pyhdfd78af_0'
-            }
-        }
-        ```
+     ```nextflow
+     process {
+         withName: PANGOLIN {
+             container = 'quay.io/biocontainers/pangolin:3.0.5--pyhdfd78af_0'
+         }
+     }
+     ```
 
-    * For Singularity:
+   - For Singularity:
 
-        ```nextflow
-        process {
-            withName: PANGOLIN {
-                container = 'https://depot.galaxyproject.org/singularity/pangolin:3.0.5--pyhdfd78af_0'
-            }
-        }
-        ```
+     ```nextflow
+     process {
+         withName: PANGOLIN {
+             container = 'https://depot.galaxyproject.org/singularity/pangolin:3.0.5--pyhdfd78af_0'
+         }
+     }
+     ```
 
-    * For Conda:
+   - For Conda:
 
-        ```nextflow
-        process {
-            withName: PANGOLIN {
-                conda = 'bioconda::pangolin=3.0.5'
-            }
-        }
-        ```
+     ```nextflow
+     process {
+         withName: PANGOLIN {
+             conda = 'bioconda::pangolin=3.0.5'
+         }
+     }
+     ```
 
 > **NB:** If you wish to periodically update individual tool-specific results (e.g. Pangolin) generated by the pipeline then you must ensure to keep the `work/` directory otherwise the `-resume` ability of the pipeline will be compromised and it will restart from scratch.
 

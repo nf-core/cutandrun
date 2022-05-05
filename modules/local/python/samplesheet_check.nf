@@ -1,6 +1,6 @@
 process SAMPLESHEET_CHECK {
     tag "$samplesheet"
-    label 'process_low'
+    label 'process_min'
 
     conda     (params.enable_conda ? "conda-forge::python=3.8.3" : null)
     container "quay.io/biocontainers/python:3.8.3"
@@ -17,7 +17,7 @@ process SAMPLESHEET_CHECK {
 
     script:
     """
-    check_samplesheet.py $samplesheet samplesheet.valid.csv $params.igg_control
+    check_samplesheet.py $samplesheet samplesheet.valid.csv $params.use_control
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

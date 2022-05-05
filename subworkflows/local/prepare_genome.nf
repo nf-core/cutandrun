@@ -84,7 +84,7 @@ workflow PREPARE_GENOME {
     if ("bowtie2" in prepare_tool_indices) {
         if (params.bowtie2) {
             if (params.bowtie2.endsWith(".tar.gz")) {
-                ch_bt2_index = UNTAR_INDEX_TARGET ( params.bowtie2 ).untar
+                ch_bt2_index = UNTAR_INDEX_TARGET ( [ [], params.bowtie2 ] ).untar.map{ row -> [ row[1] ] }
                 ch_versions  = ch_versions.mix(UNTAR_INDEX_TARGET.out.versions)
             } else {
                 ch_bt2_index = file(params.bowtie2)
@@ -96,7 +96,7 @@ workflow PREPARE_GENOME {
 
         if (params.spikein_bowtie2) {
             if (params.spikein_bowtie2.endsWith(".tar.gz")) {
-                ch_bt2_spikein_index = UNTAR_INDEX_SPIKEIN ( params.spikein_bowtie2 ).untar
+                ch_bt2_spikein_index = UNTAR_INDEX_SPIKEIN ( [ [], params.spikein_bowtie2 ] ).untar.map{ row -> [ row[1] ] }
                 ch_versions          = ch_versions.mix(UNTAR_INDEX_SPIKEIN.out.versions)
             } else {
                 ch_bt2_spikein_index = file(params.spikein_bowtie2)

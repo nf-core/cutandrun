@@ -1,0 +1,17 @@
+- name: test_verify_output_skip_frip_true
+  command: nextflow run main.nf -profile docker,test_full_small --skip_frip true -c tests/config/nextflow.config
+  tags:
+    - verify_output_skip_frip
+  files:
+    - path: results/04_reporting/qc/06_04_frags_in_peaks.csv
+      should_exist: false
+    - path: results/04_reporting/qc/06_04_frags_in_peaks.png
+      should_exist: false
+
+- name: test_verify_output_skip_frip_false
+  command: nextflow run main.nf -profile docker,test_full_small --skip_frip false  -c tests/config/nextflow.config
+  tags:
+    - verify_output_skip_frip
+  files:
+    - path: results/04_reporting/qc/06_04_frags_in_peaks.csv
+    - path: results/04_reporting/qc/06_04_frags_in_peaks.png

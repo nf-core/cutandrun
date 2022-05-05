@@ -1,7 +1,7 @@
-group,replicate,control_group,fastq_1,fastq_2
-h3k27me3,1,1,READ1_FASTQ.gz,READ2_FASTQ.gz
-h3k27me3,2,1,READ1_FASTQ.gz,READ2_FASTQ.gz
-h3k4me3,1,2,READ1_FASTQ.gz,READ2_FASTQ.gz
-h3k4me3,2,2,READ1_FASTQ.gz,READ2_FASTQ.gz
-igg,1,1,READ1_FASTQ.gz,READ2_FASTQ.gz
-igg,2,2,READ1_FASTQ.gz,READ2_FASTQ.gz
+group,replicate,fastq_1,fastq_2,control
+WT,1,WT_LIB1_REP1_1.fastq.gz,WT_LIB1_REP1_2.fastq.gz,CONTROL_GROUP
+WT,1,WT_LIB2_REP1_1.fastq.gz,WT_LIB2_REP1_2.fastq.gz,CONTROL_GROUP
+WT,2,WT_LIB1_REP2_1.fastq.gz,WT_LIB1_REP2_2.fastq.gz,CONTROL_GROUP
+KO,1,KO_LIB1_REP1_1.fastq.gz,KO_LIB1_REP1_2.fastq.gz,CONTROL_GROUP
+CONTROL_GROUP,1,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz,
+CONTROL_GROUP,2,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz,

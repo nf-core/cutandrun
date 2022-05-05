@@ -15,7 +15,7 @@ jobs:
   test:
     name: Run standard pipeline test
     # Only run on push if this is the nf-core dev branch (merged PRs)
-    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
+    if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}"
     runs-on: ubuntu-latest
     env:
       NXF_VER: ${{ matrix.nxf_ver }}
@@ -26,9 +26,9 @@ jobs:
         # Nextflow versions
         include:
           # Test pipeline minimum Nextflow version
-          - NXF_VER: '21.10.3'
+          - NXF_VER: "21.10.3"
           # Test latest nextflow version
-          - NXF_VER: ''
+          - NXF_VER: ""
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -70,7 +70,7 @@ jobs:
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        nxf_ver: ['21.10.3', '']
+        nxf_ver: ["21.10.3", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -106,7 +106,7 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
-      NXF_VER: ''
+      NXF_VER: ""
       NXF_EDGE: 1
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
@@ -150,10 +150,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nxf_version: ['21.10.3', '']
+        nxf_version: ["21.10.3", ""]
         tags:
-          - params
-          - samplesheet
+          - test_params
+          - test_samplesheet
           - verify_output_save_ref
           - verify_output_only_input
           - verify_output_save_merged
@@ -181,6 +181,7 @@ jobs:
           - test_peak_callers_seacr_macs2
           - test_peak_callers_macs2_seacr
           - test_peak_callers_seacr_macs2_noigg
+          - test_peak_callers_ctrl_tests
           - test_conseneus_peaks_group
           - test_conseneus_peaks_all
           - test_conseneus_peaks_invalid
@@ -188,6 +189,7 @@ jobs:
           - verify_output_reporting_skip_igv
           - verify_output_reporting_skip_heatmaps
           - verify_output_reporting_skip_multiqc
+          - verify_output_skip_frip
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
