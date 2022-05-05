@@ -215,7 +215,7 @@ The merge function from [BEDtools](https://github.com/arq5x/bedtools2) is used t
 ![Peak calling - group consensus peak plot](images/consensus_peaks.png)
 ![Peak calling - group consensus peak plot](images/all_consensus_peaks.png)
 
-##  Reporting
+## Reporting
 
 ### Python reporting
 
