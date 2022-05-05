@@ -2,7 +2,7 @@
 
 ## :warning: Please read this documentation on the nf-core website: [https://nf-co.re/cutandrun/usage](https://nf-co.re/cutandrun/usage)
 
-nf-core/cutandrun is a best-practice bioinformatic analysis pipeline for CUT&Run and CUT&Tag experimental protocols that where developed to study protein-DNA interactions and epigenomic profiling.
+**nf-core/cutandrun** is a best-practice bioinformatic analysis pipeline for CUT&RUN and CUT&Tag experimental protocols that where developed to study protein-DNA interactions and epigenomic profiling.
 
 ## Samplesheet input
 
@@ -12,42 +12,27 @@ You will need to create a samplesheet file with information about the samples in
 --input <path to samplesheet file>
 ```
 
-An example sample sheet structure is shown below. This defines two target experimental groups for the histone marks h3k27me3 and h3k4me3 with two biological replicates per group. Each antibody target also had an IgG control performed alongside. The two IgG experiments are configured as biological replicates with the `igg` group keyword with a unique control group assignment. The target experiments are then assigned to the igg control group using the `control_group` column.
+An example sample sheet structure is shown below. This defines two target experimental groups for the histone marks h3k27me3 and h3k4me3 with two biological replicates per group. Each antibody target also has an IgG control. The two IgG experiments are configured as biological replicates in the same group named `igg_ctrl`. They are assigned as controls to the two other groups using the last `control` column. If there are an equal number of replicates assigned to the samples from the control group as is the case below, the IgG controls will automatically be assigned to the same replicate number. If there is a mismatch then the first rpelicate of the control group will be assigned to all.
 
 ```bash
-group,replicate,control_group,fastq_1,fastq_2
-h3k27me3,1,1,READ1_FASTQ.gz,READ2_FASTQ.gz
-h3k27me3,2,1,READ1_FASTQ.gz,READ2_FASTQ.gz
-h3k4me3,1,2,READ1_FASTQ.gz,READ2_FASTQ.gz
-h3k4me3,2,2,READ1_FASTQ.gz,READ2_FASTQ.gz
-igg,1,1,READ1_FASTQ.gz,READ2_FASTQ.gz
-igg,2,2,READ1_FASTQ.gz,READ2_FASTQ.gz
+group,replicate,fastq_1,fastq_2,control
+h3k27me3,1,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k27me3,2,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k4me3,1,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k4me3,2,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+igg_ctrl,1,READ1_FASTQ.gz,READ2_FASTQ.gz,
+igg_ctrl,2,READ1_FASTQ.gz,READ2_FASTQ.gz,
 ```
 
-| Column          | Description                                                                                                 |
-| --------------- | ----------------------------------------------------------------------------------------------------------- |
-| `group`         | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
-| `replicate`     | Integer representing replicate number.                                                                      |
-| `control_group` | Integer representing the IgG control group the target is assigned to.                                       |
-| `fastq_1`       | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
-| `fastq_2`       | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| Column      | Description                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------------- |
+| `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
+| `replicate` | Integer representing replicate number.                                                                      |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `control`   | String representing the control group the target is assigned to.                                            |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
-
-### Multiple replicates and IgG controls
-
-To assign biological replicates to the same group use the same group identifier but increment the `replicate` column appropriately. To merge multiple fastq files from the same library or to merge technical replicate data, use identical `group` AND `replicate` column identifiers. The pipeline will automatically merge these samples and treat them as one biological replicate. An example of this type of sample sheet configuration is shown below where each biological replicate has two fastq files:
-
-```bash
-group,replicate,control_group,fastq_1,fastq_2
-h3k27me3,1,1,H3K27ME3_S1_L001_R1.fastq.gz,H3K27ME3_S1_L001_R2.fastq.gz
-h3k27me3,1,1,H3K27ME3_S2_L001_R1.fastq.gz,H3K27ME3_S2_L001_R2.fastq.gz
-h3k27me3,2,1,H3K27ME3_S3_L001_R1.fastq.gz,H3K27ME3_S3_L001_R2.fastq.gz
-h3k27me3,2,1,H3K27ME3_S4_L001_R1.fastq.gz,H3K27ME3_S4_L001_R2.fastq.gz
-igg,1,1,IGG_S1_L001_R1.fastq.gz,IGG_S1_L001_R2.fastq.gz
-```
-
-To add any IgG controls that were processed, use the `igg` keyword in the `group` column and increment as with the target samples. The IgG control will be used to normalising your experimental CUT&Run (OR CUT&Tag) data. It is _recommended_ to have an IgG control for normalising your experimental data and this is the default action for the pipeline. However, if you run the pipeline without IgG control data you must supply `--igg_control false`.
 
 ## Running the pipeline
 
@@ -75,6 +60,24 @@ When you run the above command, Nextflow automatically pulls the pipeline code f
 ```console
 nextflow pull nf-core/cutandrun
 ```
+
+
+
+## Pipeline Configuration Options
+
+Trimming
+
+Saving, skipping flow options
+
+Deduplication
+
+Normalisation
+
+peak calling
+
+consensus peaks
+
+
 
 ### Reproducibility
 
