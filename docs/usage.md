@@ -99,7 +99,7 @@ Normalisation mode can be changed by `normalisation_mode`
 
 ### Peak Calling
 
-This pipeline currently provides peak calling via `SEACR` or `MACS2` using the `peakcaller` parameter. If control samples are provided in the sample sheet by default they will be used to normalise the called peaks against non-specific background noise. Control normalisation can be disabled using `use_control`. Additionally it may be necessary to scale control samples being used as background, especially when read count normalisation methods have been used at earlier stages in the pipeline. To scale the contol samples before peak calling, change the `igg_scale_factor` parameter to a number between 0-1.
+This pipeline currently provides peak calling via `SEACR` or `MACS2` using the `peakcaller` parameter. If control samples are provided in the sample sheet by default they will be used to normalise the called peaks against non-specific background noise. Control normalisation can be disabled using `use_control`. Additionally it may be necessary to scale control samples being used as background, especially when read count normalisation methods have been used at earlier stages in the pipeline. To scale the contol samples before peak calling, change the `igg_scale_factor` parameter to a number between 0-1. Multiple peak callers can be run by using comma separated values e.g. `--peakcaller SEACR,MACS2`, in this mode the primary peak caller is the first in the list and will be used for downstream processing; any additional peak callers will simply output to the results directory.
 
 ### Consensus Peaks
 

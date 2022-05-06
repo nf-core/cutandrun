@@ -60,3 +60,46 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.
 > **NB:** Dependency has been **removed** if version information isn't present.
+
+## [2.0] - 2022-05-15
+
+### Major Changes
+
+- [[#53](https://github.com/nf-core/cutandrun/issues/53)] - Complete redesign of the samplesheet input system. Controls are no longer hard-coded to `igg` and the process of assigning controls to samples has be simplified.
+- [[#93](https://github.com/nf-core/cutandrun/issues/93)], [[#73](https://github.com/nf-core/cutandrun/issues/73)] - Additional sample normalisation options have been added. In addition to normalising using detected spike-in DNA, there are now several options for normalising against read depth instead as well as skipping normalisation entirely.
+- [[#62](https://github.com/nf-core/cutandrun/issues/62)] - Added MACS2 as an optional peak caller. Peak calling can now be altered using the `peakcaller` variable. Both peak callers can be run using `--peakcaller SEACR,MACS2`, the primary caller is the first item in the list and will be used downstream while the secondary will be run and outputted to the results folder.
+- [[#101](https://github.com/nf-core/cutandrun/issues/101)] - `v1.1` ran consensus peak calling at both the group level and for all samples. This was causing performance issues for larger sample sets. There is now a new `consensus_peak_mode` parameter that defaults to `group`. Consensus will only be run on all samples if this is changed.
+
+### Enhancements
+
+- Updated pipeline template to nf-core/tools `2.3.2`
+- Upgraded pipeline to support the new nf-core module configuration system
+- More robust CI testing. Over 213 tests now before any code is merged with the main code base.
+- More control over which parts of the pipeline run. Explicit skipping has been implemented for every section of the pipeline.
+- Added options for scaling control data before it is used to call peaks. This is especially useful when using read depth normalisation as this can sometimes result in few peaks being called due to high background levels.
+- Added support for Bowtie2 large indexes
+- IGV auto-session builder now supports `gff` and `fna` file extensions
+- Bowtie2 alignment has been altered to run in `--end-to-end` mode only if trimming is skipped. If trimming is activated then it will run in `--local` mode
+- [[#88](https://github.com/nf-core/cutandrun/issues/88)] - Many processes have been optimized for resource utilization. Users will especially notice that single thread processes will now only request 1 core rather than 2.
+- [[#63](https://github.com/nf-core/cutandrun/issues/63)] - Custom containers for python reporting have now been condensed into a single container and added to BioConda.
+- [[#76](https://github.com/nf-core/cutandrun/issues/76)] - Standardized python versions across reporting modules.
+
+### Fixes
+
+- [[#120](https://github.com/nf-core/cutandrun/issues/120)] - DeepTools compute matrix/heatmaps now only runs if there are peaks detected.
+- [[#99](https://github.com/nf-core/cutandrun/issues/99)] - Large upset plots were causing process crashes. Upset plots will now fail gracefully if the number of samples in the consensus group is more than 10.
+- [[#95](https://github.com/nf-core/cutandrun/issues/95)] - Fixed FRIP performance issues and crashes.
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+| Dependency | Old version | New version |
+| ---------- | ----------- | ----------- |
+| `samtools` | 1.14        | 1.15.1      |
+| `bowtie2`  | 2.4.2       | 2.4.4       |
+| `picard`   | 2.25.7      | 2.27.1      |
+
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
