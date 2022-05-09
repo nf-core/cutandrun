@@ -63,17 +63,47 @@ nextflow pull nf-core/cutandrun
 
 ## Pipeline Configuration Options
 
-Trimming
+### Flow and Output Configuration
 
-Saving, skipping flow options
+There are some options detailed on the parameters page that are prefixed with `save`, `skip` or `only`. These are flow control options that allow for saving additional output to the results directory, skipping unwanted portions of the pipeline or running the pipeline up to a certain point, which can be useful for testing.
 
-Deduplication
+### De-duplication
 
-Normalisation
+CUT&RUN and CUT&Tag both integrate adapters into the vicinity of antibody-tethered enzymes, and the exact sites of integration are affected by the accessibility of surrounding DNA. Given these experimental parameters, it is expected that there are many fragments which share common starting and end positions; thus, such duplicates are generally valid but would be filtered out by de-duplication tools. However, there will be a fraction of fragments that are present due to PCR duplication that cannot be separated.
 
-peak calling
+Control samples such as those from IgG datasets have relatively high duplication rates due to non-specific interactions with the genome; therefore, it is appropriate to remove duplicates from control samples.
 
-consensus peaks
+The default for the pipeline therefore is to only run de-duplication on control samples. If it is suspected that there is a heavy fraction of PCR duplicates present in the primary samples then the parameter `dedup_target_reads` can be set using
+
+`--dedup_target_reads true`
+
+### Peak Normalisation
+
+The default mode in the pipeline is to normalise stacked reads before peak calling for epitope abundance using spike-in normalisation.
+
+Traditionally, E. coli DNA is carried along with bacterially-produced enzymes that are used in CUT&RUN and CUT&Tag experiments and gets tagmented non-specifically during the reaction. The fraction of total reads that map to the E.coli genome depends on the yield of epitope-targeted CUT&Tag, and so depends on the number of cells used and the abundance of that epitope in chromatin. Since a constant amount of protein is added to the reactions and brings along a fixed amount of E. coli DNA, E. coli reads can be used to normalize epitope abundance in a set of experiments.
+
+Since the introduction of these techniques there are several factors that have reduced the usefulness of this type of normalisation in certain experimental conditions. Firstly, many commercially available kits now have very low levels of E.coli DNA in them, which therefore requires users to spike-in their own DNA for normalisation which is not always done. Secondly the normalisation approach is dependant on the cell count between samples being constant, which in our experience is quite difficult to achieve especially in tissue samples.
+
+For these reasons we provide several other modes of normalisation based on read count; however, it should be noted that this form of normalisation is more simplistic and does not take into account epitope abundance. These normalisation modes are performed by [Deeptools bamCoverage](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html), some are more relevant than others to this type of data, we recommend using CPM with a bin size of 1 as a default.
+
+| Mode      | Description                                                                                               |
+| --------- | --------------------------------------------------------------------------------------------------------- |
+| `Spikein` | The default mode which normalises by E. coli DNA.                                                         |
+| `RPKM`    | Reads Per Kilobase per Million mapped reads. More relevant for transcript based assays.                   |
+| `CPM`     | Counts Per Million mapped reads = number of reads per bin / number of mapped reads. Default bin size is 1 |
+| `BPM`     | number of reads per bin / sum of all reads per bin (in millions),                                         |
+| `None`    | Disables normalisation.                                                                                   |
+
+Normalisation mode can be changed by `normalisation_mode`
+
+### Peak Calling
+
+This pipeline currently provides peak calling via `SEACR` or `MACS2` using the `peakcaller` parameter. If control samples are provided in the sample sheet by default they will be used to normalise the called peaks against non-specific background noise. Control normalisation can be disabled using `use_control`. Additionally it may be necessary to scale control samples being used as background, especially when read count normalisation methods have been used at earlier stages in the pipeline. To scale the contol samples before peak calling, change the `igg_scale_factor` parameter to a number between 0-1. Multiple peak callers can be run by using comma separated values e.g. `--peakcaller SEACR,MACS2`, in this mode the primary peak caller is the first in the list and will be used for downstream processing; any additional peak callers will simply output to the results directory.
+
+### Consensus Peaks
+
+After peak calling, consensus peaks will be calculated based on merging peaks within the same groups. The number of replicates required for a valid peak can be changed using `replicate_threshold`. In some situations a user may which to call consensus peaks based on all samples, this can be configured by changing the `consensus_peak_mode` parameter from `group` to `all`.
 
 ### Reproducibility
 
