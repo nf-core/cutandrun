@@ -55,7 +55,7 @@ ch_dt_frag_to_csv_awk = file("$projectDir/bin/dt_frag_report_to_csv.awk", checkI
 */
 
 // Load up and check multiqc base config and custom configs
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 // Header files for MultiQC
@@ -952,7 +952,7 @@ workflow CUTANDRUN {
             ch_multiqc_custom_config.collect().ifEmpty([]),
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_unique_yml.collect(),
-            ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml"),
+            ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yml"),
             FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
