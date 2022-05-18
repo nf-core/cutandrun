@@ -40,7 +40,7 @@
     - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.macs2.peaks.bed_summits.bed
 
 - name: test_peak_callers_seacr_macs2_noigg
-  command: nextflow run main.nf -profile docker,test_no_igg --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller seacr,macs2 -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test_no_control --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller seacr,macs2 -c tests/config/nextflow.config
   tags:
     - test_peak_callers
     - test_peak_callers_seacr_macs2_noigg
