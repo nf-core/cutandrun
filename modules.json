@@ -19,7 +19,7 @@
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "bowtie2/align": {
-                "git_sha": "cbc47767f7bb4751a9d178395bd66f051401a0c1"
+                "git_sha": "61f68913fefc20241ceccb671b104230b2d775d7"
             },
             "bowtie2/build": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
