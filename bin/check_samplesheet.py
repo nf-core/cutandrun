@@ -189,7 +189,7 @@ def check_samplesheet(file_in, file_out, use_control):
                 else: 
                     sample_info.append("0")
 
-    ## Check igg_control parameter is consistent with input groups
+    ## Check use_control parameter is consistent with input groups
     if (use_control == 'true' and not control_present):
         print_error("ERROR: No 'control' group was found in " + str(file_in) + " If you are not supplying a control, please specify --use_control 'false' on command line.")
         
