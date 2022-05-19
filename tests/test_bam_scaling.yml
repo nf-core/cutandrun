@@ -60,3 +60,10 @@
     - path: results/03_peak_calling/01_bam_to_bedgraph/igg_ctrl_R1.sorted.bedGraph
       contains:
         - "chr20	606391	606415	285.714"
+
+- name: test_normalisation_mode_invalid
+  command:
+    nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --normalisation_mode test -c tests/config/nextflow.config
+    - test_bam_scale
+    - test_bam_scale_invalid
+  exit_code: 1

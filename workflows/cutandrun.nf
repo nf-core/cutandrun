@@ -70,23 +70,11 @@ ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.tx
 // Init aligners
 def prepare_tool_indices = ["bowtie2"]
 
-// Check normalisation mode params
-def norm_mode_list = ["Spikein", "RPKM", "CPM", "BPM", "None" ]
-if (!(params.normalisation_mode in norm_mode_list)) {
-    exit 1, "Invalid normalisation mode option: ${params.normalisation_mode}. Valid options: ${norm_mode_list.join(', ')}"
-}
-
 // Check peak caller params
 def caller_list = ['seacr', 'macs2']
 callers = params.peakcaller ? params.peakcaller.split(',').collect{ it.trim().toLowerCase() } : ['seacr']
 if ((caller_list + callers).unique().size() != caller_list.size()) {
     exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}"
-}
-
-// Check consensus peak mode params
-def conseneus_mode_list = ['group', 'all']
-if (!(params.consensus_peak_mode in conseneus_mode_list)) {
-    exit 1, "Invalid conseneus mode option: ${params.consensus_peak_mode}. Valid options: ${conseneus_mode_list.join(', ')}"
 }
 
 /*
