@@ -63,9 +63,15 @@ def check_samplesheet(file_in, file_out, use_control):
 
         ## Check header
         MIN_COLS = 3
+        LEGACY_HEADER = ["group", "replicate", "control_group", "fastq_1", "fastq_2"]
         HEADER = ["group", "replicate", "fastq_1", "fastq_2", "control"]
         HEADER_LEN = len(HEADER)
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
+
+        if len(header) >= len(LEGACY_HEADER) and header[: len(LEGACY_HEADER)] == LEGACY_HEADER:
+            print("ERROR: It looks like you are using a legacy header format with a newer version of the pipeline -> {} != {}".format(",".join(header), ",".join(HEADER)))
+            sys.exit(1)
+
         if header[: len(HEADER)] != HEADER:
             print("ERROR: Please check samplesheet header -> {} != {}".format(",".join(header), ",".join(HEADER)))
             sys.exit(1)
@@ -81,7 +87,7 @@ def check_samplesheet(file_in, file_out, use_control):
             ## Check valid number of columns per row
             if len(lspl) != HEADER_LEN:
                 print_error(
-                    "Invalid number of columns (should be {})!".format(len(HEADER)),
+                    "Invalid number of columns (found {} should be {})!".format(len(lspl), len(HEADER)),
                     "Line",
                     line,
                 )
