@@ -381,7 +381,7 @@ workflow CUTANDRUN {
     ch_bigwig   = Channel.empty()
     if(params.run_peak_calling) {
         /*
-        * SUBWORKFLOW: Convert bam files to bedgraph/bigwig and apply configured normalisation strategy
+        * SUBWORKFLOW: Convert BAM files to bedgraph/bigwig and apply configured normalisation strategy
         */
         PREPARE_PEAKCALLING(
             ch_samtools_bam,
