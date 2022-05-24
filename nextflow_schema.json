@@ -304,7 +304,8 @@
                     "type": "string",
                     "default": "Spikein",
                     "fa_icon": "fab fa-buffer",
-                    "description": "Sets the target read normalisation mode. Options are: [\"Spikein\", \"RPKM\", \"CPM\", \"BPM\", \"None\" ]"
+                    "description": "Sets the target read normalisation mode. Options are: [\"Spikein\", \"RPKM\", \"CPM\", \"BPM\", \"None\" ]",
+                    "enum": ["Spikein", "RPKM", "CPM", "BPM", "None"]
                 },
                 "normalisation_binsize": {
                     "type": "integer",
@@ -332,7 +333,7 @@
                 },
                 "igg_scale_factor": {
                     "type": "number",
-                    "default": 1,
+                    "default": 1.0,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Specifies whether the background control is scaled prior to being used to normalise peaks."
                 },
@@ -344,7 +345,7 @@
                 },
                 "macs2_gsize": {
                     "type": "number",
-                    "default": 2700000000,
+                    "default": 2700000000.0,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Genome size values for macs2 peak caller"
                 },
@@ -357,11 +358,12 @@
                     "type": "string",
                     "default": "group",
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Specifies what samples to group together for consensus peaks. Options are [group, all]"
+                    "description": "Specifies what samples to group together for consensus peaks. Options are [group, all]",
+                    "enum": ["group", "all"]
                 },
                 "replicate_threshold": {
                     "type": "number",
-                    "default": 1,
+                    "default": 1.0,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
                 }

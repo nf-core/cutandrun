@@ -55,7 +55,7 @@ ch_dt_frag_to_csv_awk = file("$projectDir/bin/dt_frag_report_to_csv.awk", checkI
 */
 
 // Load up and check multiqc base config and custom configs
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 // Header files for MultiQC
@@ -70,23 +70,11 @@ ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.tx
 // Init aligners
 def prepare_tool_indices = ["bowtie2"]
 
-// Check normalisation mode params
-def norm_mode_list = ["Spikein", "RPKM", "CPM", "BPM", "None" ]
-if (!(params.normalisation_mode in norm_mode_list)) {
-    exit 1, "Invalid normalisation mode option: ${params.normalisation_mode}. Valid options: ${norm_mode_list.join(', ')}"
-}
-
 // Check peak caller params
 def caller_list = ['seacr', 'macs2']
 callers = params.peakcaller ? params.peakcaller.split(',').collect{ it.trim().toLowerCase() } : ['seacr']
 if ((caller_list + callers).unique().size() != caller_list.size()) {
     exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}"
-}
-
-// Check consensus peak mode params
-def conseneus_mode_list = ['group', 'all']
-if (!(params.consensus_peak_mode in conseneus_mode_list)) {
-    exit 1, "Invalid conseneus mode option: ${params.consensus_peak_mode}. Valid options: ${conseneus_mode_list.join(', ')}"
 }
 
 /*
@@ -393,7 +381,7 @@ workflow CUTANDRUN {
     ch_bigwig   = Channel.empty()
     if(params.run_peak_calling) {
         /*
-        * SUBWORKFLOW: Convert bam files to bedgraph/bigwig and apply configured normalisation strategy
+        * SUBWORKFLOW: Convert BAM files to bedgraph/bigwig and apply configured normalisation strategy
         */
         PREPARE_PEAKCALLING(
             ch_samtools_bam,
@@ -952,7 +940,7 @@ workflow CUTANDRUN {
             ch_multiqc_custom_config.collect().ifEmpty([]),
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_unique_yml.collect(),
-            ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml"),
+            ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yml"),
             FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),

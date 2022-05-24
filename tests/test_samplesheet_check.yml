@@ -183,3 +183,10 @@
     - test_samplesheet
   files:
     - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test legacy 1_0 samplesheet
+- name: test_samplesheet_legacy_1_0
+  command: nextflow run main.nf -profile docker,test --only_input true --input https://raw.githubusercontent.com/luslab/test-datasets/cutandrun/samplesheet/unit_tests/legacy/1_0_samplesheet.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1

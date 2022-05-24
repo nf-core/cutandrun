@@ -18,7 +18,7 @@ process GENERATE_REPORTS {
     path '*.pdf'             , emit: pdf
     path '*.csv'             , emit: csv
     path '*.png'             , emit: png
-    path '*frag_len_mqc.yaml', emit: frag_len_multiqc
+    path '*frag_len_mqc.yml', emit: frag_len_multiqc
     path  "versions.yml"     , emit: versions
 
     when:
@@ -38,7 +38,7 @@ process GENERATE_REPORTS {
         --log log.txt
 
     if [ -f "03_03_frag_len_mqc.txt" ]; then
-        cat $frag_len_header_multiqc 03_03_frag_len_mqc.txt > frag_len_mqc.yaml
+        cat $frag_len_header_multiqc 03_03_frag_len_mqc.txt > frag_len_mqc.yml
     fi
 
     cat <<-END_VERSIONS > versions.yml
