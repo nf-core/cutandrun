@@ -19,13 +19,13 @@ workflow ALIGN_BOWTIE2 {
     /*
      * Map reads with BOWTIE2 to target genome
      */
-    BOWTIE2_ALIGN ( reads, index, params.save_unaligned )
+    BOWTIE2_ALIGN ( reads, index, params.save_unaligned, false )
     ch_versions = ch_versions.mix(BOWTIE2_ALIGN.out.versions)
 
     /*
      * Map reads with BOWTIE2 to spike-in genome
      */
-    BOWTIE2_SPIKEIN_ALIGN ( reads, spikein_index, params.save_unaligned )
+    BOWTIE2_SPIKEIN_ALIGN ( reads, spikein_index, params.save_unaligned, false )
 
     /*
      * Sort, index BAM file and run samtools stats, flagstat and idxstats
