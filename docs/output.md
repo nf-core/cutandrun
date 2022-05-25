@@ -237,7 +237,7 @@ Additional QC and analysis pertaining particularly to CUT&Run and CUT&Tag data a
 
 [MultiQC](http://multiqc.info) is a visualization tool that generates a single HTML report summarizing all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available in the report data directory.
 
-> **NB:** The FastQC plots displayed in the MultiQC report shows **untrimmed** reads. They may contain adapter sequence and potentially regions with low quality.
+> **NB:** The FastQC plots displayed in the MultiQC report shows _untrimmed_ reads. They may contain adapter sequence and potentially regions with low quality.
 
 <details markdown="1">
 <summary>Output files</summary>
