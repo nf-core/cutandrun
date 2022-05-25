@@ -25,7 +25,7 @@
                 "outdir": {
                     "type": "string",
                     "format": "directory-path",
-                    "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
+                    "description": "The output directory where the results will be saved. You have to use absolute paths to store on Cloud infrastructure.",
                     "fa_icon": "fas fa-folder-open"
                 },
                 "multiqc_title": {
@@ -46,7 +46,7 @@
                 "save_trimmed": {
                     "type": "boolean",
                     "fa_icon": "fas fa-folder-plus",
-                    "description": "Save trimmed FASTQ file to the output directory"
+                    "description": "Save trimmed FASTQ files to the output directory"
                 },
                 "save_spikein_aligned": {
                     "type": "boolean",
@@ -97,7 +97,7 @@
                 "gene_bed": {
                     "type": "string",
                     "fa_icon": "fas fa-book",
-                    "description": "Path to gene bed file"
+                    "description": "Path to gene BED file"
                 },
                 "blacklist": {
                     "type": "string",
@@ -240,31 +240,32 @@
                     "type": "integer",
                     "default": 0,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Trim galore param"
+                    "description": "Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads)."
                 },
                 "clip_r2": {
                     "type": "integer",
                     "default": 0,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Trim galore param"
+                    "description": "Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only)."
                 },
                 "three_prime_clip_r1": {
                     "type": "integer",
                     "default": 0,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Trim galore param"
+                    "description": "Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed."
                 },
                 "three_prime_clip_r2": {
                     "type": "integer",
                     "default": 0,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Trim galore param"
+                    "description": "Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed."
                 },
                 "trim_nextseq": {
                     "type": "integer",
                     "default": 0,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Trim galore param"
+                    "description": "Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails.",
+                    "help_text": "This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases."
                 }
             },
             "fa_icon": "fas fa-cut"

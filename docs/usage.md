@@ -12,7 +12,7 @@ You will need to create a samplesheet file with information about the samples in
 --input <path to samplesheet file>
 ```
 
-An example sample sheet structure is shown below. This defines two target experimental groups for the histone marks h3k27me3 and h3k4me3 with two biological replicates per group. Each antibody target also has an IgG control. The two IgG experiments are configured as biological replicates in the same group named `igg_ctrl`. They are assigned as controls to the two other groups using the last `control` column. If there are an equal number of replicates assigned to the samples from the control group as is the case below, the IgG controls will automatically be assigned to the same replicate number. If there is a mismatch then the first rpelicate of the control group will be assigned to all.
+An example sample sheet structure is shown below. This defines two target experimental groups for the histone marks h3k27me3 and h3k4me3 with two biological replicates per group. Each antibody target also has an IgG control. The two IgG experiments are configured as biological replicates in the same group named `igg_ctrl`. They are assigned as controls to the two other groups using the last `control` column. If there are an equal number of replicates assigned to the samples from the control group as is the case below, the IgG controls will automatically be assigned to the same replicate number. If there is a mismatch then the first replicate of the control group will be assigned to all.
 
 ```bash
 group,replicate,fastq_1,fastq_2,control
@@ -30,7 +30,7 @@ igg_ctrl,2,READ1_FASTQ.gz,READ2_FASTQ.gz,
 | `replicate` | Integer representing replicate number.                                                                      |
 | `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
 | `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
-| `control`   | String representing the control group the target is assigned to.                                            |
+| `control`   | String representing the control group in the `group` column to which this replicate is assigned to.         |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
@@ -95,11 +95,11 @@ For these reasons we provide several other modes of normalisation based on read 
 | `BPM`     | number of reads per bin / sum of all reads per bin (in millions),                                         |
 | `None`    | Disables normalisation.                                                                                   |
 
-Normalisation mode can be changed by `normalisation_mode`
+Normalisation mode can be changed by the parameter `--normalisation_mode`.
 
 ### Peak Calling
 
-This pipeline currently provides peak calling via `SEACR` or `MACS2` using the `peakcaller` parameter. If control samples are provided in the sample sheet by default they will be used to normalise the called peaks against non-specific background noise. Control normalisation can be disabled using `use_control`. Additionally it may be necessary to scale control samples being used as background, especially when read count normalisation methods have been used at earlier stages in the pipeline. To scale the contol samples before peak calling, change the `igg_scale_factor` parameter to a number between 0-1. Multiple peak callers can be run by using comma separated values e.g. `--peakcaller SEACR,MACS2`, in this mode the primary peak caller is the first in the list and will be used for downstream processing; any additional peak callers will simply output to the results directory.
+This pipeline currently provides peak calling via `SEACR` or `MACS2` using the `peakcaller` parameter. If control samples are provided in the sample sheet by default they will be used to normalise the called peaks against non-specific background noise. Control normalisation can be disabled using `--use_control`. Additionally it may be necessary to scale control samples being used as background, especially when read count normalisation methods have been used at earlier stages in the pipeline. To scale the control samples before peak calling, change the `--igg_scale_factor` parameter to a number between 0-1. Multiple peak callers can be run by using comma separated values e.g. `--peakcaller SEACR,MACS2`, in this mode the primary peak caller is the first in the list and will be used for downstream processing; any additional peak callers will simply output to the results directory.
 
 ### Consensus Peaks
 
