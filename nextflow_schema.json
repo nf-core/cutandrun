@@ -324,7 +324,7 @@
                     "type": "string",
                     "default": "seacr",
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Selects the peak caller for the pipeline. Options are: [seacr, macs2]"
+                    "description": "Selects the peak caller for the pipeline. Options are: [seacr, macs2]. More than one peak caller can be chosen and the order specifies which is a primary peak called (the first) that will be used downstream. Any secondary peak callers will be run and outputed to the results folder."
                 },
                 "use_control": {
                     "type": "boolean",
