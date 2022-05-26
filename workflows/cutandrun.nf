@@ -487,7 +487,7 @@ workflow CUTANDRUN {
 
                 MACS2_CALLPEAK (
                     ch_bam_paired,
-                    params.macs2_gsize
+                    params.macs_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
@@ -536,7 +536,7 @@ workflow CUTANDRUN {
 
                 MACS2_CALLPEAK_NOIGG (
                     ch_samtools_bam_target_fctrl,
-                    params.macs2_gsize
+                    params.macs_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
