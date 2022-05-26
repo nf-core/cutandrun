@@ -344,11 +344,11 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "P-value threshold for macs2 peak caller"
                 },
-                "macs2_gsize": {
+                "macs_gsize": {
                     "type": "number",
                     "default": 2700000000.0,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Genome size values for macs2 peak caller"
+                    "description": "parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38."
                 },
                 "run_narrow_peak": {
                     "type": "boolean",
