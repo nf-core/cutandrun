@@ -22,7 +22,9 @@ process PLOT_CONSENSUS_PEAKS {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
+        numpy: \$(python -c 'import numpy; print(numpy.__version__)')
+        pandas: \$(python -c 'import pandas; print(pandas.__version__)')
+        upsetplot: \$(python -c 'import upsetplot; print(upsetplot.__version__)')
     END_VERSIONS
     """
-
 }

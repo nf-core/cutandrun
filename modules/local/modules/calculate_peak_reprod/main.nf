@@ -27,6 +27,9 @@ process CALCULATE_PEAK_REPROD {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
+        dask: \$(python -c 'import dask; print(dask.__version__)')
+        numpy: \$(python -c 'import numpy; print(numpy.__version__)')
+        pandas: \$(python -c 'import pandas; print(pandas.__version__)')
     END_VERSIONS
     """
 }

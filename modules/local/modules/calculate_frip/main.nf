@@ -28,6 +28,8 @@ process CALCULATE_FRIP {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
+        deeptools: \$(deeptools --version | sed -e "s/deeptools //g")
+        pysam: \$(python -c 'import pysam; print(pysam.__version__)')
     END_VERSIONS
     """
 }
