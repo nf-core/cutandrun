@@ -12,6 +12,7 @@ process SORT {
 
     output:
     tuple val(meta), path("*.sort.*"), emit: file
+    path  "versions.yml"             , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -26,5 +27,10 @@ process SORT {
 
     """
     sort -T '.' $args $input_files > ${prefix}.sort.${ext}
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        sort: \$(sort --version | head -n 1 | awk '{print \$4;}')
+    END_VERSIONS
     """
 }

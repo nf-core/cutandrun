@@ -653,8 +653,8 @@ workflow CUTANDRUN {
         AWK_FRAG_BIN(
             CALCULATE_FRAGMENTS.out.bed
         )
+        ch_software_versions = ch_software_versions.mix(AWK_FRAG_BIN.out.versions)
         //AWK_FRAG_BIN.out.file | view
-
 
         /*
         * CHANNEL: Combine bam and bai files on id
@@ -765,6 +765,7 @@ workflow CUTANDRUN {
                 ch_ordered_bigwig,
                 ch_ordered_peaks_max_notempty
             )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
 
@@ -774,6 +775,7 @@ workflow CUTANDRUN {
             DEEPTOOLS_PLOTHEATMAP_PEAKS (
                 DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
             )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions)
         }
 
         /*
@@ -817,6 +819,7 @@ workflow CUTANDRUN {
         CUT_CALC_REPROD (
             AWK_NAME_PEAK_BED.out.file
         )
+        ch_software_versions = ch_software_versions.mix(CUT_CALC_REPROD.out.versions)
 
         /*
         * CHANNEL: Group samples based on group
