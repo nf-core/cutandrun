@@ -12,6 +12,7 @@ process SORT {
 
     output:
     tuple val(meta), path("*.sort.*"), emit: file
+    path  "versions.yml"             , emit: versions
 
     when:
     task.ext.when == null || task.ext.when

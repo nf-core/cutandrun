@@ -12,6 +12,7 @@ process CUT {
 
     output:
     tuple val(meta), path("*.cut.*"), emit: file
+    path  "versions.yml"            , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
