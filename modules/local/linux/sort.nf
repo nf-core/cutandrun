@@ -26,5 +26,10 @@ process SORT {
 
     """
     sort -T '.' $args $input_files > ${prefix}.sort.${ext}
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        sort: \$(sort --version | head -n 1 | awk '{print \$4;}')
+    END_VERSIONS
     """
 }

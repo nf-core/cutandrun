@@ -24,5 +24,10 @@ process CUT {
 
     """
     cut $args $input $command > ${prefix}.cut.${ext}
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        cut: \$(cut --version | head -n 1 | awk '{print \$4;}')
+    END_VERSIONS
     """
 }
