@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-# This script is based on the example at: https://raw.githubusercontent.com/nf-core/test-datasets/atacseq/design.csv
-
-
 import os
 import sys
 import errno
