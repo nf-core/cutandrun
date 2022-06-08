@@ -55,101 +55,11 @@ ch_dt_frag_to_csv_awk = file("$projectDir/bin/dt_frag_report_to_csv.awk", checkI
 */
 
 // Load up and check multiqc base config and custom configs
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 // Header files for MultiQC
-ch_frag_len_header_multiqc       = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
-
-/*
-========================================================================================
-    RESOLVE FLOW SWITCHING
-========================================================================================
-*/
-
-def run_genome_prep        = true
-def run_input_check        = true
-def run_cat_fastq          = true
-def run_trim_galore_fastqc = true
-def run_alignment          = true
-def run_q_filter           = false
-def run_mark_dups          = true
-def run_remove_dups        = true
-def run_peak_calling       = true
-def run_reporting          = true
-def run_deep_tools         = true
-def run_multiqc            = true
-def run_peak_plotting      = true
-
-if(params.minimum_alignment_q_score > 0)           { run_q_filter      = true  }
-if(params.skip_removeduplicates || !run_mark_dups) { run_remove_dups   = false }
-if(!params.gene_bed || params.skip_heatmaps)       { run_deep_tools    = false }
-if(params.skip_multiqc)                            { run_multiqc       = false }
-if(params.skip_upset_plots)                        { run_peak_plotting = false }
-if(params.skip_reporting) {
-    run_reporting     = false
-    run_multiqc       = false
-    run_peak_plotting = false
-}
-
-if(params.only_input) {
-    run_genome_prep        = false
-    run_cat_fastq          = false
-    run_trim_galore_fastqc = false
-    run_alignment          = false
-    run_q_filter           = false
-    run_mark_dups          = false
-    run_remove_dups        = false
-    run_peak_calling       = false
-    run_reporting          = false
-    run_multiqc            = false
-}
-
-if(params.only_genome) {
-    run_input_check        = false
-    run_cat_fastq          = false
-    run_trim_galore_fastqc = false
-    run_alignment          = false
-    run_q_filter           = false
-    run_mark_dups          = false
-    run_remove_dups        = false
-    run_peak_calling       = false
-    run_reporting          = false
-    run_multiqc            = false
-}
-
-if(params.only_preqc) {
-    run_genome_prep  = false
-    run_alignment    = false
-    run_q_filter     = false
-    run_mark_dups    = false
-    run_remove_dups  = false
-    run_peak_calling = false
-    run_reporting    = false
-    run_multiqc      = false
-}
-
-if(params.only_alignment) {
-    run_q_filter     = false
-    run_mark_dups    = false
-    run_remove_dups  = false
-    run_peak_calling = false
-    run_reporting    = false
-    run_multiqc      = false
-}
-
-if(params.only_filtering) {
-    run_mark_dups    = false
-    run_remove_dups  = false
-    run_peak_calling = false
-    run_reporting    = false
-    run_multiqc      = true
-}
-
-if(params.only_peak_calling) {
-    run_reporting = false
-    run_multiqc   = true
-}
+ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
 
 /*
 ========================================================================================
@@ -157,131 +67,15 @@ if(params.only_peak_calling) {
 ========================================================================================
 */
 
-// Don"t overwrite global params.modules, create a copy instead and use that within the main script.
-def modules = params.modules.clone()
-
-// Init
+// Init aligners
 def prepare_tool_indices = ["bowtie2"]
 
-// Genome
-def genome_options                = params.save_reference ? [publish_dir: "00_genome/target"]        : [publish_files: false]
-def spikein_genome_options        = params.save_reference ? [publish_dir: "00_genome/spikein"]       : [publish_files: false]
-def bowtie2_index_options         = params.save_reference ? [publish_dir: "00_genome/target/index"]  : [publish_files: false]
-def bowtie2_spikein_index_options = params.save_reference ? [publish_dir: "00_genome/spikein/index"] : [publish_files: false]
-
-// Replicate merging
-def cat_fastq_options = modules["cat_fastq"]
-if (!params.save_merged_fastq) { cat_fastq_options["publish_files"] = false }
-
-// Pre QC
-def trimgalore_options = modules["trimgalore"]
-if(!params.skip_fastqc) { trimgalore_options.args += " --fastqc" }
-
-// Trimming
-trimgalore_options.args  += params.trim_nextseq > 0 ? " --nextseq ${params.trim_nextseq}" : ""
-if (params.save_trimmed) { trimgalore_options.publish_files.put("fastq.gz","") }
-
-// Spikein alignment options
-def bowtie2_spikein_align_options = modules["bowtie2_spikein_align"]
-def samtools_spikein_sort_options = modules["samtools_spikein_sort"]
-if (params.save_spikein_aligned) {
-    samtools_spikein_sort_options.publish_dir   = "02_alignment/${params.aligner}/spikein"
-    samtools_spikein_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
+// Check peak caller params
+def caller_list = ['seacr', 'macs2']
+callers = params.peakcaller ? params.peakcaller.split(',').collect{ it.trim().toLowerCase() } : ['seacr']
+if ((caller_list + callers).unique().size() != caller_list.size()) {
+    exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}"
 }
-
-// Main alignment options
-def bowtie2_align_options = modules["bowtie2_align"]
-def samtools_sort_options = modules["samtools_sort"]
-if(params.only_alignment || (!run_q_filter && !run_mark_dups && !run_remove_dups)) {
-    samtools_sort_options.publish_dir   = "02_alignment/${params.aligner}/target"
-    samtools_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-}
-else if(params.save_align_intermed) {
-    samtools_sort_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/align"
-    samtools_sort_options.publish_files = ["bai":"","bam":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-}
-if(params.save_unaligned) {
-    bowtie2_align_options.publish_dir = "02_alignment/${params.aligner}/target"
-    bowtie2_align_options.publish_files = ["gz":""]
-}
-
-// Q Filter options
-samtools_qfilter_options   = modules["samtools_qfilter"]
-samtools_view_options      = modules["samtools_view_qfilter"]
-samtools_view_options.args = "-b -q " + params.minimum_alignment_q_score
-if(!run_mark_dups && !run_remove_dups) {
-    samtools_view_options.publish_dir      = "02_alignment/${params.aligner}/target"
-    samtools_view_options.publish_files    = ["bam":""]
-    samtools_qfilter_options.publish_dir   = "02_alignment/${params.aligner}/target"
-    samtools_qfilter_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-}
-else if(params.save_align_intermed) {
-    samtools_view_options.publish_dir      = "02_alignment/${params.aligner}/target/intermed/qfilter"
-    samtools_view_options.publish_files    = ["bam":""]
-    samtools_qfilter_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/qfilter"
-    samtools_qfilter_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-}
-
-// Mark duplicates options
-picard_markduplicates_options          = modules["picard_markduplicates"]
-picard_markduplicates_samtools_options = modules["picard_markduplicates_samtools"]
-if(!run_remove_dups) {
-    picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/markdup"
-    picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-    picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/markdup"
-    picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-}
-else if(params.save_align_intermed) {
-    picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/intermed/markdup"
-    picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-    picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/markdup"
-    picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-}
-
-// Remove duplicates options
-def dedup_control_only = true
-if(params.dedup_target_reads) { dedup_control_only = false }
-
-picard_deduplicates_options          = modules["picard_dedup"]
-picard_deduplicates_samtools_options = modules["picard_dedup_samtools"]
-if(run_remove_dups) {
-    picard_deduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/dedup"
-    picard_deduplicates_options.publish_files          = ["bam":"","metrics.txt": "picard_metrics"]
-    picard_deduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/dedup"
-    picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-
-    if(dedup_control_only) {
-        picard_markduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/markdup"
-        picard_markduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-        picard_markduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/markdup"
-        picard_markduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-    }
-}
-else if(params.save_align_intermed) {
-    picard_deduplicates_options.publish_dir            = "02_alignment/${params.aligner}/target/intermed/dedup"
-    picard_deduplicates_options.publish_files          = ["bam":"","metrics.txt":"picard_metrics"]
-    picard_deduplicates_samtools_options.publish_dir   = "02_alignment/${params.aligner}/target/intermed/dedup"
-    picard_deduplicates_samtools_options.publish_files = ["bai":"","stats":"samtools_stats", "flagstat":"samtools_stats", "idxstats":"samtools_stats"]
-}
-
-// Consensus peak options
-def awk_threshold           = modules["awk_threshold"]
-awk_threshold.command   = "' \$10 >= " + params.replicate_threshold.toString() + " {print \$0}'"
-def awk_all_threshold       = modules["awk_threshold"]
-awk_threshold.command   = "' \$10 >= 1 {print \$0}'"
-
-// Meta annotation options
-def awk_bt2_options         = modules["awk_bt2"]
-def awk_bt2_spikein_options = modules["awk_bt2_spikein"]
-def awk_dedup_options       = modules["awk_dedup"]
-
-// Reporting options
-def bedtools_intersect_options = modules["bedtools_intersect"]
-bedtools_intersect_options.args = "-C -sorted"
-
-// Multi QC
-def multiqc_options = modules["multiqc"]
-multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title\"" : ""
 
 /*
 ========================================================================================
@@ -292,34 +86,34 @@ multiqc_options.args += params.multiqc_title ? " --title \"$params.multiqc_title
 /*
  * MODULES
  */
-include { INPUT_CHECK                     } from "../subworkflows/local/input_check"                   addParams( options: [:]                            )
-include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_name_peak_bed"]   )
-include { IGV_SESSION                     } from "../modules/local/python/igv_session"                 addParams( options: modules["igv"]                 )
-include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"                          addParams( options: modules["awk_edit_peak_bed"]   )
-include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"                          addParams( options: modules["awk_frag_bin"]        )
-include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"               addParams( options: modules["samtools_frag_len"]   )
-include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"        addParams( options: modules["calc_frip"]           )
-include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"                          addParams( options: modules["calc_peak_repro_cut"] )
-include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main" addParams( options: modules["calc_peak_repro"]     )
-include { EXPORT_META                     } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]         )
-include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"                        addParams( options: modules["export_meta"]         )
-include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"      addParams( options: modules["generate_reports"]    )
-include { MULTIQC                         } from "../modules/local/multiqc"                            addParams( options: multiqc_options                )
+include { INPUT_CHECK                     } from "../subworkflows/local/input_check"
+include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
+include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"
+include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
+include { IGV_SESSION                     } from "../modules/local/python/igv_session"
+include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
+include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
+include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
+include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
+include { EXPORT_META                     } from "../modules/local/export_meta"
+include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"
+include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"
+include { MULTIQC                         } from "../modules/local/multiqc"
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
  */
-include { PREPARE_GENOME                                 } from "../subworkflows/local/prepare_genome"           addParams( genome_options: genome_options, spikein_genome_options: spikein_genome_options, bt2_index_options: bowtie2_index_options, bt2_spikein_index_options: bowtie2_spikein_index_options )
-include { ALIGN_BOWTIE2                                  } from "../subworkflows/local/align_bowtie2"            addParams( align_options: bowtie2_align_options, spikein_align_options: bowtie2_spikein_align_options, samtools_spikein_options: samtools_spikein_sort_options, samtools_options: samtools_sort_options )
-include { ANNOTATE_META_AWK as ANNOTATE_BT2_META         } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_options, meta_suffix: "_target", script_mode: true )
-include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_bt2_spikein_options, meta_suffix: "_spikein", script_mode: true )
-include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_threshold, plot_peak_options: modules["plot_peaks"], run_peak_plotting: run_peak_plotting)
-include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"          addParams( bedtools_merge_options: modules["bedtools_merge_groups"], sort_options: modules["sort_group_peaks"], awk_threshold_options: awk_all_threshold, plot_peak_options: modules["plot_peaks"], run_peak_plotting: run_peak_plotting)
-include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows/local/annotate_meta_awk"        addParams( options: awk_dedup_options, meta_suffix: "", meta_prefix: "dedup_", script_mode: false )
-include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"      addParams( samtools_options: modules["calc_frag_samtools"], samtools_view_options: modules["calc_frag_samtools_view"], samtools_sort_options: modules["calc_frag_samtools_sort"], bamtobed_options: modules["calc_frag_bamtobed"], awk_options: modules["calc_frag_awk"], cut_options: modules["calc_frag_cut"] )
-include { FASTQC_TRIMGALORE                              } from "../subworkflows/local/fastqc_trimgalore"        addParams( fastqc_options: modules["fastqc"], trimgalore_options: trimgalore_options )
-include { ANNOTATE_META_CSV as ANNOTATE_FRIP_META        } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_frip_options"] )
-include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows/local/annotate_meta_csv"        addParams( options: modules["meta_csv_peak_repro_options"] )
+include { PREPARE_GENOME                                 } from "../subworkflows/local/prepare_genome"
+include { FASTQC_TRIMGALORE                              } from "../subworkflows/local/fastqc_trimgalore"
+include { ALIGN_BOWTIE2                                  } from "../subworkflows/local/align_bowtie2"
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_META         } from "../subworkflows/local/annotate_meta_awk"
+include { ANNOTATE_META_AWK as ANNOTATE_BT2_SPIKEIN_META } from "../subworkflows/local/annotate_meta_awk"
+include { ANNOTATE_META_AWK as ANNOTATE_DEDUP_META       } from "../subworkflows/local/annotate_meta_awk"
+include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"
+include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"
+include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"
+include { ANNOTATE_META_CSV as ANNOTATE_FRIP_META        } from "../subworkflows/local/annotate_meta_csv"
+include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows/local/annotate_meta_csv"
 
 /*
 ========================================================================================
@@ -330,26 +124,25 @@ include { ANNOTATE_META_CSV as ANNOTATE_PEAK_REPRO_META  } from "../subworkflows
 /*
  * MODULES
  */
-include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"                   addParams( options: cat_fastq_options                      )
-include { BEDTOOLS_GENOMECOV                                       } from "../modules/nf-core/modules/bedtools/genomecov/main"          addParams( options: modules["bedtools_genomecov_bedgraph"] )
-include { BEDTOOLS_SORT                                            } from "../modules/nf-core/modules/bedtools/sort/main"               addParams( options: modules["sort_bedgraph"]               )
-include { UCSC_BEDCLIP                                             } from "../modules/nf-core/modules/ucsc/bedclip/main"                addParams( options: modules["ucsc_bedclip"]                )
-include { UCSC_BEDGRAPHTOBIGWIG                                    } from "../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"       addParams( options: modules["ucsc_bedgraphtobigwig"]       )
-include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
-include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"              addParams( options: modules["seacr"]                       )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_gene"]         )
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"     addParams( options: modules["dt_compute_mat_peaks"]        )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_gene"]         )
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"       addParams( options: modules["dt_plotheatmap_peaks"]        )
-include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"       addParams( options: bedtools_intersect_options             )
-include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from '../modules/local/modules/custom/dumpsoftwareversions/main'   addParams( options: [publish_files : ['_versions.yml':'']] ) // LOCAL FOR NOW WHILE PR IS DISCUSSED
+include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"
+include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"
+include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"
+include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/macs2/callpeak/main"
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
+include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"
+include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/modules/custom/dumpsoftwareversions/main"
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
  */
-include { MARK_DUPLICATES_PICARD                 } from "../subworkflows/nf-core/mark_duplicates_picard"   addParams( markduplicates_options: picard_markduplicates_options, samtools_options: picard_markduplicates_samtools_options, control_only: false          )
-include { MARK_DUPLICATES_PICARD as DEDUP_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"   addParams( markduplicates_options: picard_deduplicates_options, samtools_options: picard_deduplicates_samtools_options, control_only: dedup_control_only )
-include { SAMTOOLS_VIEW_SORT_STATS               } from "../subworkflows/nf-core/samtools_view_sort_stats" addParams( samtools_options: samtools_qfilter_options, samtools_view_options: samtools_view_options, samtools_sort_options: modules["samtools_sort"]     )
+include { MARK_DUPLICATES_PICARD                       } from "../subworkflows/nf-core/mark_duplicates_picard"
+include { MARK_DUPLICATES_PICARD as DEDUPLICATE_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"
+include { SAMTOOLS_VIEW_SORT_STATS                     } from "../subworkflows/nf-core/samtools_view_sort_stats"
+include { PREPARE_PEAKCALLING                          } from "../subworkflows/nf-core/prepare_peakcalling"
 
 /*
 ========================================================================================
@@ -366,7 +159,7 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Uncompress and prepare reference genome files
      */
-    if(run_genome_prep) {
+    if(params.run_genome_prep) {
         PREPARE_GENOME (
             prepare_tool_indices
         )
@@ -376,7 +169,7 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Read in samplesheet, validate and stage input files
      */
-    if(run_input_check) {
+    if(params.run_input_check) {
         INPUT_CHECK (
             ch_input
         )
@@ -400,7 +193,7 @@ workflow CUTANDRUN {
     /*
      * MODULE: Concatenate FastQ files from same sample if required
      */
-    if(run_cat_fastq) {
+    if(params.run_cat_fastq) {
         CAT_FASTQ (
             ch_fastq.multiple
         )
@@ -410,13 +203,13 @@ workflow CUTANDRUN {
             .mix(ch_fastq.single)
             .set { ch_cat_fastq }
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [READS]]
     //ch_cat_fastq | view
 
     /*
      * SUBWORKFLOW: Read QC, trim adapters and perform post-trim read QC
      */
-    if(run_trim_galore_fastqc) {
+    if(params.run_trim_galore_fastqc) {
         FASTQC_TRIMGALORE (
             ch_cat_fastq,
             params.skip_fastqc,
@@ -425,7 +218,7 @@ workflow CUTANDRUN {
         ch_trimmed_reads     = FASTQC_TRIMGALORE.out.reads
         ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.versions)
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [READS]]
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [READS]]
     //FASTQC_TRIMGALORE.out.reads | view
 
     /*
@@ -445,8 +238,7 @@ workflow CUTANDRUN {
     ch_samtools_spikein_stats     = Channel.empty()
     ch_samtools_spikein_flagstat  = Channel.empty()
     ch_samtools_spikein_idxstats  = Channel.empty()
-    if(run_alignment) {
-
+    if(params.run_alignment) {
         if (params.aligner == "bowtie2") {
             ALIGN_BOWTIE2 (
                 ch_trimmed_reads,
@@ -472,34 +264,35 @@ workflow CUTANDRUN {
             ch_samtools_spikein_idxstats  = ALIGN_BOWTIE2.out.spikein_idxstats
         }
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
-    //ch_samtools_bam | view
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
+    // ch_samtools_bam | view
 
     /*
      *  SUBWORKFLOW: Filter reads based on quality metrics
      *  http://biofinysics.blogspot.com/2014/05/how-does-bowtie2-assign-mapq-scores.html
      */
-    if (run_q_filter) {
+    if (params.run_q_filter) {
         SAMTOOLS_VIEW_SORT_STATS (
             ch_samtools_bam
         )
-        ch_samtools_bam           = SAMTOOLS_VIEW_SORT_STATS.out.bam
-        ch_samtools_bai           = SAMTOOLS_VIEW_SORT_STATS.out.bai
-        ch_samtools_stats         = SAMTOOLS_VIEW_SORT_STATS.out.stats
-        ch_samtools_flagstat      = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
-        ch_samtools_idxstats      = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
-        ch_software_versions      = ch_software_versions.mix(SAMTOOLS_VIEW_SORT_STATS.out.versions)
+        ch_samtools_bam      = SAMTOOLS_VIEW_SORT_STATS.out.bam
+        ch_samtools_bai      = SAMTOOLS_VIEW_SORT_STATS.out.bai
+        ch_samtools_stats    = SAMTOOLS_VIEW_SORT_STATS.out.stats
+        ch_samtools_flagstat = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
+        ch_samtools_idxstats = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
+        ch_software_versions = ch_software_versions.mix(SAMTOOLS_VIEW_SORT_STATS.out.versions)
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
 
     /*
      * SUBWORKFLOW: Mark duplicates on all samples
      */
     ch_markduplicates_metrics = Channel.empty()
-    if (run_mark_dups) {
+    if (params.run_mark_dups) {
         MARK_DUPLICATES_PICARD (
-            ch_samtools_bam
+            ch_samtools_bam,
+            true
         )
         ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
         ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
@@ -509,49 +302,56 @@ workflow CUTANDRUN {
         ch_markduplicates_metrics = MARK_DUPLICATES_PICARD.out.metrics
         ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.versions)
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
 
     /*
      * SUBWORKFLOW: Remove duplicates - default is on IgG controls only
      */
     ch_dedup_multiqc = Channel.empty()
-    if (run_remove_dups) {
-        DEDUP_PICARD (
-            ch_samtools_bam
+    if (params.run_remove_dups) {
+        DEDUPLICATE_PICARD (
+            ch_samtools_bam,
+            params.dedup_target_reads
         )
-        ch_samtools_bam      = DEDUP_PICARD.out.bam
-        ch_samtools_bai      = DEDUP_PICARD.out.bai
-        ch_samtools_stats    = DEDUP_PICARD.out.stats
-        ch_samtools_flagstat = DEDUP_PICARD.out.flagstat
-        ch_samtools_idxstats = DEDUP_PICARD.out.idxstats
-        ch_dedup_multiqc     = DEDUP_PICARD.out.metrics
-        ch_software_versions = ch_software_versions.mix(DEDUP_PICARD.out.versions)
+        ch_samtools_bam      = DEDUPLICATE_PICARD.out.bam
+        ch_samtools_bai      = DEDUPLICATE_PICARD.out.bai
+        ch_samtools_stats    = DEDUPLICATE_PICARD.out.stats
+        ch_samtools_flagstat = DEDUPLICATE_PICARD.out.flagstat
+        ch_samtools_idxstats = DEDUPLICATE_PICARD.out.idxstats
+        ch_dedup_multiqc     = DEDUPLICATE_PICARD.out.metrics
+        ch_software_versions = ch_software_versions.mix(DEDUPLICATE_PICARD.out.versions)
     }
-    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false], [BAM]]
+    //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
 
     /*
      * SUBWORKFLOW: Annotate meta-data with aligner stats for target and spike-in
      * the meta-data is annotated additivley so we only need to track the final channel output
      */
-    if (params.aligner == "bowtie2" && run_alignment) {
+    if (params.aligner == "bowtie2" && params.run_alignment) {
         ANNOTATE_BT2_META (
             ch_samtools_bam,
             ch_bowtie2_log,
-            ch_bt2_to_csv_awk
+            ch_bt2_to_csv_awk,
+            "",
+            "_target",
+            true
         )
         ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
 
         ANNOTATE_BT2_SPIKEIN_META (
             ANNOTATE_BT2_META.out.output,
             ch_bowtie2_spikein_log,
-            ch_bt2_to_csv_awk
+            ch_bt2_to_csv_awk,
+            "",
+            "_spikein",
+            true
         )
-        ch_samtools_bam      = ANNOTATE_BT2_SPIKEIN_META.out.output
+        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
     }
     // META-DATA example state:
-    //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false,
+    //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false,
     // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
     // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], BAM]
     //ch_samtools_bam | view
@@ -560,200 +360,214 @@ workflow CUTANDRUN {
     /*
     * SUBWORKFLOW: Annotate meta-data with duplication stats
     */
-    if (run_mark_dups) {
+    if (params.run_mark_dups) {
         ANNOTATE_DEDUP_META(
             ch_samtools_bam,
             ch_markduplicates_metrics,
-            ch_dummy_file.collect()
+            ch_dummy_file.collect(),
+            "dedup_",
+            "",
+            false
         )
         ch_samtools_bam      = ANNOTATE_DEDUP_META.out.output
         ch_software_versions = ch_software_versions.mix(ANNOTATE_DEDUP_META.out.versions)
-
     }
     //EXAMPLE CHANNEL STRUCT: [[META + dedup_library:unknown library, dedup_unpaired_reads_examined:0, dedup_read_pairs_examined:350, dedup_secondary_or_supplementary_rds:0,
     // dedup_unmapped_reads:0, dedup_unpaired_read_duplicates:0, dedup_read_pair_duplicates:0, dedup_read_pair_optical_duplicates:0, dedup_percent_duplication:0,
     // dedup_estimated_library_size:], BAM]
     //ch_samtools_bam | view
 
-    /*
-     * CHANNEL: Calculate scale factor for each sample based on a constant devided by the number
-     *          of reads aligned to the spike-in genome.
-     */
-    if (!params.skip_scale) {
-        ch_samtools_bam
-            .map { row ->
-                def denominator = row[0].find{ it.key == "bt2_total_aligned_spikein" }?.value.toInteger()
-                [ row[0].id, params.normalisation_c / (denominator != 0 ? denominator : 1) ]
-            }
-            .set { ch_scale_factor }
-    } else {
-        ch_samtools_bam
-            .map { row ->
-                [ row[0].id, 1 ]
-            }
-            .set { ch_scale_factor }
-    }
-    // EXAMPLE CHANNEL STRUCT: [id, scale_factor]
-    //ch_scale_factor | view
-
-    /*
-     * CHANNEL: Create a channel with the scale factor as a seperate value
-     */
-    ch_samtools_bam
-        .map { row -> [row[0].id, row ].flatten()}
-        .join ( ch_scale_factor )
-        .map { row -> row[1..(row.size() - 1)] }
-        .map { row ->
-            row[0].put("scale_factor", row[2])
-            [ row[0], row[1], row[2] ] }
-        .set { ch_samtools_bam_scale }
-    //EXAMPLE CHANNEL STRUCT: [[META + scale_factor:10000], BAM, SCALE_FACTOR]
-    //ch_samtools_bam_scale | view
-
-    /*
-     * CHANNEL: Add the scale factor values to the main meta-data stream
-     */
-    ch_samtools_bam_scale
-        .map { row -> [ row[0], row[1] ] }
-        .set { ch_samtools_bam }
-    //EXAMPLE CHANNEL STRUCT: [[META], BAM]
-    //ch_samtools_bam | view
-
-    if(run_peak_calling) {
+    ch_bedgraph = Channel.empty()
+    ch_bigwig   = Channel.empty()
+    if(params.run_peak_calling) {
         /*
-        * MODULE: Convert bam files to bedgraph
+        * SUBWORKFLOW: Convert BAM files to bedgraph/bigwig and apply configured normalisation strategy
         */
-        BEDTOOLS_GENOMECOV (
-            ch_samtools_bam_scale,
+        PREPARE_PEAKCALLING(
+            ch_samtools_bam,
+            ch_samtools_bai,
+            PREPARE_GENOME.out.chrom_sizes,
             ch_dummy_file,
-            "bedGraph"
+            params.normalisation_mode,
         )
-        ch_software_versions = ch_software_versions.mix(BEDTOOLS_GENOMECOV.out.versions)
-        //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
-        //BEDTOOLS_GENOMECOV.out.genomecov | view
-
-        /*
-        * MODULE: Sort bedgraph
-        */
-        BEDTOOLS_SORT (
-            BEDTOOLS_GENOMECOV.out.genomecov,
-            "bedGraph"
-        )
-        ch_software_versions = ch_software_versions.mix(BEDTOOLS_SORT.out.versions)
-
-        /*
-        * MODULE: Clip off bedgraphs so none overlap beyond chromosome edge
-        */
-        UCSC_BEDCLIP (
-            BEDTOOLS_SORT.out.sorted,
-            PREPARE_GENOME.out.chrom_sizes
-        )
-        ch_software_versions = ch_software_versions.mix(UCSC_BEDCLIP.out.versions)
-        //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
-        //UCSC_BEDCLIP.out.bedgraph | view
-
-        /*
-        * MODULE: Convert bedgraph to bigwig
-        */
-        UCSC_BEDGRAPHTOBIGWIG (
-            UCSC_BEDCLIP.out.bedgraph,
-            PREPARE_GENOME.out.chrom_sizes
-        )
-        ch_software_versions = ch_software_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions)
-        //EXAMPLE CHANNEL STRUCT: [[META], BIGWIG]
-        //UCSC_BEDGRAPHTOBIGWIG.out.bigwig | view
+        ch_samtools_bam      = PREPARE_PEAKCALLING.out.bam
+        ch_bedgraph          = PREPARE_PEAKCALLING.out.bedgraph
+        ch_bigwig            = PREPARE_PEAKCALLING.out.bigwig
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_DEDUP_META.out.versions)
 
         /*
          * CHANNEL: Separate bedgraphs into target/control
          */
-        BEDTOOLS_SORT.out.sorted.branch { it ->
-            target: it[0].group != "igg"
-            control: it[0].group == "igg"
+        ch_bedgraph.branch { it ->
+            target:  it[0].is_control == false
+            control: it[0].is_control == true
         }
         .set { ch_bedgraph_split }
         //ch_bedgraph_split.target | view
         //ch_bedgraph_split.control | view
 
         ch_seacr_bed = Channel.empty()
-        if(params.igg_control) {
-            /*
-            * CHANNEL: Pull control groups
-            */
-            ch_bedgraph_split.target.map{
-                row -> [row[0].control_group, row]
-            }
-            .set { ch_bg_target_ctrlgrp }
-            //ch_bg_target_ctrlgrp | view
+        ch_macs2_bed = Channel.empty()
+        ch_peaks_bed = Channel.empty()
 
-            ch_bedgraph_split.control.map{
-                row -> [row[0].control_group, row]
-            }
-            .set { ch_bg_control_ctrlgrp }
-            //ch_bg_control_ctrlgrp | view
-
+        if(params.use_control) {
             /*
-            * CHANNEL: Create target/control pairings
-            */
-            // Create pairs of controls (IgG) with target samples if they are supplied
-            ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp)
-                .map {
+             * MODULE: Call peaks using SEACR with IgG control
+             */
+            if('seacr' in callers) {
+                /*
+                * CHANNEL: Pull control groups
+                */
+                ch_bedgraph_split.target.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bg_target_ctrlgrp }
+                //ch_bg_target_ctrlgrp | view
+
+                ch_bedgraph_split.control.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bg_control_ctrlgrp }
+                //ch_bg_control_ctrlgrp | view
+
+                /*
+                * CHANNEL: Create target/control pairings
+                */
+                // Create pairs of controls (IgG) with target samples if they are supplied
+                ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp).map {
                     row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
                 }
                 .set{ ch_bedgraph_paired }
-            // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
-            //ch_bedgraph_paired | view
+                // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
+                //ch_bedgraph_paired | view
 
-            /*
-             * MODULE: Call peaks with IgG control
-             */
-            SEACR_CALLPEAK (
-                ch_bedgraph_paired,
-                params.peak_threshold
-            )
-            ch_seacr_bed         = SEACR_CALLPEAK.out.bed
-            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
-            //ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
-            // EXAMPLE CHANNEL STRUCT: [[META], BED]
-            //SEACR_CALLPEAK.out.bed | view
+                SEACR_CALLPEAK (
+                    ch_bedgraph_paired,
+                    params.peak_threshold
+                )
+                ch_seacr_bed         = SEACR_CALLPEAK.out.bed
+                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //SEACR_CALLPEAK.out.bed | view
+            }
+
+            if('macs2' in callers) {
+                ch_samtools_bam.branch{ it ->
+                    target:  it[0].is_control == false
+                    control: it[0].is_control == true
+                }
+                .set { ch_samtools_bam_split }
+                // ch_samtools_bam_split.target | view
+
+                /*
+                * CHANNEL: Pull control groups
+                */
+                ch_samtools_bam_split.target.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bam_target_ctrlgrp }
+                //ch_bam_target_ctrlgrp | view
+
+                ch_samtools_bam_split.control.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bam_control_ctrlgrp }
+                // ch_bam_control_ctrlgrp | view
+
+                /*
+                * CHANNEL: Create target/control pairings
+                */
+                // Create pairs of controls (IgG) with target samples if they are supplied
+                ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp).map{
+                    row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                }
+                .set{ch_bam_paired}
+                // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
+                // ch_bam_paired | view
+
+                MACS2_CALLPEAK (
+                    ch_bam_paired,
+                    params.macs_gsize
+                )
+                ch_macs2_bed         = MACS2_CALLPEAK.out.bed
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //MACS2_CALLPEAK.out.bed | view
+            }
         }
         else {
             /*
-            * CHANNEL: Add fake control channel
-            */
-            ch_bedgraph_split.target
-                .map{ row-> [ row[0], row[1], [] ] }
-                .set { ch_bedgraph_target_fctrl }
-            // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
-            // ch_bedgraph_target_fctrl | view
-
-            /*
             * MODULE: Call peaks without IgG Control
             */
-            SEACR_CALLPEAK_NOIGG (
-                ch_bedgraph_target_fctrl,
-                params.peak_threshold
-            )
-            ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
-            ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
-            //ch_software_versions = ch_software_versions.mix(SEACR_NO_IGG.out.versions)
-            // EXAMPLE CHANNEL STRUCT: [[META], BED]
-            //SEACR_NO_IGG.out.bed | view
+            if('seacr' in callers) {
+                /*
+                * CHANNEL: Add fake control channel
+                */
+                ch_bedgraph_split.target.map{ row-> [ row[0], row[1], [] ] }
+                .set { ch_bedgraph_target_fctrl }
+                // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
+                // ch_bedgraph_target_fctrl | view
+
+                SEACR_CALLPEAK_NOIGG (
+                    ch_bedgraph_target_fctrl,
+                    params.peak_threshold
+                )
+                ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
+                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //SEACR_NO_IGG.out.bed | view
+            }
+
+            if('macs2' in callers) {
+                ch_samtools_bam.branch{ it ->
+                    target:  it[0].is_control == false
+                    control: it[0].is_control == true
+                }
+                .set { ch_samtools_bam_split }
+                // ch_samtools_bam_split.target | view
+
+                /*
+                * CHANNEL: Add fake control channel
+                */
+                ch_samtools_bam_split.target.map{ row-> [ row[0], row[1], [] ] }
+                .set { ch_samtools_bam_target_fctrl }
+                // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
+                //ch_samtools_bam_target_fctrl | view
+
+                MACS2_CALLPEAK_NOIGG (
+                    ch_samtools_bam_target_fctrl,
+                    params.macs_gsize
+                )
+                ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.bed
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                // MACS2_CALLPEAK_NOIGG.out.bed | view
+            }
+        }
+
+        // Store output of primary peakcaller in the output channel
+        if(callers[0] == 'seacr') {
+                ch_peaks_bed = ch_seacr_bed
+        }
+        if(callers[0] == 'macs2') {
+            ch_peaks_bed = ch_macs2_bed
         }
 
         /*
         * MODULE: Add sample identifier column to peak beds
         */
         AWK_NAME_PEAK_BED (
-            ch_seacr_bed
+            ch_peaks_bed
         )
         ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
         // EXAMPLE CHANNEL STRUCT: [[META], BED]
         //AWK_NAME_PEAK_BED.out.file | view
 
-        /*
-        * CHANNEL: Group all samples
-        */
-        AWK_NAME_PEAK_BED.out.file
+        if(params.run_consensus_all) {
+            /*
+            * CHANNEL: Group all samples, filter where the number in the group is > 1
+            */
+            AWK_NAME_PEAK_BED.out.file
             .map { row -> [ 1, row[1] ] }
             .groupTuple(by: [0])
             .map { row ->
@@ -768,25 +582,26 @@ workflow CUTANDRUN {
             .map { row ->
                 [ row[0], row[1] ]
             }
-            .set { ch_seacr_bed_all }
-        // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
-        //ch_seacr_bed_all | view
+            .set { ch_peaks_bed_all }
+            // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
+            //ch_peaks_bed_all | view
 
-        /*
-        * SUBWORKFLOW: Construct group consensus peaks
-        */
-        CONSENSUS_PEAKS_ALL (
-            ch_seacr_bed_all
-        )
-        ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
+            /*
+            * SUBWORKFLOW: Construct group consensus peaks
+            */
+            CONSENSUS_PEAKS_ALL (
+                ch_peaks_bed_all,
+                params.skip_upset_plots
+            )
+            ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
+            // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //CONSENSUS_PEAKS_ALL.out.bed | view
 
-        // EXAMPLE CHANNEL STRUCT: [[META], BED]
-        //CONSENSUS_PEAKS_ALL.out.bed | view
-
-        /*
-        * CHANNEL: Group samples based on group
-        */
-        AWK_NAME_PEAK_BED.out.file
+        } else {
+            /*
+            * CHANNEL: Group samples based on group
+            */
+            AWK_NAME_PEAK_BED.out.file
             .map { row -> [ row[0].group, row[1] ] }
             .groupTuple(by: [0])
             .map { row ->
@@ -801,21 +616,22 @@ workflow CUTANDRUN {
             .map { row ->
                 [ row[0], row[1] ]
             }
-            .set { ch_seacr_bed_group }
-        // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
-        //ch_seacr_bed_group | view
+            .set { ch_peaks_bed_group }
+            // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
+            //ch_peaks_bed_group | view
 
-        /*
-        * SUBWORKFLOW: Construct group consensus peaks
-        * where there is more than 1 replicate in a group
-        */
-        CONSENSUS_PEAKS (
-            ch_seacr_bed_group
-        )
-        ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
-
-        // EXAMPLE CHANNEL STRUCT: [[META], BED]
-        //CONSENSUS_PEAKS.out.bed | view
+            /*
+            * SUBWORKFLOW: Construct group consensus peaks
+            * where there is more than 1 replicate in a group
+            */
+            CONSENSUS_PEAKS (
+                ch_peaks_bed_group,
+                params.skip_upset_plots
+            )
+            ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
+            // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //CONSENSUS_PEAKS.out.bed | view
+        }
 
         /*
         * SUBWORKFLOW: Calculate fragment bed from bams
@@ -837,17 +653,16 @@ workflow CUTANDRUN {
         AWK_FRAG_BIN(
             CALCULATE_FRAGMENTS.out.bed
         )
+        ch_software_versions = ch_software_versions.mix(AWK_FRAG_BIN.out.versions)
         //AWK_FRAG_BIN.out.file | view
-
 
         /*
         * CHANNEL: Combine bam and bai files on id
         */
-        ch_samtools_bam
-            .map { row -> [row[0].id, row ].flatten()}
-            .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
-            .map { row -> [row[1], row[2], row[4]] }
-            .set { ch_bam_bai }
+        ch_samtools_bam.map { row -> [row[0].id, row ].flatten()}
+        .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
+        .map { row -> [row[1], row[2], row[4]] }
+        .set { ch_bam_bai }
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
         //ch_bam_bai | view
 
@@ -857,39 +672,30 @@ workflow CUTANDRUN {
         SAMTOOLS_CUSTOMVIEW (
             ch_bam_bai
         )
-        ch_software_versions = ch_software_versions.mix(SAMTOOLS_CUSTOMVIEW.out.versions)
+        // ch_software_versions = ch_software_versions.mix(SAMTOOLS_CUSTOMVIEW.out.versions)
         //SAMTOOLS_CUSTOMVIEW.out.tsv | view
     }
 
-    if(run_reporting) {
-        if(!params.skip_igv) {
-            /*
-            * CHANNEL: Remove IgG from bigwig channel
-            */
-            UCSC_BEDGRAPHTOBIGWIG.out.bigwig
-                .filter { it[0].group != "igg" }
-                .set { ch_bigwig_no_igg }
-            //ch_bigwig_no_igg | view
-
+    if(params.run_reporting) {
+        if(params.run_igv) {
             /*
             * MODULE: Create igv session
             */
             IGV_SESSION (
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
-                ch_seacr_bed.collect{it[1]}.ifEmpty([]),
-                UCSC_BEDGRAPHTOBIGWIG.out.bigwig.collect{it[1]}.ifEmpty([])
+                ch_peaks_bed.collect{it[1]}.ifEmpty([]),
+                ch_bigwig.collect{it[1]}.ifEmpty([])
             )
-            //TODO - this version ouptut causes an error for an unknown reason
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
-        if (run_deep_tools){
+        if (params.run_deep_tools && params.run_peak_calling) {
             /*
             * MODULE: Extract max signal from peak beds
             */
             AWK_EDIT_PEAK_BED (
-                ch_seacr_bed
+                ch_peaks_bed
             )
             ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
             //AWK_EDIT_PEAK_BED.out.file | view
@@ -899,15 +705,23 @@ workflow CUTANDRUN {
             */
             AWK_EDIT_PEAK_BED.out.file
                 .map { row -> [row[0].id, row ].flatten()}
-                .set { ch_seacr_bed_id }
-            //ch_seacr_bed_id | view
+                .set { ch_peaks_bed_id }
+            //ch_peaks_bed_id | view
+
+            /*
+            * CHANNEL: Remove IgG from bigwig channel
+            */
+            ch_bigwig
+                .filter { it[0].is_control == false }
+                .set { ch_bigwig_no_igg }
+            //ch_bigwig_no_igg | view
 
             /*
             * CHANNEL: Join beds and bigwigs on id
             */
             ch_bigwig_no_igg
                 .map { row -> [row[0].id, row ].flatten()}
-                .join ( ch_seacr_bed_id )
+                .join ( ch_peaks_bed_id )
                 .set { ch_dt_peaks }
             //ch_dt_peaks | view
 
@@ -918,8 +732,8 @@ workflow CUTANDRUN {
 
             ch_dt_peaks
                 .map { row -> row[-1] }
-                .set { ch_ordered_seacr_max }
-            //ch_ordered_seacr_max | view
+                .set { ch_ordered_peaks_max }
+            //ch_ordered_peaks_max | view
 
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
@@ -937,13 +751,21 @@ workflow CUTANDRUN {
                 DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
+
+            // Run if not empty file size > 1 byte
+            ch_ordered_peaks_max
+                .filter { it -> it.size() > 1}
+                .set { ch_ordered_peaks_max_notempty }
+            //ch_ordered_peaks_max_notempty | view
+
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
                 ch_ordered_bigwig,
-                ch_ordered_seacr_max
+                ch_ordered_peaks_max_notempty
             )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
 
@@ -953,6 +775,7 @@ workflow CUTANDRUN {
             DEEPTOOLS_PLOTHEATMAP_PEAKS (
                 DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
             )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions)
         }
 
         /*
@@ -961,37 +784,42 @@ workflow CUTANDRUN {
         ch_samtools_bam
             .map { row -> [row[0].id, row ].flatten()}
             .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
-            .join ( ch_seacr_bed.map { row -> [row[0].id, row ].flatten()} )
+            .join ( ch_peaks_bed.map { row -> [row[0].id, row ].flatten()} )
             .map { row -> [row[1], row[2], row[4], row[6]] }
             .set { ch_bam_bai_bed }
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, BED]
         //ch_bam_bai_bed | view
 
-        /*
-        * MODULE: Calculate Frip scores for samples
-        */
-        CALCULATE_FRIP (
-            ch_bam_bai_bed
-        )
-        ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
-
-        /*
-        * SUBWORKFLOW: Annotate meta-data with frip stats
-        */
-        ANNOTATE_FRIP_META (
-            ch_samtools_bam,
-            CALCULATE_FRIP.out.frips
-        )
         ch_samtools_bam_ctrl = ch_samtools_bam
-        ch_samtools_bam      = ANNOTATE_FRIP_META.out.output
-        //ch_samtools_bam | view
+        if(!params.skip_frip) {
+            /*
+            * MODULE: Calculate Frip scores for samples
+            */
+            CALCULATE_FRIP (
+                ch_bam_bai_bed
+            )
+            ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
 
+            /*
+            * SUBWORKFLOW: Annotate meta-data with frip stats
+            */
+            ANNOTATE_FRIP_META (
+                ch_samtools_bam,
+                CALCULATE_FRIP.out.frips,
+                "",
+                ""
+            )
+            ch_samtools_bam = ANNOTATE_FRIP_META.out.output
+            //ch_samtools_bam | view
+        }
+       
         /*
         * MODULE: Trim unwanted columns for downstream reporting
         */
         CUT_CALC_REPROD (
             AWK_NAME_PEAK_BED.out.file
         )
+        ch_software_versions = ch_software_versions.mix(CUT_CALC_REPROD.out.versions)
 
         /*
         * CHANNEL: Group samples based on group
@@ -1027,7 +855,7 @@ workflow CUTANDRUN {
                 }
                 new_output
             }
-            .set { ch_beds_intersect }
+        .set { ch_beds_intersect }
         //EXAMPLE CHANNEL STRUCT: [[META], BED (-a), [BED...n] (-b)]
         //ch_beds_intersect | view
 
@@ -1057,10 +885,13 @@ workflow CUTANDRUN {
         */
         ANNOTATE_PEAK_REPRO_META (
             ch_samtools_bam,
-            CALCULATE_PEAK_REPROD.out.csv
+            CALCULATE_PEAK_REPROD.out.csv,
+            "",
+            ""
         )
         ch_samtools_bam = ANNOTATE_PEAK_REPRO_META.out.output
         //ch_samtools_bam | view
+        //ANNOTATE_PEAK_REPRO_META.out.output | view
 
         /*
         * MODULE: Export meta-data to csv file
@@ -1086,7 +917,7 @@ workflow CUTANDRUN {
             EXPORT_META_CTRL.out.csv,                   // meta-data report stats
             SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
             AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
-            ch_seacr_bed.collect{it[1]},                // peak beds
+            ch_peaks_bed.collect{it[1]},                // peak beds
             ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
         )
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
@@ -1103,7 +934,7 @@ workflow CUTANDRUN {
     /*
      * MODULE: Multiqc
      */
-    if (run_multiqc) {
+    if (params.run_multiqc) {
         workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
@@ -1112,7 +943,7 @@ workflow CUTANDRUN {
             ch_multiqc_custom_config.collect().ifEmpty([]),
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_unique_yml.collect(),
-            ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml"),
+            ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yml"),
             FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),

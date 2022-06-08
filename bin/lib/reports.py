@@ -99,9 +99,14 @@ class Reports:
 
         self.metadata_noctrl_table = pd.read_csv(self.meta_path, sep=',')
         self.metadata_table = pd.read_csv(self.meta_ctrl_path, sep=',')
+
         self.duplicate_info = False
         if 'dedup_percent_duplication' in self.metadata_table.columns:
             self.duplicate_info = True
+
+        self.scale_factor_info = False
+        if 'scale_factor' in self.metadata_table.columns:
+            self.scale_factor_info = True
 
         # Make new perctenage alignment columns
         self.metadata_table['target_alignment_rate'] = self.metadata_table.loc[:, ('bt2_total_aligned_target')] / self.metadata_table.loc[:, ('bt2_total_reads_target')] * 100
@@ -173,6 +178,7 @@ class Reports:
 
         self.frag_hist['group'] = group_short
         self.frag_hist['replicate'] = rep_short
+        self.frag_hist = self.frag_hist.reset_index(drop=True)
         self.frag_violin = pd.DataFrame( { "fragment_size" : frags_arr, "group" : group_arr , "replicate": rep_arr} )
 
     def load_binned_frags(self):
@@ -303,10 +309,11 @@ class Reports:
         data["04_replicate_heatmap"] = data5
 
         # Plot section 6
-        multi_plot, data6 = self.scale_factor_summary()
-        plots["05_01_scale_factor"] = multi_plot[0]
-        plots["05_02_frag_count"] = multi_plot[1]
-        data["05_scale_factor_summary"] = data6
+        if self.scale_factor_info == True:
+            multi_plot, data6 = self.scale_factor_summary()
+            plots["05_01_scale_factor"] = multi_plot[0]
+            plots["05_02_frag_count"] = multi_plot[1]
+            data["05_scale_factor_summary"] = data6
 
         # Plot 7a
         plot7a, data7a = self.no_of_peaks()
@@ -487,7 +494,7 @@ class Reports:
         plot_data = self.frag_bin500[self.frag_bin500.columns[-(len(self.frag_bin500.columns)-2):]]
         # plot_data = plot_data.fillna(0)
         corr_mat = plot_data.corr(method='pearson')
-        ax = sns.heatmap(corr_mat, annot=True)
+        ax = sns.heatmap(corr_mat, annot=True, vmin=0, vmax=1)
         fig.suptitle("Replicate Reproducibility (read counts in 500bp bins)")
 
         return fig, self.frag_bin500

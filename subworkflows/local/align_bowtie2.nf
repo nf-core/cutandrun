@@ -2,15 +2,10 @@
  * Alignment with BOWTIE2
  */
 
-params.align_options            = [:]
-params.spikein_align_options    = [:]
-params.samtools_options         = [:]
-params.samtools_spikein_options = [:]
-
-include { BOWTIE2_ALIGN                                  } from "../../modules/nf-core/modules/bowtie2/align/main" addParams( options: params.align_options, save_unaligned: params.save_unaligned                              )
-include { BOWTIE2_ALIGN as BOWTIE2_SPIKEIN_ALIGN         } from "../../modules/nf-core/modules/bowtie2/align/main" addParams( options: params.spikein_align_options, save_unaligned: false                                      )
-include { BAM_SORT_SAMTOOLS                              } from "../nf-core/bam_sort_samtools"                     addParams( samtools_sort_options: params.samtools_options, options: params.samtools_options                  )
-include { BAM_SORT_SAMTOOLS as BAM_SORT_SAMTOOLS_SPIKEIN } from "../nf-core/bam_sort_samtools"                     addParams( samtools_sort_options: params.samtools_spikein_options, options: params.samtools_spikein_options  )
+include { BOWTIE2_ALIGN                                  } from '../../modules/nf-core/modules/bowtie2/align/main'
+include { BOWTIE2_ALIGN as BOWTIE2_SPIKEIN_ALIGN         } from '../../modules/nf-core/modules/bowtie2/align/main'
+include { BAM_SORT_SAMTOOLS                              } from '../nf-core/bam_sort_samtools'
+include { BAM_SORT_SAMTOOLS as BAM_SORT_SAMTOOLS_SPIKEIN } from '../nf-core/bam_sort_samtools'
 
 workflow ALIGN_BOWTIE2 {
     take:
@@ -24,18 +19,18 @@ workflow ALIGN_BOWTIE2 {
     /*
      * Map reads with BOWTIE2 to target genome
      */
-    BOWTIE2_ALIGN ( reads, index )
+    BOWTIE2_ALIGN ( reads, index, params.save_unaligned, false )
     ch_versions = ch_versions.mix(BOWTIE2_ALIGN.out.versions)
 
     /*
      * Map reads with BOWTIE2 to spike-in genome
      */
-    BOWTIE2_SPIKEIN_ALIGN ( reads, spikein_index )
+    BOWTIE2_SPIKEIN_ALIGN ( reads, spikein_index, params.save_unaligned, false )
 
     /*
      * Sort, index BAM file and run samtools stats, flagstat and idxstats
      */
-    BAM_SORT_SAMTOOLS         ( BOWTIE2_ALIGN.out.bam         )
+    BAM_SORT_SAMTOOLS ( BOWTIE2_ALIGN.out.bam )
     ch_versions = ch_versions.mix(BAM_SORT_SAMTOOLS.out.versions)
 
     BAM_SORT_SAMTOOLS_SPIKEIN ( BOWTIE2_SPIKEIN_ALIGN.out.bam )

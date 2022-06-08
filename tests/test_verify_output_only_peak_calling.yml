@@ -2,20 +2,19 @@
   command: nextflow run main.nf -profile docker,test_full_small --only_peak_calling true --skip_fastqc true -c tests/config/nextflow.config
   tags:
     - verify_output
-    - verify_output_peak_calling
     - verify_output_peak_calling_only_peak_calling
   files:
     - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
-    - path: results/03_peak_calling/01_bam_to_bedgraph/igg_R1.sorted.bedGraph
+    - path: results/03_peak_calling/01_bam_to_bedgraph/igg_ctrl_R1.sorted.bedGraph
     - path: results/03_peak_calling/02_clip_bed/h3k27me3_R1.clipped.bedGraph
-    - path: results/03_peak_calling/02_clip_bed/igg_R1.clipped.bedGraph
+    - path: results/03_peak_calling/02_clip_bed/igg_ctrl_R1.clipped.bedGraph
     - path: results/03_peak_calling/03_bed_to_bigwig/h3k27me3_R1.bigWig
-    - path: results/03_peak_calling/03_bed_to_bigwig/igg_R1.bigWig
-    - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.peaks.bed.stringent.bed
-    - path: results/03_peak_calling/04_called_peaks/igg_R1.peaks.bed.stringent.bed
+    - path: results/03_peak_calling/03_bed_to_bigwig/igg_ctrl_R1.bigWig
+    - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.seacr.peaks.bed.stringent.bed
+    - path: results/03_peak_calling/04_called_peaks/igg_ctrl_R1.seacr.peaks.bed.stringent.bed
       should_exist: false
     - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peaks.bed
     - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peaks.filtered.awk.bed
-    - path: results/03_peak_calling/06_fragments/h3k27me3_R1.frag_len.txt
+    - path: results/03_peak_calling/06_fragments/h3k27me3_R1.frags.len.txt
     - path: results/03_peak_calling/06_fragments/h3k27me3_R1.frags.bin500.awk.bed
     - path: results/03_peak_calling/06_fragments/h3k27me3_R1.frags.cut.bed

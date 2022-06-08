@@ -1,16 +1,8 @@
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../common/functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 colour_pallete = ['38,70,83', '231,111,81', '42,157,143', '244,162,97', '233,196,106']
 
 process IGV_SESSION {
     tag "igv"
-    label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:'pipeline_info', publish_id:'') }
+    label 'process_min'
 
     conda     (params.enable_conda ? "conda-forge::python=3.8.3" : null)
     container "quay.io/biocontainers/python:3.8.3"
@@ -22,9 +14,11 @@ process IGV_SESSION {
     path bigwig
 
     output:
-    path('*.{txt,xml,bed,bigWig,fa,gtf}', includeInputs:true)
+    path('*.{txt,xml,bed,bigWig,fa,fna,gtf,gff}', includeInputs:true)
     path  "versions.yml"                , emit: versions
 
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     output = ''
@@ -53,17 +47,13 @@ process IGV_SESSION {
     """
     echo "$output" > exp_files.txt
     find -L * -iname "*.gtf" -exec echo -e {}"\\t0,48,73" \\; > gtf.igv.txt
+    find -L * -iname "*.gff" -exec echo -e {}"\\t0,48,73" \\; > gff.igv.txt
     cat *.txt > igv_files.txt
     igv_files_to_session.py igv_session.xml igv_files.txt $genome --path_prefix './'
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
+    "${task.process}":
         python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")
     END_VERSIONS
     """
 }
-
-// find -L * -iname "*.gtf" -exec echo -e {}"\\t0,0,178" \\; > gtf.igv.txt
-// find -L * -iname "*.bed" -exec echo -e {}"\\t0,0,178" \\; > bed.igv.txt
-// find -L * -iname "*.bigWig" -exec echo -e {}"\\t0,0,178" \\; > bigwig.igv.txt
-// cat *.txt > igv_files.txt

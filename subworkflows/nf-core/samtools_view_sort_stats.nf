@@ -2,14 +2,10 @@
  * Run bam files through samtools view and reindex and calc stats
  */
 
-params.samtools_view_options = [:]
-params.samtools_sort_options = [:]
-params.samtools_options      = [:]
-
-include { SAMTOOLS_VIEW      } from "../../modules/nf-core/modules/samtools/view/main"  addParams( options: params.samtools_view_options )
-include { SAMTOOLS_SORT      } from '../../modules/nf-core/modules/samtools/sort/main'  addParams( options: params.samtools_sort_options )
-include { SAMTOOLS_INDEX     } from "../../modules/nf-core/modules/samtools/index/main" addParams( options: params.samtools_options      )
-include { BAM_STATS_SAMTOOLS } from "../nf-core/bam_stats_samtools"                     addParams( options: params.samtools_options      )
+include { SAMTOOLS_VIEW      } from '../../modules/nf-core/modules/samtools/view/main'
+include { SAMTOOLS_SORT      } from '../../modules/nf-core/modules/samtools/sort/main'
+include { SAMTOOLS_INDEX     } from '../../modules/nf-core/modules/samtools/index/main'
+include { BAM_STATS_SAMTOOLS } from '../nf-core/bam_stats_samtools'
 
 workflow SAMTOOLS_VIEW_SORT_STATS {
     take:
@@ -20,20 +16,20 @@ workflow SAMTOOLS_VIEW_SORT_STATS {
     /*
      * Filter BAM file
      */
-    SAMTOOLS_VIEW ( bam, [] )
-    ch_versions = ch_versions.mix(SAMTOOLS_VIEW.out.versions)
+    SAMTOOLS_VIEW ( bam.map{ row -> [ row[0], row[1], [] ] }, [] )
+    ch_versions = ch_versions.mix(SAMTOOLS_VIEW.out.versions.first())
 
     /*
     * Sort BAM file
     */
     SAMTOOLS_SORT ( SAMTOOLS_VIEW.out.bam )
-    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
 
     /*
      * Index BAM file and run samtools stats, flagstat and idxstats
      */
     SAMTOOLS_INDEX ( SAMTOOLS_SORT.out.bam )
-    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions)
+    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions.first())
 
     // Join bam/bai
     ch_bam_sample_id = SAMTOOLS_SORT.out.bam.map  { row -> [row[0].id, row] }
@@ -41,7 +37,7 @@ workflow SAMTOOLS_VIEW_SORT_STATS {
     ch_bam_bai = ch_bam_sample_id.join(ch_bai_sample_id, by: [0]).map {row -> [row[1][0], row[1][1], row[2][1]]}
 
     BAM_STATS_SAMTOOLS ( ch_bam_bai )
-    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions)
+    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     emit:
     bam      = SAMTOOLS_SORT.out.bam            // channel: [ val(meta), [ bam ] ]

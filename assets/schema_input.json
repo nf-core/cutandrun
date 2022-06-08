@@ -17,11 +17,6 @@
                 "pattern": "^[0-9]*$",
                 "errorMessage": "Biological Replicate number within the group - technical replicates must have the same replicate number"
             },
-            "control_group": {
-                "type": "integer",
-                "pattern": "^[0-9]*$",
-                "errorMessage": "Group ID that matches to the IgG control group (if provided) - otherwise set to 0"
-            },
             "fastq_1": {
                 "type": "string",
                 "pattern": "^\\S+\\.f(ast)?q\\.gz$",
@@ -31,14 +26,13 @@
                 "type": "string",
                 "pattern": "^\\S+\\.f(ast)?q\\.gz$",
                 "errorMessage": "FastQ file for reads 2 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+            },
+            "control": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Control group id"
             }
         },
-        "required": [
-            "sample",
-            "replicate",
-            "control_group",
-            "fastq_1",
-            "fastq_2"
-        ]
+        "required": ["group", "replicate", "fastq_1", "fastq_2", "control"]
     }
 }

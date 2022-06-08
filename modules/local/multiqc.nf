@@ -1,20 +1,10 @@
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from './common/functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process MULTIQC {
-    label 'process_medium'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+    label 'process_ultralow'
 
-    conda (params.enable_conda ? "bioconda::multiqc=1.11" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/multiqc:1.11--pyhdfd78af_0"
-    } else {
-        container "quay.io/biocontainers/multiqc:1.11--pyhdfd78af_0"
-    }
+    conda (params.enable_conda ? "bioconda::multiqc=1.12" : null)
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/multiqc:1.12--pyhdfd78af_0' :
+        'quay.io/biocontainers/multiqc:1.12--pyhdfd78af_0' }"
 
     input:
     path multiqc_config
@@ -26,7 +16,7 @@ process MULTIQC {
     path ('trimgalore/fastqc/*')
     path ('trimgalore/*')
     path ('bowtie2/*')
-    path ('bowtie2/*')
+    path ('bowtie2_spikein/*')
     path ('samtools/stats/*')
     path ('samtools/flagstat/*')
     path ('samtools/idxstats/*')
@@ -38,10 +28,13 @@ process MULTIQC {
     path "*_data"              , emit: data
     path "*_plots"             , optional:true, emit: plots
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
-    def software      = getSoftwareName(task.process)
+    def args = task.ext.args ?: ''
     def custom_config = params.multiqc_config ? "--config $multiqc_custom_config" : ''
     """
-    multiqc -f $options.args $custom_config .
+    multiqc -f $args $custom_config .
     """
 }

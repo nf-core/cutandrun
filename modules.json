@@ -4,76 +4,79 @@
     "repos": {
         "nf-core/modules": {
             "bedtools/bamtobed": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "bedtools/genomecov": {
-                "git_sha": "e8b33e6eb1be2a03abdd2c06068f9a5cebc02bb4"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "bedtools/intersect": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "bedtools/merge": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "bedtools/sort": {
-                "git_sha": "2959b4ba070d138d1577acc48d35cc669fbef972"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "bowtie2/align": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "cbc47767f7bb4751a9d178395bd66f051401a0c1"
             },
             "bowtie2/build": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "cat/fastq": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
             },
             "custom/getchromsizes": {
-                "git_sha": "13b8a16f4a6945af9df146b67972eb70b52e9844"
+                "git_sha": "213403187932dbbdd936a04474cc8cd8abae7a08"
             },
             "deeptools/computematrix": {
-                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "deeptools/plotheatmap": {
-                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "fastqc": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
             },
             "gunzip": {
-                "git_sha": "e560fbbc3ed68e62bc810a50f552394056f81762"
+                "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
+            },
+            "macs2/callpeak": {
+                "git_sha": "f0800157544a82ae222931764483331a81812012"
             },
             "picard/markduplicates": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "63db63757cab03cfa7a02c0d0f134b66fbfadea6"
             },
             "samtools/flagstat": {
-                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "samtools/idxstats": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "samtools/index": {
-                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "samtools/sort": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "samtools/stats": {
-                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },
             "samtools/view": {
-                "git_sha": "ac1e6df076195cec553a2079c9cebd94026a0d47"
+                "git_sha": "6b64f9cb6c3dd3577931cc3cd032d6fb730000ce"
             },
             "seacr/callpeak": {
-                "git_sha": "4d89d6b2f0c478ac7ef80ece5cad44fdf7ffd614"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "ucsc/bedclip": {
-                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
             "ucsc/bedgraphtobigwig": {
-                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
             },
             "untar": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "51be617b1ca9bff973655eb899d591ed6ab253b5"
             }
         }
     }
