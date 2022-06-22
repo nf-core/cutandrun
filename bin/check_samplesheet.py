@@ -77,10 +77,6 @@ def check_samplesheet(file_in, file_out, use_control):
         for line in fin:
             lspl = [x.strip().strip('"') for x in line.strip().split(",")]
 
-            ## Set control_present to true if the control column is not empty
-            if lspl[4] != "":
-                control_present = True
-
             ## Check valid number of columns per row
             if len(lspl) != HEADER_LEN:
                 print_error(
@@ -88,6 +84,10 @@ def check_samplesheet(file_in, file_out, use_control):
                     "Line",
                     line,
                 )
+
+            ## Set control_present to true if the control column is not empty
+            if lspl[4] != "":
+                control_present = True
 
             ## Check valid number of populated columns per row
             num_cols = len([x for x in lspl if x])
