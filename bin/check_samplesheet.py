@@ -77,6 +77,10 @@ def check_samplesheet(file_in, file_out, use_control):
         for line in fin:
             lspl = [x.strip().strip('"') for x in line.strip().split(",")]
 
+            ## Check if its just a blank line so we dont error
+            if line == '':
+                continue
+
             ## Check valid number of columns per row
             if len(lspl) != HEADER_LEN:
                 print_error(
