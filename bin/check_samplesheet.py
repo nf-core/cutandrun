@@ -74,6 +74,7 @@ def check_samplesheet(file_in, file_out, use_control):
             sys.exit(1)
 
         ## Check sample entries
+        line_no = 1
         for line in fin:
             lspl = [x.strip().strip('"') for x in line.strip().split(",")]
 
@@ -84,7 +85,7 @@ def check_samplesheet(file_in, file_out, use_control):
             ## Check valid number of columns per row
             if len(lspl) != HEADER_LEN:
                 print_error(
-                    "Invalid number of columns (found {} should be {})!".format(len(lspl), len(HEADER)),
+                    "Invalid number of columns (found {} should be {})! - line no. {}".format(len(lspl), len(HEADER), line_no),
                     "Line",
                     line,
                 )
@@ -166,6 +167,8 @@ def check_samplesheet(file_in, file_out, use_control):
             ## Store unique control names
             if control not in control_names_list:
                 control_names_list.append(control)
+
+            line_no = line_no + 1
 
     ## Check data is either paired-end/single-end and not both
     if min(num_fastq_list) != max(num_fastq_list):
