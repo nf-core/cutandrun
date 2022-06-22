@@ -79,7 +79,7 @@ def check_samplesheet(file_in, file_out, use_control):
             lspl = [x.strip().strip('"') for x in line.strip().split(",")]
 
             ## Check if its just a blank line so we dont error
-            if line == '':
+            if line.strip() == '':
                 continue
 
             ## Check valid number of columns per row
