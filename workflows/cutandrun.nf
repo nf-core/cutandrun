@@ -489,10 +489,10 @@ workflow CUTANDRUN {
                     ch_bam_paired,
                     params.macs_gsize
                 )
-                ch_macs2_bed         = MACS2_CALLPEAK.out.bed
+                ch_macs2_bed         = MACS2_CALLPEAK.out.peak
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
-                //MACS2_CALLPEAK.out.bed | view
+                //MACS2_CALLPEAK.out.peak | view
             }
         }
         else {
@@ -538,10 +538,10 @@ workflow CUTANDRUN {
                     ch_samtools_bam_target_fctrl,
                     params.macs_gsize
                 )
-                ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.bed
+                ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.peak
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
-                // MACS2_CALLPEAK_NOIGG.out.bed | view
+                // MACS2_CALLPEAK_NOIGG.out.peak | view
             }
         }
 
@@ -839,12 +839,12 @@ workflow CUTANDRUN {
             .map { row ->
                 [ row[0], row[1] ]
             }
-        .set { ch_seacr_bed_group_2 }
+        .set { ch_peak_bed_group_2 }
 
         /*
         * CHANNEL: Per group, create a channel per one against all combination
         */
-        ch_seacr_bed_group_2
+        ch_peak_bed_group_2
             .flatMap{
                 row ->
                 new_output = []
