@@ -52,7 +52,7 @@ workflow NFCORE_CUTANDRUN {
     /*
      * WORKFLOW: Run main nf-core/cutandrun analysis pipeline
      */
-    //CUTANDRUN ()
+    CUTANDRUN ()
 }
 
 /*
