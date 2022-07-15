@@ -582,7 +582,7 @@
     ],
     "properties": {
         "macs2_narrow_peak": {
-            "type": "string",
+            "type": "boolean",
             "default": "true"
         },
         "macs2_broad_cutoff": {
