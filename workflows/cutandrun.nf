@@ -406,9 +406,10 @@ workflow CUTANDRUN {
         //ch_bedgraph_split.target | view
         //ch_bedgraph_split.control | view
 
-        ch_seacr_bed = Channel.empty()
-        ch_macs2_bed = Channel.empty()
-        ch_peaks_bed = Channel.empty()
+        ch_seacr_bed           = Channel.empty()
+        ch_macs2_bed           = Channel.empty()
+        ch_peaks_bed           = Channel.empty()
+        ch_peaks_bed_secondary = Channel.empty()
 
         if(params.use_control) {
             /*
@@ -547,10 +548,12 @@ workflow CUTANDRUN {
 
         // Store output of primary peakcaller in the output channel
         if(callers[0] == 'seacr') {
-                ch_peaks_bed = ch_seacr_bed
+            ch_peaks_bed           = ch_seacr_bed
+            ch_peaks_bed_secondary = ch_macs2_bed
         }
         if(callers[0] == 'macs2') {
-            ch_peaks_bed = ch_macs2_bed
+            ch_peaks_bed           = ch_macs2_bed
+            ch_peaks_bed_secondary = ch_seacr_bed
         }
 
         /*
@@ -685,6 +688,7 @@ workflow CUTANDRUN {
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
                 ch_peaks_bed.collect{it[1]}.ifEmpty([]),
+                ch_peaks_bed_secondary{it[1]}.ifEmpty([]),
                 ch_bigwig.collect{it[1]}.ifEmpty([])
             )
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
