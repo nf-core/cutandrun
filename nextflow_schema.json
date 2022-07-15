@@ -10,7 +10,10 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": [
+                "input",
+                "outdir"
+            ],
             "properties": {
                 "input": {
                     "type": "string",
@@ -306,7 +309,13 @@
                     "default": "Spikein",
                     "fa_icon": "fab fa-buffer",
                     "description": "Sets the target read normalisation mode. Options are: [\"Spikein\", \"RPKM\", \"CPM\", \"BPM\", \"None\" ]",
-                    "enum": ["Spikein", "RPKM", "CPM", "BPM", "None"]
+                    "enum": [
+                        "Spikein",
+                        "RPKM",
+                        "CPM",
+                        "BPM",
+                        "None"
+                    ]
                 },
                 "normalisation_binsize": {
                     "type": "integer",
@@ -350,17 +359,15 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38."
                 },
-                "run_narrow_peak": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-align-justify",
-                    "description": "Specifies whether to run macs2 in narrow peak mode"
-                },
                 "consensus_peak_mode": {
                     "type": "string",
                     "default": "group",
                     "fa_icon": "fas fa-align-justify",
                     "description": "Specifies what samples to group together for consensus peaks. Options are [group, all]",
-                    "enum": ["group", "all"]
+                    "enum": [
+                        "group",
+                        "all"
+                    ]
                 },
                 "replicate_threshold": {
                     "type": "number",
@@ -473,7 +480,14 @@
                     "description": "Method used to save pipeline results to output directory.",
                     "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
                     "fa_icon": "fas fa-copy",
-                    "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
+                    "enum": [
+                        "symlink",
+                        "rellink",
+                        "link",
+                        "copy",
+                        "copyNoFollow",
+                        "move"
+                    ],
                     "hidden": true
                 },
                 "email_on_fail": {
@@ -565,5 +579,15 @@
         {
             "$ref": "#/definitions/generic_options"
         }
-    ]
+    ],
+    "properties": {
+        "macs2_narrow_peak": {
+            "type": "string",
+            "default": "true"
+        },
+        "macs2_broad_cutoff": {
+            "type": "number",
+            "default": 0.1
+        }
+    }
 }
