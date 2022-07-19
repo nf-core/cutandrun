@@ -91,7 +91,7 @@ def igv_files_to_session(XMLOut,ListFile,Genome,PathPrefix=''):
             XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
 
     ## ADD PANEL SECTIONS
-    for ifile,colour in fileList.sort(key=lambda f: os.path.splitext(f)):
+    for ifile,colour in fileList.sort(key=lambda f: os.path.splitext(f[0])):
         extension = os.path.splitext(ifile)[1].lower()
         if extension in ['.bed','.broadpeak','.narrowpeak']:
             XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
