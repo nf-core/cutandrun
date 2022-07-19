@@ -76,7 +76,6 @@ def igv_files_to_session(XMLOut,ListFile,Genome,PathPrefix=''):
         XMLStr += '\t\t<Resource path="%s"/>\n' % (ifile)
     XMLStr += '\t</Resources>\n'
 
-
     XMLStr += '\t<Panel height="1160" name="DataPanel" width="1897">\n'
 
     ## Do a GTF pass first
