@@ -687,8 +687,8 @@ workflow CUTANDRUN {
             IGV_SESSION (
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.gtf,
-                ch_peaks_bed.collect{it[1]}.ifEmpty([]),
-                ch_peaks_bed_secondary.collect{it[1]}.ifEmpty([]),
+                ch_peaks_bed.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
+                ch_peaks_bed_secondary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_bigwig.collect{it[1]}.ifEmpty([])
             )
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
