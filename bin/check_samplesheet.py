@@ -74,20 +74,25 @@ def check_samplesheet(file_in, file_out, use_control):
             sys.exit(1)
 
         ## Check sample entries
+        line_no = 1
         for line in fin:
             lspl = [x.strip().strip('"') for x in line.strip().split(",")]
 
-            ## Set control_present to true if the control column is not empty
-            if lspl[4] != "":
-                control_present = True
+            ## Check if its just a blank line so we dont error
+            if line.strip() == '':
+                continue
 
             ## Check valid number of columns per row
             if len(lspl) != HEADER_LEN:
                 print_error(
-                    "Invalid number of columns (found {} should be {})!".format(len(lspl), len(HEADER)),
+                    "Invalid number of columns (found {} should be {})! - line no. {}".format(len(lspl), len(HEADER), line_no),
                     "Line",
                     line,
                 )
+
+            ## Set control_present to true if the control column is not empty
+            if lspl[4] != "":
+                control_present = True
 
             ## Check valid number of populated columns per row
             num_cols = len([x for x in lspl if x])
@@ -162,6 +167,8 @@ def check_samplesheet(file_in, file_out, use_control):
             ## Store unique control names
             if control not in control_names_list:
                 control_names_list.append(control)
+
+            line_no = line_no + 1
 
     ## Check data is either paired-end/single-end and not both
     if min(num_fastq_list) != max(num_fastq_list):

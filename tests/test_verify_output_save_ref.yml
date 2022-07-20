@@ -5,12 +5,8 @@
     - verify_output_save
     - verify_output_save_ref
   files:
-    - path: results/00_genome/hg38-chr20-genes.bed
-    - path: results/00_genome/hg38-chr20-genes.gtf
-    - path: results/00_genome/hg38-chr20.fa
     - path: results/00_genome/hg38-chr20.fa.fai
     - path: results/00_genome/hg38-chr20.fa.sizes
     - path: results/00_genome/index/hg38-chr20-bowtie2/hg38-chr20.1.bt2
-    - path: results/00_genome/e_coli_U00096_3.fa
     - path: results/00_genome/e_coli_U00096_3.fa.sizes
     - path: results/00_genome/index/e_coli_U00096_3/e_coli_U00096_3.1.bt2

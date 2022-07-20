@@ -76,21 +76,12 @@ def igv_files_to_session(XMLOut,ListFile,Genome,PathPrefix=''):
         XMLStr += '\t\t<Resource path="%s"/>\n' % (ifile)
     XMLStr += '\t</Resources>\n'
 
-    ## ADD PANEL SECTION
     XMLStr += '\t<Panel height="1160" name="DataPanel" width="1897">\n'
+
+    ## Do a GTF pass first
     for ifile,colour in fileList:
         extension = os.path.splitext(ifile)[1].lower()
-        if extension in ['.bed','.broadpeak','.narrowpeak']:
-            XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
-            XMLStr += 'displayMode="SQUISHED" featureVisibilityWindow="-1" fontSize="12" height="20" '
-            XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
-        elif extension in ['.bw', '.bigwig', '.tdf']:
-            XMLStr += '\t\t<Track altColor="0,0,178" autoScale="true" clazz="org.broad.igv.track.DataSourceTrack" color="%s" ' % (colour)
-            XMLStr += 'displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="12" height="100" '
-            XMLStr += 'id="%s" name="%s" normalize="false" renderer="BAR_CHART" sortable="true" visible="true" windowFunction="mean">\n' % (ifile,os.path.basename(ifile))
-            XMLStr += '\t\t\t<DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="10" minimum="0.0" type="LINEAR"/>\n'
-            XMLStr += '\t\t</Track>\n'
-        elif extension in ['.gtf']:
+        if extension in ['.gtf']:
             XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
             XMLStr += 'displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="12" '
             XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
@@ -98,6 +89,24 @@ def igv_files_to_session(XMLOut,ListFile,Genome,PathPrefix=''):
             XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
             XMLStr += 'displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="12" '
             XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
+
+    ## Then beds/narrowpeak
+    for ifile,colour in fileList:
+        extension = os.path.splitext(ifile)[1].lower()
+        if extension in ['.bed','.broadpeak','.narrowpeak']:
+            XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
+            XMLStr += 'displayMode="SQUISHED" featureVisibilityWindow="-1" fontSize="12" height="20" '
+            XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
+
+    ## Then the rest
+    for ifile,colour in fileList:
+        extension = os.path.splitext(ifile)[1].lower()
+        if extension in ['.bw', '.bigwig', '.tdf']:
+            XMLStr += '\t\t<Track altColor="0,0,178" autoScale="true" clazz="org.broad.igv.track.DataSourceTrack" color="%s" ' % (colour)
+            XMLStr += 'displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="12" height="100" '
+            XMLStr += 'id="%s" name="%s" normalize="false" renderer="BAR_CHART" sortable="true" visible="true" windowFunction="mean">\n' % (ifile,os.path.basename(ifile))
+            XMLStr += '\t\t\t<DataRange baseline="0.0" drawBaseline="true" flipAxis="false" maximum="10" minimum="0.0" type="LINEAR"/>\n'
+            XMLStr += '\t\t</Track>\n'
         elif extension in ['.bam']:
             pass
         else:

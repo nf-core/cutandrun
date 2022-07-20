@@ -11,10 +11,11 @@ process IGV_SESSION {
     path genome
     path gtf
     path beds
+    path secondary_beds
     path bigwig
 
     output:
-    path('*.{txt,xml,bed,bigWig,fa,fna,gtf,gff}', includeInputs:true)
+    path('*.{txt,xml,bed,bigWig,fa,fna,gtf,gff,narrowPeak}', includeInputs:true)
     path  "versions.yml"                , emit: versions
 
     when:
@@ -26,6 +27,7 @@ process IGV_SESSION {
     colour_pos = 0
 
     file_list = beds.collect{it.toString()}.sort()
+    file_list += secondary_beds.collect{it.toString()}.sort()
     file_list += bigwig.collect{it.toString()}.sort()
     for(file in file_list){
         file_split = file.split('_R')
