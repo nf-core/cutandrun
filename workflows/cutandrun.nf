@@ -166,8 +166,6 @@ workflow CUTANDRUN {
         ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.versions)
     }
 
-    //PREPARE_GENOME.out.bed_index | view
-
     /*
      * SUBWORKFLOW: Read in samplesheet, validate and stage input files
      */
@@ -692,7 +690,8 @@ workflow CUTANDRUN {
                 //PREPARE_GENOME.out.gtf,
                 ch_peaks_bed.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_peaks_bed_secondary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
-                ch_bigwig.collect{it[1]}.ifEmpty([])
+                ch_bigwig.collect{it[1]}.ifEmpty([]),
+                ch_bedgraph.collect{it[1]}.ifEmpty([])
             )
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }

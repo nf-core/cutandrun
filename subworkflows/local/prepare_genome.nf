@@ -13,6 +13,7 @@ include { UNTAR as UNTAR_INDEX_SPIKEIN               } from '../../modules/nf-co
 include { BOWTIE2_BUILD as BOWTIE2_BUILD_TARGET      } from '../../modules/nf-core/modules/bowtie2/build/main'
 include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN     } from '../../modules/nf-core/modules/bowtie2/build/main'
 include { TABIX_BGZIPTABIX                           } from '../../modules/nf-core/modules/tabix/bgziptabix/main'
+include { GTF2BED                                    } from '../../modules/local/gtf2bed'
 
 workflow PREPARE_GENOME {
     take:
@@ -52,8 +53,7 @@ workflow PREPARE_GENOME {
         ch_gtf = file(params.gtf)
     }
 
-    ch_gene_bed       = Channel.empty()
-    ch_gene_bed_index = Channel.empty()
+    ch_gene_bed = Channel.empty()
     if (params.gene_bed){
         /*
         * Uncompress BED annotation file
@@ -64,28 +64,35 @@ workflow PREPARE_GENOME {
         } else {
             ch_gene_bed = file(params.gene_bed)
         }
-
+    } else {
         /*
-        * Index the bed annotation file
+        * Create GTF bed file if needed
         */
-        ch_tabix = ch_gene_bed.map { 
-            row -> [ [ id:row.getName() ] , row ] 
-        }
-
-        if (params.gene_bed.endsWith(".gz")) {
-            ch_tabix = ch_tabix.map {
-                row ->
-                    new_id = row[0].id
-                    [ [ id: new_id ] , row[1] ] 
-            }
-        }
-
-        TABIX_BGZIPTABIX (
-            ch_tabix
-        )
-        ch_gene_bed_index = TABIX_BGZIPTABIX.out.gz_tbi
-        ch_versions       = ch_versions.mix(TABIX_BGZIPTABIX.out.versions)
+        GTF2BED ( ch_gtf )
+        ch_gene_bed = GTF2BED.out.bed
+        ch_versions = ch_versions.mix(GTF2BED.out.versions)
     }
+
+    /*
+    * Index the bed annotation file
+    */
+    ch_tabix = ch_gene_bed.map { 
+        row -> [ [ id:row.getName() ] , row ] 
+    }
+
+    if (params.gene_bed && params.gene_bed.endsWith(".gz")) {
+        ch_tabix = ch_tabix.map {
+            row ->
+                new_id = row[0].id.split("\\.")[0]
+                [ [ id: new_id ] , row[1] ] 
+        }
+    }
+
+    TABIX_BGZIPTABIX (
+        ch_tabix
+    )
+    ch_gene_bed_index = TABIX_BGZIPTABIX.out.gz_tbi
+    ch_versions       = ch_versions.mix(TABIX_BGZIPTABIX.out.versions)
 
     /*
     * Create chromosome sizes file

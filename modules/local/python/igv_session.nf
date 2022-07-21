@@ -14,9 +14,10 @@ process IGV_SESSION {
     path beds
     path secondary_beds
     path bigwig
+    path bedgraph
 
     output:
-    path('*.{txt,xml,bed,bigWig,fa,fna,gtf,gff,narrowPeak,gz,tbi}', includeInputs:true)
+    path('*.{txt,xml,bed,bigWig,fa,fna,gtf,gff,narrowPeak,gz,tbi,bedGraph}', includeInputs:true)
     path  "versions.yml"                , emit: versions
 
     when:
@@ -30,6 +31,7 @@ process IGV_SESSION {
     file_list = beds.collect{it.toString()}.sort()
     file_list += secondary_beds.collect{it.toString()}.sort()
     file_list += bigwig.collect{it.toString()}.sort()
+    file_list += bedgraph.collect{it.toString()}.sort()
     for(file in file_list){
         file_split = file.split('_R')
         group = file_split[0]
