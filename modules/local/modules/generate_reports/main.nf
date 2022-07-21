@@ -1,5 +1,5 @@
 process GENERATE_REPORTS {
-    label 'process_ultralow'
+    label 'low'
 
     conda (params.enable_conda ? "conda-forge::python=3.8.3 conda-forge::pandas=1.3.3" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
