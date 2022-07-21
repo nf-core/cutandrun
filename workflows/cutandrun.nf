@@ -772,6 +772,7 @@ workflow CUTANDRUN {
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
+            //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.profile | view
 
             /*
             * MODULE: Calculate DeepTools heatmap
@@ -957,6 +958,7 @@ workflow CUTANDRUN {
             ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
             ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
             ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
+            DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.profile.collect().ifEmpty([]),
             ch_frag_len_multiqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()

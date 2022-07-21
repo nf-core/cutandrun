@@ -50,6 +50,10 @@ output:
       type: file
       description: File containing software versions
       pattern: "versions.yml"
+  - profile:
+      type: file
+      description: plot of read distribution profile after annotation
+      pattern: "*.{plotProfile.tab}"
 
 authors:
   - "@jeremy1805"

@@ -15,6 +15,7 @@ process DEEPTOOLS_COMPUTEMATRIX {
     tuple val(meta), path("*.mat.gz") , emit: matrix
     tuple val(meta), path("*.mat.tab"), emit: table
     path  "versions.yml"              , emit: versions
+    path "*.plotProfile.tab"          , emit: profile
 
     when:
     task.ext.when == null || task.ext.when
@@ -30,7 +31,11 @@ process DEEPTOOLS_COMPUTEMATRIX {
         --outFileName ${prefix}.computeMatrix.mat.gz \\
         --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.tab \\
         --numberOfProcessors $task.cpus
-
+    
+    plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
+        --outFileName ${prefix}.plotProfile.pdf \\
+        --outFileNameData ${prefix}.plotProfile.tab
+    
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         deeptools: \$(computeMatrix --version | sed -e "s/computeMatrix //g")
