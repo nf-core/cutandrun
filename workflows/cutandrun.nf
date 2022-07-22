@@ -265,7 +265,39 @@ workflow CUTANDRUN {
         }
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
-    // ch_samtools_bam | view
+    //ch_samtools_bam | view
+
+    /*
+     * SUBWORKFLOW: Annotate meta-data with aligner stats for target and spike-in
+     * the meta-data is annotated additivley so we only need to track the final channel output
+     */
+    if (params.aligner == "bowtie2" && params.run_alignment) {
+        ANNOTATE_BT2_META (
+            ch_samtools_bam,
+            ch_bowtie2_log,
+            ch_bt2_to_csv_awk,
+            "",
+            "_target",
+            true
+        )
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
+
+        ANNOTATE_BT2_SPIKEIN_META (
+            ANNOTATE_BT2_META.out.output,
+            ch_bowtie2_spikein_log,
+            ch_bt2_to_csv_awk,
+            "",
+            "_spikein",
+            true
+        )
+        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
+    }
+    // META-DATA example state:
+    //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false,
+    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
+    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], BAM]
+    //ch_samtools_bam | view
+    //EXPORT_META ( ch_annotated_meta.collect{ it[0] } )
 
     /*
      *  SUBWORKFLOW: Filter reads based on quality metrics
@@ -324,38 +356,6 @@ workflow CUTANDRUN {
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
-
-    /*
-     * SUBWORKFLOW: Annotate meta-data with aligner stats for target and spike-in
-     * the meta-data is annotated additivley so we only need to track the final channel output
-     */
-    if (params.aligner == "bowtie2" && params.run_alignment) {
-        ANNOTATE_BT2_META (
-            ch_samtools_bam,
-            ch_bowtie2_log,
-            ch_bt2_to_csv_awk,
-            "",
-            "_target",
-            true
-        )
-        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
-
-        ANNOTATE_BT2_SPIKEIN_META (
-            ANNOTATE_BT2_META.out.output,
-            ch_bowtie2_spikein_log,
-            ch_bt2_to_csv_awk,
-            "",
-            "_spikein",
-            true
-        )
-        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
-    }
-    // META-DATA example state:
-    //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false,
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], BAM]
-    //ch_samtools_bam | view
-    //EXPORT_META ( ch_annotated_meta.collect{ it[0] } )
 
     /*
     * SUBWORKFLOW: Annotate meta-data with duplication stats
@@ -574,7 +574,7 @@ workflow CUTANDRUN {
             .map { row -> [ 1, row[1] ] }
             .groupTuple(by: [0])
             .map { row ->
-                new_meta = [:]
+                def new_meta = [:]
                 new_meta.put( "id", "all_samples" )
                 [ new_meta, row[1].flatten() ]
             }
@@ -608,7 +608,7 @@ workflow CUTANDRUN {
             .map { row -> [ row[0].group, row[1] ] }
             .groupTuple(by: [0])
             .map { row ->
-                new_meta = [:]
+                def new_meta = [:]
                 new_meta.put( "id", row[0] )
                 [ new_meta, row[1].flatten() ]
             }
@@ -834,7 +834,7 @@ workflow CUTANDRUN {
             .map { row -> [ row[0].group, row[1] ] }
             .groupTuple(by: [0])
             .map { row ->
-                new_meta = [:]
+                def new_meta = [:]
                 new_meta.put( "id", row[0] )
                 [ new_meta, row[1].flatten() ]
             }
@@ -853,7 +853,7 @@ workflow CUTANDRUN {
         ch_peak_bed_group_2
             .flatMap{
                 row ->
-                new_output = []
+                def new_output = []
                 row[1].each{ file ->
                     files_copy = row[1].collect()
                     files_copy.remove(files_copy.indexOf(file))
@@ -916,15 +916,29 @@ workflow CUTANDRUN {
         )
 
         /*
+        * CHANNEL: Prepare data for generate reports
+        */
+        // Make sure files are always in order for resume
+        ch_frag_len = SAMTOOLS_CUSTOMVIEW.out.tsv
+            .toSortedList { row -> row[0].id }
+            .map {
+                list ->
+                def output = []
+                list.each{ v -> output.add(v[1]) }
+                output
+            }
+        //ch_frag_len | view
+
+        /*
         * MODULE: Generate python reporting using mixture of meta-data and direct file processing
         */
         GENERATE_REPORTS(
-            EXPORT_META.out.csv.collect().ifEmpty([]),  // meta-data report stats
-            EXPORT_META_CTRL.out.csv,                   // meta-data report stats
-            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
-            AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
-            ch_peaks_bed.collect{it[1]},                // peak beds
-            ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
+            EXPORT_META.out.csv.collect().ifEmpty([]), // meta-data report stats
+            EXPORT_META_CTRL.out.csv,                  // meta-data report stats
+            ch_frag_len,                               // raw fragments
+            AWK_FRAG_BIN.out.file.collect{it[1]},      // binned fragments
+            ch_peaks_bed.collect{it[1]},               // peak beds
+            ch_frag_len_header_multiqc                 // multiqc config header for fragment length distribution plot
         )
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions)

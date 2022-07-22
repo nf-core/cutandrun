@@ -30,7 +30,15 @@ workflow CONSENSUS_PEAKS {
 
     // Plot consensus peak sets
     if(!skip_plot) {
-        PLOT_CONSENSUS_PEAKS ( BEDTOOLS_MERGE.out.bed.collect{it[1]} )
+        ch_merged_bed_sorted = BEDTOOLS_MERGE.out.bed
+            .toSortedList { row -> row[0].id }
+            .map { list ->
+                def output = []
+                list.each{ v -> output.add(v[1]) }
+                output
+            }
+
+        PLOT_CONSENSUS_PEAKS ( ch_merged_bed_sorted )
         ch_versions = ch_versions.mix(PLOT_CONSENSUS_PEAKS.out.versions)
     }
 
