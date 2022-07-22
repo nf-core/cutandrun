@@ -25,10 +25,8 @@
 use Getopt::Long;
 
 my $extended;
-GetOptions("x"=>\$extended);
-
-my $displaynames;
-GetOptions("n"=>\$displaynames);
+my $displaynames = '';
+GetOptions("x"=>\$extended, "names"=>\$displaynames);
 
 $in = shift @ARGV;
 
@@ -123,7 +121,7 @@ for $id (
         if ($displaynames) {
             print "$chr\t$beg\t$end\t$gene_id\t0\t$dir\t$cds\t$cde\t0\t$exn\t$exsz,\t$exst,$extend\n";
         } else {
-            print "$chr\t$beg\t$end\t$gene_id\t0\t$dir\t$cds\t$cde\t0\t$exn\t$exsz,\t$exst,$extend\n";
+            print "$chr\t$beg\t$end\t$id\t0\t$dir\t$cds\t$cde\t0\t$exn\t$exsz,\t$exst,$extend\n";
         }
 
         # added an extra comma to make it look exactly like ucsc's beds

@@ -17,11 +17,12 @@ process GTF2BED {
     when:
     task.ext.when == null || task.ext.when
 
-    script: // This script is bundled with the pipeline, in nf-core/rnaseq/bin/
+    script: // This script is bundled with the pipeline, in nf-core/cutandrun/bin/
+    def args = params.igv_show_gene_names ? "--names" : ''
     """
     gtf2bed \\
+        $args \\
         $gtf \\
-        -n \\
         > ${gtf.baseName}.bed
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
