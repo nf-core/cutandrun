@@ -14,6 +14,7 @@ include { BOWTIE2_BUILD as BOWTIE2_BUILD_TARGET      } from '../../modules/nf-co
 include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN     } from '../../modules/nf-core/modules/bowtie2/build/main'
 include { TABIX_BGZIPTABIX                           } from '../../modules/nf-core/modules/tabix/bgziptabix/main'
 include { GTF2BED                                    } from '../../modules/local/gtf2bed'
+include { SAMTOOLS_FAIDX                             } from '../../modules/nf-core/modules/samtools/faidx/main'
 
 workflow PREPARE_GENOME {
     take:
@@ -29,7 +30,7 @@ workflow PREPARE_GENOME {
         ch_fasta    = GUNZIP_FASTA ( [ [:], params.fasta ] ).gunzip.map { it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
-        ch_fasta = file(params.fasta)
+        ch_fasta    = file(params.fasta)
     }
 
     /*
@@ -95,6 +96,12 @@ workflow PREPARE_GENOME {
     ch_versions       = ch_versions.mix(TABIX_BGZIPTABIX.out.versions)
 
     /*
+    * Index genome fasta file
+    */
+    ch_fasta_index = SAMTOOLS_FAIDX ( ch_fasta.map {row -> [ [:], row ]} ).fai
+    ch_versions    = ch_versions.mix(SAMTOOLS_FAIDX.out.versions)
+
+    /*
     * Create chromosome sizes file
     */
     ch_chrom_sizes = TARGET_CHROMSIZES ( ch_fasta ).sizes
@@ -139,6 +146,7 @@ workflow PREPARE_GENOME {
 
     emit:
     fasta                  = ch_fasta                    // path: genome.fasta
+    fasta_index            = ch_fasta_index              // path: genome.fai
     chrom_sizes            = ch_chrom_sizes              // path: genome.sizes
     spikein_chrom_sizes    = ch_spikein_chrom_sizes      // path: genome.sizes
     gtf                    = ch_gtf                      // path: genome.gtf
