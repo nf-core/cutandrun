@@ -8,13 +8,9 @@ process DEEPTOOLS_PLOT_PROFILE {
         'quay.io/biocontainers/deeptools:3.5.1--py_0' }"
 
     input:
-    // tuple val(meta), path(bigwig)
-    // path  bed
     tuple val(meta), path(matrix)
 
     output:
-    // tuple val(meta), path("*.mat.gz") , emit: matrix
-    // tuple val(meta), path("*.mat.tab"), emit: table
     path  "versions.yml"              , emit: versions
     path "*.plotProfile.tab"          , emit: profile
 
