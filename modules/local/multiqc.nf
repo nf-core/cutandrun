@@ -22,6 +22,7 @@ process MULTIQC {
     path ('samtools/idxstats/*')
     path ('picard/markduplicates/*')
     path ('deeptools/*')
+    // path ('deeptools/*')
     path ('reports/*')
 
     output:

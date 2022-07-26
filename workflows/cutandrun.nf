@@ -92,6 +92,8 @@ include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"
 include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
 include { IGV_SESSION                     } from "../modules/local/python/igv_session"
 include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
+include { DEEPTOOLS_PLOT_PROFILE          } from "../modules/local/modules/deeptools/plot_profile/main"
+
 include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
 include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
 include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
@@ -771,9 +773,15 @@ workflow CUTANDRUN {
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
-            //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
+             DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.profile | view
 
+            /*
+            * MODULE: Calculate DeepTools profile plot
+            */
+            DEEPTOOLS_PLOT_PROFILE (
+                DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
+            )
             /*
             * MODULE: Calculate DeepTools heatmap
             */
@@ -958,7 +966,9 @@ workflow CUTANDRUN {
             ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
             ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
             ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
-            DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.profile.collect().ifEmpty([]),
+            DEEPTOOLS_PLOT_PROFILE.out.profile.collect().ifEmpty([]),
+            //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.profile.collect().ifEmpty([]),
+            // plot_fingerprint
             ch_frag_len_multiqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()

@@ -1,4 +1,4 @@
-process DEEPTOOLS_COMPUTEMATRIX {
+process DEEPTOOLS_PLOT_PROFILE {
     tag "$meta.id"
     label 'process_high'
 
@@ -8,13 +8,15 @@ process DEEPTOOLS_COMPUTEMATRIX {
         'quay.io/biocontainers/deeptools:3.5.1--py_0' }"
 
     input:
-    tuple val(meta), path(bigwig)
-    path  bed
+    // tuple val(meta), path(bigwig)
+    // path  bed
+    tuple val(meta), path(matrix)
 
     output:
-    tuple val(meta), path("*.mat.gz") , emit: matrix
-    tuple val(meta), path("*.mat.tab"), emit: table
+    // tuple val(meta), path("*.mat.gz") , emit: matrix
+    // tuple val(meta), path("*.mat.tab"), emit: table
     path  "versions.yml"              , emit: versions
+    path "*.plotProfile.tab"          , emit: profile
 
     when:
     task.ext.when == null || task.ext.when
@@ -23,14 +25,10 @@ process DEEPTOOLS_COMPUTEMATRIX {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    computeMatrix \\
-        $args \\
-        --regionsFileName $bed \\
-        --scoreFileName $bigwig \\
-        --outFileName ${prefix}.computeMatrix.mat.gz \\
-        --outFileNameMatrix ${prefix}.computeMatrix.vals.mat.tab \\
-        --numberOfProcessors $task.cpus
-        
+    plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
+        --outFileName ${prefix}.plotProfile.pdf \\
+        --outFileNameData ${prefix}.plotProfile.tab
+    
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         deeptools: \$(computeMatrix --version | sed -e "s/computeMatrix //g")
