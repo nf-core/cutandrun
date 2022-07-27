@@ -93,6 +93,7 @@ include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_cust
 include { IGV_SESSION                     } from "../modules/local/python/igv_session"
 include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
 include { DEEPTOOLS_PLOT_PROFILE          } from "../modules/local/modules/deeptools/plot_profile/main"
+include { DEEPTOOLS_PLOT_FINGERPRINT      } from "../modules/local/modules/deeptools/plot_fingerprint/main"
 
 include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
 include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
@@ -773,7 +774,7 @@ workflow CUTANDRUN {
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
-             DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
+            //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.profile | view
 
             /*
@@ -782,6 +783,14 @@ workflow CUTANDRUN {
             DEEPTOOLS_PLOT_PROFILE (
                 DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
             )
+
+            /*
+            * MODULE: Calculate DeepTools fingerprint plot
+            */
+            DEEPTOOLS_PLOT_FINGERPRINT (
+                ch_bam_bai
+            )
+
             /*
             * MODULE: Calculate DeepTools heatmap
             */
@@ -967,6 +976,7 @@ workflow CUTANDRUN {
             ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
             ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
             DEEPTOOLS_PLOT_PROFILE.out.profile.collect().ifEmpty([]),
+            DEEPTOOLS_PLOT_FINGERPRINT.out.fingerprint.collect().ifEmpty([]),
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.profile.collect().ifEmpty([]),
             // plot_fingerprint
             ch_frag_len_multiqc.collect().ifEmpty([])
