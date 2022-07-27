@@ -18,10 +18,11 @@ process CALCULATE_FRIP {
     task.ext.when == null || task.ext.when
 
     script:
+    def ext = bed.getExtension()
     """
     frip.py \\
         --bams "*.bam" \\
-        --peaks "*.bed" \\
+        --peaks "*.${ext}" \\
         --threads ${task.cpus} \\
         --outpath .
 
