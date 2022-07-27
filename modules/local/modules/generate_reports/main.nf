@@ -33,7 +33,7 @@ process GENERATE_REPORTS {
         --meta_ctrl $meta_data_ctrl \\
         --raw_frag "*.frags.len.txt" \\
         --bin_frag "*bin500.awk.bed" \\
-        --seacr_bed "*bed*.bed" \\
+        --seacr_bed "*peaks*.bed" \\
         --output . \\
         --log log.txt
 

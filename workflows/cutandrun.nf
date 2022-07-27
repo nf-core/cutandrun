@@ -92,6 +92,7 @@ include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"
 include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
 include { IGV_SESSION                     } from "../modules/local/python/igv_session"
 include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
+include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
 include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
 include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
 include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
@@ -406,10 +407,12 @@ workflow CUTANDRUN {
         //ch_bedgraph_split.target | view
         //ch_bedgraph_split.control | view
 
+        ch_peaks               = Channel.empty()
         ch_seacr_bed           = Channel.empty()
         ch_macs2_bed           = Channel.empty()
         ch_peaks_bed           = Channel.empty()
         ch_peaks_bed_secondary = Channel.empty()
+        ch_peak_summits_bed    = Channel.empty()
 
         if(params.use_control) {
             /*
@@ -491,6 +494,7 @@ workflow CUTANDRUN {
                     params.macs_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK.out.peak
+                ch_peak_summits_bed  = MACS2_CALLPEAK.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 //MACS2_CALLPEAK.out.peak | view
@@ -540,6 +544,7 @@ workflow CUTANDRUN {
                     params.macs_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.peak
+                ch_peak_summits_bed  = MACS2_CALLPEAK.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 // MACS2_CALLPEAK_NOIGG.out.peak | view
@@ -548,12 +553,22 @@ workflow CUTANDRUN {
 
         // Store output of primary peakcaller in the output channel
         if(callers[0] == 'seacr') {
+            ch_peaks               = ch_seacr_bed
             ch_peaks_bed           = ch_seacr_bed
             ch_peaks_bed_secondary = ch_macs2_bed
         }
         if(callers[0] == 'macs2') {
-            ch_peaks_bed           = ch_macs2_bed
+            ch_peaks               = ch_macs2_bed
             ch_peaks_bed_secondary = ch_seacr_bed
+
+            /*
+            * MODULE: Convert narrow or broad peak to bed
+            */
+            PEAK_TO_BED ( ch_macs2_bed )
+            ch_peaks_bed         = PEAK_TO_BED.out.file
+            ch_software_versions = ch_software_versions.mix(PEAK_TO_BED.out.versions)
+            // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //PEAK_TO_BED.out.file | view
         }
 
         /*
@@ -689,7 +704,7 @@ workflow CUTANDRUN {
                 PREPARE_GENOME.out.fasta_index.map {it[1]},
                 PREPARE_GENOME.out.bed_index,
                 //PREPARE_GENOME.out.gtf,
-                ch_peaks_bed.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
+                ch_peaks.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_peaks_bed_secondary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_bigwig.collect{it[1]}.ifEmpty([])
             )
@@ -697,19 +712,23 @@ workflow CUTANDRUN {
         }
 
         if (params.run_deep_tools && params.run_peak_calling) {
-            /*
-            * MODULE: Extract max signal from peak beds
-            */
-            AWK_EDIT_PEAK_BED (
-                ch_peaks_bed
-            )
-            ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
-            //AWK_EDIT_PEAK_BED.out.file | view
+            
+            if(callers[0] == 'seacr') {
+                /*
+                * MODULE: Extract summits from seacr peak beds
+                */
+                AWK_EDIT_PEAK_BED (
+                    ch_peaks_bed
+                )
+                ch_peak_summits_bed  = AWK_EDIT_PEAK_BED.out.file
+                ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
+                //AWK_EDIT_PEAK_BED.out.file | view
+            }
 
             /*
             * CHANNEL: Structure output for join on id
             */
-            AWK_EDIT_PEAK_BED.out.file
+            ch_peak_summits_bed
                 .map { row -> [row[0].id, row ].flatten()}
                 .set { ch_peaks_bed_id }
             //ch_peaks_bed_id | view
