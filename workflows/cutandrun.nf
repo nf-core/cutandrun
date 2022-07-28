@@ -703,7 +703,7 @@ workflow CUTANDRUN {
                 PREPARE_GENOME.out.fasta,
                 PREPARE_GENOME.out.fasta_index.map {it[1]},
                 PREPARE_GENOME.out.bed_index,
-                //PREPARE_GENOME.out.gtf,
+                //PREPARE_GENOME.out.gtf.collect(),
                 ch_peaks.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_peaks_bed_secondary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_bigwig.collect{it[1]}.ifEmpty([])
