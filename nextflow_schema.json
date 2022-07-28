@@ -386,8 +386,8 @@
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
                 },
                 "igv_show_gene_names": {
-                    "type": "string",
-                    "default": "true"
+                    "type": "boolean",
+                    "default": true
                 }
             },
             "fa_icon": "fas fa-cog"
