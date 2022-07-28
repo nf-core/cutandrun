@@ -116,10 +116,10 @@ def igv_files_to_session(XMLOut,ListFile,Genome,GtfBed,PathPrefix=''):
             XMLStr += '\t\t</Track>\n'
         elif extension in ['.bam']:
             pass
-        else:
-            XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
-            XMLStr += 'displayMode="SQUISHED" featureVisibilityWindow="-1" fontSize="10" height="20" '
-            XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
+        # else:
+        #     XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
+        #     XMLStr += 'displayMode="SQUISHED" featureVisibilityWindow="-1" fontSize="10" height="20" '
+        #     XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
 
     XMLStr += '\t</Panel>\n'
     #XMLStr += '\t<HiddenAttributes>\n\t\t<Attribute name="DATA FILE"/>\n\t\t<Attribute name="DATA TYPE"/>\n\t\t<Attribute name="NAME"/>\n\t</HiddenAttributes>\n'
