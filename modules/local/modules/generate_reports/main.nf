@@ -1,5 +1,5 @@
 process GENERATE_REPORTS {
-    label 'process_ultralow'
+    label 'low'
 
     conda (params.enable_conda ? "conda-forge::python=3.8.3 conda-forge::pandas=1.3.3" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -33,7 +33,7 @@ process GENERATE_REPORTS {
         --meta_ctrl $meta_data_ctrl \\
         --raw_frag "*.frags.len.txt" \\
         --bin_frag "*bin500.awk.bed" \\
-        --seacr_bed "*bed*.bed" \\
+        --seacr_bed "*peaks*.bed" \\
         --output . \\
         --log log.txt
 

@@ -12,6 +12,9 @@ include { UNTAR as UNTAR_INDEX_TARGET                } from '../../modules/nf-co
 include { UNTAR as UNTAR_INDEX_SPIKEIN               } from '../../modules/nf-core/modules/untar/main.nf'
 include { BOWTIE2_BUILD as BOWTIE2_BUILD_TARGET      } from '../../modules/nf-core/modules/bowtie2/build/main'
 include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN     } from '../../modules/nf-core/modules/bowtie2/build/main'
+include { TABIX_BGZIPTABIX                           } from '../../modules/nf-core/modules/tabix/bgziptabix/main'
+include { GTF2BED                                    } from '../../modules/local/gtf2bed'
+include { SAMTOOLS_FAIDX                             } from '../../modules/nf-core/modules/samtools/faidx/main'
 
 workflow PREPARE_GENOME {
     take:
@@ -27,7 +30,7 @@ workflow PREPARE_GENOME {
         ch_fasta    = GUNZIP_FASTA ( [ [:], params.fasta ] ).gunzip.map { it[1] }
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
-        ch_fasta = file(params.fasta)
+        ch_fasta    = Channel.from( file(params.fasta) )
     }
 
     /*
@@ -51,18 +54,52 @@ workflow PREPARE_GENOME {
         ch_gtf = file(params.gtf)
     }
 
-    /*
-    * Uncompress BED annotation file
-    */
     ch_gene_bed = Channel.empty()
     if (params.gene_bed){
+        /*
+        * Uncompress BED annotation file
+        */
         if (params.gene_bed.endsWith(".gz")) {
             ch_gene_bed = GUNZIP_BED ( [ [:], params.gene_bed ] ).gunzip.map { it[1] }
             ch_versions = ch_versions.mix(GUNZIP_BED.out.versions)
         } else {
             ch_gene_bed = file(params.gene_bed)
         }
+    } else {
+        /*
+        * Create GTF bed file if needed
+        */
+        GTF2BED ( ch_gtf )
+        ch_gene_bed = GTF2BED.out.bed
+        ch_versions = ch_versions.mix(GTF2BED.out.versions)
     }
+
+    /*
+    * Index the bed annotation file
+    */
+    ch_tabix = ch_gene_bed.map { 
+        row -> [ [ id:row.getName() ] , row ] 
+    }
+
+    if (params.gene_bed && params.gene_bed.endsWith(".gz")) {
+        ch_tabix = ch_tabix.map {
+            row ->
+                new_id = row[0].id.split("\\.")[0]
+                [ [ id: new_id ] , row[1] ] 
+        }
+    }
+
+    TABIX_BGZIPTABIX (
+        ch_tabix
+    )
+    ch_gene_bed_index = TABIX_BGZIPTABIX.out.gz_tbi
+    ch_versions       = ch_versions.mix(TABIX_BGZIPTABIX.out.versions)
+
+    /*
+    * Index genome fasta file
+    */
+    ch_fasta_index = SAMTOOLS_FAIDX ( ch_fasta.map {row -> [ [:], row ]} ).fai
+    ch_versions    = ch_versions.mix(SAMTOOLS_FAIDX.out.versions)
 
     /*
     * Create chromosome sizes file
@@ -109,10 +146,13 @@ workflow PREPARE_GENOME {
 
     emit:
     fasta                  = ch_fasta                    // path: genome.fasta
+    fasta_index            = ch_fasta_index              // path: genome.fai
     chrom_sizes            = ch_chrom_sizes              // path: genome.sizes
     spikein_chrom_sizes    = ch_spikein_chrom_sizes      // path: genome.sizes
     gtf                    = ch_gtf                      // path: genome.gtf
     bed                    = ch_gene_bed                 // path: genome.bed
+    bed_index              = ch_gene_bed_index           // path: genome.bed_index
+
     bowtie2_index          = ch_bt2_index                // path: bt2/index/
     bowtie2_spikein_index  = ch_bt2_spikein_index        // path: bt2/index/
 
