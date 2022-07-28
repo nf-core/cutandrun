@@ -387,7 +387,7 @@ workflow CUTANDRUN {
         PREPARE_PEAKCALLING(
             ch_samtools_bam,
             ch_samtools_bai,
-            PREPARE_GENOME.out.chrom_sizes,
+            PREPARE_GENOME.out.chrom_sizes.collect(),
             ch_dummy_file,
             params.normalisation_mode,
         )
