@@ -544,7 +544,7 @@ workflow CUTANDRUN {
                     params.macs_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.peak
-                ch_peak_summits_bed  = MACS2_CALLPEAK.out.bed
+                ch_peak_summits_bed  = MACS2_CALLPEAK_NOIGG.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 // MACS2_CALLPEAK_NOIGG.out.peak | view
