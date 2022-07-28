@@ -17,7 +17,7 @@ process IGV_SESSION {
     path bigwig
 
     output:
-    path('*.{txt,xml,bed,bigWig,fa,fai,fna,gtf,gff,narrowPeak,gz,tbi,bedGraph}', includeInputs:true)
+    path('*.{txt,xml,bed,bigWig,fa,fai,fna,gtf,gff,narrowPeak,broadPeak,gz,tbi,bedGraph}', includeInputs:true)
     path  "versions.yml"                , emit: versions
 
     when:
