@@ -15,6 +15,7 @@ include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN     } from '../../modules/nf-co
 include { TABIX_BGZIPTABIX                           } from '../../modules/nf-core/modules/tabix/bgziptabix/main'
 include { GTF2BED                                    } from '../../modules/local/gtf2bed'
 include { SAMTOOLS_FAIDX                             } from '../../modules/nf-core/modules/samtools/faidx/main'
+include { BEDTOOLS_SORT                              } from "../../modules/nf-core/modules/bedtools/sort/main"
 
 workflow PREPARE_GENOME {
     take:
@@ -75,7 +76,7 @@ workflow PREPARE_GENOME {
     }
 
     /*
-    * Index the bed annotation file
+    * Sort and index the bed annotation file
     */
     ch_tabix = ch_gene_bed.map { 
         row -> [ [ id:row.getName() ] , row ] 
@@ -89,8 +90,13 @@ workflow PREPARE_GENOME {
         }
     }
 
+    BEDTOOLS_SORT (
+        ch_tabix,
+        "bed"
+    )
+
     TABIX_BGZIPTABIX (
-        ch_tabix
+        BEDTOOLS_SORT.out.sorted
     )
     ch_gene_bed_index = TABIX_BGZIPTABIX.out.gz_tbi
     ch_versions       = ch_versions.mix(TABIX_BGZIPTABIX.out.versions)
