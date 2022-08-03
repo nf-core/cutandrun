@@ -94,7 +94,6 @@ include { IGV_SESSION                     } from "../modules/local/python/igv_se
 include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
 include { DEEPTOOLS_PLOT_PROFILE          } from "../modules/local/modules/deeptools/plot_profile/main"
 include { DEEPTOOLS_PLOT_FINGERPRINT      } from "../modules/local/modules/deeptools/plot_fingerprint/main"
-
 include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
 include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
 include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
@@ -138,6 +137,9 @@ include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../mo
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
 include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"
 include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/modules/custom/dumpsoftwareversions/main"
+
+// include { PRESEQ_LCEXTRAP                                          } from "../modules/nf-core/modules/preseq/lcextrap/main"
+
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
@@ -287,6 +289,15 @@ workflow CUTANDRUN {
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
+
+    /*
+     * MODULE: Calculate Preseq complexity curve
+     */
+    //  PRESEQ_LCEXTRAP(
+    //      ch_samtools_bam
+    //  )
+    //  PRESEQ_LCEXTRAP.out.lc_extrap | view
+     
 
     /*
      * SUBWORKFLOW: Mark duplicates on all samples
@@ -487,7 +498,7 @@ workflow CUTANDRUN {
                 }
                 .set{ch_bam_paired}
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
-                // ch_bam_paired | view
+                ch_bam_paired | view
 
                 MACS2_CALLPEAK (
                     ch_bam_paired,
@@ -783,6 +794,7 @@ workflow CUTANDRUN {
             DEEPTOOLS_PLOT_PROFILE (
                 DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
             )
+            // DEEPTOOLS_PLOT_PROFILE.out.profile | view
 
             /*
             * MODULE: Calculate DeepTools fingerprint plot
@@ -966,6 +978,7 @@ workflow CUTANDRUN {
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
             CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_unique_yml.collect(),
             ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yml"),
+            //PRESEQ_LCEXTRAP.out.lc_extrap.collect().ifEmpty([]),
             FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
             FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
@@ -977,8 +990,6 @@ workflow CUTANDRUN {
             ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
             DEEPTOOLS_PLOT_PROFILE.out.profile.collect().ifEmpty([]),
             DEEPTOOLS_PLOT_FINGERPRINT.out.fingerprint.collect().ifEmpty([]),
-            //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.profile.collect().ifEmpty([]),
-            // plot_fingerprint
             ch_frag_len_multiqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()

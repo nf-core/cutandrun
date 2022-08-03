@@ -48,6 +48,9 @@
             "picard/markduplicates": {
                 "git_sha": "63db63757cab03cfa7a02c0d0f134b66fbfadea6"
             },
+            "preseq/lcextrap": {
+                "git_sha": "7111e571cc5b6069de4673cd6165af680f17b4d7"
+            },
             "samtools/flagstat": {
                 "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
             },

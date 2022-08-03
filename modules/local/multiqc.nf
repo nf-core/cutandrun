@@ -12,6 +12,7 @@ process MULTIQC {
     path software_versions
     path software_versions_unique
     path workflow_summary
+    //path ('preseq/*')
     path ('fastqc/*')
     path ('trimgalore/fastqc/*')
     path ('trimgalore/*')
