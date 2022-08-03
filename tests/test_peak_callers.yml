@@ -1,5 +1,5 @@
 - name: test_peak_callers_seacr
-  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller seacr -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_removeduplicates true --peakcaller seacr -c tests/config/nextflow.config
   tags:
     - test_peak_callers
     - test_peak_callers_seacr
@@ -7,7 +7,7 @@
     - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.seacr.peaks.bed.stringent.bed
 
 - name: test_peak_callers_macs2
-  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller macs2 -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_removeduplicates true --peakcaller macs2 -c tests/config/nextflow.config
   tags:
     - test_peak_callers
     - test_peak_callers_macs2
@@ -22,7 +22,7 @@
   exit_code: 1
 
 - name: test_peak_callers_seacr_macs2
-  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller seacr,macs2 -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_removeduplicates true --peakcaller seacr,macs2 -c tests/config/nextflow.config
   tags:
     - test_peak_callers
     - test_peak_callers_seacr_macs2
@@ -31,7 +31,7 @@
     - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1_macs2_peaks.narrowPeak
 
 - name: test_peak_callers_macs2_seacr
-  command: nextflow run main.nf -profile docker,test --only_peak_calling true --skip_fastqc true --skip_removeduplicates true --peakcaller macs2,seacr -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --skip_fastqc true --skip_removeduplicates true --peakcaller macs2,seacr -c tests/config/nextflow.config
   tags:
     - test_peak_callers
     - test_peak_callers_macs2_seacr

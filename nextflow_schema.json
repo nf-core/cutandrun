@@ -334,7 +334,7 @@
                 },
                 "igg_scale_factor": {
                     "type": "number",
-                    "default": 1.0,
+                    "default": 1,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Specifies whether the background control is scaled prior to being used to normalise peaks."
                 },
@@ -346,9 +346,19 @@
                 },
                 "macs_gsize": {
                     "type": "number",
-                    "default": 2700000000.0,
+                    "default": 2700000000,
                     "fa_icon": "fas fa-align-justify",
                     "description": "parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38."
+                },
+                "macs2_narrow_peak": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "macs2_broad_cutoff": {
+                    "type": "number",
+                    "default": 0.1,
+                    "fa_icon": "fas fa-align-justify"
                 },
                 "consensus_peak_mode": {
                     "type": "string",
@@ -359,9 +369,13 @@
                 },
                 "replicate_threshold": {
                     "type": "number",
-                    "default": 1.0,
+                    "default": 1,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
+                },
+                "igv_show_gene_names": {
+                    "type": "boolean",
+                    "default": true
                 }
             },
             "fa_icon": "fas fa-cog"
@@ -560,15 +574,5 @@
         {
             "$ref": "#/definitions/generic_options"
         }
-    ],
-    "properties": {
-        "macs2_narrow_peak": {
-            "type": "boolean",
-            "default": "true"
-        },
-        "macs2_broad_cutoff": {
-            "type": "number",
-            "default": 0.1
-        }
-    }
+    ]
 }

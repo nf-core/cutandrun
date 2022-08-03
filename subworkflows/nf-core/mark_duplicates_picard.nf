@@ -9,7 +9,7 @@ include { BAM_STATS_SAMTOOLS    } from './bam_stats_samtools'
 workflow MARK_DUPLICATES_PICARD {
     take:
     bam            // channel: [ val(meta), [ bam ] ]
-    process_target //boolean
+    process_target // boolean
 
     main:
     /*
@@ -22,7 +22,7 @@ workflow MARK_DUPLICATES_PICARD {
         PICARD_MARKDUPLICATES ( bam )
         ch_bam      = PICARD_MARKDUPLICATES.out.bam
         metrics     = PICARD_MARKDUPLICATES.out.metrics
-        ch_versions = ch_versions.mix(PICARD_MARKDUPLICATES.out.versions)
+        ch_versions = ch_versions.mix( PICARD_MARKDUPLICATES.out.versions )
     }
     else { // Split out control files and run only on these
         bam.branch { it ->
@@ -34,9 +34,19 @@ workflow MARK_DUPLICATES_PICARD {
         //ch_split.control | view
 
         PICARD_MARKDUPLICATES ( ch_split.control )
-        ch_bam      = PICARD_MARKDUPLICATES.out.bam.mix ( ch_split.target )
+
+        // Prevents issues with resume with the branch elements coming in the wrong order
+        ch_sorted_targets = ch_split.target
+            .toSortedList { row -> row[0].id }
+            .flatMap()
+
+        ch_sorted_controls = PICARD_MARKDUPLICATES.out.bam
+            .toSortedList { row -> row[0].id }
+            .flatMap()
+
+        ch_bam      = ch_sorted_targets.concat ( ch_sorted_controls )
         metrics     = PICARD_MARKDUPLICATES.out.metrics
-        ch_versions = ch_versions.mix(PICARD_MARKDUPLICATES.out.versions)
+        ch_versions = ch_versions.mix( PICARD_MARKDUPLICATES.out.versions )
     }
     //ch_bam | view
 
@@ -44,11 +54,11 @@ workflow MARK_DUPLICATES_PICARD {
     * Index BAM file
     */
     SAMTOOLS_INDEX ( ch_bam )
-    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions)
+    ch_versions = ch_versions.mix( SAMTOOLS_INDEX.out.versions )
 
     // Join bam/bai
     ch_bam
-        .map { row -> [row[0].id, row ].flatten()}
+        .map { row -> [row[0].id, row ].flatten() }
         .join ( SAMTOOLS_INDEX.out.bai.map { row -> [row[0].id, row ].flatten()} )
         .map { row -> [row[1], row[2], row[4]] }
         .set { ch_bam_bai }
@@ -58,7 +68,7 @@ workflow MARK_DUPLICATES_PICARD {
     * Run samtools stats, flagstat and idxstats
     */
     BAM_STATS_SAMTOOLS ( ch_bam_bai )
-    ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions)
+    ch_versions = ch_versions.mix( BAM_STATS_SAMTOOLS.out.versions )
 
     emit:
     bam      = ch_bam                            // channel: [ val(meta), [ bam ] ]

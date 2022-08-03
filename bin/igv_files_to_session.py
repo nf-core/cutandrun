@@ -25,6 +25,7 @@ argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 argParser.add_argument('XML_OUT', help="XML output file.")
 argParser.add_argument('LIST_FILE', help="Tab-delimited file containing two columns i.e. file_name\tcolour. Header isnt required.")
 argParser.add_argument('GENOME', help="Full path to genome fasta file or shorthand for genome available in IGV e.g. hg19.")
+argParser.add_argument('GTF_BED')
 
 ## OPTIONAL PARAMETERS
 argParser.add_argument('-pp', '--path_prefix', type=str, dest="PATH_PREFIX", default='', help="Path prefix to be added at beginning of all files in input list file.")
@@ -51,7 +52,7 @@ def makedir(path):
 ############################################
 ############################################
 
-def igv_files_to_session(XMLOut,ListFile,Genome,PathPrefix=''):
+def igv_files_to_session(XMLOut,ListFile,Genome,GtfBed,PathPrefix=''):
 
     makedir(os.path.dirname(XMLOut))
 
@@ -74,9 +75,15 @@ def igv_files_to_session(XMLOut,ListFile,Genome,PathPrefix=''):
     XMLStr += '\t<Resources>\n'
     for ifile,colour in fileList:
         XMLStr += '\t\t<Resource path="%s"/>\n' % (ifile)
+    XMLStr += '\t\t<Resource path="./%s"/>\n' % (GtfBed)
     XMLStr += '\t</Resources>\n'
 
     XMLStr += '\t<Panel height="1160" name="DataPanel" width="1897">\n'
+
+    # Render gene file first 
+    XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="0,48,73" '
+    XMLStr += 'displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="12" '
+    XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (GtfBed,os.path.basename(GtfBed))
 
     ## Do a GTF pass first
     for ifile,colour in fileList:
@@ -97,11 +104,7 @@ def igv_files_to_session(XMLOut,ListFile,Genome,PathPrefix=''):
             XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
             XMLStr += 'displayMode="SQUISHED" featureVisibilityWindow="-1" fontSize="12" height="20" '
             XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
-
-    ## Then the rest
-    for ifile,colour in fileList:
-        extension = os.path.splitext(ifile)[1].lower()
-        if extension in ['.bw', '.bigwig', '.tdf']:
+        elif extension in ['.bw', '.bigwig', '.tdf', '.bedGraph', '.bedgraph']:
             XMLStr += '\t\t<Track altColor="0,0,178" autoScale="true" clazz="org.broad.igv.track.DataSourceTrack" color="%s" ' % (colour)
             XMLStr += 'displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="12" height="100" '
             XMLStr += 'id="%s" name="%s" normalize="false" renderer="BAR_CHART" sortable="true" visible="true" windowFunction="mean">\n' % (ifile,os.path.basename(ifile))
@@ -109,10 +112,10 @@ def igv_files_to_session(XMLOut,ListFile,Genome,PathPrefix=''):
             XMLStr += '\t\t</Track>\n'
         elif extension in ['.bam']:
             pass
-        else:
-            XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
-            XMLStr += 'displayMode="SQUISHED" featureVisibilityWindow="-1" fontSize="10" height="20" '
-            XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
+        # else:
+        #     XMLStr += '\t\t<Track altColor="0,0,178" autoScale="false" clazz="org.broad.igv.track.FeatureTrack" color="%s" ' % (colour)
+        #     XMLStr += 'displayMode="SQUISHED" featureVisibilityWindow="-1" fontSize="10" height="20" '
+        #     XMLStr += 'id="%s" name="%s" renderer="BASIC_FEATURE" sortable="false" visible="true" windowFunction="count"/>\n' % (ifile,os.path.basename(ifile))
 
     XMLStr += '\t</Panel>\n'
     #XMLStr += '\t<HiddenAttributes>\n\t\t<Attribute name="DATA FILE"/>\n\t\t<Attribute name="DATA TYPE"/>\n\t\t<Attribute name="NAME"/>\n\t</HiddenAttributes>\n'
@@ -127,7 +130,7 @@ def igv_files_to_session(XMLOut,ListFile,Genome,PathPrefix=''):
 ############################################
 ############################################
 
-igv_files_to_session(XMLOut=args.XML_OUT,ListFile=args.LIST_FILE,Genome=args.GENOME,PathPrefix=args.PATH_PREFIX)
+igv_files_to_session(XMLOut=args.XML_OUT,ListFile=args.LIST_FILE,Genome=args.GENOME,GtfBed=args.GTF_BED,PathPrefix=args.PATH_PREFIX)
 
 ############################################
 ############################################

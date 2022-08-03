@@ -92,6 +92,7 @@ include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"
 include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
 include { IGV_SESSION                     } from "../modules/local/python/igv_session"
 include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
+include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
 include { DEEPTOOLS_PLOT_PROFILE          } from "../modules/local/modules/deeptools/plot_profile/main"
 include { DEEPTOOLS_PLOT_FINGERPRINT      } from "../modules/local/modules/deeptools/plot_fingerprint/main"
 include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
@@ -270,7 +271,39 @@ workflow CUTANDRUN {
         }
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
-    // ch_samtools_bam | view
+    //ch_samtools_bam | view
+
+    /*
+     * SUBWORKFLOW: Annotate meta-data with aligner stats for target and spike-in
+     * the meta-data is annotated additivley so we only need to track the final channel output
+     */
+    if (params.aligner == "bowtie2" && params.run_alignment) {
+        ANNOTATE_BT2_META (
+            ch_samtools_bam,
+            ch_bowtie2_log,
+            ch_bt2_to_csv_awk,
+            "",
+            "_target",
+            true
+        )
+        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
+
+        ANNOTATE_BT2_SPIKEIN_META (
+            ANNOTATE_BT2_META.out.output,
+            ch_bowtie2_spikein_log,
+            ch_bt2_to_csv_awk,
+            "",
+            "_spikein",
+            true
+        )
+        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
+    }
+    // META-DATA example state:
+    //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false,
+    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
+    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], BAM]
+    //ch_samtools_bam | view
+    //EXPORT_META ( ch_annotated_meta.collect{ it[0] } )
 
     /*
      *  SUBWORKFLOW: Filter reads based on quality metrics
@@ -340,38 +373,6 @@ workflow CUTANDRUN {
     //ch_samtools_bam | view
 
     /*
-     * SUBWORKFLOW: Annotate meta-data with aligner stats for target and spike-in
-     * the meta-data is annotated additivley so we only need to track the final channel output
-     */
-    if (params.aligner == "bowtie2" && params.run_alignment) {
-        ANNOTATE_BT2_META (
-            ch_samtools_bam,
-            ch_bowtie2_log,
-            ch_bt2_to_csv_awk,
-            "",
-            "_target",
-            true
-        )
-        ch_software_versions = ch_software_versions.mix(ANNOTATE_BT2_META.out.versions)
-
-        ANNOTATE_BT2_SPIKEIN_META (
-            ANNOTATE_BT2_META.out.output,
-            ch_bowtie2_spikein_log,
-            ch_bt2_to_csv_awk,
-            "",
-            "_spikein",
-            true
-        )
-        ch_samtools_bam = ANNOTATE_BT2_SPIKEIN_META.out.output
-    }
-    // META-DATA example state:
-    //[[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false,
-    // bt2_total_reads_spikein:9616, bt2_align1_spikein:1, bt2_align_gt1_spikein:0, bt2_non_aligned_spikein:9615, bt2_total_aligned_spikein:1,
-    // bt2_total_reads_target:9616, bt2_align1_target:315, bt2_align_gt1_target:449, bt2_non_aligned_target:8852, bt2_total_aligned_target:764], BAM]
-    //ch_samtools_bam | view
-    //EXPORT_META ( ch_annotated_meta.collect{ it[0] } )
-
-    /*
     * SUBWORKFLOW: Annotate meta-data with duplication stats
     */
     if (params.run_mark_dups) {
@@ -400,7 +401,7 @@ workflow CUTANDRUN {
         PREPARE_PEAKCALLING(
             ch_samtools_bam,
             ch_samtools_bai,
-            PREPARE_GENOME.out.chrom_sizes,
+            PREPARE_GENOME.out.chrom_sizes.collect(),
             ch_dummy_file,
             params.normalisation_mode,
         )
@@ -420,10 +421,12 @@ workflow CUTANDRUN {
         //ch_bedgraph_split.target | view
         //ch_bedgraph_split.control | view
 
+        ch_peaks               = Channel.empty()
         ch_seacr_bed           = Channel.empty()
         ch_macs2_bed           = Channel.empty()
         ch_peaks_bed           = Channel.empty()
         ch_peaks_bed_secondary = Channel.empty()
+        ch_peak_summits_bed    = Channel.empty()
 
         if(params.use_control) {
             /*
@@ -505,6 +508,7 @@ workflow CUTANDRUN {
                     params.macs_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK.out.peak
+                ch_peak_summits_bed  = MACS2_CALLPEAK.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 //MACS2_CALLPEAK.out.peak | view
@@ -554,6 +558,7 @@ workflow CUTANDRUN {
                     params.macs_gsize
                 )
                 ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.peak
+                ch_peak_summits_bed  = MACS2_CALLPEAK_NOIGG.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 // MACS2_CALLPEAK_NOIGG.out.peak | view
@@ -562,12 +567,22 @@ workflow CUTANDRUN {
 
         // Store output of primary peakcaller in the output channel
         if(callers[0] == 'seacr') {
+            ch_peaks               = ch_seacr_bed
             ch_peaks_bed           = ch_seacr_bed
             ch_peaks_bed_secondary = ch_macs2_bed
         }
         if(callers[0] == 'macs2') {
-            ch_peaks_bed           = ch_macs2_bed
+            ch_peaks               = ch_macs2_bed
             ch_peaks_bed_secondary = ch_seacr_bed
+
+            /*
+            * MODULE: Convert narrow or broad peak to bed
+            */
+            PEAK_TO_BED ( ch_macs2_bed )
+            ch_peaks_bed         = PEAK_TO_BED.out.file
+            ch_software_versions = ch_software_versions.mix(PEAK_TO_BED.out.versions)
+            // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //PEAK_TO_BED.out.file | view
         }
 
         /*
@@ -588,7 +603,7 @@ workflow CUTANDRUN {
             .map { row -> [ 1, row[1] ] }
             .groupTuple(by: [0])
             .map { row ->
-                new_meta = [:]
+                def new_meta = [:]
                 new_meta.put( "id", "all_samples" )
                 [ new_meta, row[1].flatten() ]
             }
@@ -622,7 +637,7 @@ workflow CUTANDRUN {
             .map { row -> [ row[0].group, row[1] ] }
             .groupTuple(by: [0])
             .map { row ->
-                new_meta = [:]
+                def new_meta = [:]
                 new_meta.put( "id", row[0] )
                 [ new_meta, row[1].flatten() ]
             }
@@ -700,8 +715,10 @@ workflow CUTANDRUN {
             */
             IGV_SESSION (
                 PREPARE_GENOME.out.fasta,
-                PREPARE_GENOME.out.gtf,
-                ch_peaks_bed.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
+                PREPARE_GENOME.out.fasta_index.map {it[1]},
+                PREPARE_GENOME.out.bed_index,
+                //PREPARE_GENOME.out.gtf.collect(),
+                ch_peaks.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_peaks_bed_secondary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_bigwig.collect{it[1]}.ifEmpty([])
             )
@@ -709,19 +726,23 @@ workflow CUTANDRUN {
         }
 
         if (params.run_deep_tools && params.run_peak_calling) {
-            /*
-            * MODULE: Extract max signal from peak beds
-            */
-            AWK_EDIT_PEAK_BED (
-                ch_peaks_bed
-            )
-            ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
-            //AWK_EDIT_PEAK_BED.out.file | view
+            
+            if(callers[0] == 'seacr') {
+                /*
+                * MODULE: Extract summits from seacr peak beds
+                */
+                AWK_EDIT_PEAK_BED (
+                    ch_peaks_bed
+                )
+                ch_peak_summits_bed  = AWK_EDIT_PEAK_BED.out.file
+                ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
+                //AWK_EDIT_PEAK_BED.out.file | view
+            }
 
             /*
             * CHANNEL: Structure output for join on id
             */
-            AWK_EDIT_PEAK_BED.out.file
+            ch_peak_summits_bed
                 .map { row -> [row[0].id, row ].flatten()}
                 .set { ch_peaks_bed_id }
             //ch_peaks_bed_id | view
@@ -862,7 +883,7 @@ workflow CUTANDRUN {
             .map { row -> [ row[0].group, row[1] ] }
             .groupTuple(by: [0])
             .map { row ->
-                new_meta = [:]
+                def new_meta = [:]
                 new_meta.put( "id", row[0] )
                 [ new_meta, row[1].flatten() ]
             }
@@ -881,7 +902,7 @@ workflow CUTANDRUN {
         ch_peak_bed_group_2
             .flatMap{
                 row ->
-                new_output = []
+                def new_output = []
                 row[1].each{ file ->
                     files_copy = row[1].collect()
                     files_copy.remove(files_copy.indexOf(file))
@@ -944,15 +965,29 @@ workflow CUTANDRUN {
         )
 
         /*
+        * CHANNEL: Prepare data for generate reports
+        */
+        // Make sure files are always in order for resume
+        ch_frag_len = SAMTOOLS_CUSTOMVIEW.out.tsv
+            .toSortedList { row -> row[0].id }
+            .map {
+                list ->
+                def output = []
+                list.each{ v -> output.add(v[1]) }
+                output
+            }
+        //ch_frag_len | view
+
+        /*
         * MODULE: Generate python reporting using mixture of meta-data and direct file processing
         */
         GENERATE_REPORTS(
-            EXPORT_META.out.csv.collect().ifEmpty([]),  // meta-data report stats
-            EXPORT_META_CTRL.out.csv,                   // meta-data report stats
-            SAMTOOLS_CUSTOMVIEW.out.tsv.collect{it[1]}, // raw fragments
-            AWK_FRAG_BIN.out.file.collect{it[1]},       // binned fragments
-            ch_peaks_bed.collect{it[1]},                // peak beds
-            ch_frag_len_header_multiqc                  // multiqc config header for fragment length distribution plot
+            EXPORT_META.out.csv.collect().ifEmpty([]), // meta-data report stats
+            EXPORT_META_CTRL.out.csv,                  // meta-data report stats
+            ch_frag_len,                               // raw fragments
+            AWK_FRAG_BIN.out.file.collect{it[1]},      // binned fragments
+            ch_peaks_bed.collect{it[1]},               // peak beds
+            ch_frag_len_header_multiqc                 // multiqc config header for fragment length distribution plot
         )
         ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
         ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions)
