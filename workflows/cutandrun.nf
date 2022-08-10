@@ -59,7 +59,9 @@ ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIf
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 // Header files for MultiQC
-ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
+ch_frag_len_header_multiqc    = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
+ch_frip_score_header_multiqc  = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
+
 
 /*
 ========================================================================================
@@ -95,13 +97,15 @@ include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
 include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
 include { DEEPTOOLS_PLOT_PROFILE          } from "../modules/local/modules/deeptools/plot_profile/main"
 include { DEEPTOOLS_PLOT_FINGERPRINT      } from "../modules/local/modules/deeptools/plot_fingerprint/main"
-include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
 include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
 include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
 include { EXPORT_META                     } from "../modules/local/export_meta"
 include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"
 include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"
 include { MULTIQC                         } from "../modules/local/multiqc"
+
+include { PEAK_METRICS                    } from "../modules/local/modules/peak_metrics/main"
+
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -390,8 +394,8 @@ workflow CUTANDRUN {
     //EXAMPLE CHANNEL STRUCT: [[META + dedup_library:unknown library, dedup_unpaired_reads_examined:0, dedup_read_pairs_examined:350, dedup_secondary_or_supplementary_rds:0,
     // dedup_unmapped_reads:0, dedup_unpaired_read_duplicates:0, dedup_read_pair_duplicates:0, dedup_read_pair_optical_duplicates:0, dedup_percent_duplication:0,
     // dedup_estimated_library_size:], BAM]
-    //ch_samtools_bam | view
-
+    // ch_samtools_bam | view
+    
     ch_bedgraph = Channel.empty()
     ch_bigwig   = Channel.empty()
     if(params.run_peak_calling) {
@@ -418,8 +422,34 @@ workflow CUTANDRUN {
             control: it[0].is_control == true
         }
         .set { ch_bedgraph_split }
-        //ch_bedgraph_split.target | view
-        //ch_bedgraph_split.control | view
+        // ch_bedgraph_split.target | view
+        // ch_bedgraph_split.control | view
+        // EXAMPLE CHANNEL STRUCT: [[META], BEDGRAPH]
+
+        /*
+         * CHANNEL: Separate bam files into target/control
+         */
+        ch_samtools_bam.branch { it ->
+            target:  it[0].is_control == false
+            control: it[0].is_control == true
+        }
+        .set { ch_samtools_bam_split }
+        // ch_samtools_bam_split.target | view
+        // ch_samtools_bam_split.control | view
+        // EXAMPLE CHANNEL STRUCT: [[META], BAM]
+
+        /*
+        * CHANNEL: Separate flagstats into target/control
+        */
+        ch_samtools_flagstat.branch { it ->
+            target:  it[0].is_control == false
+            control: it[0].is_control == true
+        }
+        .set { ch_samtools_flagstat_split }
+        // ch_samtools_flagstat_split.target | view
+        // ch_samtools_flagstat_split.control | view
+        // EXAMPLE CHANNEL STRUCT: [[META], FLAGSTAT]
+
 
         ch_peaks               = Channel.empty()
         ch_seacr_bed           = Channel.empty()
@@ -470,13 +500,6 @@ workflow CUTANDRUN {
             }
 
             if('macs2' in callers) {
-                ch_samtools_bam.branch{ it ->
-                    target:  it[0].is_control == false
-                    control: it[0].is_control == true
-                }
-                .set { ch_samtools_bam_split }
-                // ch_samtools_bam_split.target | view
-
                 /*
                 * CHANNEL: Pull control groups
                 */
@@ -538,13 +561,6 @@ workflow CUTANDRUN {
             }
 
             if('macs2' in callers) {
-                ch_samtools_bam.branch{ it ->
-                    target:  it[0].is_control == false
-                    control: it[0].is_control == true
-                }
-                .set { ch_samtools_bam_split }
-                // ch_samtools_bam_split.target | view
-
                 /*
                 * CHANNEL: Add fake control channel
                 */
@@ -584,6 +600,19 @@ workflow CUTANDRUN {
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //PEAK_TO_BED.out.file | view
         }
+
+        /*
+         * CHANNEL: Separate bedfiles into target/control
+         */
+        ch_peaks_bed.branch { it ->
+            target:  it[0].is_control == false
+            control: it[0].is_control == true
+        }
+        .set { ch_peaks_bed_split }
+        // ch_peaks_bed_split.target | view
+        // ch_peaks_bed_split.control | view
+        // EXAMPLE CHANNEL STRUCT: [[META], BED]
+
 
         /*
         * MODULE: Add sample identifier column to peak beds
@@ -687,6 +716,19 @@ workflow CUTANDRUN {
         )
         ch_software_versions = ch_software_versions.mix(AWK_FRAG_BIN.out.versions)
         //AWK_FRAG_BIN.out.file | view
+
+        /*
+        * MODULE: Calculate Frip scores for samples
+        */
+        PEAK_METRICS(
+            ch_peaks_bed_split.target, 
+            ch_samtools_bam_split.target, 
+            ch_samtools_flagstat_split.target, 
+            ch_frip_score_header_multiqc,
+            params.min_frip_overlap
+        )
+        ch_software_versions = ch_software_versions.mix(PEAK_METRICS.out.versions)
+        // PEAK_METRICS.out.frip_mqc | view 
 
         /*
         * CHANNEL: Combine bam and bai files on id
@@ -848,24 +890,17 @@ workflow CUTANDRUN {
         ch_samtools_bam_ctrl = ch_samtools_bam
         if(!params.skip_frip) {
             /*
-            * MODULE: Calculate Frip scores for samples
-            */
-            CALCULATE_FRIP (
-                ch_bam_bai_bed
-            )
-            ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
-
-            /*
             * SUBWORKFLOW: Annotate meta-data with frip stats
             */
             ANNOTATE_FRIP_META (
                 ch_samtools_bam,
-                CALCULATE_FRIP.out.frips,
+                PEAK_METRICS.out.frips,
                 "",
                 ""
             )
             ch_samtools_bam = ANNOTATE_FRIP_META.out.output
-            //ch_samtools_bam | view
+            // 
+            // ch_samtools_bam | view
         }
        
         /*
@@ -1023,6 +1058,7 @@ workflow CUTANDRUN {
             ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
             ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
             ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
+            PEAK_METRICS.out.frip_mqc.collect().ifEmpty([]),
             DEEPTOOLS_PLOT_PROFILE.out.profile.collect().ifEmpty([]),
             DEEPTOOLS_PLOT_FINGERPRINT.out.fingerprint.collect().ifEmpty([]),
             ch_frag_len_multiqc.collect().ifEmpty([])

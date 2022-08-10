@@ -22,6 +22,7 @@ process MULTIQC {
     path ('samtools/flagstat/*')
     path ('samtools/idxstats/*')
     path ('picard/markduplicates/*')
+    path custom_frip
     path ('deeptools/*')
     path ('deeptools/*')
     path ('reports/*')
