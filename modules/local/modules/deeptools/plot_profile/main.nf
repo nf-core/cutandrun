@@ -23,7 +23,8 @@ process DEEPTOOLS_PLOT_PROFILE {
     """
     plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
         --outFileName ${prefix}.plotProfile.pdf \\
-        --outFileNameData ${prefix}.plotProfile.tab
+        --outFileNameData ${prefix}.plotProfile.tab \\
+        $args
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
