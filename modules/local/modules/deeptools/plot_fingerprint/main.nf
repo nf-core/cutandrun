@@ -22,15 +22,15 @@ process DEEPTOOLS_PLOT_FINGERPRINT {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    plotFingerprint \\
+    plotFingerprint $args \\
         --bamfiles ${bam} \\
         --plotFile ${prefix}.plotFingerprint.pdf \\
         --labels $prefix \\
         --outRawCounts ${prefix}.plotFingerprint.raw.txt \\
         --outQualityMetrics ${prefix}.plotFingerprint.qcmetrics.txt \\
         --skipZeros \\
-        --numberOfProcessors $task.cpus \\
-        $args
+        --numberOfProcessors $task.cpus
+        
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

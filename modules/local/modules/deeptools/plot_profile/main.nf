@@ -21,10 +21,11 @@ process DEEPTOOLS_PLOT_PROFILE {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    plotProfile --matrixFile ${prefix}.computeMatrix.mat.gz \\
+    plotProfile $args \\
+        --matrixFile ${prefix}.computeMatrix.mat.gz \\
         --outFileName ${prefix}.plotProfile.pdf \\
-        --outFileNameData ${prefix}.plotProfile.tab \\
-        $args
+        --outFileNameData ${prefix}.plotProfile.tab
+        
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
