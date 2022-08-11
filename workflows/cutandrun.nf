@@ -525,7 +525,7 @@ workflow CUTANDRUN {
                 }
                 .set{ch_bam_paired}
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
-                ch_bam_paired | view
+                // ch_bam_paired | view
 
                 MACS2_CALLPEAK (
                     ch_bam_paired,
@@ -731,7 +731,7 @@ workflow CUTANDRUN {
         )
         ch_software_versions = ch_software_versions.mix(PEAK_METRICS.out.versions)
         // PEAK_METRICS.out.frip_mqc | view 
-        PEAK_METRICS.out.count_mqc | view 
+        // PEAK_METRICS.out.count_mqc | view 
 
         /*
         * CHANNEL: Combine bam and bai files on id

@@ -29,7 +29,7 @@ process DEEPTOOLS_PLOT_PROFILE {
     
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        deeptools: \$(computeMatrix --version | sed -e "s/computeMatrix //g")
+        deeptools: \$(plotProfile --version | sed -e "s/plotProfile //g")
     END_VERSIONS
     """
 }
