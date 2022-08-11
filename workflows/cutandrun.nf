@@ -860,6 +860,7 @@ workflow CUTANDRUN {
             DEEPTOOLS_PLOT_PROFILE (
                 DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
             )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOT_PROFILE.out.versions)
             // DEEPTOOLS_PLOT_PROFILE.out.profile | view
 
             /*
@@ -868,6 +869,7 @@ workflow CUTANDRUN {
             DEEPTOOLS_PLOT_FINGERPRINT (
                 ch_bam_bai
             )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOT_FINGERPRINT.out.versions)
             // DEEPTOOLS_PLOT_FINGERPRINT.out.fingerprint | view
 
             /*

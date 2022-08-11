@@ -11,8 +11,8 @@ process DEEPTOOLS_PLOT_PROFILE {
     tuple val(meta), path(matrix)
 
     output:
-    path  "versions.yml"              , emit: versions
     path "*.plotProfile.tab"          , emit: profile
+    path  "versions.yml"              , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
