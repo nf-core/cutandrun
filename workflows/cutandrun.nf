@@ -97,8 +97,6 @@ include { IGV_SESSION                     } from "../modules/local/python/igv_se
 include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
 include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
 include { PEAK_METRICS                    } from "../modules/local/modules/peak_metrics/main"
-include { DEEPTOOLS_PLOT_PROFILE          } from "../modules/local/modules/deeptools/plot_profile/main"
-include { DEEPTOOLS_PLOT_FINGERPRINT      } from "../modules/local/modules/deeptools/plot_fingerprint/main"
 include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
 include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
 include { EXPORT_META                     } from "../modules/local/export_meta"
@@ -140,6 +138,8 @@ include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../mo
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
+include { DEEPTOOLS_PLOTPROFILE                                    } from "../modules/nf-core/modules/deeptools/plotprofile/main"
+include { DEEPTOOLS_PLOTFINGERPRINT                                } from "../modules/nf-core/modules/deeptools/plotfingerprint/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
 include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"
 include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/modules/custom/dumpsoftwareversions/main"
@@ -857,20 +857,20 @@ workflow CUTANDRUN {
             /*
             * MODULE: Calculate DeepTools profile plot
             */
-            DEEPTOOLS_PLOT_PROFILE (
+            DEEPTOOLS_PLOTPROFILE (
                 DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
             )
-            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOT_PROFILE.out.versions)
-            // DEEPTOOLS_PLOT_PROFILE.out.profile | view
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions)
+            DEEPTOOLS_PLOTPROFILE.out.table | view
 
             /*
             * MODULE: Calculate DeepTools fingerprint plot
             */
-            DEEPTOOLS_PLOT_FINGERPRINT (
+            DEEPTOOLS_PLOTFINGERPRINT (
                 ch_bam_bai
             )
-            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOT_FINGERPRINT.out.versions)
-            // DEEPTOOLS_PLOT_FINGERPRINT.out.fingerprint | view
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions)
+            // DEEPTOOLS_PLOTFINGERPRINT.out.matrix | view
 
             /*
             * MODULE: Calculate DeepTools heatmap
@@ -1066,8 +1066,8 @@ workflow CUTANDRUN {
             ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
             PEAK_METRICS.out.frip_mqc.collect().ifEmpty([]),
             PEAK_METRICS.out.count_mqc.collect().ifEmpty([]),
-            DEEPTOOLS_PLOT_PROFILE.out.profile.collect().ifEmpty([]),
-            DEEPTOOLS_PLOT_FINGERPRINT.out.fingerprint.collect().ifEmpty([]),
+            DEEPTOOLS_PLOTPROFILE.out.table.collect{it[1]}.ifEmpty([]),
+            DEEPTOOLS_PLOTFINGERPRINT.out.matrix.collect{it[1]}.ifEmpty([]),
             ch_frag_len_multiqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
