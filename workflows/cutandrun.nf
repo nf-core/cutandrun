@@ -96,6 +96,7 @@ include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_cust
 include { IGV_SESSION                     } from "../modules/local/python/igv_session"
 include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
 include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
+include { PEAK_METRICS                    } from "../modules/local/modules/peak_metrics/main"
 include { DEEPTOOLS_PLOT_PROFILE          } from "../modules/local/modules/deeptools/plot_profile/main"
 include { DEEPTOOLS_PLOT_FINGERPRINT      } from "../modules/local/modules/deeptools/plot_fingerprint/main"
 include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
@@ -105,7 +106,6 @@ include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"
 include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"
 include { MULTIQC                         } from "../modules/local/multiqc"
 
-include { PEAK_METRICS                    } from "../modules/local/modules/peak_metrics/main"
 
 
 /*
