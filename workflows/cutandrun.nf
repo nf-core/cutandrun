@@ -861,7 +861,7 @@ workflow CUTANDRUN {
                 DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTPROFILE.out.versions)
-            DEEPTOOLS_PLOTPROFILE.out.table | view
+            // DEEPTOOLS_PLOTPROFILE.out.table | view
 
             /*
             * MODULE: Calculate DeepTools fingerprint plot
