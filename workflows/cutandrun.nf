@@ -61,6 +61,7 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Header files for MultiQC
 ch_frag_len_header_multiqc    = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
 ch_frip_score_header_multiqc  = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
+ch_peak_counts_header_multiqc = file("$projectDir/assets/multiqc/peak_counts_header.txt", checkIfExists: true)
 
 
 /*
@@ -725,10 +726,12 @@ workflow CUTANDRUN {
             ch_samtools_bam_split.target, 
             ch_samtools_flagstat_split.target, 
             ch_frip_score_header_multiqc,
+            ch_peak_counts_header_multiqc,
             params.min_frip_overlap
         )
         ch_software_versions = ch_software_versions.mix(PEAK_METRICS.out.versions)
         // PEAK_METRICS.out.frip_mqc | view 
+        PEAK_METRICS.out.count_mqc | view 
 
         /*
         * CHANNEL: Combine bam and bai files on id
@@ -865,6 +868,7 @@ workflow CUTANDRUN {
             DEEPTOOLS_PLOT_FINGERPRINT (
                 ch_bam_bai
             )
+            // DEEPTOOLS_PLOT_FINGERPRINT.out.fingerprint | view
 
             /*
             * MODULE: Calculate DeepTools heatmap
@@ -1059,6 +1063,7 @@ workflow CUTANDRUN {
             ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
             ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
             PEAK_METRICS.out.frip_mqc.collect().ifEmpty([]),
+            PEAK_METRICS.out.count_mqc.collect().ifEmpty([]),
             DEEPTOOLS_PLOT_PROFILE.out.profile.collect().ifEmpty([]),
             DEEPTOOLS_PLOT_FINGERPRINT.out.fingerprint.collect().ifEmpty([]),
             ch_frag_len_multiqc.collect().ifEmpty([])

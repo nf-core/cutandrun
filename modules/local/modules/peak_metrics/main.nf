@@ -12,12 +12,14 @@ process PEAK_METRICS {
     tuple val(meta), path(bam) 
     tuple val(meta), path(flagstat) 
     path  frip_score_header 
+    path  peak_counts_header
     val   min_frip_overlap
 
 
     output:
-    path '*_mqc.tsv'                  , emit: frip_mqc
     tuple val(meta), path('frips.csv'), emit: frips
+    path '*frip_mqc.tsv'              , emit: frip_mqc
+    path '*count_mqc.tsv'             , emit: count_mqc
     path  "versions.yml"              , emit: versions
 
     when:
@@ -30,6 +32,8 @@ process PEAK_METRICS {
     READS_IN_PEAKS=\$(bedtools intersect -a ${bam} -b ${bed} -bed -c -f $min_frip_overlap |  awk -F '\t' '{sum += \$NF} END {print sum}')
     grep -m 1 'mapped (' ${flagstat} | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${meta.id}", a/\$1}' | cat $frip_score_header - > ${prefix}_peaks.frip_mqc.tsv
     grep -m 1 'mapped (' ${flagstat} | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print a/\$1}' | cat frip_header.txt - > frips.csv   
+
+    cat ${bed} | wc -l | awk -v OFS='\t' '{ print "${meta.id}", \$1 }' | cat $peak_counts_header - > ${prefix}_peaks.count_mqc.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

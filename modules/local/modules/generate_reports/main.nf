@@ -18,7 +18,7 @@ process GENERATE_REPORTS {
     path '*.pdf'             , emit: pdf
     path '*.csv'             , emit: csv
     path '*.png'             , emit: png
-    path '*frag_len_mqc.yml', emit: frag_len_multiqc
+    path '*frag_len_mqc.yml' , emit: frag_len_multiqc
     path  "versions.yml"     , emit: versions
 
     when:
