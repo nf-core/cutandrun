@@ -9,9 +9,9 @@ process MULTIQC {
     input:
     path multiqc_config
     path multiqc_custom_config
-    path software_versions
-    path software_versions_unique
-    path workflow_summary
+    path ('software_versions/*')
+    path ('software_versions/*')
+    path ('workflow_summary/*')
     path ('fastqc/*')
     path ('trimgalore/fastqc/*')
     path ('trimgalore/*')
@@ -21,7 +21,6 @@ process MULTIQC {
     path ('samtools/flagstat/*')
     path ('samtools/idxstats/*')
     path ('picard/markduplicates/*')
-    path ('reports/*')
 
     output:
     path "*multiqc_report.html", emit: report

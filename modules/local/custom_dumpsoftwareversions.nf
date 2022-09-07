@@ -127,8 +127,11 @@ process CUSTOM_DUMPSOFTWAREVERSIONS {
     }
 
     versions_mqc = {
-        'id': 'software_versions',
-        'section_name': '${workflow.manifest.name} Software Versions by Process',
+        'parent_id': 'software_versions',
+        'parent_name': 'Software Versions',
+        'parent_description': 'Details software versions used in the pipeline run',
+        'id': 'software-versions-by-process',
+        'section_name': '${workflow.manifest.name} software versions by process',
         'section_href': 'https://github.com/${workflow.manifest.name}',
         'plot_type': 'html',
         'description': 'are collected at run time from the software output.',
@@ -136,7 +139,10 @@ process CUSTOM_DUMPSOFTWAREVERSIONS {
     }
 
     versions_mqc_unique = {
-        'id': 'software_versions_unique',
+        'parent_id': 'software_versions',
+        'parent_name': 'Software Versions',
+        'parent_description': 'Details software versions used in the pipeline run',
+        'id': 'software-versions-unique',
         'section_name': '${workflow.manifest.name} Software Versions',
         'section_href': 'https://github.com/${workflow.manifest.name}',
         'plot_type': 'html',

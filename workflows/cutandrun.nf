@@ -30,7 +30,7 @@ if (params.blacklist) {
     ch_blacklist = file(params.blacklist)
 }
 else {
-    ch_blacklist = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
+    ch_blacklist = Channel.empty()
     WorkflowCutandrun.blacklistWarn(log)
 }
 
@@ -99,7 +99,7 @@ include { INPUT_CHECK                     } from "../subworkflows/local/input_ch
 // include { EXPORT_META                     } from "../modules/local/export_meta"
 // include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"
 // include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"
-// include { MULTIQC                         } from "../modules/local/multiqc"
+include { MULTIQC                         } from "../modules/local/multiqc"
 
 /*
  * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -133,14 +133,14 @@ include { CAT_FASTQ                                                } from "../mo
 // include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
 // include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
 // include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"
-// include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/modules/custom/dumpsoftwareversions/main"
+include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/custom_dumpsoftwareversions"
 
 /*
  * SUBWORKFLOW: Consisting entirely of nf-core/modules
  */
 include { MARK_DUPLICATES_PICARD                       } from "../subworkflows/nf-core/mark_duplicates_picard"
 include { MARK_DUPLICATES_PICARD as DEDUPLICATE_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"
-include { SAMTOOLS_VIEW_SORT_STATS                     } from "../subworkflows/nf-core/samtools_view_sort_stats"
+include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS     } from "../subworkflows/nf-core/samtools_view_sort_stats"
 // include { PREPARE_PEAKCALLING                          } from "../subworkflows/nf-core/prepare_peakcalling"
 
 /*
@@ -290,19 +290,24 @@ workflow CUTANDRUN {
     //ch_metadata_bt2_spikein | view
 
     /*
-     *  SUBWORKFLOW: Filter reads based on quality metrics
-     *  http://biofinysics.blogspot.com/2014/05/how-does-bowtie2-assign-mapq-scores.html
-     */
-    if (params.run_q_filter) {
-        SAMTOOLS_VIEW_SORT_STATS (
-            ch_samtools_bam
+     *  SUBWORKFLOW: Filter reads based some standard measures
+     *  - Unmapped reads 0x004
+     *  - Mate unmapped 0x0008
+     *  - Multi-mapped reads
+     *  - Filter out reads aligned to blacklist regions
+     *  - Filter out reads below a threshold q score
+     */ 
+    if (params.run_read_filter) {
+        FILTER_READS (
+            ch_samtools_bam,
+            ch_blacklist
         )
-        ch_samtools_bam      = SAMTOOLS_VIEW_SORT_STATS.out.bam
-        ch_samtools_bai      = SAMTOOLS_VIEW_SORT_STATS.out.bai
-        ch_samtools_stats    = SAMTOOLS_VIEW_SORT_STATS.out.stats
-        ch_samtools_flagstat = SAMTOOLS_VIEW_SORT_STATS.out.flagstat
-        ch_samtools_idxstats = SAMTOOLS_VIEW_SORT_STATS.out.idxstats
-        ch_software_versions = ch_software_versions.mix(SAMTOOLS_VIEW_SORT_STATS.out.versions)
+        ch_samtools_bam      = FILTER_READS.out.bam
+        ch_samtools_bai      = FILTER_READS.out.bai
+        ch_samtools_stats    = FILTER_READS.out.stats
+        ch_samtools_flagstat = FILTER_READS.out.flagstat
+        ch_samtools_idxstats = FILTER_READS.out.idxstats
+        ch_software_versions = ch_software_versions.mix(FILTER_READS.out.versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
@@ -945,39 +950,38 @@ workflow CUTANDRUN {
         // ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions)
     //}
 
-    // /*
-    // * MODULE: Collect software versions used in pipeline
-    // */
-    // CUSTOM_DUMPSOFTWAREVERSIONS (
-    //     ch_software_versions.unique().collectFile()
-    // )
+    /*
+    * MODULE: Collect software versions used in pipeline
+    */
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_software_versions.unique().collectFile()
+    )
 
-    // /*
-    //  * MODULE: Multiqc
-    //  */
-    // if (params.run_multiqc) {
-    //     workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
-    //     ch_workflow_summary = Channel.value(workflow_summary)
+    /*
+     * MODULE: Multiqc
+     */
+    if (params.run_multiqc) {
+        workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
+        ch_workflow_summary = Channel.value(workflow_summary)
 
-    //     MULTIQC (
-    //         ch_multiqc_config,
-    //         ch_multiqc_custom_config.collect().ifEmpty([]),
-    //         CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
-    //         CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_unique_yml.collect(),
-    //         ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yml"),
-    //         FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
-    //         FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
-    //         FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
-    //         ch_bowtie2_log.collect{it[1]}.ifEmpty([]),
-    //         ch_bowtie2_spikein_log.collect{it[1]}.ifEmpty([]),
-    //         ch_samtools_stats.collect{it[1]}.ifEmpty([]),
-    //         ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
-    //         ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
-    //         ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
-    //         ch_frag_len_multiqc.collect().ifEmpty([])
-    //     )
-    //     multiqc_report = MULTIQC.out.report.toList()
-    // }
+        MULTIQC (
+            ch_multiqc_config,
+            ch_multiqc_custom_config.collect().ifEmpty([]),
+            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect(),
+            CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_unique_yml.collect(),
+            ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yml"),
+            FASTQC_TRIMGALORE.out.fastqc_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]),
+            FASTQC_TRIMGALORE.out.trim_log.collect{it[1]}.ifEmpty([]),
+            ch_bowtie2_log.collect{it[1]}.ifEmpty([]),
+            ch_bowtie2_spikein_log.collect{it[1]}.ifEmpty([]),
+            ch_samtools_stats.collect{it[1]}.ifEmpty([]),
+            ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
+            ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
+            ch_markduplicates_metrics.collect{it[1]}.ifEmpty([])
+        )
+        multiqc_report = MULTIQC.out.report.toList()
+    }
 }
 
 ////////////////////////////////////////////////////
