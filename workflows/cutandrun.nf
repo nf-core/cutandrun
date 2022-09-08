@@ -125,6 +125,7 @@ include { EXTRACT_METADATA_AWK as EXTRACT_PICARD_DUP_META  } from "../subworkflo
  */
 include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"
 include { PRESEQ_LCEXTRAP                                          } from "../modules/nf-core/modules/preseq/lcextrap/main"
+include { BEDTOOLS_BAMTOBED as PRESEQ_BEDTOOLS_BAMTOBED            } from "../modules/nf-core/modules/bedtools/bamtobed/main"
 // include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"
 // include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"
 // include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"
@@ -316,8 +317,15 @@ workflow CUTANDRUN {
     /*
      * MODULE: Run preseq on BAM files before de-duplication
     */
-    PRESEQ_LCEXTRAP (
+    PRESEQ_BEDTOOLS_BAMTOBED (
         ch_samtools_bam
+    )
+    
+    /*
+     * MODULE: Run preseq on BAM files before de-duplication
+    */
+    PRESEQ_LCEXTRAP (
+        PRESEQ_BEDTOOLS_BAMTOBED.out.bed
     )
 
     /*
