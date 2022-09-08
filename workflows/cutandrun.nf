@@ -125,7 +125,6 @@ include { EXTRACT_METADATA_AWK as EXTRACT_PICARD_DUP_META  } from "../subworkflo
  */
 include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"
 include { PRESEQ_LCEXTRAP                                          } from "../modules/nf-core/modules/preseq/lcextrap/main"
-include { BEDTOOLS_BAMTOBED as PRESEQ_BEDTOOLS_BAMTOBED            } from "../modules/nf-core/modules/bedtools/bamtobed/main"
 // include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"
 // include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"
 // include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"
@@ -314,13 +313,6 @@ workflow CUTANDRUN {
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
-
-    /*
-     * MODULE: Run preseq on BAM files before de-duplication
-    */
-    // PRESEQ_BEDTOOLS_BAMTOBED (
-    //     ch_samtools_bam
-    // )
     
     /*
      * MODULE: Run preseq on BAM files before de-duplication
@@ -995,7 +987,8 @@ workflow CUTANDRUN {
             ch_samtools_stats.collect{it[1]}.ifEmpty([]),
             ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
             ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
-            ch_markduplicates_metrics.collect{it[1]}.ifEmpty([])
+            ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
+            PRESEQ_LCEXTRAP.out.lc_extrap.collect{it[1]}.ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

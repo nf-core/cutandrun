@@ -12,6 +12,7 @@ run_modules:
   - cutadapt
   - bowtie2
   - samtools
+  - preseq
   - picard
 
 module_order:
