@@ -318,15 +318,15 @@ workflow CUTANDRUN {
     /*
      * MODULE: Run preseq on BAM files before de-duplication
     */
-    PRESEQ_BEDTOOLS_BAMTOBED (
-        ch_samtools_bam
-    )
+    // PRESEQ_BEDTOOLS_BAMTOBED (
+    //     ch_samtools_bam
+    // )
     
     /*
      * MODULE: Run preseq on BAM files before de-duplication
     */
     PRESEQ_LCEXTRAP (
-        PRESEQ_BEDTOOLS_BAMTOBED.out.bed
+        ch_samtools_bam
     )
 
     /*
