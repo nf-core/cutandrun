@@ -10,14 +10,14 @@ include { BAM_STATS_SAMTOOLS } from '../nf-core/bam_stats_samtools'
 workflow SAMTOOLS_VIEW_SORT_STATS {
     take:
     bam       // channel: [ val(meta), [ bam ] ]
-    blacklist // channel: [ blacklist ]
+    regions   // channel: [ regions ]
 
     main:
     ch_versions = Channel.empty()
     /*
      * Filter BAM file
      */
-    SAMTOOLS_VIEW ( bam.map{ row -> [ row[0], row[1], [], ] }, [], blacklist )
+    SAMTOOLS_VIEW ( bam.map{ row -> [ row[0], row[1], [], ] }, [], regions )
     ch_versions = ch_versions.mix(SAMTOOLS_VIEW.out.versions.first())
 
     /*

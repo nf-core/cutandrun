@@ -1,4 +1,4 @@
-process BEDTOOLS_SORT {
+process BEDTOOLS_COMPLEMENT {
     tag "$meta.id"
     label 'process_medium'
 
@@ -8,28 +8,26 @@ process BEDTOOLS_SORT {
         'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0' }"
 
     input:
-    tuple val(meta), path(intervals)
-    val   extension
+    tuple val(meta), path(bed)
     path  sizes
 
     output:
-    tuple val(meta), path("*.${extension}"), emit: sorted
-    path  "versions.yml"                   , emit: versions
+    tuple val(meta), path('*.bed'), emit: bed
+    path  "versions.yml"          , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    def args   = task.ext.args ?: ''
+    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def sizes  = sizes ? "-g $sizes" : ""
     """
     bedtools \\
-        sort \\
-        -i $intervals \\
-        $sizes \\
+        complement \\
+        -i $bed \\
+        -g $sizes \\
         $args \\
-        > ${prefix}.${extension}
+        > ${prefix}.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

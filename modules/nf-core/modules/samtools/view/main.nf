@@ -10,7 +10,7 @@ process SAMTOOLS_VIEW {
     input:
     tuple val(meta), path(input), path(index)
     path fasta
-    path blacklist
+    path regions
 
     output:
     tuple val(meta), path("*.bam") , emit: bam , optional: true
@@ -25,7 +25,7 @@ process SAMTOOLS_VIEW {
     def args2 = task.ext.args2 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def reference = fasta ? "--reference ${fasta} -C" : ""
-    def blacklist = blacklist ? "-L ${blacklist}" : ""
+    def blacklist = regions ? "-L $regions" : ""
     def file_type = input.getExtension()
     if ("$input" == "${prefix}.${file_type}") error "Input and output names are the same, use \"task.ext.prefix\" to disambiguate!"
     """

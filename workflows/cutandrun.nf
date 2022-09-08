@@ -27,7 +27,7 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, "Input sample
 
 ch_blacklist = Channel.empty()
 if (params.blacklist) {
-    ch_blacklist = file(params.blacklist)
+    ch_blacklist = Channel.from( file(params.blacklist) )
 }
 else {
     ch_blacklist = Channel.empty()
@@ -161,7 +161,8 @@ workflow CUTANDRUN {
      */
     if(params.run_genome_prep) {
         PREPARE_GENOME (
-            prepare_tool_indices
+            prepare_tool_indices,
+            ch_blacklist
         )
         ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.versions)
     }
@@ -302,7 +303,7 @@ workflow CUTANDRUN {
     if (params.run_read_filter) {
         FILTER_READS (
             ch_samtools_bam,
-            []
+            PREPARE_GENOME.out.allowed_regions.collect{it[1]}.ifEmpty([])
         )
         ch_samtools_bam      = FILTER_READS.out.bam
         ch_samtools_bai      = FILTER_READS.out.bai
