@@ -302,7 +302,7 @@ workflow CUTANDRUN {
     if (params.run_read_filter) {
         FILTER_READS (
             ch_samtools_bam,
-            ch_blacklist
+            []
         )
         ch_samtools_bam      = FILTER_READS.out.bam
         ch_samtools_bai      = FILTER_READS.out.bai
