@@ -37,6 +37,8 @@ module_order:
         - "./bowtie2_spikein/*.bowtie2.log"
   - samtools:
       name: "Samtools alignment scores"
+  - preseq:
+      name: "Library Complexity"
   - picard:
       name: "Picard duplication stats"
   - custom_content
