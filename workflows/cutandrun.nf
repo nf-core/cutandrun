@@ -124,6 +124,7 @@ include { EXTRACT_METADATA_AWK as EXTRACT_PICARD_DUP_META  } from "../subworkflo
  * MODULES
  */
 include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"
+include { PRESEQ_LCEXTRAP                                          } from "../modules/nf-core/modules/preseq/lcextrap/main"
 // include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"
 // include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"
 // include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"
@@ -311,6 +312,13 @@ workflow CUTANDRUN {
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
+
+    /*
+     * MODULE: Run preseq on BAM files before de-duplication
+    */
+    PRESEQ_LCEXTRAP (
+        ch_samtools_bam
+    )
 
     /*
      * SUBWORKFLOW: Mark duplicates on all samples
