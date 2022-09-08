@@ -142,7 +142,7 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../mo
 include { MARK_DUPLICATES_PICARD                       } from "../subworkflows/nf-core/mark_duplicates_picard"
 include { MARK_DUPLICATES_PICARD as DEDUPLICATE_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"
 include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS     } from "../subworkflows/nf-core/samtools_view_sort_stats"
-// include { PREPARE_PEAKCALLING                          } from "../subworkflows/nf-core/prepare_peakcalling"
+include { PREPARE_PEAKCALLING                          } from "../subworkflows/nf-core/prepare_peakcalling"
 
 /*
 ========================================================================================
@@ -317,9 +317,11 @@ workflow CUTANDRUN {
     /*
      * MODULE: Run preseq on BAM files before de-duplication
     */
-    PRESEQ_LCEXTRAP (
-        ch_samtools_bam
-    )
+    if (params.run_preseq) {
+        PRESEQ_LCEXTRAP (
+            ch_samtools_bam
+        )
+    }
 
     /*
      * SUBWORKFLOW: Mark duplicates on all samples
@@ -374,321 +376,322 @@ workflow CUTANDRUN {
     }
     //ch_metadata_picard_duplicates | view
 
-    // ch_bedgraph = Channel.empty()
-    // ch_bigwig   = Channel.empty()
-    // if(params.run_peak_calling) {
-    //     /*
-    //     * SUBWORKFLOW: Convert BAM files to bedgraph/bigwig and apply configured normalisation strategy
-    //     */
-    //     PREPARE_PEAKCALLING(
-    //         ch_samtools_bam,
-    //         ch_samtools_bai,
-    //         PREPARE_GENOME.out.chrom_sizes.collect(),
-    //         ch_dummy_file,
-    //         params.normalisation_mode,
-    //     )
-    //     ch_samtools_bam      = PREPARE_PEAKCALLING.out.bam
-    //     ch_bedgraph          = PREPARE_PEAKCALLING.out.bedgraph
-    //     ch_bigwig            = PREPARE_PEAKCALLING.out.bigwig
-    //     ch_software_versions = ch_software_versions.mix(ANNOTATE_DEDUP_META.out.versions)
+    ch_bedgraph = Channel.empty()
+    ch_bigwig   = Channel.empty()
+    if(params.run_peak_calling) {
+        /*
+        * SUBWORKFLOW: Convert BAM files to bedgraph/bigwig and apply configured normalisation strategy
+        */
+        PREPARE_PEAKCALLING(
+            ch_samtools_bam,
+            ch_samtools_bai,
+            PREPARE_GENOME.out.chrom_sizes.collect(),
+            ch_dummy_file,
+            params.normalisation_mode,
+            ch_metadata_bt2_spikein
+        )
+        // ch_samtools_bam      = PREPARE_PEAKCALLING.out.bam
+        // ch_bedgraph          = PREPARE_PEAKCALLING.out.bedgraph
+        // ch_bigwig            = PREPARE_PEAKCALLING.out.bigwig
+        // ch_software_versions = ch_software_versions.mix(ANNOTATE_DEDUP_META.out.versions)
 
-    //     /*
-    //      * CHANNEL: Separate bedgraphs into target/control
-    //      */
-    //     ch_bedgraph.branch { it ->
-    //         target:  it[0].is_control == false
-    //         control: it[0].is_control == true
-    //     }
-    //     .set { ch_bedgraph_split }
-    //     //ch_bedgraph_split.target | view
-    //     //ch_bedgraph_split.control | view
+        // /*
+        //  * CHANNEL: Separate bedgraphs into target/control
+        //  */
+        // ch_bedgraph.branch { it ->
+        //     target:  it[0].is_control == false
+        //     control: it[0].is_control == true
+        // }
+        // .set { ch_bedgraph_split }
+        // //ch_bedgraph_split.target | view
+        // //ch_bedgraph_split.control | view
 
-    //     ch_peaks               = Channel.empty()
-    //     ch_seacr_bed           = Channel.empty()
-    //     ch_macs2_bed           = Channel.empty()
-    //     ch_peaks_bed           = Channel.empty()
-    //     ch_peaks_bed_secondary = Channel.empty()
-    //     ch_peak_summits_bed    = Channel.empty()
+        // ch_peaks               = Channel.empty()
+        // ch_seacr_bed           = Channel.empty()
+        // ch_macs2_bed           = Channel.empty()
+        // ch_peaks_bed           = Channel.empty()
+        // ch_peaks_bed_secondary = Channel.empty()
+        // ch_peak_summits_bed    = Channel.empty()
 
-    //     if(params.use_control) {
-    //         /*
-    //          * MODULE: Call peaks using SEACR with IgG control
-    //          */
-    //         if('seacr' in callers) {
-    //             /*
-    //             * CHANNEL: Pull control groups
-    //             */
-    //             ch_bedgraph_split.target.map{
-    //                 row -> [row[0].control_group, row]
-    //             }
-    //             .set { ch_bg_target_ctrlgrp }
-    //             //ch_bg_target_ctrlgrp | view
+        //if(params.use_control) {
+            // /*
+            // * MODULE: Call peaks using SEACR with IgG control
+            // */
+            // if('seacr' in callers) {
+            //     /*
+            //     * CHANNEL: Pull control groups
+            //     */
+            //     ch_bedgraph_split.target.map{
+            //         row -> [row[0].control_group, row]
+            //     }
+            //     .set { ch_bg_target_ctrlgrp }
+            //     //ch_bg_target_ctrlgrp | view
 
-    //             ch_bedgraph_split.control.map{
-    //                 row -> [row[0].control_group, row]
-    //             }
-    //             .set { ch_bg_control_ctrlgrp }
-    //             //ch_bg_control_ctrlgrp | view
+            //     ch_bedgraph_split.control.map{
+            //         row -> [row[0].control_group, row]
+            //     }
+            //     .set { ch_bg_control_ctrlgrp }
+            //     //ch_bg_control_ctrlgrp | view
 
-    //             /*
-    //             * CHANNEL: Create target/control pairings
-    //             */
-    //             // Create pairs of controls (IgG) with target samples if they are supplied
-    //             ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp).map {
-    //                 row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
-    //             }
-    //             .set{ ch_bedgraph_paired }
-    //             // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
-    //             //ch_bedgraph_paired | view
+            //     /*
+            //     * CHANNEL: Create target/control pairings
+            //     */
+            //     // Create pairs of controls (IgG) with target samples if they are supplied
+            //     ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp).map {
+            //         row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+            //     }
+            //     .set{ ch_bedgraph_paired }
+            //     // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
+            //     //ch_bedgraph_paired | view
 
-    //             SEACR_CALLPEAK (
-    //                 ch_bedgraph_paired,
-    //                 params.peak_threshold
-    //             )
-    //             ch_seacr_bed         = SEACR_CALLPEAK.out.bed
-    //             ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
-    //             // EXAMPLE CHANNEL STRUCT: [[META], BED]
-    //             //SEACR_CALLPEAK.out.bed | view
-    //         }
+            //     SEACR_CALLPEAK (
+            //         ch_bedgraph_paired,
+            //         params.peak_threshold
+            //     )
+            //     ch_seacr_bed         = SEACR_CALLPEAK.out.bed
+            //     ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
+            //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //     //SEACR_CALLPEAK.out.bed | view
+            // }
 
-    //         if('macs2' in callers) {
-    //             ch_samtools_bam.branch{ it ->
-    //                 target:  it[0].is_control == false
-    //                 control: it[0].is_control == true
-    //             }
-    //             .set { ch_samtools_bam_split }
-    //             // ch_samtools_bam_split.target | view
+            // if('macs2' in callers) {
+            //     ch_samtools_bam.branch{ it ->
+            //         target:  it[0].is_control == false
+            //         control: it[0].is_control == true
+            //     }
+            //     .set { ch_samtools_bam_split }
+            //     // ch_samtools_bam_split.target | view
 
-    //             /*
-    //             * CHANNEL: Pull control groups
-    //             */
-    //             ch_samtools_bam_split.target.map{
-    //                 row -> [row[0].control_group, row]
-    //             }
-    //             .set { ch_bam_target_ctrlgrp }
-    //             //ch_bam_target_ctrlgrp | view
+            //     /*
+            //     * CHANNEL: Pull control groups
+            //     */
+            //     ch_samtools_bam_split.target.map{
+            //         row -> [row[0].control_group, row]
+            //     }
+            //     .set { ch_bam_target_ctrlgrp }
+            //     //ch_bam_target_ctrlgrp | view
 
-    //             ch_samtools_bam_split.control.map{
-    //                 row -> [row[0].control_group, row]
-    //             }
-    //             .set { ch_bam_control_ctrlgrp }
-    //             // ch_bam_control_ctrlgrp | view
+            //     ch_samtools_bam_split.control.map{
+            //         row -> [row[0].control_group, row]
+            //     }
+            //     .set { ch_bam_control_ctrlgrp }
+            //     // ch_bam_control_ctrlgrp | view
 
-    //             /*
-    //             * CHANNEL: Create target/control pairings
-    //             */
-    //             // Create pairs of controls (IgG) with target samples if they are supplied
-    //             ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp).map{
-    //                 row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
-    //             }
-    //             .set{ch_bam_paired}
-    //             // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
-    //             // ch_bam_paired | view
+            //     /*
+            //     * CHANNEL: Create target/control pairings
+            //     */
+            //     // Create pairs of controls (IgG) with target samples if they are supplied
+            //     ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp).map{
+            //         row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+            //     }
+            //     .set{ch_bam_paired}
+            //     // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
+            //     // ch_bam_paired | view
 
-    //             MACS2_CALLPEAK (
-    //                 ch_bam_paired,
-    //                 params.macs_gsize
-    //             )
-    //             ch_macs2_bed         = MACS2_CALLPEAK.out.peak
-    //             ch_peak_summits_bed  = MACS2_CALLPEAK.out.bed
-    //             ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
-    //             // EXAMPLE CHANNEL STRUCT: [[META], BED]
-    //             //MACS2_CALLPEAK.out.peak | view
-    //         }
-    //     }
-    //     else {
-    //         /*
-    //         * MODULE: Call peaks without IgG Control
-    //         */
-    //         if('seacr' in callers) {
-    //             /*
-    //             * CHANNEL: Add fake control channel
-    //             */
-    //             ch_bedgraph_split.target.map{ row-> [ row[0], row[1], [] ] }
-    //             .set { ch_bedgraph_target_fctrl }
-    //             // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
-    //             // ch_bedgraph_target_fctrl | view
+            //     MACS2_CALLPEAK (
+            //         ch_bam_paired,
+            //         params.macs_gsize
+            //     )
+            //     ch_macs2_bed         = MACS2_CALLPEAK.out.peak
+            //     ch_peak_summits_bed  = MACS2_CALLPEAK.out.bed
+            //     ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+            //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //     //MACS2_CALLPEAK.out.peak | view
+            // }
+        //}
+        //else {
+            // /*
+            // * MODULE: Call peaks without IgG Control
+            // */
+            // if('seacr' in callers) {
+            //     /*
+            //     * CHANNEL: Add fake control channel
+            //     */
+            //     ch_bedgraph_split.target.map{ row-> [ row[0], row[1], [] ] }
+            //     .set { ch_bedgraph_target_fctrl }
+            //     // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
+            //     // ch_bedgraph_target_fctrl | view
 
-    //             SEACR_CALLPEAK_NOIGG (
-    //                 ch_bedgraph_target_fctrl,
-    //                 params.peak_threshold
-    //             )
-    //             ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
-    //             ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
-    //             // EXAMPLE CHANNEL STRUCT: [[META], BED]
-    //             //SEACR_NO_IGG.out.bed | view
-    //         }
+            //     SEACR_CALLPEAK_NOIGG (
+            //         ch_bedgraph_target_fctrl,
+            //         params.peak_threshold
+            //     )
+            //     ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
+            //     ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
+            //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //     //SEACR_NO_IGG.out.bed | view
+            // }
 
-    //         if('macs2' in callers) {
-    //             ch_samtools_bam.branch{ it ->
-    //                 target:  it[0].is_control == false
-    //                 control: it[0].is_control == true
-    //             }
-    //             .set { ch_samtools_bam_split }
-    //             // ch_samtools_bam_split.target | view
+            // if('macs2' in callers) {
+            //     ch_samtools_bam.branch{ it ->
+            //         target:  it[0].is_control == false
+            //         control: it[0].is_control == true
+            //     }
+            //     .set { ch_samtools_bam_split }
+            //     // ch_samtools_bam_split.target | view
 
-    //             /*
-    //             * CHANNEL: Add fake control channel
-    //             */
-    //             ch_samtools_bam_split.target.map{ row-> [ row[0], row[1], [] ] }
-    //             .set { ch_samtools_bam_target_fctrl }
-    //             // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
-    //             //ch_samtools_bam_target_fctrl | view
+            //     /*
+            //     * CHANNEL: Add fake control channel
+            //     */
+            //     ch_samtools_bam_split.target.map{ row-> [ row[0], row[1], [] ] }
+            //     .set { ch_samtools_bam_target_fctrl }
+            //     // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
+            //     //ch_samtools_bam_target_fctrl | view
 
-    //             MACS2_CALLPEAK_NOIGG (
-    //                 ch_samtools_bam_target_fctrl,
-    //                 params.macs_gsize
-    //             )
-    //             ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.peak
-    //             ch_peak_summits_bed  = MACS2_CALLPEAK_NOIGG.out.bed
-    //             ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
-    //             // EXAMPLE CHANNEL STRUCT: [[META], BED]
-    //             // MACS2_CALLPEAK_NOIGG.out.peak | view
-    //         }
-    //     }
+            //     MACS2_CALLPEAK_NOIGG (
+            //         ch_samtools_bam_target_fctrl,
+            //         params.macs_gsize
+            //     )
+            //     ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.peak
+            //     ch_peak_summits_bed  = MACS2_CALLPEAK_NOIGG.out.bed
+            //     ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
+            //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //     // MACS2_CALLPEAK_NOIGG.out.peak | view
+            // }
+        //}
 
-    //     // Store output of primary peakcaller in the output channel
-    //     if(callers[0] == 'seacr') {
-    //         ch_peaks               = ch_seacr_bed
-    //         ch_peaks_bed           = ch_seacr_bed
-    //         ch_peaks_bed_secondary = ch_macs2_bed
-    //     }
-    //     if(callers[0] == 'macs2') {
-    //         ch_peaks               = ch_macs2_bed
-    //         ch_peaks_bed_secondary = ch_seacr_bed
+        // // Store output of primary peakcaller in the output channel
+        // if(callers[0] == 'seacr') {
+        //     ch_peaks               = ch_seacr_bed
+        //     ch_peaks_bed           = ch_seacr_bed
+        //     ch_peaks_bed_secondary = ch_macs2_bed
+        // }
+        // if(callers[0] == 'macs2') {
+        //     ch_peaks               = ch_macs2_bed
+        //     ch_peaks_bed_secondary = ch_seacr_bed
 
-    //         /*
-    //         * MODULE: Convert narrow or broad peak to bed
-    //         */
-    //         PEAK_TO_BED ( ch_macs2_bed )
-    //         ch_peaks_bed         = PEAK_TO_BED.out.file
-    //         ch_software_versions = ch_software_versions.mix(PEAK_TO_BED.out.versions)
-    //         // EXAMPLE CHANNEL STRUCT: [[META], BED]
-    //         //PEAK_TO_BED.out.file | view
-    //     }
+        //     /*
+        //     * MODULE: Convert narrow or broad peak to bed
+        //     */
+        //     PEAK_TO_BED ( ch_macs2_bed )
+        //     ch_peaks_bed         = PEAK_TO_BED.out.file
+        //     ch_software_versions = ch_software_versions.mix(PEAK_TO_BED.out.versions)
+        //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
+        //     //PEAK_TO_BED.out.file | view
+        // }
 
-    //     /*
-    //     * MODULE: Add sample identifier column to peak beds
-    //     */
-    //     AWK_NAME_PEAK_BED (
-    //         ch_peaks_bed
-    //     )
-    //     ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
-    //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
-    //     //AWK_NAME_PEAK_BED.out.file | view
+        // /*
+        // * MODULE: Add sample identifier column to peak beds
+        // */
+        // AWK_NAME_PEAK_BED (
+        //     ch_peaks_bed
+        // )
+        // ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
+        // // EXAMPLE CHANNEL STRUCT: [[META], BED]
+        // //AWK_NAME_PEAK_BED.out.file | view
 
-    //     if(params.run_consensus_all) {
-    //         /*
-    //         * CHANNEL: Group all samples, filter where the number in the group is > 1
-    //         */
-    //         AWK_NAME_PEAK_BED.out.file
-    //         .map { row -> [ 1, row[1] ] }
-    //         .groupTuple(by: [0])
-    //         .map { row ->
-    //             def new_meta = [:]
-    //             new_meta.put( "id", "all_samples" )
-    //             [ new_meta, row[1].flatten() ]
-    //         }
-    //         .map { row ->
-    //             [ row[0], row[1], row[1].size() ]
-    //         }
-    //         .filter { row -> row[2] > 1 }
-    //         .map { row ->
-    //             [ row[0], row[1] ]
-    //         }
-    //         .set { ch_peaks_bed_all }
-    //         // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
-    //         //ch_peaks_bed_all | view
+        // if(params.run_consensus_all) {
+        //     /*
+        //     * CHANNEL: Group all samples, filter where the number in the group is > 1
+        //     */
+        //     AWK_NAME_PEAK_BED.out.file
+        //     .map { row -> [ 1, row[1] ] }
+        //     .groupTuple(by: [0])
+        //     .map { row ->
+        //         def new_meta = [:]
+        //         new_meta.put( "id", "all_samples" )
+        //         [ new_meta, row[1].flatten() ]
+        //     }
+        //     .map { row ->
+        //         [ row[0], row[1], row[1].size() ]
+        //     }
+        //     .filter { row -> row[2] > 1 }
+        //     .map { row ->
+        //         [ row[0], row[1] ]
+        //     }
+        //     .set { ch_peaks_bed_all }
+        //     // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
+        //     //ch_peaks_bed_all | view
 
-    //         /*
-    //         * SUBWORKFLOW: Construct group consensus peaks
-    //         */
-    //         CONSENSUS_PEAKS_ALL (
-    //             ch_peaks_bed_all,
-    //             params.skip_upset_plots
-    //         )
-    //         ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
-    //         // EXAMPLE CHANNEL STRUCT: [[META], BED]
-    //         //CONSENSUS_PEAKS_ALL.out.bed | view
+        //     /*
+        //     * SUBWORKFLOW: Construct group consensus peaks
+        //     */
+        //     CONSENSUS_PEAKS_ALL (
+        //         ch_peaks_bed_all,
+        //         params.skip_upset_plots
+        //     )
+        //     ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
+        //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
+        //     //CONSENSUS_PEAKS_ALL.out.bed | view
 
-    //     } else {
-    //         /*
-    //         * CHANNEL: Group samples based on group
-    //         */
-    //         AWK_NAME_PEAK_BED.out.file
-    //         .map { row -> [ row[0].group, row[1] ] }
-    //         .groupTuple(by: [0])
-    //         .map { row ->
-    //             def new_meta = [:]
-    //             new_meta.put( "id", row[0] )
-    //             [ new_meta, row[1].flatten() ]
-    //         }
-    //         .map { row ->
-    //             [ row[0], row[1], row[1].size() ]
-    //         }
-    //         .filter { row -> row[2] > 1 }
-    //         .map { row ->
-    //             [ row[0], row[1] ]
-    //         }
-    //         .set { ch_peaks_bed_group }
-    //         // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
-    //         //ch_peaks_bed_group | view
+        // } else {
+        //     /*
+        //     * CHANNEL: Group samples based on group
+        //     */
+        //     AWK_NAME_PEAK_BED.out.file
+        //     .map { row -> [ row[0].group, row[1] ] }
+        //     .groupTuple(by: [0])
+        //     .map { row ->
+        //         def new_meta = [:]
+        //         new_meta.put( "id", row[0] )
+        //         [ new_meta, row[1].flatten() ]
+        //     }
+        //     .map { row ->
+        //         [ row[0], row[1], row[1].size() ]
+        //     }
+        //     .filter { row -> row[2] > 1 }
+        //     .map { row ->
+        //         [ row[0], row[1] ]
+        //     }
+        //     .set { ch_peaks_bed_group }
+        //     // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
+        //     //ch_peaks_bed_group | view
 
-    //         /*
-    //         * SUBWORKFLOW: Construct group consensus peaks
-    //         * where there is more than 1 replicate in a group
-    //         */
-    //         CONSENSUS_PEAKS (
-    //             ch_peaks_bed_group,
-    //             params.skip_upset_plots
-    //         )
-    //         ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
-    //         // EXAMPLE CHANNEL STRUCT: [[META], BED]
-    //         //CONSENSUS_PEAKS.out.bed | view
-    //     }
+        //     /*
+        //     * SUBWORKFLOW: Construct group consensus peaks
+        //     * where there is more than 1 replicate in a group
+        //     */
+        //     CONSENSUS_PEAKS (
+        //         ch_peaks_bed_group,
+        //         params.skip_upset_plots
+        //     )
+        //     ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
+        //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
+        //     //CONSENSUS_PEAKS.out.bed | view
+        // }
 
-    //     /*
-    //     * SUBWORKFLOW: Calculate fragment bed from bams
-    //     * - Filter for mapped reads
-    //     * - Convert to bed file
-    //     * - Keep the read pairs that are on the same chromosome and fragment length less than 1000bp
-    //     * - Only extract the fragment related columns using cut
-    //     */
-    //     CALCULATE_FRAGMENTS (
-    //         ch_samtools_bam
-    //     )
-    //     ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.versions)
-    //     //EXAMPLE CHANNEL STRUCT: NO CHANGE
-    //     //CALCULATE_FRAGMENTS.out.bed | view
+        // /*
+        // * SUBWORKFLOW: Calculate fragment bed from bams
+        // * - Filter for mapped reads
+        // * - Convert to bed file
+        // * - Keep the read pairs that are on the same chromosome and fragment length less than 1000bp
+        // * - Only extract the fragment related columns using cut
+        // */
+        // CALCULATE_FRAGMENTS (
+        //     ch_samtools_bam
+        // )
+        // ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.versions)
+        // //EXAMPLE CHANNEL STRUCT: NO CHANGE
+        // //CALCULATE_FRAGMENTS.out.bed | view
 
-    //     /*
-    //     * MODULE: Bin the fragments into 500bp bins ready for downstream reporting
-    //     */
-    //     AWK_FRAG_BIN(
-    //         CALCULATE_FRAGMENTS.out.bed
-    //     )
-    //     ch_software_versions = ch_software_versions.mix(AWK_FRAG_BIN.out.versions)
-    //     //AWK_FRAG_BIN.out.file | view
+        // /*
+        // * MODULE: Bin the fragments into 500bp bins ready for downstream reporting
+        // */
+        // AWK_FRAG_BIN(
+        //     CALCULATE_FRAGMENTS.out.bed
+        // )
+        // ch_software_versions = ch_software_versions.mix(AWK_FRAG_BIN.out.versions)
+        // //AWK_FRAG_BIN.out.file | view
 
-    //     /*
-    //     * CHANNEL: Combine bam and bai files on id
-    //     */
-    //     ch_samtools_bam.map { row -> [row[0].id, row ].flatten()}
-    //     .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
-    //     .map { row -> [row[1], row[2], row[4]] }
-    //     .set { ch_bam_bai }
-    //     // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
-    //     //ch_bam_bai | view
+        // /*
+        // * CHANNEL: Combine bam and bai files on id
+        // */
+        // ch_samtools_bam.map { row -> [row[0].id, row ].flatten()}
+        // .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
+        // .map { row -> [row[1], row[2], row[4]] }
+        // .set { ch_bam_bai }
+        // // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
+        // //ch_bam_bai | view
 
-    //     /*
-    //     * MODULE: Calculate fragment lengths
-    //     */
-    //     SAMTOOLS_CUSTOMVIEW (
-    //         ch_bam_bai
-    //     )
-    //     // ch_software_versions = ch_software_versions.mix(SAMTOOLS_CUSTOMVIEW.out.versions)
-    //     //SAMTOOLS_CUSTOMVIEW.out.tsv | view
-    //}
+        // /*
+        // * MODULE: Calculate fragment lengths
+        // */
+        // SAMTOOLS_CUSTOMVIEW (
+        //     ch_bam_bai
+        // )
+        // // ch_software_versions = ch_software_versions.mix(SAMTOOLS_CUSTOMVIEW.out.versions)
+        // //SAMTOOLS_CUSTOMVIEW.out.tsv | view
+    }
 
     //if(params.run_reporting) {
         // if(params.run_igv) {
@@ -959,20 +962,21 @@ workflow CUTANDRUN {
         // ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions)
     //}
 
-    /*
-    * MODULE: Collect software versions used in pipeline
-    */
-    CUSTOM_DUMPSOFTWAREVERSIONS (
-        ch_software_versions.unique().collectFile()
-    )
-
-    /*
-     * MODULE: Multiqc
-     */
+    
     if (params.run_multiqc) {
         workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
+        /*
+        * MODULE: Collect software versions used in pipeline
+        */
+        CUSTOM_DUMPSOFTWAREVERSIONS (
+            ch_software_versions.unique().collectFile()
+        )
+
+        /*
+        * MODULE: Multiqc
+        */
         MULTIQC (
             ch_multiqc_config,
             ch_multiqc_custom_config.collect().ifEmpty([]),
