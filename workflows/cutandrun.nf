@@ -89,9 +89,8 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
 include { INPUT_CHECK                     } from "../subworkflows/local/input_check"
 include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
 include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
-// include { IGV_SESSION                     } from "../modules/local/python/igv_session"
-// include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
-
+include { IGV_SESSION                     } from "../modules/local/python/igv_session"
+include { AWK as AWK_EXTRACT_SUMMITS      } from "../modules/local/linux/awk"
 // include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
 // include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
 // include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
@@ -128,11 +127,11 @@ include { SEACR_CALLPEAK                                           } from "../mo
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"
 include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"
 include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/macs2/callpeak/main"
-// include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"
-// include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"
-// include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
-// include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
-// include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
+//include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"
 include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/custom_dumpsoftwareversions"
 
 /*
@@ -408,6 +407,7 @@ workflow CUTANDRUN {
         ch_macs2_peaks     = Channel.empty()
         ch_peaks_primary   = Channel.empty()
         ch_peaks_secondary = Channel.empty()
+        ch_peaks_summits   = Channel.empty()
         if(params.use_control) {
             /*
             * MODULE: Call peaks using SEACR with IgG control
@@ -489,6 +489,7 @@ workflow CUTANDRUN {
                     params.macs_gsize
                 )
                 ch_macs2_peaks       = MACS2_CALLPEAK.out.peak
+                ch_peaks_summits     = MACS2_CALLPEAK.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 //MACS2_CALLPEAK.out.peak | view
@@ -538,6 +539,7 @@ workflow CUTANDRUN {
                     params.macs_gsize
                 )
                 ch_macs2_peaks       = MACS2_CALLPEAK_NOIGG.out.peak
+                ch_peaks_summits     = MACS2_CALLPEAK_NOIGG.out.bed
                 ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
                 // MACS2_CALLPEAK_NOIGG.out.peak | view
@@ -563,6 +565,18 @@ workflow CUTANDRUN {
         if(callers[0] == 'macs2') {
             ch_peaks_primary   = ch_macs2_peaks
             ch_peaks_secondary = ch_seacr_peaks
+        }
+
+        if(callers[0] == 'seacr') {
+            /*
+            * MODULE: Extract summits from seacr peak beds
+            */
+            AWK_EXTRACT_SUMMITS (
+                ch_peaks_primary
+            )
+            ch_peaks_summits     = AWK_EXTRACT_SUMMITS.out.file
+            ch_software_versions = ch_software_versions.mix(AWK_EXTRACT_SUMMITS.out.versions)
+            //AWK_EXTRACT_SUMMITS.out.file | view
         }
 
         /*
@@ -660,114 +674,96 @@ workflow CUTANDRUN {
         //EXTRACT_FRAGMENTS.out.bed | view
     }
 
-    //if(params.run_reporting) {
-        // if(params.run_igv) {
-        //     /*
-        //     * MODULE: Create igv session
-        //     */
-        //     IGV_SESSION (
-        //         PREPARE_GENOME.out.fasta,
-        //         PREPARE_GENOME.out.fasta_index.map {it[1]},
-        //         PREPARE_GENOME.out.bed_index,
-        //         //PREPARE_GENOME.out.gtf.collect(),
-        //         ch_peaks.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
-        //         ch_peaks_bed_secondary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
-        //         ch_bigwig.collect{it[1]}.ifEmpty([])
-        //     )
-        //     //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
-        // }
+    if(params.run_reporting) {
+        if(params.run_igv) {
+            /*
+            * MODULE: Create igv session
+            */
+            IGV_SESSION (
+                PREPARE_GENOME.out.fasta,
+                PREPARE_GENOME.out.fasta_index.map {it[1]},
+                PREPARE_GENOME.out.bed_index,
+                //PREPARE_GENOME.out.gtf.collect(),
+                ch_peaks_primary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
+                ch_peaks_secondary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
+                ch_bigwig.collect{it[1]}.ifEmpty([])
+            )
+            //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
+        }
 
-        // if (params.run_deep_tools && params.run_peak_calling) {
-            
-        //     if(callers[0] == 'seacr') {
-        //         /*
-        //         * MODULE: Extract summits from seacr peak beds
-        //         */
-        //         AWK_EDIT_PEAK_BED (
-        //             ch_peaks_bed
-        //         )
-        //         ch_peak_summits_bed  = AWK_EDIT_PEAK_BED.out.file
-        //         ch_software_versions = ch_software_versions.mix(AWK_EDIT_PEAK_BED.out.versions)
-        //         //AWK_EDIT_PEAK_BED.out.file | view
-        //     }
+        if (params.run_deep_tools && params.run_peak_calling) {
+            /*
+            * CHANNEL: Remove IgG from bigwig channel
+            */
+            ch_bigwig
+                .filter { it[0].is_control == false }
+                .set { ch_bigwig_no_igg }
+            //ch_bigwig_no_igg | view
 
-        //     /*
-        //     * CHANNEL: Structure output for join on id
-        //     */
-        //     ch_peak_summits_bed
-        //         .map { row -> [row[0].id, row ].flatten()}
-        //         .set { ch_peaks_bed_id }
-        //     //ch_peaks_bed_id | view
+            /*
+            * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
+            */
+            DEEPTOOLS_COMPUTEMATRIX_GENE (
+                ch_bigwig_no_igg,
+                PREPARE_GENOME.out.bed
+            )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions)
 
-        //     /*
-        //     * CHANNEL: Remove IgG from bigwig channel
-        //     */
-        //     ch_bigwig
-        //         .filter { it[0].is_control == false }
-        //         .set { ch_bigwig_no_igg }
-        //     //ch_bigwig_no_igg | view
+            /*
+            * MODULE: Calculate DeepTools heatmap
+            */
+            DEEPTOOLS_PLOTHEATMAP_GENE (
+                DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
+            )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
 
-        //     /*
-        //     * CHANNEL: Join beds and bigwigs on id
-        //     */
-        //     ch_bigwig_no_igg
-        //         .map { row -> [row[0].id, row ].flatten()}
-        //         .join ( ch_peaks_bed_id )
-        //         .set { ch_dt_peaks }
-        //     //ch_dt_peaks | view
+            /*
+            * CHANNEL: Structure output for join on id
+            */
+            ch_peaks_summits
+                .map { row -> [row[0].id, row ].flatten()}
+                .set { ch_peaks_summits_id }
+            //ch_peaks_bed_id | view
 
-        //     ch_dt_peaks
-        //         .map { row -> row[1,2] }
-        //         .set { ch_ordered_bigwig }
-        //     //ch_ordered_bigwig | view
+            /*
+            * CHANNEL: Join beds and bigwigs on id
+            */
+            ch_bigwig_no_igg
+                .map { row -> [row[0].id, row ].flatten()}
+                .join ( ch_peaks_summits_id )
+                .set { ch_dt_bigwig_summits }
+            //ch_dt_peaks | view
 
-        //     ch_dt_peaks
-        //         .map { row -> row[-1] }
-        //         .set { ch_ordered_peaks_max }
-        //     //ch_ordered_peaks_max | view
+            ch_dt_bigwig_summits
+                .map { row -> row[1,2] }
+                .set { ch_ordered_bigwig }
+            //ch_ordered_bigwig | view
 
-        //     /*
-        //     * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
-        //     */
-        //     DEEPTOOLS_COMPUTEMATRIX_GENE (
-        //         ch_bigwig_no_igg,
-        //         PREPARE_GENOME.out.bed
-        //     )
-        //     ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions)
+            ch_dt_bigwig_summits
+                .map { row -> row[-1] }
+                .filter { it -> it.size() > 1}
+                .set { ch_ordered_peaks_max }
+            //ch_ordered_peaks_max | view
 
-        //     /*
-        //     * MODULE: Calculate DeepTools heatmap
-        //     */
-        //     DEEPTOOLS_PLOTHEATMAP_GENE (
-        //         DEEPTOOLS_COMPUTEMATRIX_GENE.out.matrix
-        //     )
-        //     ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
+            /*
+            * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
+            */
+            DEEPTOOLS_COMPUTEMATRIX_PEAKS (
+                ch_ordered_bigwig,
+                ch_ordered_peaks_max
+            )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
+            //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
+            //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
 
-        //     // Run if not empty file size > 1 byte
-        //     ch_ordered_peaks_max
-        //         .filter { it -> it.size() > 1}
-        //         .set { ch_ordered_peaks_max_notempty }
-        //     //ch_ordered_peaks_max_notempty | view
-
-        //     /*
-        //     * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
-        //     */
-        //     DEEPTOOLS_COMPUTEMATRIX_PEAKS (
-        //         ch_ordered_bigwig,
-        //         ch_ordered_peaks_max_notempty
-        //     )
-        //     ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
-        //     //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
-        //     //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
-
-        //     /*
-        //     * MODULE: Calculate DeepTools heatmap
-        //     */
-        //     DEEPTOOLS_PLOTHEATMAP_PEAKS (
-        //         DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
-        //     )
-        //     ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions)
-        // }
+            /*
+            * MODULE: Calculate DeepTools heatmap
+            */
+            DEEPTOOLS_PLOTHEATMAP_PEAKS (
+                DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
+            )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions)
+        }
 
         // /*
         // * CHANNEL: Join bams and beds on id
@@ -927,9 +923,8 @@ workflow CUTANDRUN {
         // )
         // ch_frag_len_multiqc  = GENERATE_REPORTS.out.frag_len_multiqc
         // ch_software_versions = ch_software_versions.mix(GENERATE_REPORTS.out.versions)
-    //}
+    }
 
-    
     if (params.run_multiqc) {
         workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
