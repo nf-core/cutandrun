@@ -88,9 +88,7 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
  */
 include { INPUT_CHECK                     } from "../subworkflows/local/input_check"
 include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
-// include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
-// include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"
-// include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
+include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
 // include { IGV_SESSION                     } from "../modules/local/python/igv_session"
 // include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
 
@@ -111,9 +109,9 @@ include { ALIGN_BOWTIE2                                    } from "../subworkflo
 include { EXTRACT_METADATA_AWK as EXTRACT_BT2_TARGET_META  } from "../subworkflows/local/extract_metadata_awk"
 include { EXTRACT_METADATA_AWK as EXTRACT_BT2_SPIKEIN_META } from "../subworkflows/local/extract_metadata_awk"
 include { EXTRACT_METADATA_AWK as EXTRACT_PICARD_DUP_META  } from "../subworkflows/local/extract_metadata_awk"
-// include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"
-// include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"
-// include { CALCULATE_FRAGMENTS                            } from "../subworkflows/local/calculate_fragments"
+include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"
+include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"
+include { EXTRACT_FRAGMENTS                              } from "../subworkflows/local/extract_fragments"
 
 /*
 ========================================================================================
@@ -567,129 +565,99 @@ workflow CUTANDRUN {
             ch_peaks_secondary = ch_seacr_peaks
         }
 
+        /*
+        * MODULE: Add sample identifier column to peak beds
+        */
+        AWK_NAME_PEAK_BED (
+            ch_peaks_primary
+        )
+        ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
+        // EXAMPLE CHANNEL STRUCT: [[META], BED]
+        //AWK_NAME_PEAK_BED.out.file | view
 
+        if(params.run_consensus_all) {
+            /*
+            * CHANNEL: Group all samples, filter where the number in the group is > 1
+            */
+            AWK_NAME_PEAK_BED.out.file
+            .map { row -> [ 1, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                def new_meta = [:]
+                new_meta.put( "id", "all_samples" )
+                [ new_meta, row[1].flatten() ]
+            }
+            .map { row ->
+                [ row[0], row[1], row[1].size() ]
+            }
+            .filter { row -> row[2] > 1 }
+            .map { row ->
+                [ row[0], row[1] ]
+            }
+            .set { ch_peaks_bed_all }
+            // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
+            //ch_peaks_bed_all | view
 
-        // /*
-        // * MODULE: Add sample identifier column to peak beds
-        // */
-        // AWK_NAME_PEAK_BED (
-        //     ch_peaks_bed
-        // )
-        // ch_software_versions = ch_software_versions.mix(AWK_NAME_PEAK_BED.out.versions)
-        // // EXAMPLE CHANNEL STRUCT: [[META], BED]
-        // //AWK_NAME_PEAK_BED.out.file | view
+            /*
+            * SUBWORKFLOW: Construct group consensus peaks
+            */
+            CONSENSUS_PEAKS_ALL (
+                ch_peaks_bed_all,
+                params.skip_upset_plots
+            )
+            ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
+            // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //CONSENSUS_PEAKS_ALL.out.bed | view
+        } else {
+            /*
+            * CHANNEL: Group samples based on group name
+            */
+            AWK_NAME_PEAK_BED.out.file
+            .map { row -> [ row[0].group, row[1] ] }
+            .groupTuple(by: [0])
+            .map { row ->
+                def new_meta = [:]
+                new_meta.put( "id", row[0] )
+                [ new_meta, row[1].flatten() ]
+            }
+            .map { row ->
+                [ row[0], row[1], row[1].size() ]
+            }
+            .filter { row -> row[2] > 1 }
+            .map { row ->
+                [ row[0], row[1] ]
+            }
+            .set { ch_peaks_bed_group }
+            // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
+            //ch_peaks_bed_group | view
 
-        // if(params.run_consensus_all) {
-        //     /*
-        //     * CHANNEL: Group all samples, filter where the number in the group is > 1
-        //     */
-        //     AWK_NAME_PEAK_BED.out.file
-        //     .map { row -> [ 1, row[1] ] }
-        //     .groupTuple(by: [0])
-        //     .map { row ->
-        //         def new_meta = [:]
-        //         new_meta.put( "id", "all_samples" )
-        //         [ new_meta, row[1].flatten() ]
-        //     }
-        //     .map { row ->
-        //         [ row[0], row[1], row[1].size() ]
-        //     }
-        //     .filter { row -> row[2] > 1 }
-        //     .map { row ->
-        //         [ row[0], row[1] ]
-        //     }
-        //     .set { ch_peaks_bed_all }
-        //     // EXAMPLE CHANNEL STRUCT: [[id: all_samples], [BED1, BED2, BEDn...], count]
-        //     //ch_peaks_bed_all | view
+            /*
+            * SUBWORKFLOW: Construct group consensus peaks
+            * where there is more than 1 replicate in a group
+            */
+            CONSENSUS_PEAKS (
+                ch_peaks_bed_group,
+                params.skip_upset_plots
+            )
+            ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
+            // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //CONSENSUS_PEAKS.out.bed | view
+        }
 
-        //     /*
-        //     * SUBWORKFLOW: Construct group consensus peaks
-        //     */
-        //     CONSENSUS_PEAKS_ALL (
-        //         ch_peaks_bed_all,
-        //         params.skip_upset_plots
-        //     )
-        //     ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
-        //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
-        //     //CONSENSUS_PEAKS_ALL.out.bed | view
-
-        // } else {
-        //     /*
-        //     * CHANNEL: Group samples based on group
-        //     */
-        //     AWK_NAME_PEAK_BED.out.file
-        //     .map { row -> [ row[0].group, row[1] ] }
-        //     .groupTuple(by: [0])
-        //     .map { row ->
-        //         def new_meta = [:]
-        //         new_meta.put( "id", row[0] )
-        //         [ new_meta, row[1].flatten() ]
-        //     }
-        //     .map { row ->
-        //         [ row[0], row[1], row[1].size() ]
-        //     }
-        //     .filter { row -> row[2] > 1 }
-        //     .map { row ->
-        //         [ row[0], row[1] ]
-        //     }
-        //     .set { ch_peaks_bed_group }
-        //     // EXAMPLE CHANNEL STRUCT: [[id: <GROUP>], [BED1, BED2, BEDn...], count]
-        //     //ch_peaks_bed_group | view
-
-        //     /*
-        //     * SUBWORKFLOW: Construct group consensus peaks
-        //     * where there is more than 1 replicate in a group
-        //     */
-        //     CONSENSUS_PEAKS (
-        //         ch_peaks_bed_group,
-        //         params.skip_upset_plots
-        //     )
-        //     ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
-        //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
-        //     //CONSENSUS_PEAKS.out.bed | view
-        // }
-
-        // /*
-        // * SUBWORKFLOW: Calculate fragment bed from bams
-        // * - Filter for mapped reads
-        // * - Convert to bed file
-        // * - Keep the read pairs that are on the same chromosome and fragment length less than 1000bp
-        // * - Only extract the fragment related columns using cut
-        // */
-        // CALCULATE_FRAGMENTS (
-        //     ch_samtools_bam
-        // )
-        // ch_software_versions = ch_software_versions.mix(CALCULATE_FRAGMENTS.out.versions)
-        // //EXAMPLE CHANNEL STRUCT: NO CHANGE
-        // //CALCULATE_FRAGMENTS.out.bed | view
-
-        // /*
-        // * MODULE: Bin the fragments into 500bp bins ready for downstream reporting
-        // */
-        // AWK_FRAG_BIN(
-        //     CALCULATE_FRAGMENTS.out.bed
-        // )
-        // ch_software_versions = ch_software_versions.mix(AWK_FRAG_BIN.out.versions)
-        // //AWK_FRAG_BIN.out.file | view
-
-        // /*
-        // * CHANNEL: Combine bam and bai files on id
-        // */
-        // ch_samtools_bam.map { row -> [row[0].id, row ].flatten()}
-        // .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
-        // .map { row -> [row[1], row[2], row[4]] }
-        // .set { ch_bam_bai }
-        // // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
-        // //ch_bam_bai | view
-
-        // /*
-        // * MODULE: Calculate fragment lengths
-        // */
-        // SAMTOOLS_CUSTOMVIEW (
-        //     ch_bam_bai
-        // )
-        // // ch_software_versions = ch_software_versions.mix(SAMTOOLS_CUSTOMVIEW.out.versions)
-        // //SAMTOOLS_CUSTOMVIEW.out.tsv | view
+        /*
+        * SUBWORKFLOW: Calculate fragment bed from bams
+        * - Split out non-control samples
+        * - Convert bam to bed file
+        * - Keep the read pairs that are on the same chromosome and fragment length less than 1000bp
+        * - Only extract the fragment related columns using cut
+        */
+        EXTRACT_FRAGMENTS (
+            ch_samtools_bam,
+            ch_samtools_bai
+        )
+        ch_software_versions = ch_software_versions.mix(EXTRACT_FRAGMENTS.out.versions)
+        //EXAMPLE CHANNEL STRUCT: NO CHANGE
+        //EXTRACT_FRAGMENTS.out.bed | view
     }
 
     //if(params.run_reporting) {

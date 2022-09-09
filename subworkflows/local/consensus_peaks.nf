@@ -5,7 +5,7 @@
 include { SORT                 } from '../../modules/local/linux/sort'
 include { BEDTOOLS_MERGE       } from '../../modules/nf-core/modules/bedtools/merge/main'
 include { AWK                  } from '../../modules/local/linux/awk'
-include { PLOT_CONSENSUS_PEAKS } from '../../modules/local/modules/plot_consensus_peaks/main'
+include { PLOT_CONSENSUS_PEAKS } from '../../modules/local/python/plot_consensus_peaks'
 
 workflow CONSENSUS_PEAKS {
 
@@ -38,7 +38,7 @@ workflow CONSENSUS_PEAKS {
                 output
             }
 
-        PLOT_CONSENSUS_PEAKS ( ch_merged_bed_sorted )
+        PLOT_CONSENSUS_PEAKS ( ch_merged_bed_sorted.ifEmpty([]) )
         ch_versions = ch_versions.mix(PLOT_CONSENSUS_PEAKS.out.versions)
     }
 

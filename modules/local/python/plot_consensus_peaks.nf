@@ -15,7 +15,7 @@ process PLOT_CONSENSUS_PEAKS {
 
     script:
     """
-    consensus_peaks.py \\
+    plot_consensus_peaks.py \\
         --peaks "*.peaks.bed" \\
         --outpath .
 
