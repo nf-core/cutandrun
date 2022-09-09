@@ -316,10 +316,13 @@ workflow CUTANDRUN {
     /*
      * MODULE: Run preseq on BAM files before de-duplication
     */
+    ch_preseq_output = Channel.empty()
     if (params.run_preseq) {
         PRESEQ_LCEXTRAP (
             ch_samtools_bam
         )
+        ch_samtools_idxstats = PRESEQ_LCEXTRAP.out.lc_extrap
+        ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.versions)
     }
 
     /*
@@ -766,6 +769,7 @@ workflow CUTANDRUN {
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions)
         }
 
+        ch_dt_corrmatrix = Channel.empty()
         if(params.run_deeptools_qc) {
             /*
             * SUBWORKFLOW: Run suite of deeptools QC on bam files
@@ -774,6 +778,7 @@ workflow CUTANDRUN {
                 ch_samtools_bam,
                 ch_samtools_bai
             )
+            ch_dt_corrmatrix     = DEEPTOOLS_QC.out.correlation_matrix
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_QC.out.versions)
         }
 
@@ -967,7 +972,8 @@ workflow CUTANDRUN {
             ch_samtools_flagstat.collect{it[1]}.ifEmpty([]),
             ch_samtools_idxstats.collect{it[1]}.ifEmpty([]),
             ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
-            PRESEQ_LCEXTRAP.out.lc_extrap.collect{it[1]}.ifEmpty([])
+            ch_preseq_output.collect{it[1]}.ifEmpty([]),
+            ch_dt_corrmatrix.collect{it[1]}.ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

@@ -3,6 +3,7 @@
 */
 
 include { DEEPTOOLS_MULTIBAMSUMMARY } from '../../modules/local/deeptools/multibamsummary/main.nf'
+include { DEEPTOOLS_PLOTCORRELATION } from '../../modules/local/deeptools/plotcorrelation/main.nf'
 
 workflow DEEPTOOLS_QC {
     take:
@@ -37,13 +38,23 @@ workflow DEEPTOOLS_QC {
     //ch_bam_bai | view
 
     /*
+    * CHANNEL: Get list of sample ids
+    */
+    ch_bam_target.map { row -> [row[0].id] }
+    .collect()
+    .map { row -> [row] }
+    .set { ch_ids }
+    //ch_ids | view
+
+    /*
     * CHANNEL: Combine bam and bai files into one list
     */
     ch_bam_target.map { row -> [row[1]] }
     .collect()
     .map { row -> [row] } 
     .combine( ch_bai_target.map { row -> [row[1]] }.collect().map { row -> [row] } )
-    .map { row -> [[:], row[0], row[1]] } 
+    .combine( ch_ids )
+    .map { row -> [[id: 'all_target_bams'], row[0], row[1], row[2]] } 
     .set { ch_bam_bai_all }
     //ch_bam_bai_all | view
 
@@ -53,21 +64,21 @@ workflow DEEPTOOLS_QC {
     DEEPTOOLS_MULTIBAMSUMMARY (
         ch_bam_bai_all
     )
+    ch_versions = ch_versions.mix(DEEPTOOLS_MULTIBAMSUMMARY.out.versions)
+    //DEEPTOOLS_MULTIBAMSUMMARY.out.matrix | view
+
+    /*
+    * MODULE: Summarise bams into bins
+    */
+    DEEPTOOLS_PLOTCORRELATION (
+        DEEPTOOLS_MULTIBAMSUMMARY.out.matrix
+    )
+    ch_versions = ch_versions.mix(DEEPTOOLS_PLOTCORRELATION.out.versions)
     //DEEPTOOLS_MULTIBAMSUMMARY.out.matrix | view
 
 
     emit:
-    // fasta                  = ch_fasta                    // path: genome.fasta
-    // fasta_index            = ch_fasta_index              // path: genome.fai
-    // chrom_sizes            = ch_chrom_sizes              // path: genome.sizes
-    // spikein_chrom_sizes    = ch_spikein_chrom_sizes      // path: genome.sizes
-    // gtf                    = ch_gtf                      // path: genome.gtf
-    // bed                    = ch_gene_bed                 // path: genome.bed
-    // bed_index              = ch_gene_bed_index           // path: genome.bed_index
-    // allowed_regions        = ch_genome_include_regions   // path: genome.regions
-
-    // bowtie2_index          = ch_bt2_index                // path: bt2/index/
-    // bowtie2_spikein_index  = ch_bt2_spikein_index        // path: bt2/index/
+    correlation_matrix = DEEPTOOLS_PLOTCORRELATION.out.matrix
 
     versions               = ch_versions                 // channel: [ versions.yml ]
 }

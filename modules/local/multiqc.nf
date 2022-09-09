@@ -22,6 +22,7 @@ process MULTIQC {
     path ('samtools/idxstats/*')
     path ('picard/markduplicates/*')
     path ('preseq/*')
+    path ('deeptools/*')
 
     output:
     path "*multiqc_report.html", emit: report

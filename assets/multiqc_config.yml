@@ -14,6 +14,7 @@ run_modules:
   - samtools
   - preseq
   - picard
+  - deeptools
 
 module_order:
   - fastqc:
@@ -41,6 +42,8 @@ module_order:
       name: "Library Complexity"
   - picard:
       name: "Picard duplication stats"
+  - deeptools:
+      name: "Fragment QC"
   - custom_content
 
 custom_content:
