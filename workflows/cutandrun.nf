@@ -108,9 +108,9 @@ include { ALIGN_BOWTIE2                                    } from "../subworkflo
 include { EXTRACT_METADATA_AWK as EXTRACT_BT2_TARGET_META  } from "../subworkflows/local/extract_metadata_awk"
 include { EXTRACT_METADATA_AWK as EXTRACT_BT2_SPIKEIN_META } from "../subworkflows/local/extract_metadata_awk"
 include { EXTRACT_METADATA_AWK as EXTRACT_PICARD_DUP_META  } from "../subworkflows/local/extract_metadata_awk"
-include { CONSENSUS_PEAKS                                } from "../subworkflows/local/consensus_peaks"
-include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL         } from "../subworkflows/local/consensus_peaks"
-include { EXTRACT_FRAGMENTS                              } from "../subworkflows/local/extract_fragments"
+include { CONSENSUS_PEAKS                                  } from "../subworkflows/local/consensus_peaks"
+include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL           } from "../subworkflows/local/consensus_peaks"
+include { EXTRACT_FRAGMENTS                                } from "../subworkflows/local/extract_fragments"
 
 /*
 ========================================================================================
@@ -141,6 +141,7 @@ include { MARK_DUPLICATES_PICARD                       } from "../subworkflows/n
 include { MARK_DUPLICATES_PICARD as DEDUPLICATE_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"
 include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS     } from "../subworkflows/nf-core/samtools_view_sort_stats"
 include { PREPARE_PEAKCALLING                          } from "../subworkflows/nf-core/prepare_peakcalling"
+include { DEEPTOOLS_QC                                 } from "../subworkflows/nf-core/deeptools_qc"
 
 /*
 ========================================================================================
@@ -691,7 +692,7 @@ workflow CUTANDRUN {
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
-        if (params.run_deep_tools && params.run_peak_calling) {
+        if (params.run_deeptools_heatmaps && params.run_peak_calling) {
             /*
             * CHANNEL: Remove IgG from bigwig channel
             */
@@ -764,6 +765,18 @@ workflow CUTANDRUN {
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions)
         }
+
+        if(params.run_deeptools_qc) {
+            /*
+            * SUBWORKFLOW: Run suite of deeptools QC on bam files
+            */
+            DEEPTOOLS_QC (
+                ch_samtools_bam,
+                ch_samtools_bai
+            )
+            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_QC.out.versions)
+        }
+
 
         // /*
         // * CHANNEL: Join bams and beds on id

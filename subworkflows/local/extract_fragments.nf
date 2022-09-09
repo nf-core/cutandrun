@@ -60,7 +60,7 @@ workflow EXTRACT_FRAGMENTS {
     /*
     * CHANNEL: Combine bam and bai files on id
     */
-    bam.map { row -> [row[0].id, row ].flatten()}
+    ch_bam_target.map { row -> [row[0].id, row ].flatten()}
     .join ( ch_bai_target.map { row -> [row[0].id, row ].flatten()} )
     .map { row -> [row[1], row[2], row[4]] }
     .set { ch_bam_bai }
