@@ -87,12 +87,13 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
  * MODULES
  */
 include { INPUT_CHECK                     } from "../subworkflows/local/input_check"
+include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
 // include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
 // include { AWK as AWK_FRAG_BIN             } from "../modules/local/linux/awk"
 // include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
 // include { IGV_SESSION                     } from "../modules/local/python/igv_session"
 // include { AWK as AWK_EDIT_PEAK_BED        } from "../modules/local/linux/awk"
-// include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
+
 // include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
 // include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
 // include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
@@ -125,10 +126,10 @@ include { EXTRACT_METADATA_AWK as EXTRACT_PICARD_DUP_META  } from "../subworkflo
  */
 include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"
 include { PRESEQ_LCEXTRAP                                          } from "../modules/nf-core/modules/preseq/lcextrap/main"
-// include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"
-// include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"
-// include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"
-// include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/macs2/callpeak/main"
+include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"
+include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"
+include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/macs2/callpeak/main"
 // include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/modules/deeptools/computematrix/main"
 // include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"
 // include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
@@ -390,185 +391,183 @@ workflow CUTANDRUN {
             params.normalisation_mode,
             ch_metadata_bt2_spikein
         )
-        // ch_samtools_bam      = PREPARE_PEAKCALLING.out.bam
-        // ch_bedgraph          = PREPARE_PEAKCALLING.out.bedgraph
-        // ch_bigwig            = PREPARE_PEAKCALLING.out.bigwig
-        // ch_software_versions = ch_software_versions.mix(ANNOTATE_DEDUP_META.out.versions)
+        ch_bedgraph          = PREPARE_PEAKCALLING.out.bedgraph
+        ch_bigwig            = PREPARE_PEAKCALLING.out.bigwig
+        ch_software_versions = ch_software_versions.mix(PREPARE_PEAKCALLING.out.versions)
 
-        // /*
-        //  * CHANNEL: Separate bedgraphs into target/control
-        //  */
-        // ch_bedgraph.branch { it ->
-        //     target:  it[0].is_control == false
-        //     control: it[0].is_control == true
-        // }
-        // .set { ch_bedgraph_split }
-        // //ch_bedgraph_split.target | view
-        // //ch_bedgraph_split.control | view
+        /*
+         * CHANNEL: Separate bedgraphs into target/control
+         */
+        ch_bedgraph.branch { it ->
+            target:  it[0].is_control == false
+            control: it[0].is_control == true
+        }
+        .set { ch_bedgraph_split }
+        //ch_bedgraph_split.target | view
+        //ch_bedgraph_split.control | view
 
-        // ch_peaks               = Channel.empty()
-        // ch_seacr_bed           = Channel.empty()
-        // ch_macs2_bed           = Channel.empty()
-        // ch_peaks_bed           = Channel.empty()
-        // ch_peaks_bed_secondary = Channel.empty()
-        // ch_peak_summits_bed    = Channel.empty()
+        ch_seacr_peaks     = Channel.empty()
+        ch_macs2_peaks     = Channel.empty()
+        ch_peaks_primary   = Channel.empty()
+        ch_peaks_secondary = Channel.empty()
+        if(params.use_control) {
+            /*
+            * MODULE: Call peaks using SEACR with IgG control
+            */
+            if('seacr' in callers) {
+                /*
+                * CHANNEL: Subset control groups
+                */
+                ch_bedgraph_split.target.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bg_target_ctrlgrp }
+                //ch_bg_target_ctrlgrp | view
 
-        //if(params.use_control) {
-            // /*
-            // * MODULE: Call peaks using SEACR with IgG control
-            // */
-            // if('seacr' in callers) {
-            //     /*
-            //     * CHANNEL: Pull control groups
-            //     */
-            //     ch_bedgraph_split.target.map{
-            //         row -> [row[0].control_group, row]
-            //     }
-            //     .set { ch_bg_target_ctrlgrp }
-            //     //ch_bg_target_ctrlgrp | view
+                ch_bedgraph_split.control.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bg_control_ctrlgrp }
+                //ch_bg_control_ctrlgrp | view
 
-            //     ch_bedgraph_split.control.map{
-            //         row -> [row[0].control_group, row]
-            //     }
-            //     .set { ch_bg_control_ctrlgrp }
-            //     //ch_bg_control_ctrlgrp | view
+                /*
+                * CHANNEL: Create target/control pairings
+                */
+                // Create pairs of controls (IgG) with target samples if they are supplied
+                ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp).map {
+                    row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                }
+                .set{ ch_bedgraph_paired }
+                // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
+                //ch_bedgraph_paired | view
 
-            //     /*
-            //     * CHANNEL: Create target/control pairings
-            //     */
-            //     // Create pairs of controls (IgG) with target samples if they are supplied
-            //     ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp).map {
-            //         row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
-            //     }
-            //     .set{ ch_bedgraph_paired }
-            //     // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
-            //     //ch_bedgraph_paired | view
+                SEACR_CALLPEAK (
+                    ch_bedgraph_paired,
+                    params.seacr_peak_threshold
+                )
+                ch_seacr_peaks       = SEACR_CALLPEAK.out.bed
+                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //SEACR_CALLPEAK.out.bed | view
+            }
 
-            //     SEACR_CALLPEAK (
-            //         ch_bedgraph_paired,
-            //         params.peak_threshold
-            //     )
-            //     ch_seacr_bed         = SEACR_CALLPEAK.out.bed
-            //     ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
-            //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
-            //     //SEACR_CALLPEAK.out.bed | view
-            // }
+            if('macs2' in callers) {
+                // Split BAM files target/control
+                ch_samtools_bam.branch{ it ->
+                    target:  it[0].is_control == false
+                    control: it[0].is_control == true
+                }
+                .set { ch_samtools_bam_split }
+                // ch_samtools_bam_split.target | view
 
-            // if('macs2' in callers) {
-            //     ch_samtools_bam.branch{ it ->
-            //         target:  it[0].is_control == false
-            //         control: it[0].is_control == true
-            //     }
-            //     .set { ch_samtools_bam_split }
-            //     // ch_samtools_bam_split.target | view
+                /*
+                * CHANNEL: Split control groups
+                */
+                ch_samtools_bam_split.target.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bam_target_ctrlgrp }
+                //ch_bam_target_ctrlgrp | view
 
-            //     /*
-            //     * CHANNEL: Pull control groups
-            //     */
-            //     ch_samtools_bam_split.target.map{
-            //         row -> [row[0].control_group, row]
-            //     }
-            //     .set { ch_bam_target_ctrlgrp }
-            //     //ch_bam_target_ctrlgrp | view
+                ch_samtools_bam_split.control.map{
+                    row -> [row[0].control_group, row]
+                }
+                .set { ch_bam_control_ctrlgrp }
+                // ch_bam_control_ctrlgrp | view
 
-            //     ch_samtools_bam_split.control.map{
-            //         row -> [row[0].control_group, row]
-            //     }
-            //     .set { ch_bam_control_ctrlgrp }
-            //     // ch_bam_control_ctrlgrp | view
+                /*
+                * CHANNEL: Create target/control pairings
+                */
+                // Create pairs of controls (IgG) with target samples if they are supplied
+                ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp).map{
+                    row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                }
+                .set{ ch_bam_paired }
+                // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
+                // ch_bam_paired | view
 
-            //     /*
-            //     * CHANNEL: Create target/control pairings
-            //     */
-            //     // Create pairs of controls (IgG) with target samples if they are supplied
-            //     ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp).map{
-            //         row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
-            //     }
-            //     .set{ch_bam_paired}
-            //     // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
-            //     // ch_bam_paired | view
+                MACS2_CALLPEAK (
+                    ch_bam_paired,
+                    params.macs_gsize
+                )
+                ch_macs2_peaks       = MACS2_CALLPEAK.out.peak
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //MACS2_CALLPEAK.out.peak | view
+            }
+        }
+        else {
+            /*
+            * MODULE: Call peaks without IgG Control
+            */
+            if('seacr' in callers) {
+                /*
+                * CHANNEL: Add fake control channel
+                */
+                ch_bedgraph_split.target.map{ row-> [ row[0], row[1], [] ] }
+                .set { ch_bedgraph_target_fctrl }
+                // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
+                // ch_bedgraph_target_fctrl | view
 
-            //     MACS2_CALLPEAK (
-            //         ch_bam_paired,
-            //         params.macs_gsize
-            //     )
-            //     ch_macs2_bed         = MACS2_CALLPEAK.out.peak
-            //     ch_peak_summits_bed  = MACS2_CALLPEAK.out.bed
-            //     ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
-            //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
-            //     //MACS2_CALLPEAK.out.peak | view
-            // }
-        //}
-        //else {
-            // /*
-            // * MODULE: Call peaks without IgG Control
-            // */
-            // if('seacr' in callers) {
-            //     /*
-            //     * CHANNEL: Add fake control channel
-            //     */
-            //     ch_bedgraph_split.target.map{ row-> [ row[0], row[1], [] ] }
-            //     .set { ch_bedgraph_target_fctrl }
-            //     // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
-            //     // ch_bedgraph_target_fctrl | view
+                SEACR_CALLPEAK_NOIGG (
+                    ch_bedgraph_target_fctrl,
+                    params.seacr_peak_threshold
+                )
+                ch_seacr_peaks       = SEACR_CALLPEAK_NOIGG.out.bed
+                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                //SEACR_NO_IGG.out.bed | view
+            }
 
-            //     SEACR_CALLPEAK_NOIGG (
-            //         ch_bedgraph_target_fctrl,
-            //         params.peak_threshold
-            //     )
-            //     ch_seacr_bed         = SEACR_CALLPEAK_NOIGG.out.bed
-            //     ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_NOIGG.out.versions)
-            //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
-            //     //SEACR_NO_IGG.out.bed | view
-            // }
+            if('macs2' in callers) {
+                ch_samtools_bam.branch{ it ->
+                    target:  it[0].is_control == false
+                    control: it[0].is_control == true
+                }
+                .set { ch_samtools_bam_split }
+                // ch_samtools_bam_split.target | view
 
-            // if('macs2' in callers) {
-            //     ch_samtools_bam.branch{ it ->
-            //         target:  it[0].is_control == false
-            //         control: it[0].is_control == true
-            //     }
-            //     .set { ch_samtools_bam_split }
-            //     // ch_samtools_bam_split.target | view
+                /*
+                * CHANNEL: Add fake control channel
+                */
+                ch_samtools_bam_split.target.map{ row-> [ row[0], row[1], [] ] }
+                .set { ch_samtools_bam_target_fctrl }
+                // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
+                //ch_samtools_bam_target_fctrl | view
 
-            //     /*
-            //     * CHANNEL: Add fake control channel
-            //     */
-            //     ch_samtools_bam_split.target.map{ row-> [ row[0], row[1], [] ] }
-            //     .set { ch_samtools_bam_target_fctrl }
-            //     // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
-            //     //ch_samtools_bam_target_fctrl | view
+                MACS2_CALLPEAK_NOIGG (
+                    ch_samtools_bam_target_fctrl,
+                    params.macs_gsize
+                )
+                ch_macs2_peaks       = MACS2_CALLPEAK_NOIGG.out.peak
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
+                // EXAMPLE CHANNEL STRUCT: [[META], BED]
+                // MACS2_CALLPEAK_NOIGG.out.peak | view
+            }
+        }
 
-            //     MACS2_CALLPEAK_NOIGG (
-            //         ch_samtools_bam_target_fctrl,
-            //         params.macs_gsize
-            //     )
-            //     ch_macs2_bed         = MACS2_CALLPEAK_NOIGG.out.peak
-            //     ch_peak_summits_bed  = MACS2_CALLPEAK_NOIGG.out.bed
-            //     ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_NOIGG.out.versions)
-            //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
-            //     // MACS2_CALLPEAK_NOIGG.out.peak | view
-            // }
-        //}
+        if ("macs2" in params.callers) {
+            /*
+            * MODULE: Convert narrow or broad peak to bed
+            */
+            PEAK_TO_BED ( ch_macs2_peaks )
+            ch_macs2_peaks       = PEAK_TO_BED.out.file
+            ch_software_versions = ch_software_versions.mix(PEAK_TO_BED.out.versions)
+            // EXAMPLE CHANNEL STRUCT: [[META], BED]
+            //PEAK_TO_BED.out.file | view
+        }
 
-        // // Store output of primary peakcaller in the output channel
-        // if(callers[0] == 'seacr') {
-        //     ch_peaks               = ch_seacr_bed
-        //     ch_peaks_bed           = ch_seacr_bed
-        //     ch_peaks_bed_secondary = ch_macs2_bed
-        // }
-        // if(callers[0] == 'macs2') {
-        //     ch_peaks               = ch_macs2_bed
-        //     ch_peaks_bed_secondary = ch_seacr_bed
+        // Identify the primary peak data stream for downstream analysis
+        if(callers[0] == 'seacr') {
+            ch_peaks_primary   = ch_seacr_peaks
+            ch_peaks_secondary = ch_macs2_peaks
+        }
+        if(callers[0] == 'macs2') {
+            ch_peaks_primary   = ch_macs2_peaks
+            ch_peaks_secondary = ch_seacr_peaks
+        }
 
-        //     /*
-        //     * MODULE: Convert narrow or broad peak to bed
-        //     */
-        //     PEAK_TO_BED ( ch_macs2_bed )
-        //     ch_peaks_bed         = PEAK_TO_BED.out.file
-        //     ch_software_versions = ch_software_versions.mix(PEAK_TO_BED.out.versions)
-        //     // EXAMPLE CHANNEL STRUCT: [[META], BED]
-        //     //PEAK_TO_BED.out.file | view
-        // }
+
 
         // /*
         // * MODULE: Add sample identifier column to peak beds
