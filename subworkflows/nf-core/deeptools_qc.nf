@@ -2,9 +2,10 @@
  * Perform full suite of deep tools analysis on bam files
 */
 
-include { DEEPTOOLS_MULTIBAMSUMMARY } from '../../modules/local/deeptools/multibamsummary/main.nf'
-include { DEEPTOOLS_PLOTCORRELATION } from '../../modules/local/deeptools/plotcorrelation/main.nf'
-include { DEEPTOOLS_PLOTPCA         } from '../../modules/local/deeptools/plotpca/main.nf'
+include { DEEPTOOLS_MULTIBAMSUMMARY } from '../../modules/local/deeptools/multibamsummary/main'
+include { DEEPTOOLS_PLOTCORRELATION } from '../../modules/local/deeptools/plotcorrelation/main'
+include { DEEPTOOLS_PLOTPCA         } from '../../modules/local/deeptools/plotpca/main'
+include { DEEPTOOLS_PLOTFINGERPRINT } from '../../modules/nf-core/modules/deeptools/plotfingerprint/main'
 
 workflow DEEPTOOLS_QC {
     take:
@@ -86,10 +87,22 @@ workflow DEEPTOOLS_QC {
     ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPCA.out.versions)
     //DEEPTOOLS_PLOTPCA.out.matrix | view
 
+    /*
+    * MODULE: Plot Fingerprint
+    */
+    DEEPTOOLS_PLOTFINGERPRINT (
+        ch_bam_bai
+    )
+    ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions)
+    //DEEPTOOLS_PLOTFINGERPRINT.out.matrix | view
+
+    
+
 
     emit:
     correlation_matrix = DEEPTOOLS_PLOTCORRELATION.out.matrix
     pca_data           = DEEPTOOLS_PLOTPCA.out.tab
+    fingerprint_matrix = DEEPTOOLS_PLOTFINGERPRINT.out.matrix
 
     versions               = ch_versions                 // channel: [ versions.yml ]
 }

@@ -24,6 +24,7 @@ process MULTIQC {
     path ('preseq/*')
     path ('deeptools/*')
     path ('deeptools/*')
+    path ('deeptools/*')
 
     output:
     path "*multiqc_report.html", emit: report

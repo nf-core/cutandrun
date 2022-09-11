@@ -780,6 +780,7 @@ workflow CUTANDRUN {
             )
             ch_dt_corrmatrix     = DEEPTOOLS_QC.out.correlation_matrix
             ch_dt_pcadata        = DEEPTOOLS_QC.out.pca_data
+            ch_dt_fpmatrix       = DEEPTOOLS_QC.out.fingerprint_matrix
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_QC.out.versions)
         }
 
@@ -975,7 +976,8 @@ workflow CUTANDRUN {
             ch_markduplicates_metrics.collect{it[1]}.ifEmpty([]),
             ch_preseq_output.collect{it[1]}.ifEmpty([]),
             ch_dt_corrmatrix.collect{it[1]}.ifEmpty([]),
-            ch_dt_pcadata.collect{it[1]}.ifEmpty([])
+            ch_dt_pcadata.collect{it[1]}.ifEmpty([]),
+            ch_dt_fpmatrix.collect{it[1]}.ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }
