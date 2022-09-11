@@ -4,6 +4,7 @@
 
 include { DEEPTOOLS_MULTIBAMSUMMARY } from '../../modules/local/deeptools/multibamsummary/main.nf'
 include { DEEPTOOLS_PLOTCORRELATION } from '../../modules/local/deeptools/plotcorrelation/main.nf'
+include { DEEPTOOLS_PLOTPCA         } from '../../modules/local/deeptools/plotpca/main.nf'
 
 workflow DEEPTOOLS_QC {
     take:
@@ -68,7 +69,7 @@ workflow DEEPTOOLS_QC {
     //DEEPTOOLS_MULTIBAMSUMMARY.out.matrix | view
 
     /*
-    * MODULE: Summarise bams into bins
+    * MODULE: Plot correlation matrix
     */
     DEEPTOOLS_PLOTCORRELATION (
         DEEPTOOLS_MULTIBAMSUMMARY.out.matrix
@@ -76,9 +77,19 @@ workflow DEEPTOOLS_QC {
     ch_versions = ch_versions.mix(DEEPTOOLS_PLOTCORRELATION.out.versions)
     //DEEPTOOLS_MULTIBAMSUMMARY.out.matrix | view
 
+    /*
+    * MODULE: Plot PCA's
+    */
+    DEEPTOOLS_PLOTPCA (
+        DEEPTOOLS_MULTIBAMSUMMARY.out.matrix
+    )
+    ch_versions = ch_versions.mix(DEEPTOOLS_PLOTPCA.out.versions)
+    //DEEPTOOLS_PLOTPCA.out.matrix | view
+
 
     emit:
     correlation_matrix = DEEPTOOLS_PLOTCORRELATION.out.matrix
+    pca_data           = DEEPTOOLS_PLOTPCA.out.tab
 
     versions               = ch_versions                 // channel: [ versions.yml ]
 }

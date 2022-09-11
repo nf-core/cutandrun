@@ -23,6 +23,7 @@ process MULTIQC {
     path ('picard/markduplicates/*')
     path ('preseq/*')
     path ('deeptools/*')
+    path ('deeptools/*')
 
     output:
     path "*multiqc_report.html", emit: report

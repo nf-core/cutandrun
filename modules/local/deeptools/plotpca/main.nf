@@ -1,4 +1,4 @@
-process DEEPTOOLS_PLOTCORRELATION {
+process DEEPTOOLS_PLOTPCA {
     tag "$meta.id"
     label 'process_low'
 
@@ -12,7 +12,7 @@ process DEEPTOOLS_PLOTCORRELATION {
 
     output:
     tuple val(meta), path("*.pdf"), emit: pdf
-    tuple val(meta), path("*.tab"), emit: matrix
+    tuple val(meta), path("*.tab"), emit: tab
     path  "versions.yml"          , emit: versions
 
     when:
@@ -22,15 +22,15 @@ process DEEPTOOLS_PLOTCORRELATION {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    plotCorrelation \\
+    plotPCA \\
         $args \\
         --corData $matrix \\
-        --plotFile ${prefix}.plotCorrelation.pdf \\
-        --outFileCorMatrix ${prefix}.plotCorrelation.mat.tab
+        --plotFile ${prefix}.plotPCA.pdf \\
+        --outFileNameData ${prefix}.plotPCA.tab
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        deeptools: \$(plotCorrelation --version | sed -e "s/plotCorrelation //g")
+        deeptools: \$(plotPCA --version | sed -e "s/plotPCA //g")
     END_VERSIONS
     """
 }
