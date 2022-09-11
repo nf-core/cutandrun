@@ -60,6 +60,8 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 
 // Header files for MultiQC
 ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
+ch_frip_score_header_multiqc  = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
+ch_peak_counts_header_multiqc = file("$projectDir/assets/multiqc/peak_counts_header.txt", checkIfExists: true)
 
 /*
 ========================================================================================
@@ -91,6 +93,7 @@ include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
 include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
 include { IGV_SESSION                     } from "../modules/local/python/igv_session"
 include { AWK as AWK_EXTRACT_SUMMITS      } from "../modules/local/linux/awk"
+include { PEAK_METRICS                    } from "../modules/local/peak_metrics"
 // include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
 // include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
 // include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
@@ -784,6 +787,35 @@ workflow CUTANDRUN {
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_QC.out.versions)
         }
 
+        /*
+        * CHANNEL: Filter bams for target only
+        */
+        ch_samtools_bam.filter { it -> it[0].is_control == false }
+        .set { ch_bam_target }
+        //ch_bam_target | view
+
+        /*
+        * CHANNEL: Filter flagstat for target only
+        */
+        ch_samtools_flagstat.filter { it -> it[0].is_control == false }
+        .set { ch_flagstat_target }
+        //ch_flagstat_target | view
+
+        /*
+        * MODULE: Calculate Frip scores for samples
+        */
+        PEAK_METRICS(
+            ch_peaks_primary, 
+            ch_bam_target, 
+            ch_flagstat_target, 
+            ch_frip_score_header_multiqc,
+            ch_peak_counts_header_multiqc,
+            params.min_frip_overlap
+        )
+        ch_software_versions = ch_software_versions.mix(PEAK_METRICS.out.versions)
+        // PEAK_METRICS.out.frip_mqc | view 
+        // PEAK_METRICS.out.count_mqc | view 
+
 
         // /*
         // * CHANNEL: Join bams and beds on id
@@ -977,7 +1009,9 @@ workflow CUTANDRUN {
             ch_preseq_output.collect{it[1]}.ifEmpty([]),
             ch_dt_corrmatrix.collect{it[1]}.ifEmpty([]),
             ch_dt_pcadata.collect{it[1]}.ifEmpty([]),
-            ch_dt_fpmatrix.collect{it[1]}.ifEmpty([])
+            ch_dt_fpmatrix.collect{it[1]}.ifEmpty([]),
+            PEAK_METRICS.out.frip_mqc.collect().ifEmpty([]),
+            PEAK_METRICS.out.count_mqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

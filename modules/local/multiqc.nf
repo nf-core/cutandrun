@@ -25,6 +25,8 @@ process MULTIQC {
     path ('deeptools/*')
     path ('deeptools/*')
     path ('deeptools/*')
+    path ('peak_metrics/*')
+    path ('peak_metrics/*')
 
     output:
     path "*multiqc_report.html", emit: report
