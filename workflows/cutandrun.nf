@@ -59,9 +59,10 @@ ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIf
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 // Header files for MultiQC
-ch_frag_len_header_multiqc = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
-ch_frip_score_header_multiqc  = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
-ch_peak_counts_header_multiqc = file("$projectDir/assets/multiqc/peak_counts_header.txt", checkIfExists: true)
+ch_frag_len_header_multiqc              = file("$projectDir/assets/multiqc/frag_len_header.txt", checkIfExists: true)
+ch_frip_score_header_multiqc            = file("$projectDir/assets/multiqc/frip_score_header.txt", checkIfExists: true)
+ch_peak_counts_header_multiqc           = file("$projectDir/assets/multiqc/peak_counts_header.txt", checkIfExists: true)
+ch_peak_counts_consensus_header_multiqc = file("$projectDir/assets/multiqc/peak_counts_consensus_header.txt", checkIfExists: true)
 
 /*
 ========================================================================================
@@ -378,8 +379,14 @@ workflow CUTANDRUN {
     }
     //ch_metadata_picard_duplicates | view
 
-    ch_bedgraph = Channel.empty()
-    ch_bigwig   = Channel.empty()
+    ch_bedgraph        = Channel.empty()
+    ch_bigwig          = Channel.empty()
+    ch_seacr_peaks     = Channel.empty()
+    ch_macs2_peaks     = Channel.empty()
+    ch_peaks_primary   = Channel.empty()
+    ch_peaks_secondary = Channel.empty()
+    ch_peaks_summits   = Channel.empty()
+    ch_consensus_peaks = Channel.empty()
     if(params.run_peak_calling) {
         /*
         * SUBWORKFLOW: Convert BAM files to bedgraph/bigwig and apply configured normalisation strategy
@@ -407,11 +414,6 @@ workflow CUTANDRUN {
         //ch_bedgraph_split.target | view
         //ch_bedgraph_split.control | view
 
-        ch_seacr_peaks     = Channel.empty()
-        ch_macs2_peaks     = Channel.empty()
-        ch_peaks_primary   = Channel.empty()
-        ch_peaks_secondary = Channel.empty()
-        ch_peaks_summits   = Channel.empty()
         if(params.use_control) {
             /*
             * MODULE: Call peaks using SEACR with IgG control
@@ -622,6 +624,7 @@ workflow CUTANDRUN {
             CONSENSUS_PEAKS_ALL (
                 ch_peaks_bed_all
             )
+            ch_consensus_peaks   = CONSENSUS_PEAKS_ALL.out.filtered_bed
             ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //CONSENSUS_PEAKS_ALL.out.bed | view
@@ -655,6 +658,7 @@ workflow CUTANDRUN {
             CONSENSUS_PEAKS (
                 ch_peaks_bed_group
             )
+            ch_consensus_peaks   = CONSENSUS_PEAKS.out.filtered_bed
             ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
             //CONSENSUS_PEAKS.out.bed | view
@@ -803,16 +807,19 @@ workflow CUTANDRUN {
             * SUBWORKFLOW: Run suite of peak QC on peaks
             */
             PEAK_QC(
-                ch_peaks_primary, 
-                ch_bam_target, 
+                ch_peaks_primary,
+                ch_consensus_peaks,
+                ch_bam_target,
                 ch_flagstat_target,
                 params.min_frip_overlap,
                 ch_frip_score_header_multiqc,
-                ch_peak_counts_header_multiqc
+                ch_peak_counts_header_multiqc,
+                ch_peak_counts_consensus_header_multiqc
             )
-            ch_peakqc_frip_mqc   = PEAK_QC.out.primary_frip_mqc
-            ch_peakqc_count_mqc  = PEAK_QC.out.primary_count_mqc
-            ch_software_versions = ch_software_versions.mix(PEAK_QC.out.versions)
+            ch_peakqc_frip_mqc             = PEAK_QC.out.primary_frip_mqc
+            ch_peakqc_count_mqc            = PEAK_QC.out.primary_count_mqc
+            ch_peakqc_count_consensus_mqc  = PEAK_QC.out.consensus_count_mqc
+            ch_software_versions           = ch_software_versions.mix(PEAK_QC.out.versions)
         }
 
         // /*
@@ -987,7 +994,8 @@ workflow CUTANDRUN {
             ch_dt_pcadata.collect{it[1]}.ifEmpty([]),
             ch_dt_fpmatrix.collect{it[1]}.ifEmpty([]),
             ch_peakqc_count_mqc.collect().ifEmpty([]),
-            ch_peakqc_frip_mqc.collect().ifEmpty([])
+            ch_peakqc_frip_mqc.collect().ifEmpty([]),
+            ch_peakqc_count_consensus_mqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

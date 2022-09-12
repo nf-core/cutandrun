@@ -2,8 +2,9 @@
  * Calculate Peak-based metrics and QC
 */
 
-include { PEAK_FRIP                          } from "../../modules/local/peak_frip"
-include { PEAK_COUNTS as PRIMARY_PEAK_COUNTS } from "../../modules/local/peak_counts"
+include { PEAK_FRIP                            } from "../../modules/local/peak_frip"
+include { PEAK_COUNTS as PRIMARY_PEAK_COUNTS   } from "../../modules/local/peak_counts"
+include { PEAK_COUNTS as CONSENSUS_PEAK_COUNTS } from "../../modules/local/peak_counts"
 
 // include { CUT as CUT_CALC_REPROD          } from "../../modules/local/linux/cut"
 // include { CALCULATE_PEAK_REPROD           } from "../../modules/local/peak_reprod"
@@ -11,12 +12,14 @@ include { PEAK_COUNTS as PRIMARY_PEAK_COUNTS } from "../../modules/local/peak_co
 
 workflow PEAK_QC {
     take:
-    peaks                     // channel: [ val(meta), [ bed ] ]
-    bam                       // channel: [ val(meta), [ bam ] ]
-    flagstat                  // channel: [ val(meta), [ flagstat ] ]
-    min_frip_overlap          // val
-    frip_score_header_multiqc // file
-    peak_count_header_multiqc // file
+    peaks                               // channel: [ val(meta), [ bed ] ]
+    consensus_peaks                     // channel: [ val(meta), [ bed ] ]
+    bam                                 // channel: [ val(meta), [ bam ] ]
+    flagstat                            // channel: [ val(meta), [ flagstat ] ]
+    min_frip_overlap                    // val
+    frip_score_header_multiqc           // file
+    peak_count_header_multiqc           // file
+    peak_count_consensus_header_multiqc // file
 
     main:
     ch_versions = Channel.empty()
@@ -44,6 +47,16 @@ workflow PEAK_QC {
     ch_versions = ch_versions.mix(PRIMARY_PEAK_COUNTS.out.versions)
     // PRIMARY_PEAK_COUNTS.out.count_mqc | view
 
+    /*
+    * MODULE: Calculate peak counts for consensus peaks
+    */
+    CONSENSUS_PEAK_COUNTS(
+        consensus_peaks,
+        peak_count_consensus_header_multiqc
+    )
+    ch_versions = ch_versions.mix(CONSENSUS_PEAK_COUNTS.out.versions)
+    // CONSENSUS_PEAK_COUNTS.out.count_mqc | view
+
 
     // // Plot consensus peak sets
     // if(!skip_plot) {
@@ -60,8 +73,9 @@ workflow PEAK_QC {
     // }
 
     emit:
-    primary_frip_mqc  = PEAK_FRIP.out.frip_mqc          // channel: [ val(meta), [ mqc ] ]
-    primary_count_mqc = PRIMARY_PEAK_COUNTS.out.count_mqc // channel: [ val(meta), [ mqc ] ]
+    primary_frip_mqc    = PEAK_FRIP.out.frip_mqc              // channel: [ val(meta), [ mqc ] ]
+    primary_count_mqc   = PRIMARY_PEAK_COUNTS.out.count_mqc   // channel: [ val(meta), [ mqc ] ]
+    consensus_count_mqc = CONSENSUS_PEAK_COUNTS.out.count_mqc // channel: [ val(meta), [ mqc ] ]
 
     versions = ch_versions // channel: [ versions.yml ]
 }
