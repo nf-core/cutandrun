@@ -1,9 +1,13 @@
-#id: 'mlib_peak_count'
-#section_name: 'PEAK METRICS: MACS2 or SEACR peak count'
-#description: "is calculated from total number of peaks called by
-#	       MACS2 or SEACR"
+#id: 'primary_peak_counts'
+#parent_id: 'peak_qc'
+#parent_name: 'Peak QC'
+#parent_description: 'This section contains peak-based QC reports'
+#section_name: 'Sample Peak Count'
+#description: 'Calculated from the total number of peaks called by MACS2 or SEACR'
 #plot_type: 'bargraph'
-#anchor: 'mlib_peak_count'
+#anchor: 'primary_peakcounts'
 #pconfig:
-#    title: 'Total peak count'
-#    ylab: 'Peak count'
+#    id: 'primary_peakcounts_plot'
+#    title: 'Total Peak Counts'
+#    ylab: "# Peaks"
+#    cpswitch_counts_label: 'Number of Peaks'

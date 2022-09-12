@@ -93,10 +93,6 @@ include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
 include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
 include { IGV_SESSION                     } from "../modules/local/python/igv_session"
 include { AWK as AWK_EXTRACT_SUMMITS      } from "../modules/local/linux/awk"
-include { PEAK_METRICS                    } from "../modules/local/peak_metrics"
-// include { CALCULATE_FRIP                  } from "../modules/local/modules/calculate_frip/main"
-// include { CUT as CUT_CALC_REPROD          } from "../modules/local/linux/cut"
-// include { CALCULATE_PEAK_REPROD           } from "../modules/local/modules/calculate_peak_reprod/main"
 // include { EXPORT_META                     } from "../modules/local/export_meta"
 // include { EXPORT_META as EXPORT_META_CTRL } from "../modules/local/export_meta"
 // include { GENERATE_REPORTS                } from "../modules/local/modules/generate_reports/main"
@@ -114,6 +110,7 @@ include { EXTRACT_METADATA_AWK as EXTRACT_PICARD_DUP_META  } from "../subworkflo
 include { CONSENSUS_PEAKS                                  } from "../subworkflows/local/consensus_peaks"
 include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL           } from "../subworkflows/local/consensus_peaks"
 include { EXTRACT_FRAGMENTS                                } from "../subworkflows/local/extract_fragments"
+include { PEAK_QC                                          } from "../subworkflows/local/peak_qc"
 
 /*
 ========================================================================================
@@ -134,7 +131,7 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../mo
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/modules/deeptools/computematrix/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/modules/deeptools/plotheatmap/main"
-//include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"
+include { BEDTOOLS_INTERSECT                                       } from "../modules/nf-core/modules/bedtools/intersect/main.nf"
 include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/custom_dumpsoftwareversions"
 
 /*
@@ -623,8 +620,7 @@ workflow CUTANDRUN {
             * SUBWORKFLOW: Construct group consensus peaks
             */
             CONSENSUS_PEAKS_ALL (
-                ch_peaks_bed_all,
-                params.skip_upset_plots
+                ch_peaks_bed_all
             )
             ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS_ALL.out.versions)
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
@@ -657,8 +653,7 @@ workflow CUTANDRUN {
             * where there is more than 1 replicate in a group
             */
             CONSENSUS_PEAKS (
-                ch_peaks_bed_group,
-                params.skip_upset_plots
+                ch_peaks_bed_group
             )
             ch_software_versions = ch_software_versions.mix(CONSENSUS_PEAKS.out.versions)
             // EXAMPLE CHANNEL STRUCT: [[META], BED]
@@ -787,35 +782,38 @@ workflow CUTANDRUN {
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_QC.out.versions)
         }
 
-        /*
-        * CHANNEL: Filter bams for target only
-        */
-        ch_samtools_bam.filter { it -> it[0].is_control == false }
-        .set { ch_bam_target }
-        //ch_bam_target | view
+        ch_peakqc_frip_mqc  = Channel.empty()
+        ch_peakqc_count_mqc = Channel.empty()
+        if (params.run_peak_qc && params.run_peak_calling) {
+            /*
+            * CHANNEL: Filter bams for target only
+            */
+            ch_samtools_bam.filter { it -> it[0].is_control == false }
+            .set { ch_bam_target }
+            //ch_bam_target | view
 
-        /*
-        * CHANNEL: Filter flagstat for target only
-        */
-        ch_samtools_flagstat.filter { it -> it[0].is_control == false }
-        .set { ch_flagstat_target }
-        //ch_flagstat_target | view
+            /*
+            * CHANNEL: Filter flagstat for target only
+            */
+            ch_samtools_flagstat.filter { it -> it[0].is_control == false }
+            .set { ch_flagstat_target }
+            //ch_flagstat_target | view
 
-        /*
-        * MODULE: Calculate Frip scores for samples
-        */
-        PEAK_METRICS(
-            ch_peaks_primary, 
-            ch_bam_target, 
-            ch_flagstat_target, 
-            ch_frip_score_header_multiqc,
-            ch_peak_counts_header_multiqc,
-            params.min_frip_overlap
-        )
-        ch_software_versions = ch_software_versions.mix(PEAK_METRICS.out.versions)
-        // PEAK_METRICS.out.frip_mqc | view 
-        // PEAK_METRICS.out.count_mqc | view 
-
+            /*
+            * SUBWORKFLOW: Run suite of peak QC on peaks
+            */
+            PEAK_QC(
+                ch_peaks_primary, 
+                ch_bam_target, 
+                ch_flagstat_target,
+                params.min_frip_overlap,
+                ch_frip_score_header_multiqc,
+                ch_peak_counts_header_multiqc
+            )
+            ch_peakqc_frip_mqc   = PEAK_QC.out.primary_frip_mqc
+            ch_peakqc_count_mqc  = PEAK_QC.out.primary_count_mqc
+            ch_software_versions = ch_software_versions.mix(PEAK_QC.out.versions)
+        }
 
         // /*
         // * CHANNEL: Join bams and beds on id
@@ -823,34 +821,11 @@ workflow CUTANDRUN {
         // ch_samtools_bam
         //     .map { row -> [row[0].id, row ].flatten()}
         //     .join ( ch_samtools_bai.map { row -> [row[0].id, row ].flatten()} )
-        //     .join ( ch_peaks_bed.map { row -> [row[0].id, row ].flatten()} )
+        //     .join ( ch_peaks_primary.map { row -> [row[0].id, row ].flatten()} )
         //     .map { row -> [row[1], row[2], row[4], row[6]] }
         //     .set { ch_bam_bai_bed }
         // // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI, BED]
         // //ch_bam_bai_bed | view
-
-        // ch_samtools_bam_ctrl = ch_samtools_bam
-        // if(!params.skip_frip) {
-        //     /*
-        //     * MODULE: Calculate Frip scores for samples
-        //     */
-        //     CALCULATE_FRIP (
-        //         ch_bam_bai_bed
-        //     )
-        //     ch_software_versions = ch_software_versions.mix(CALCULATE_FRIP.out.versions)
-
-        //     /*
-        //     * SUBWORKFLOW: Annotate meta-data with frip stats
-        //     */
-        //     ANNOTATE_FRIP_META (
-        //         ch_samtools_bam,
-        //         CALCULATE_FRIP.out.frips,
-        //         "",
-        //         ""
-        //     )
-        //     ch_samtools_bam = ANNOTATE_FRIP_META.out.output
-        //     //ch_samtools_bam | view
-        // }
        
         // /*
         // * MODULE: Trim unwanted columns for downstream reporting
@@ -879,6 +854,7 @@ workflow CUTANDRUN {
         //         [ row[0], row[1] ]
         //     }
         // .set { ch_peak_bed_group_2 }
+        // //ch_peak_bed_group_2 | view
 
         // /*
         // * CHANNEL: Per group, create a channel per one against all combination
@@ -916,8 +892,8 @@ workflow CUTANDRUN {
         //     BEDTOOLS_INTERSECT.out.intersect
         // )
         // ch_software_versions = ch_software_versions.mix(CALCULATE_PEAK_REPROD.out.versions)
-        // //EXAMPLE CHANNEL STRUCT: [[META], CSV]
-        // //CALCULATE_PEAK_REPROD.out.csv
+        //EXAMPLE CHANNEL STRUCT: [[META], CSV]
+        //CALCULATE_PEAK_REPROD.out.csv
 
         // /*
         // * SUBWORKFLOW: Annotate meta-data with peak stats
@@ -1010,8 +986,8 @@ workflow CUTANDRUN {
             ch_dt_corrmatrix.collect{it[1]}.ifEmpty([]),
             ch_dt_pcadata.collect{it[1]}.ifEmpty([]),
             ch_dt_fpmatrix.collect{it[1]}.ifEmpty([]),
-            PEAK_METRICS.out.frip_mqc.collect().ifEmpty([]),
-            PEAK_METRICS.out.count_mqc.collect().ifEmpty([])
+            ch_peakqc_count_mqc.collect().ifEmpty([]),
+            ch_peakqc_frip_mqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

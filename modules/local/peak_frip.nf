@@ -1,4 +1,4 @@
-process PEAK_METRICS {
+process PEAK_FRIP {
     tag "$meta.id"
     label 'process_medium'
 
@@ -12,14 +12,11 @@ process PEAK_METRICS {
     tuple val(meta), path(bam) 
     tuple val(meta), path(flagstat) 
     path  frip_score_header 
-    path  peak_counts_header
     val   min_frip_overlap
 
     output:
-    tuple val(meta), path('frips.csv'), emit: frips
-    path '*frip_mqc.tsv'              , emit: frip_mqc
-    path '*count_mqc.tsv'             , emit: count_mqc
-    path  "versions.yml"              , emit: versions
+    path '*frip_mqc.tsv', emit: frip_mqc
+    path  "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -27,11 +24,8 @@ process PEAK_METRICS {
     script:
     def prefix = task.ext.prefix ?: "${meta.id}" 
     """
-    echo "frip" > frip_header.txt
     READS_IN_PEAKS=\$(bedtools intersect -a ${bam} -b ${bed} -bed -c -f $min_frip_overlap |  awk -F '\t' '{sum += \$NF} END {print sum}')
-    grep -m 1 'mapped (' ${flagstat} | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "${meta.id}", a/\$1}' | cat $frip_score_header - > ${prefix}_peaks.frip_mqc.tsv
-    grep -m 1 'mapped (' ${flagstat} | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print a/\$1}' | cat frip_header.txt - > frips.csv   
-    cat ${bed} | wc -l | awk -v OFS='\t' '{ print "${meta.id}", \$1 }' | cat $peak_counts_header - > ${prefix}_peaks.count_mqc.tsv
+    grep -m 1 'mapped (' ${flagstat} | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "Peak FRiP Score", a/\$1}' | cat $frip_score_header - > ${prefix}_peaks_frip_mqc.tsv
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         bedtools: \$(bedtools --version | sed -e "s/bedtools v//g")
