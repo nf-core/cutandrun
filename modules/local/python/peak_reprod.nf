@@ -1,6 +1,6 @@
 process CALCULATE_PEAK_REPROD {
     tag "$meta.id"
-    label 'process_ultralow'
+    label 'process_medium'
 
     conda (params.enable_conda ? "conda-forge::python=3.8.3 conda-forge::dask=2021.9.1 conda-forge::pandas=1.3.3" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -11,8 +11,8 @@ process CALCULATE_PEAK_REPROD {
     tuple val(meta), path(bed)
 
     output:
-    tuple val(meta), path('peak_repro.csv'), emit: csv
-    path  "versions.yml"                   , emit: versions
+    tuple val(meta), path("*peak_repro.tsv"), emit: tsv
+    path  "versions.yml"                    , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -20,6 +20,7 @@ process CALCULATE_PEAK_REPROD {
     script:
     """
     peak_reproducability.py \\
+        --sample_id $meta.id \\
         --intersect $bed \\
         --threads ${task.cpus} \\
         --outpath .

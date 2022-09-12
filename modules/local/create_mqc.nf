@@ -21,8 +21,6 @@ process CREATE_MQC {
     def prefix = task.ext.prefix ?: "${meta.id}" 
     def ext    = task.ext.ext ?: "tsv" 
     """
-    echo "total_peaks" > id.txt
-    paste id.txt ${files.join(' ')} > data.txt
-    cat $header data.txt > ${prefix}_mqc.${ext}
+    cat $header ${files.join(' ')} > ${prefix}_mqc.${ext}
     """
 }

@@ -3,7 +3,7 @@
  */
 
 include { FASTQC     } from '../../modules/nf-core/modules/fastqc/main'
-include { TRIMGALORE } from '../../modules/local/nf_core_patch/trimgalore/main'
+include { TRIMGALORE } from '../../modules/local/trimgalore/main'
 
 workflow FASTQC_TRIMGALORE {
     take:
@@ -35,7 +35,6 @@ workflow FASTQC_TRIMGALORE {
         trim_zip        = TRIMGALORE.out.zip
         trim_log        = TRIMGALORE.out.log
         ch_versions     = ch_versions.mix(TRIMGALORE.out.versions)
-
     }
 
     emit:

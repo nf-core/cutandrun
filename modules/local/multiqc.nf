@@ -28,6 +28,8 @@ process MULTIQC {
     path ('peak_metrics/peak_count/*')
     path ('peak_metrics/peak_frip/*')
     path ('peak_metrics/peak_count_consensus/*')
+    path ('peak_metrics/peak_reprod_perc/*')
+    path ('frag_len/*')
 
     output:
     path "*multiqc_report.html", emit: report

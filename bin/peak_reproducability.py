@@ -18,6 +18,7 @@ Description = 'Calclate peak reproducability percentage for each sample'
 parser = argparse.ArgumentParser(description=Description)
 
 ## REQUIRED PARAMETERS
+parser.add_argument('--sample_id', help="Sample id.")
 parser.add_argument('--intersect', help="Peaks intersect file.")
 parser.add_argument('--threads', help="the number of threads for the task.")
 parser.add_argument('--outpath', help="Full path to output directory.")
@@ -95,7 +96,6 @@ else:
 
 # Create string and write to file
 output_string = str(peak_perc)
-writer = open(os.path.join(args.outpath, "peak_repro.csv"), "w")
-writer.write("peak_repro\n")
-writer.write(output_string)
+writer = open(os.path.join(args.outpath, args.sample_id + "_peak_repro.tsv"), "w")
+writer.write(args.sample_id + "\t" + output_string + "\n")
 writer.close()

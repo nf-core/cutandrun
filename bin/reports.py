@@ -68,7 +68,6 @@ def merge_samples(args):
     
     df_metadata.to_csv(args.output, index=True, sep=',')
 
-
 if __name__ == '__main__':
     # Create command args
     parser = argparse.ArgumentParser()
