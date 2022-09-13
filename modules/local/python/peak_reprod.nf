@@ -9,21 +9,27 @@ process CALCULATE_PEAK_REPROD {
 
     input:
     tuple val(meta), path(bed)
+    path peak_reprod_header_multiqc
 
     output:
     tuple val(meta), path("*peak_repro.tsv"), emit: tsv
+    path "*_mqc.tsv"                        , emit: mqc
     path  "versions.yml"                    , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+
     """
     peak_reproducability.py \\
         --sample_id $meta.id \\
         --intersect $bed \\
         --threads ${task.cpus} \\
         --outpath .
+
+    cat $peak_reprod_header_multiqc *peak_repro.tsv > ${prefix}_mqc.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

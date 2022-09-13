@@ -8,7 +8,6 @@ include { PEAK_COUNTS as CONSENSUS_PEAK_COUNTS } from "../../modules/local/peak_
 include { CUT as CUT_CALC_REPROD               } from "../../modules/local/linux/cut"
 include { BEDTOOLS_INTERSECT                   } from "../../modules/nf-core/modules/bedtools/intersect/main.nf"
 include { CALCULATE_PEAK_REPROD                } from "../../modules/local/python/peak_reprod"
-include { CREATE_MQC as CREATE_MQC_PEAKREPRO   } from "../../modules/local/create_mqc"
 include { PLOT_CONSENSUS_PEAKS                 } from '../../modules/local/python/plot_consensus_peaks'
 
 workflow PEAK_QC {
@@ -111,31 +110,12 @@ workflow PEAK_QC {
     * MODULE: Use overlap to calculate a peak repro %
     */
     CALCULATE_PEAK_REPROD (
-        BEDTOOLS_INTERSECT.out.intersect
+        BEDTOOLS_INTERSECT.out.intersect,
+        peak_reprod_header_multiqc
     )
     ch_versions = ch_versions.mix(CALCULATE_PEAK_REPROD.out.versions)
     //EXAMPLE CHANNEL STRUCT: [[META], TSV]
     //CALCULATE_PEAK_REPROD.out.tsv
-
-    /*
-    * CHANNEL: Create collection for mqc creation
-    */
-    CALCULATE_PEAK_REPROD.out.tsv
-    .collect{it[1]}
-    .toSortedList{ row -> row.simpleName }
-    .map{ row -> [[id: 'peak_reprod'], row.flatten()] }
-    .set{ ch_peak_repro }
-    //ch_peak_repro | view
-
-    /*
-    * MODULE: Use overlap to calculate a peak repro %
-    */
-    CREATE_MQC_PEAKREPRO (
-        ch_peak_repro,
-        peak_reprod_header_multiqc
-    )
-    //EXAMPLE CHANNEL STRUCT: [MQC]
-    //CREATE_MQC_PEAKREPRO.out.csv
 
     /*
     * CHANNEL: Prep for upset input
@@ -161,7 +141,7 @@ workflow PEAK_QC {
     primary_frip_mqc    = PEAK_FRIP.out.frip_mqc              // channel: [ val(meta), [ mqc ] ]
     primary_count_mqc   = PRIMARY_PEAK_COUNTS.out.count_mqc   // channel: [ val(meta), [ mqc ] ]
     consensus_count_mqc = CONSENSUS_PEAK_COUNTS.out.count_mqc // channel: [ val(meta), [ mqc ] ]
-    reprod_perc_mqc     = CREATE_MQC_PEAKREPRO.out.mqc        // channel: [ val(meta), [ mqc ] ]
+    reprod_perc_mqc     = CALCULATE_PEAK_REPROD.out.mqc       // channel: [ val(meta), [ mqc ] ]
 
     versions = ch_versions // channel: [ versions.yml ]
 }
