@@ -173,19 +173,19 @@ workflow CUTANDRUN {
         )
 
         INPUT_CHECK.out.reads
-            .map {
-                meta, fastq ->
-                    meta.id = meta.id.split("_")[0..-2].join("_")
-                    [ meta, fastq ] }
-            .groupTuple(by: [0])
-            .branch {
-                meta, fastq ->
-                    single  : fastq.size() == 1
-                        return [ meta, fastq.flatten() ]
-                    multiple: fastq.size() > 1
-                        return [ meta, fastq.flatten() ]
-            }
-            .set { ch_fastq }
+        .map {
+            meta, fastq ->
+                meta.id = meta.id.split("_")[0..-2].join("_")
+                [ meta, fastq ] }
+        .groupTuple(by: [0])
+        .branch {
+            meta, fastq ->
+                single  : fastq.size() == 1
+                    return [ meta, fastq.flatten() ]
+                multiple: fastq.size() > 1
+                    return [ meta, fastq.flatten() ]
+        }
+        .set { ch_fastq }
     }
 
     /*
@@ -198,8 +198,8 @@ workflow CUTANDRUN {
         ch_software_versions = ch_software_versions.mix(CAT_FASTQ.out.versions)
 
         CAT_FASTQ.out.reads
-            .mix(ch_fastq.single)
-            .set { ch_cat_fastq }
+        .mix(ch_fastq.single)
+        .set { ch_cat_fastq }
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [READS]]
     //ch_cat_fastq | view
@@ -687,9 +687,8 @@ workflow CUTANDRUN {
             /*
             * CHANNEL: Remove IgG from bigwig channel
             */
-            ch_bigwig
-                .filter { it[0].is_control == false }
-                .set { ch_bigwig_no_igg }
+            ch_bigwig.filter { it[0].is_control == false }
+            .set { ch_bigwig_no_igg }
             //ch_bigwig_no_igg | view
 
             /*
@@ -713,28 +712,28 @@ workflow CUTANDRUN {
             * CHANNEL: Structure output for join on id
             */
             ch_peaks_summits
-                .map { row -> [row[0].id, row ].flatten()}
-                .set { ch_peaks_summits_id }
+            .map { row -> [row[0].id, row ].flatten()}
+            .set { ch_peaks_summits_id }
             //ch_peaks_bed_id | view
 
             /*
             * CHANNEL: Join beds and bigwigs on id
             */
             ch_bigwig_no_igg
-                .map { row -> [row[0].id, row ].flatten()}
-                .join ( ch_peaks_summits_id )
-                .set { ch_dt_bigwig_summits }
+            .map { row -> [row[0].id, row ].flatten()}
+            .join ( ch_peaks_summits_id )
+            .set { ch_dt_bigwig_summits }
             //ch_dt_peaks | view
 
             ch_dt_bigwig_summits
-                .map { row -> row[1,2] }
-                .set { ch_ordered_bigwig }
+            .map { row -> row[1,2] }
+            .set { ch_ordered_bigwig }
             //ch_ordered_bigwig | view
 
             ch_dt_bigwig_summits
-                .map { row -> row[-1] }
-                .filter { it -> it.size() > 1}
-                .set { ch_ordered_peaks_max }
+            .map { row -> row[-1] }
+            .filter { it -> it.size() > 1}
+            .set { ch_ordered_peaks_max }
             //ch_ordered_peaks_max | view
 
             /*
