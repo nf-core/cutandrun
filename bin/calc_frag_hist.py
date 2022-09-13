@@ -38,25 +38,29 @@ dt_frag_list = glob.glob(frag_path)
 dt_frag_list.sort()
 
 for i in list(range(len(dt_frag_list))):
-    # Create dataframe from csv file for each file and save to a list
+    # Create dataframe from csv file for each file and save to a list of data frames
     dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None, names=['Size','Occurrences'])
     frag_base_i = os.path.basename(dt_frag_list[i])
 
-    #  split txt files on dots
+    # Split txt file paths on dots
     sample_id_list = frag_base_i.split(".")
 
-    # join list on the elements of the sample id
+    # Join list on the elements of the sample id
     separator = ""
     sample_id = separator.join(sample_id_list[0:-2])
 
-    # split sample id on underscores
+    # Split sample id on underscores
     sample_id_split_list = sample_id.split("_")
 
-    #  take first element of this list for group id
+    # Take first element of this list for group id
     group_i = separator.join(sample_id_split_list[0:-1])
 
-    #  take last element of this list for replicate number
+    # Take last element of this list for replicate number
     rep_i = sample_id_split_list[-1]
+
+    # Round column and convert occurrences to int
+    dt_frag_i = dt_frag_i.round(1)
+    dt_frag_i = dt_frag_i.astype(int)
 
     # Create long forms of fragment histograms
     dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
