@@ -46,16 +46,24 @@ module_order:
       name: "Fragment QC"
   - custom_content
 
+report_section_order:
+  fragment_lengths:
+    order: -1001
+  peak_qc:
+    order: -1002
+  software_versions:
+    order: -1003
+  nf-core-cutandrun-summary:
+    order: -1004
+
 custom_content:
   order:
-    - fragment_lengths
     - primary_peak_counts
     - consensus_peak_counts
     - primary_frip_score
     - peak_reprod_perc
     - software-versions-by-process
     - software-versions-unique
-    - nf-core-cutandrun-summary
 
 # Don't show % Dups in the General Stats table (we have this from Picard)
 table_columns_visible:
