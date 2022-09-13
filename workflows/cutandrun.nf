@@ -320,7 +320,7 @@ workflow CUTANDRUN {
         PRESEQ_LCEXTRAP (
             ch_samtools_bam
         )
-        ch_samtools_idxstats = PRESEQ_LCEXTRAP.out.lc_extrap
+        ch_preseq_output = PRESEQ_LCEXTRAP.out.lc_extrap
         ch_software_versions = ch_software_versions.mix(PRESEQ_LCEXTRAP.out.versions)
     }
 
