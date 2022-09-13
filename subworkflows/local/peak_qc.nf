@@ -73,16 +73,9 @@ workflow PEAK_QC {
     * CHANNEL: Group samples based on group
     */
     CUT_CALC_REPROD.out.file
-        .map { row -> [ row[0].group, row[1] ] }
-        .groupTuple(by: [0])
-        .map { row ->
-            def new_meta = [:]
-            new_meta.put( "id", row[0] )
-            [ new_meta, row[1].flatten() ]
-        }
-        .map { row -> [ row[0], row[1], row[1].size() ] }
-        .filter { row -> row[2] > 1 }
-        .map { row -> [ row[0], row[1] ] }
+    .map { row -> [ row[0].group, row[1] ] }
+    .groupTuple(by: [0])
+    .map { row -> [ [id: row[0]], row[1].flatten() ] }
     .set { ch_peak_bed_group }
     //ch_peak_bed_group | view
 
