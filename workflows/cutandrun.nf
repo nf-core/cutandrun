@@ -405,13 +405,22 @@ workflow CUTANDRUN {
         /*
          * CHANNEL: Separate bedgraphs into target/control
          */
-        ch_bedgraph.branch { it ->
-            target:  it[0].is_control == false
-            control: it[0].is_control == true
-        }
-        .set { ch_bedgraph_split }
-        //ch_bedgraph_split.target | view
-        //ch_bedgraph_split.control | view
+        ch_bedgraph.filter { it -> it[0].is_control == false }
+        .set { ch_bedgraph_target }
+        ch_bedgraph.filter { it -> it[0].is_control == true }
+        .set { ch_bedgraph_control }
+        //ch_bedgraph_target | view
+        //ch_bedgraph_control | view
+
+        /*
+        * CHANNEL: Separate bams into target/control
+        */
+        ch_samtools_bam.filter { it -> it[0].is_control == false }
+        .set { ch_bam_target }
+        ch_samtools_bam.filter { it -> it[0].is_control == true }
+        .set { ch_bam_control }
+        //ch_bam_target | view
+        //ch_bam_control | view
 
         if(params.use_control) {
             /*
@@ -421,13 +430,13 @@ workflow CUTANDRUN {
                 /*
                 * CHANNEL: Subset control groups
                 */
-                ch_bedgraph_split.target.map{
+                ch_bedgraph_target.map{
                     row -> [row[0].control_group, row]
                 }
                 .set { ch_bg_target_ctrlgrp }
                 //ch_bg_target_ctrlgrp | view
 
-                ch_bedgraph_split.control.map{
+                ch_bedgraph_control.map{
                     row -> [row[0].control_group, row]
                 }
                 .set { ch_bg_control_ctrlgrp }
@@ -455,24 +464,16 @@ workflow CUTANDRUN {
             }
 
             if('macs2' in callers) {
-                // Split BAM files target/control
-                ch_samtools_bam.branch{ it ->
-                    target:  it[0].is_control == false
-                    control: it[0].is_control == true
-                }
-                .set { ch_samtools_bam_split }
-                // ch_samtools_bam_split.target | view
-
                 /*
                 * CHANNEL: Split control groups
                 */
-                ch_samtools_bam_split.target.map{
+                ch_bam_target.map{
                     row -> [row[0].control_group, row]
                 }
                 .set { ch_bam_target_ctrlgrp }
                 //ch_bam_target_ctrlgrp | view
 
-                ch_samtools_bam_split.control.map{
+                ch_bam_control.map{
                     row -> [row[0].control_group, row]
                 }
                 .set { ch_bam_control_ctrlgrp }
@@ -524,17 +525,10 @@ workflow CUTANDRUN {
             }
 
             if('macs2' in callers) {
-                ch_samtools_bam.branch{ it ->
-                    target:  it[0].is_control == false
-                    control: it[0].is_control == true
-                }
-                .set { ch_samtools_bam_split }
-                // ch_samtools_bam_split.target | view
-
                 /*
                 * CHANNEL: Add fake control channel
                 */
-                ch_samtools_bam_split.target.map{ row-> [ row[0], row[1], [] ] }
+                ch_bam_target.map{ row-> [ row[0], row[1], [] ] }
                 .set { ch_samtools_bam_target_fctrl }
                 // EXAMPLE CHANNEL STRUCT: [[META], BAM, FAKE_CTRL]
                 //ch_samtools_bam_target_fctrl | view
@@ -772,13 +766,6 @@ workflow CUTANDRUN {
             ch_dt_fpmatrix       = DEEPTOOLS_QC.out.fingerprint_matrix
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_QC.out.versions)
         }
-
-        /*
-        * CHANNEL: Filter bams for target only
-        */
-        ch_samtools_bam.filter { it -> it[0].is_control == false }
-        .set { ch_bam_target }
-        //ch_bam_target | view
 
         /*
         * CHANNEL: Filter bais for target only
