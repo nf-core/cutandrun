@@ -10,3 +10,4 @@
 #    id: 'primary_peakrepro_plot'
 #    title: 'Peak Reproducability %'
 #    ylab: "Reprod Fraction"
+#    stacking: None
