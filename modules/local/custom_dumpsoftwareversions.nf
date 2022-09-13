@@ -1,5 +1,5 @@
 process CUSTOM_DUMPSOFTWAREVERSIONS {
-    label 'process_low'
+    label 'process_min'
 
     // Requires `pyyaml` which does not have a dedicated container but is in the MultiQC container
     conda (params.enable_conda ? "bioconda::multiqc=1.12" : null)

@@ -96,9 +96,6 @@ workflow DEEPTOOLS_QC {
     ch_versions = ch_versions.mix(DEEPTOOLS_PLOTFINGERPRINT.out.versions)
     //DEEPTOOLS_PLOTFINGERPRINT.out.matrix | view
 
-    
-
-
     emit:
     correlation_matrix = DEEPTOOLS_PLOTCORRELATION.out.matrix
     pca_data           = DEEPTOOLS_PLOTPCA.out.tab
