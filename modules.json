@@ -32,7 +32,7 @@
                 },
                 "bowtie2/align": {
                     "branch": "master",
-                    "git_sha": "cbc47767f7bb4751a9d178395bd66f051401a0c1"
+                    "git_sha": "848ee9a215d02d80be033bfa60881700f2bd914c"
                 },
                 "bowtie2/build": {
                     "branch": "master",
