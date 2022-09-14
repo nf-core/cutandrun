@@ -1,0 +1,22 @@
+- name: test_verify_output_skip_preseq_false
+  command: nextflow run main.nf -profile docker,test_full_small --skip_fastqc --skip_multiqc --only_filtering -c tests/config/nextflow.config
+  tags:
+    - verify_output_reporting_skip_preseq
+    - verify_output_reporting_skip_preseq_false
+  files:
+    - path: results/04_reporting/preseq/h3k4me3_R1.command.log
+    - path: results/04_reporting/preseq/h3k4me3_R2.command.log
+    - path: results/04_reporting/preseq/igg_ctrl_R1.command.log
+
+- name: test_verify_output_skip_preseq_true
+  command: nextflow run main.nf -profile docker,test_full_small --skip_fastqc --skip_multiqc --only_filtering --skip_preseq -c tests/config/nextflow.config
+  tags:
+    - verify_output_reporting_skip_preseq
+    - verify_output_reporting_skip_preseq_true
+  files:
+    - path: results/04_reporting/preseq/h3k4me3_R1.command.log
+      should_exist: false
+    - path: results/04_reporting/preseq/h3k4me3_R2.command.log
+      should_exist: false
+    - path: results/04_reporting/preseq/igg_ctrl_R1.command.log
+      should_exist: false

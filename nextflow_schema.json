@@ -202,30 +202,37 @@
                     "fa_icon": "fas fa-random",
                     "description": "Skips reporting"
                 },
+                "skip_preseq": {
+                    "type": "boolean",
+                    "default": "false",
+                    "description": "Skips preseq reporting"
+                },
                 "skip_igv": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
                     "description": "Skips igv session generation"
+                },
+                "skip_dt_qc": {
+                    "type": "boolean",
+                    "default": "false",
+                    "description": "Skips deeptools QC repoting",
+                    "fa_icon": "fas fa-random"
                 },
                 "skip_heatmaps": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
                     "description": "Skips deeptools heatmap generation"
                 },
+                "skip_peak_qc": {
+                    "type": "boolean",
+                    "default": "false",
+                    "description": "Skips peak QC reporting",
+                    "fa_icon": "fas fa-random"
+                },
                 "skip_multiqc": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
                     "description": "Skips multiqc"
-                },
-                "skip_upset_plots": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-random",
-                    "description": "Skip upset plot calculation"
-                },
-                "skip_frip": {
-                    "type": "boolean",
-                    "description": "Skip fragments in peaks calculation",
-                    "fa_icon": "fas fa-random"
                 }
             },
             "fa_icon": "fas fa-exchange-alt"
@@ -314,12 +321,6 @@
                     "description": "If normsalisation option is one of  \"RPKM\", \"CPM\", \"BPM\" - then the binsize that the reads count is calculated on is used.",
                     "fa_icon": "fas fa-arrows-alt-h"
                 },
-                "peak_threshold": {
-                    "type": "number",
-                    "default": 0.05,
-                    "fa_icon": "fas fa-grip-lines",
-                    "description": "Threshold for peak calling when no IgG is present"
-                },
                 "peakcaller": {
                     "type": "string",
                     "default": "seacr",
@@ -338,6 +339,12 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "Specifies whether the background control is scaled prior to being used to normalise peaks."
                 },
+                "seacr_peak_threshold": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "SEACR O-value threshold for peaks"
+                },
                 "macs2_pvalue": {
                     "type": "number",
                     "default": 0.05,
@@ -353,12 +360,14 @@
                 "macs2_narrow_peak": {
                     "type": "boolean",
                     "default": true,
-                    "fa_icon": "fas fa-align-justify"
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Determines whether MACS2 broad or narrow peak mode is used for the peak caller"
                 },
                 "macs2_broad_cutoff": {
                     "type": "number",
                     "default": 0.1,
-                    "fa_icon": "fas fa-align-justify"
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "MACS2 broad cutoff parameter"
                 },
                 "consensus_peak_mode": {
                     "type": "string",
@@ -375,10 +384,69 @@
                 },
                 "igv_show_gene_names": {
                     "type": "boolean",
-                    "default": true
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Show gene names instead of symbols in IGV browser sessions"
                 }
             },
             "fa_icon": "fas fa-cog"
+        },
+        "reporting_options": {
+            "title": "Reporting Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "fa_icon": "fas fa-atlas",
+            "properties": {
+                "dt_qc_bam_binsize": {
+                    "type": "integer",
+                    "default": 500,
+                    "description": "Deeptools multiBamSummary bam bin size",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_gene_beforelen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap gene plot before length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_gene_bodylen": {
+                    "type": "integer",
+                    "default": 5000,
+                    "description": "Deeptools heatmap gene plot body length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_gene_afterlen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap gene plot after length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_peak_beforelen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap peak plot before length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_peak_afterlen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap peak plot after length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "min_frip_overlap": {
+                    "type": "number",
+                    "default": 0.2,
+                    "description": "Minimum fragment overlap for FriP score",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "min_peak_overlap": {
+                    "type": "number",
+                    "default": 0.2,
+                    "description": "Minimum peak overlap for peak reproducability plot",
+                    "fa_icon": "fas fa-align-justify"
+                }
+            }
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -564,6 +632,9 @@
         },
         {
             "$ref": "#/definitions/pipeline_options"
+        },
+        {
+            "$ref": "#/definitions/reporting_options"
         },
         {
             "$ref": "#/definitions/institutional_config_options"

@@ -1,0 +1,19 @@
+- name: test_verify_output_skip_fastqc_true
+  command: nextflow run main.nf -profile docker,test --only_preqc --skip_fastqc true -c tests/config/nextflow.config
+  tags:
+    - verify_output_skip_fastqc
+    - verify_output_skip_fastqc_true
+  files:
+    - path: results/01_prealign/pretrim_fastqc/h3k27me3_R1_1_fastqc.html
+      should_exist: false
+    - path: results/01_prealign/trimgalore/fastqc/h3k27me3_R1_1_fastqc.trimmed.html
+      should_exist: false
+
+- name: test_verify_output_skip_fastqc_false
+  command: nextflow run main.nf -profile docker,test --only_preqc --skip_fastqc false
+  tags:
+    - verify_output_skip_fastqc
+    - verify_output_skip_fastqc_false
+  files:
+    - path: results/01_prealign/pretrim_fastqc/h3k27me3_R1_1_fastqc.html
+    - path: results/01_prealign/trimgalore/fastqc/h3k27me3_R1_1.trimmed_fastqc.html

@@ -2,24 +2,29 @@
  * Uncompress and prepare reference genome files
 */
 
-include { GUNZIP as GUNZIP_FASTA                     } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { GUNZIP as GUNZIP_SPIKEIN_FASTA             } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { GUNZIP as GUNZIP_GTF                       } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { GUNZIP as GUNZIP_BED                       } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { CUSTOM_GETCHROMSIZES as TARGET_CHROMSIZES  } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
-include { CUSTOM_GETCHROMSIZES as SPIKEIN_CHROMSIZES } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
-include { UNTAR as UNTAR_INDEX_TARGET                } from '../../modules/nf-core/modules/untar/main.nf'
-include { UNTAR as UNTAR_INDEX_SPIKEIN               } from '../../modules/nf-core/modules/untar/main.nf'
-include { BOWTIE2_BUILD as BOWTIE2_BUILD_TARGET      } from '../../modules/nf-core/modules/bowtie2/build/main'
-include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN     } from '../../modules/nf-core/modules/bowtie2/build/main'
-include { TABIX_BGZIPTABIX                           } from '../../modules/nf-core/modules/tabix/bgziptabix/main'
-include { GTF2BED                                    } from '../../modules/local/gtf2bed'
-include { SAMTOOLS_FAIDX                             } from '../../modules/nf-core/modules/samtools/faidx/main'
-include { BEDTOOLS_SORT                              } from "../../modules/nf-core/modules/bedtools/sort/main"
+include { GUNZIP as GUNZIP_FASTA                               } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { GUNZIP as GUNZIP_SPIKEIN_FASTA                       } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { GUNZIP as GUNZIP_GTF                                 } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { GUNZIP as GUNZIP_BED                                 } from '../../modules/nf-core/modules/gunzip/main.nf'
+include { CUSTOM_GETCHROMSIZES as TARGET_CHROMSIZES            } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
+include { CUSTOM_GETCHROMSIZES as SPIKEIN_CHROMSIZES           } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
+include { UNTAR as UNTAR_INDEX_TARGET                          } from '../../modules/nf-core/modules/untar/main.nf'
+include { UNTAR as UNTAR_INDEX_SPIKEIN                         } from '../../modules/nf-core/modules/untar/main.nf'
+include { BOWTIE2_BUILD as BOWTIE2_BUILD_TARGET                } from '../../modules/nf-core/modules/bowtie2/build/main'
+include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN               } from '../../modules/nf-core/modules/bowtie2/build/main'
+include { TABIX_BGZIPTABIX                                     } from '../../modules/nf-core/modules/tabix/bgziptabix/main'
+include { GTF2BED                                              } from '../../modules/local/gtf2bed'
+include { SAMTOOLS_FAIDX                                       } from '../../modules/nf-core/modules/samtools/faidx/main'
+include { BEDTOOLS_SORT as ANNOTATION_BEDTOOLS_SORT            } from "../../modules/nf-core/modules/bedtools/sort/main"
+include { AWK as BLACKLIST_AWK                                 } from "../../modules/local/linux/awk"
+include { BEDTOOLS_INTERSECT as BLACKLIST_BEDTOOLS_INTERSECT   } from "../../modules/nf-core/modules/bedtools/intersect/main"
+include { BEDTOOLS_SORT as BLACKLIST_BEDTOOLS_SORT             } from "../../modules/nf-core/modules/bedtools/sort/main"
+include { BEDTOOLS_COMPLEMENT as BLACKLIST_BEDTOOLS_COMPLEMENT } from "../../modules/nf-core/modules/bedtools/complement/main"
 
 workflow PREPARE_GENOME {
     take:
     prepare_tool_indices // list: tools to prepare indices for
+    blacklist            // channel: blacklist file or empty channel
 
     main:
     ch_versions = Channel.empty()
@@ -52,7 +57,7 @@ workflow PREPARE_GENOME {
         ch_gtf      = GUNZIP_GTF ( [ [:], params.gtf ] ).gunzip.map { it[1] }
         ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
     } else {
-        ch_gtf = file(params.gtf)
+        ch_gtf = Channel.from( file(params.gtf) )
     }
 
     ch_gene_bed = Channel.empty()
@@ -64,7 +69,7 @@ workflow PREPARE_GENOME {
             ch_gene_bed = GUNZIP_BED ( [ [:], params.gene_bed ] ).gunzip.map { it[1] }
             ch_versions = ch_versions.mix(GUNZIP_BED.out.versions)
         } else {
-            ch_gene_bed = file(params.gene_bed)
+            ch_gene_bed = Channel.from( file(params.gene_bed) )
         }
     } else {
         /*
@@ -90,13 +95,14 @@ workflow PREPARE_GENOME {
         }
     }
 
-    BEDTOOLS_SORT (
+    ANNOTATION_BEDTOOLS_SORT (
         ch_tabix,
-        "bed"
+        "bed",
+        []
     )
 
     TABIX_BGZIPTABIX (
-        BEDTOOLS_SORT.out.sorted
+        ANNOTATION_BEDTOOLS_SORT.out.sorted
     )
     ch_gene_bed_index = TABIX_BGZIPTABIX.out.gz_tbi
     ch_versions       = ch_versions.mix(TABIX_BGZIPTABIX.out.versions)
@@ -150,6 +156,50 @@ workflow PREPARE_GENOME {
         }
     }
 
+    /*
+    * Use blacklist to create include regions for genome
+    */
+    ch_genome_include_regions = Channel.empty()
+    if (params.blacklist) {
+        // Create bedfile from chrom sizes file
+        BLACKLIST_AWK (
+            ch_chrom_sizes.map {row -> [ [id: "chromsizes"], row ]}
+        )
+        ch_versions = ch_versions.mix(BLACKLIST_AWK.out.versions)
+
+        // Create intersect channel between the chrom sizes bed and the blacklist bed
+        // This reduces the blacklist file down to the 
+        ch_blacklist_intersect = blacklist
+            .map {row -> [ [id: "blacklist"], row ]}
+            .combine( BLACKLIST_AWK.out.file )
+            .map {row -> [ row[0], row[1], row[3] ]}
+        //ch_blacklist_intersect | view
+
+        // Intersect blacklist with available chromosomes
+        // this prevents error in the next two processes
+        BLACKLIST_BEDTOOLS_INTERSECT(
+            ch_blacklist_intersect,
+            "filtered.bed"
+        )
+        ch_versions = ch_versions.mix(BLACKLIST_BEDTOOLS_INTERSECT.out.versions)
+
+        // Sort the bed file
+        BLACKLIST_BEDTOOLS_SORT(
+            BLACKLIST_BEDTOOLS_INTERSECT.out.intersect,
+            "sorted.bed",
+            ch_chrom_sizes
+        )
+        ch_versions = ch_versions.mix(BLACKLIST_BEDTOOLS_SORT.out.versions)
+
+        // Find compliment of blacklist to show allowed regions
+        BLACKLIST_BEDTOOLS_COMPLEMENT(
+            BLACKLIST_BEDTOOLS_SORT.out.sorted,
+            ch_chrom_sizes
+        )
+        ch_genome_include_regions = BLACKLIST_BEDTOOLS_COMPLEMENT.out.bed
+        ch_versions               = ch_versions.mix(BLACKLIST_BEDTOOLS_COMPLEMENT.out.versions)
+    }
+
     emit:
     fasta                  = ch_fasta                    // path: genome.fasta
     fasta_index            = ch_fasta_index              // path: genome.fai
@@ -158,6 +208,7 @@ workflow PREPARE_GENOME {
     gtf                    = ch_gtf                      // path: genome.gtf
     bed                    = ch_gene_bed                 // path: genome.bed
     bed_index              = ch_gene_bed_index           // path: genome.bed_index
+    allowed_regions        = ch_genome_include_regions   // path: genome.regions
 
     bowtie2_index          = ch_bt2_index                // path: bt2/index/
     bowtie2_spikein_index  = ch_bt2_spikein_index        // path: bt2/index/

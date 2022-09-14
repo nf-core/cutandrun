@@ -10,6 +10,7 @@ process BEDTOOLS_SORT {
     input:
     tuple val(meta), path(intervals)
     val   extension
+    path  sizes
 
     output:
     tuple val(meta), path("*.${extension}"), emit: sorted
@@ -19,12 +20,14 @@ process BEDTOOLS_SORT {
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
+    def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
+    def sizes  = sizes ? "-g $sizes" : ""
     """
     bedtools \\
         sort \\
         -i $intervals \\
+        $sizes \\
         $args \\
         > ${prefix}.${extension}
 
