@@ -876,11 +876,11 @@ workflow CUTANDRUN {
             ch_dt_corrmatrix.collect{it[1]}.ifEmpty([]),
             ch_dt_pcadata.collect{it[1]}.ifEmpty([]),
             ch_dt_fpmatrix.collect{it[1]}.ifEmpty([]),
-            ch_peakqc_count_mqc.collect().ifEmpty([]),
-            ch_peakqc_frip_mqc.collect().ifEmpty([]),
-            ch_peakqc_count_consensus_mqc.collect().ifEmpty([]),
-            ch_peakqc_reprod_perc_mqc.collect().ifEmpty([]),
-            ch_frag_len_hist_mqc.collect().ifEmpty([])
+            ch_peakqc_count_mqc.collect{it[1]}.ifEmpty([]),
+            ch_peakqc_frip_mqc.collect{it[1]}.ifEmpty([]),
+            ch_peakqc_count_consensus_mqc.collect{it[1]}.ifEmpty([]),
+            ch_peakqc_reprod_perc_mqc.collect{it[1]}.ifEmpty([]),
+            ch_frag_len_hist_mqc.collect{it[1]}.ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

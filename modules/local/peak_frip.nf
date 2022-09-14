@@ -15,8 +15,8 @@ process PEAK_FRIP {
     val   min_frip_overlap
 
     output:
-    path '*_mqc.tsv', emit: frip_mqc
-    path  "versions.yml", emit: versions
+    tuple val(meta), path("*mqc.tsv"), emit: frip_mqc
+    path  "versions.yml"             , emit: versions
 
     when:
     task.ext.when == null || task.ext.when

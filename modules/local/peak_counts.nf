@@ -8,12 +8,12 @@ process PEAK_COUNTS {
         'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0' }"
 
     input:
-    tuple val(meta), path(bed) 
+    tuple val(meta), path(bed)
     path  peak_counts_header
 
     output:
-    path '*mqc.tsv' , emit: count_mqc
-    path  "versions.yml"  , emit: versions
+    tuple val(meta), path("*mqc.tsv"), emit: count_mqc
+    path  "versions.yml"             , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
