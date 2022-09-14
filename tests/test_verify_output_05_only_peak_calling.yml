@@ -12,8 +12,5 @@
     - path: results/03_peak_calling/04_called_peaks/h3k27me3_R1.seacr.peaks.stringent.bed
     - path: results/03_peak_calling/04_called_peaks/igg_ctrl_R1.seacr.peaks.stringent.bed
       should_exist: false
-    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peaks.bed
-    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peaks.filtered.awk.bed
-    - path: results/03_peak_calling/06_fragments/h3k27me3_R1.frags.len.txt
-    - path: results/03_peak_calling/06_fragments/h3k27me3_R1.frags.bin500.awk.bed
-    - path: results/03_peak_calling/06_fragments/h3k27me3_R1.frags.cut.bed
+    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peaks.awk.bed
+    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peak_counts.bed

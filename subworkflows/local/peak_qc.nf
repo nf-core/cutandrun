@@ -69,12 +69,15 @@ workflow PEAK_QC {
     ch_versions = ch_versions.mix(CUT_CALC_REPROD.out.versions)
 
     /*
-    * CHANNEL: Group samples based on group
+    * CHANNEL: Group samples based on group and filter for groups that have more than one file
     */
     CUT_CALC_REPROD.out.file
     .map { row -> [ row[0].group, row[1] ] }
     .groupTuple(by: [0])
     .map { row -> [ [id: row[0]], row[1].flatten() ] }
+    .map { row -> [ row[0], row[1], row[1].size() ] }
+    .filter { row -> row[2] > 1 }
+    .map { row -> [ row[0], row[1] ] }
     .set { ch_peak_bed_group }
     //ch_peak_bed_group | view
 

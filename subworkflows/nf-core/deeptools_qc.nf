@@ -50,15 +50,18 @@ workflow DEEPTOOLS_QC {
 
     /*
     * CHANNEL: Combine bam and bai files into one list
+    * if we only have one file then cancel correlation and PCA
     */
     ch_bam_target.map { row -> [row[1]] }
     .collect()
     .map { row -> [row] } 
     .combine( ch_bai_target.map { row -> [row[1]] }.collect().map { row -> [row] } )
     .combine( ch_ids )
-    .map { row -> [[id: 'all_target_bams'], row[0], row[1], row[2]] } 
+    .map { row -> [[id: 'all_target_bams'], row[0], row[1], row[2], row[1].size()] }
+    .filter { row -> row[4] > 1 }
+    .map { row -> [row[0], row[1], row[2], row[3]] }
     .set { ch_bam_bai_all }
-    //ch_bam_bai_all | view
+    ch_bam_bai_all | view
 
     /*
     * MODULE: Summarise bams into bins

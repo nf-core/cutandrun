@@ -12,7 +12,7 @@ process PRESEQ_LCEXTRAP {
     tuple val(meta), path(bam)
 
     output:
-    tuple val(meta), path("*.lc_extrap.txt"), emit: lc_extrap
+    tuple val(meta), path("*.lc_extrap.txt"), emit: lc_extrap, optional:true
     tuple val(meta), path("*.log")          , emit: log
     path  "versions.yml"                    , emit: versions
 
@@ -29,8 +29,8 @@ process PRESEQ_LCEXTRAP {
         $args \\
         $paired_end \\
         -output ${prefix}.lc_extrap.txt \\
-        $bam
-    cp .command.err ${prefix}.command.log
+        $bam \\
+    && cp .command.log ${prefix}.command.log || cp .command.log ${prefix}.command.log
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
