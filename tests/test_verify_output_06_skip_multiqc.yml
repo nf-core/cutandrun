@@ -14,4 +14,3 @@
   files:
     - path: results/04_reporting/multiqc/multiqc_report.html
       should_exist: false
-

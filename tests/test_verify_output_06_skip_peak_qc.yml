@@ -14,4 +14,3 @@
   files:
     - path: results/04_reporting/multiqc/multiqc_data/multiqc_primary_peakcounts_plot.txt
       should_exist: false
-

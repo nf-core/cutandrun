@@ -190,7 +190,6 @@ jobs:
           - verify_output_peak_calling_only_peak_calling
           - verify_output_reporting_skip_preseq_false
           - verify_output_reporting_skip_preseq_true
-     
 
           - verify_output_reporting_skip_reporting
           - verify_output_reporting_skip_igv

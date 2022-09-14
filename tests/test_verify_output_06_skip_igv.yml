@@ -14,4 +14,3 @@
   files:
     - path: results/04_reporting/igv/igv_session.xml
       should_exist: false
-

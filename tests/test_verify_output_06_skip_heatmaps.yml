@@ -17,7 +17,3 @@
       should_exist: false
     - path: results/04_reporting/deeptools_heatmaps/peaks/h3k4me3_R1.computeMatrix.mat.gz
       should_exist: false
-
-
-      
-

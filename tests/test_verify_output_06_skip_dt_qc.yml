@@ -20,4 +20,3 @@
       should_exist: false
     - path: results/04_reporting/deeptools_qc/h3k4me3_R1.plotFingerprint.pdf
       should_exist: false
-

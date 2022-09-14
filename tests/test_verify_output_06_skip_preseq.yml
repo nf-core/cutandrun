@@ -20,4 +20,3 @@
       should_exist: false
     - path: results/04_reporting/preseq/igg_ctrl_R1.command.log
       should_exist: false
-
