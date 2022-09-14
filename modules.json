@@ -40,7 +40,7 @@
                 },
                 "cat/fastq": {
                     "branch": "master",
-                    "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
+                    "git_sha": "b034029b59b1198075da8019074bc02051a6100e"
                 },
                 "custom/getchromsizes": {
                     "branch": "master",
