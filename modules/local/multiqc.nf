@@ -35,6 +35,7 @@ process MULTIQC {
     path "*multiqc_report.html", emit: report
     path "*_data"              , emit: data
     path "*_plots"             , optional:true, emit: plots
+    path "versions.yml"        , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -44,5 +45,10 @@ process MULTIQC {
     def custom_config = params.multiqc_config ? "--config $multiqc_custom_config" : ''
     """
     multiqc -f $args $custom_config .
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        multiqc: \$( multiqc --version | sed -e "s/multiqc, version //g" )
+    END_VERSIONS
     """
 }
