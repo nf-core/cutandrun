@@ -1,8 +1,6 @@
 - name: test_verify_output_skip_fastqc_true
-  command: nextflow run main.nf -profile docker,test --only_preqc true --skip_fastqc true -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_preqc --skip_fastqc true -c tests/config/nextflow.config
   tags:
-    - verify_output
-    - verify_output_skip
     - verify_output_skip_fastqc
     - verify_output_skip_fastqc_true
   files:
@@ -12,9 +10,8 @@
       should_exist: false
 
 - name: test_verify_output_skip_fastqc_false
-  command: nextflow run main.nf -profile docker,test --only_preqc true --skip_fastqc false
+  command: nextflow run main.nf -profile docker,test --only_preqc --skip_fastqc false
   tags:
-    - verify_output
     - verify_output_skip_fastqc
     - verify_output_skip_fastqc_false
   files:

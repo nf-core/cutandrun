@@ -1,8 +1,6 @@
 - name: test_verify_output_duplicates_mark
-  command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true --skip_removeduplicates true -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_filtering --skip_fastqc --skip_removeduplicates --skip_preseq -c tests/config/nextflow.config
   tags:
-    - verify_output
-    - verify_output_align
     - verify_output_align_duplicates
     - verify_output_align_duplicates_mark
   files:
@@ -14,10 +12,8 @@
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.markdup.bam.flagstat
 
 - name: test_verify_output_duplicates_remove
-  command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true --dedup_target_reads false -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_filtering --skip_fastqc --skip_preseq --dedup_target_reads false -c tests/config/nextflow.config
   tags:
-    - verify_output
-    - verify_output_align
     - verify_output_align_duplicates
     - verify_output_align_duplicates_remove
   files:
@@ -31,10 +27,8 @@
       should_exist: false
 
 - name: test_verify_output_duplicates_remove_target
-  command: nextflow run main.nf -profile docker,test --only_filtering true --skip_fastqc true --dedup_target_reads true -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_filtering --skip_fastqc --skip_preseq --dedup_target_reads true -c tests/config/nextflow.config
   tags:
-    - verify_output
-    - verify_output_align
     - verify_output_align_duplicates
     - verify_output_align_duplicates_remove_target
   files:
