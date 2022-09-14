@@ -190,12 +190,17 @@ jobs:
           - verify_output_peak_calling_only_peak_calling
           - verify_output_reporting_skip_preseq_false
           - verify_output_reporting_skip_preseq_true
-
+          - verify_output_reporting_skip_dtqc_false
+          - verify_output_reporting_skip_dtqc_true
+          - verify_output_reporting_skip_heatmaps_false
+          - verify_output_reporting_skip_heatmaps_true
+          - verify_output_reporting_skip_igv_false
+          - verify_output_reporting_skip_igv_true
+          - verify_output_reporting_skip_multiqc_false
+          - verify_output_reporting_skip_multiqc_true
+          - verify_output_reporting_skip_peak_qc_false
+          - verify_output_reporting_skip_peak_qc_true
           - verify_output_reporting_skip_reporting
-          - verify_output_reporting_skip_igv
-          - verify_output_reporting_skip_heatmaps
-          - verify_output_reporting_skip_multiqc
-          - verify_output_skip_frip
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
