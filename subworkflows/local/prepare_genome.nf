@@ -57,7 +57,7 @@ workflow PREPARE_GENOME {
         ch_gtf      = GUNZIP_GTF ( [ [:], params.gtf ] ).gunzip.map { it[1] }
         ch_versions = ch_versions.mix(GUNZIP_GTF.out.versions)
     } else {
-        ch_gtf = file(params.gtf)
+        ch_gtf = Channel.from( file(params.gtf) )
     }
 
     ch_gene_bed = Channel.empty()
@@ -69,7 +69,7 @@ workflow PREPARE_GENOME {
             ch_gene_bed = GUNZIP_BED ( [ [:], params.gene_bed ] ).gunzip.map { it[1] }
             ch_versions = ch_versions.mix(GUNZIP_BED.out.versions)
         } else {
-            ch_gene_bed = file(params.gene_bed)
+            ch_gene_bed = Channel.from( file(params.gene_bed) )
         }
     } else {
         /*

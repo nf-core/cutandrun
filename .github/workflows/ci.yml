@@ -152,7 +152,7 @@ jobs:
       matrix:
         nxf_version: ["21.10.3", ""]
         tags:
-          - test_params
+          - test_genome_options
           - test_samplesheet
           - verify_output_save_ref
           - verify_output_only_input
