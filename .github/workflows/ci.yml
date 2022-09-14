@@ -154,6 +154,24 @@ jobs:
         tags:
           - test_genome_options
           - test_samplesheet
+          - test_filtering_noqfilter
+          - test_filtering_withqfilter
+          - test_bam_scale_none
+          - test_bam_scale_spikein
+          - test_bam_scale_cpm
+          - test_bam_scale_rpkm
+          - test_bam_scale_bpm
+          - test_bam_scale_cpm_iggscale
+          - test_peak_callers_seacr
+          - test_peak_callers_macs2
+          - test_peak_callers_invalid
+          - test_peak_callers_seacr_macs2
+          - test_peak_callers_macs2_seacr
+          - test_peak_callers_seacr_macs2_noigg
+          - test_peak_callers_ctrl_tests
+          - test_consensus_peaks_group
+          - test_consensus_peaks_all
+          - test_consensus_peaks_invalid
           - verify_output_save_ref
           - verify_output_only_input
           - verify_output_save_merged
@@ -169,22 +187,8 @@ jobs:
           - verify_output_align_duplicates_remove
           - verify_output_align_duplicates_remove_target
           - verify_output_peak_calling_only_peak_calling
-          - test_bam_scale_none
-          - test_bam_scale_spikein
-          - test_bam_scale_cpm
-          - test_bam_scale_rpkm
-          - test_bam_scale_bpm
-          - test_bam_scale_cpm_iggscale
-          - test_peak_callers_seacr
-          - test_peak_callers_macs2
-          - test_peak_callers_invalid
-          - test_peak_callers_seacr_macs2
-          - test_peak_callers_macs2_seacr
-          - test_peak_callers_seacr_macs2_noigg
-          - test_peak_callers_ctrl_tests
-          - test_conseneus_peaks_group
-          - test_conseneus_peaks_all
-          - test_conseneus_peaks_invalid
+     
+
           - verify_output_reporting_skip_reporting
           - verify_output_reporting_skip_igv
           - verify_output_reporting_skip_heatmaps
