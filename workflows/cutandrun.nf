@@ -649,6 +649,14 @@ workflow CUTANDRUN {
         }
     }
 
+    ch_dt_corrmatrix              = Channel.empty()
+    ch_dt_pcadata                 = Channel.empty()
+    ch_dt_fpmatrix                = Channel.empty()
+    ch_peakqc_frip_mqc            = Channel.empty()
+    ch_peakqc_count_mqc           = Channel.empty()
+    ch_peakqc_count_consensus_mqc = Channel.empty()
+    ch_peakqc_reprod_perc_mqc     = Channel.empty()
+    ch_frag_len_hist_mqc          = Channel.empty()
     if(params.run_reporting) {
         if(params.run_igv) {
             /*
@@ -739,9 +747,6 @@ workflow CUTANDRUN {
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions)
         }
 
-        ch_dt_corrmatrix = Channel.empty()
-        ch_dt_pcadata    = Channel.empty()
-        ch_dt_fpmatrix   = Channel.empty()
         if(params.run_deeptools_qc) {
             /*
             * SUBWORKFLOW: Run suite of deeptools QC on bam files
@@ -763,10 +768,6 @@ workflow CUTANDRUN {
         .set { ch_bai_target }
         //ch_bai_target | view
 
-        ch_peakqc_frip_mqc            = Channel.empty()
-        ch_peakqc_count_mqc           = Channel.empty()
-        ch_peakqc_count_consensus_mqc = Channel.empty()
-        ch_peakqc_reprod_perc_mqc     = Channel.empty()
         if (params.run_peak_qc && params.run_peak_calling) {
             /*
             * CHANNEL: Filter flagstat for target only
@@ -838,6 +839,7 @@ workflow CUTANDRUN {
             ch_frag_len,
             ch_frag_len_header_multiqc
         )
+        ch_frag_len_hist_mqc = FRAG_LEN_HIST.out.frag_len_mqc
         ch_software_versions = ch_software_versions.mix(FRAG_LEN_HIST.out.versions)
     }
 
@@ -878,7 +880,7 @@ workflow CUTANDRUN {
             ch_peakqc_frip_mqc.collect().ifEmpty([]),
             ch_peakqc_count_consensus_mqc.collect().ifEmpty([]),
             ch_peakqc_reprod_perc_mqc.collect().ifEmpty([]),
-            FRAG_LEN_HIST.out.frag_len_mqc.collect().ifEmpty([])
+            ch_frag_len_hist_mqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

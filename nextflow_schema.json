@@ -206,7 +206,7 @@
                     "description": "Skips reporting"
                 },
                 "skip_preseq": {
-                    "type": "string",
+                    "type": "boolean",
                     "default": "false",
                     "description": "Skips preseq reporting"
                 },
@@ -216,7 +216,7 @@
                     "description": "Skips igv session generation"
                 },
                 "skip_dt_qc": {
-                    "type": "string",
+                    "type": "boolean",
                     "default": "false",
                     "description": "Skips deeptools QC repoting",
                     "fa_icon": "fas fa-random"
@@ -227,7 +227,7 @@
                     "description": "Skips deeptools heatmap generation"
                 },
                 "skip_peak_qc": {
-                    "type": "string",
+                    "type": "boolean",
                     "default": "false",
                     "description": "Skips peak QC reporting",
                     "fa_icon": "fas fa-random"

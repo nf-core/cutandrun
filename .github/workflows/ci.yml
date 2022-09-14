@@ -154,6 +154,7 @@ jobs:
         tags:
           - test_genome_options
           - test_samplesheet
+          - test_samplesheet_2
           - test_filtering_noqfilter
           - test_filtering_withqfilter
           - test_bam_scale_none
