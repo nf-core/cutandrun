@@ -12,7 +12,7 @@
     - test_peak_callers
     - test_peak_callers_macs2
   files:
-    - path: results/03_peak_calling/04_called_peaks/macs2/h3k27me3_R1_macs2_peaks.narrowPeak
+    - path: results/03_peak_calling/04_called_peaks/macs2/h3k27me3_R1.macs2_peaks.narrowPeak
 
 - name: test_peak_callers_invalid_name
   command: nextflow run main.nf -profile docker,test --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_multiqc --skip_preseq --peakcaller test -c tests/config/nextflow.config
