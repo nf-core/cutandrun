@@ -18,17 +18,12 @@ jobs:
     if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}"
     runs-on: ubuntu-latest
     env:
-      NXF_VER: ${{ matrix.nxf_ver }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       matrix:
-        # Nextflow versions
-        include:
-          # Test pipeline minimum Nextflow version
-          - NXF_VER: "21.10.3"
-          # Test latest nextflow version
-          - NXF_VER: "latest-stable"
+        # Nextflow versions: check pipeline minimum and current latest
+        nextflow_version: ["21.10.3", "latest-stable"]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -36,7 +31,7 @@ jobs:
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v1
         with:
-          version: "${{ matrix.NXF_VER }}"
+          version: "${{ matrix.nextflow_version }}"
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
       # files during pipeline execution
@@ -64,13 +59,12 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
-      NXF_VER: ${{ matrix.nxf_ver }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        nxf_ver: ["21.10.3", "latest-stable"]
+        nextflow_version: ["21.10.3", "latest-stable"]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -78,7 +72,7 @@ jobs:
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v1
         with:
-          version: "${{ matrix.NXF_VER }}"
+          version: "${{ matrix.nextflow_version }}"
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
       # files during pipeline execution
@@ -106,7 +100,6 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
-      NXF_VER: "latest-everything"
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     steps:
@@ -116,7 +109,7 @@ jobs:
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v1
         with:
-          version: "${{ matrix.NXF_VER }}"
+          version: "latest-everything"
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
       # files during pipeline execution
@@ -143,13 +136,12 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-20.04
     env:
-      NXF_VER: ${{ matrix.nxf_version }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       fail-fast: false
       matrix:
-        nxf_version: ["21.10.3", "latest-stable"]
+        nextflow_version: ["21.10.3", "latest-stable"]
         tags:
           - test_genome_options
           - test_samplesheet
@@ -224,14 +216,14 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /usr/local/bin/nextflow
-          key: ${{ runner.os }}-nextflow-${{ matrix.nxf_version }}
+          key: ${{ runner.os }}-nextflow-${{ matrix.nextflow_version }}
           restore-keys: |
             ${{ runner.os }}-nextflow-
 
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v1
         with:
-          version: "${{ matrix.NXF_VER }}"
+          version: "${{ matrix.nextflow_version }}"
 
       - name: Run pytest-workflow
         uses: Wandalen/wretry.action@v1.0.11
@@ -243,7 +235,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v2
         with:
-          name: logs-${{ matrix.tags }}-${{ matrix.profile }}-${{ matrix.nxf_version }}
+          name: logs-${{ matrix.tags }}-${{ matrix.profile }}-${{ matrix.nextflow_version }}
           path: |
             /tmp/pytest_workflow_*/*/.nextflow.log
             /tmp/pytest_workflow_*/*/log.out
