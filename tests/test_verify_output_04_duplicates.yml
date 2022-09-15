@@ -8,8 +8,8 @@
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.markdup.bam
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam.bai
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.markdup.bam.bai
-    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam.flagstat
-    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.markdup.bam.flagstat
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.flagstat
 
 - name: test_verify_output_duplicates_remove
   command: nextflow run main.nf -profile docker,test --only_filtering --skip_fastqc --skip_preseq --dedup_target_reads false -c tests/config/nextflow.config
@@ -21,8 +21,8 @@
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam.bai
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam.bai
-    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam.flagstat
-    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam.flagstat
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.flagstat
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.dedup.bam
       should_exist: false
 
@@ -36,5 +36,5 @@
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.dedup.bam.bai
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam.bai
-    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.dedup.bam.flagstat
-    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam.flagstat
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.flagstat
