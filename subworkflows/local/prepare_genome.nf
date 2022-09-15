@@ -33,21 +33,22 @@ workflow PREPARE_GENOME {
     * Uncompress genome fasta file if required
     */
     if (params.fasta.endsWith(".gz")) {
-        ch_fasta    = GUNZIP_FASTA ( [ [:], params.fasta ] ).gunzip.map { it[1] }
+        ch_fasta    = GUNZIP_FASTA ( [ [id:"target_fasta"], params.fasta ] ).gunzip
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
-        ch_fasta    = Channel.from( file(params.fasta) )
+        ch_fasta = Channel.from( file(params.fasta) ).map { row -> [[id:"spikein_fasta"], row] }
     }
 
     /*
     * Uncompress spike-in genome fasta file if required
     */
     if (params.spikein_fasta.endsWith(".gz")) {
-        ch_spikein_fasta = GUNZIP_SPIKEIN_FASTA ( [ [:], params.spikein_fasta ] ).gunzip.map { it[1] }
+        ch_spikein_fasta = GUNZIP_SPIKEIN_FASTA ( [ [id:"spikein_fasta"], params.spikein_fasta ] ).gunzip
         ch_versions      = ch_versions.mix(GUNZIP_SPIKEIN_FASTA.out.versions)
     } else {
-        ch_spikein_fasta = file(params.spikein_fasta)
+        ch_spikein_fasta = Channel.from( file(params.spikein_fasta) ).map { row -> [[id:"spikein_fasta"], row] }
     }
+    //ch_spikein_fasta | view
 
     /*
     * Uncompress GTF annotation file
@@ -110,19 +111,19 @@ workflow PREPARE_GENOME {
     /*
     * Index genome fasta file
     */
-    ch_fasta_index = SAMTOOLS_FAIDX ( ch_fasta.map {row -> [ [:], row ]} ).fai
+    ch_fasta_index = SAMTOOLS_FAIDX ( ch_fasta ).fai
     ch_versions    = ch_versions.mix(SAMTOOLS_FAIDX.out.versions)
 
     /*
     * Create chromosome sizes file
     */
-    ch_chrom_sizes = TARGET_CHROMSIZES ( ch_fasta ).sizes
+    ch_chrom_sizes = TARGET_CHROMSIZES ( ch_fasta ).sizes.map{ it[1] }
     ch_versions    = ch_versions.mix(TARGET_CHROMSIZES.out.versions)
 
     /*
     * Create chromosome sizes file for spike_in
     */
-    ch_spikein_chrom_sizes = SPIKEIN_CHROMSIZES ( ch_spikein_fasta ).sizes
+    ch_spikein_chrom_sizes = SPIKEIN_CHROMSIZES ( ch_spikein_fasta ).sizes.map{ it[1] }
 
     /*
     * Uncompress Bowtie2 index or generate from scratch if required for both genomes
