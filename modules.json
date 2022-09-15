@@ -84,11 +84,11 @@
                 },
                 "samtools/flagstat": {
                     "branch": "master",
-                    "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                    "git_sha": "bbb99cb8d679555cc01c98766de7869f83283545"
                 },
                 "samtools/idxstats": {
                     "branch": "master",
-                    "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                    "git_sha": "ecece498f10b47b7c9d06f53a310cea5811b4c5f"
                 },
                 "samtools/index": {
                     "branch": "master",
@@ -100,7 +100,7 @@
                 },
                 "samtools/stats": {
                     "branch": "master",
-                    "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                    "git_sha": "f4eab7945952dc4934224309701a49913ea05ae6"
                 },
                 "samtools/view": {
                     "branch": "master",
@@ -109,7 +109,7 @@
                 },
                 "seacr/callpeak": {
                     "branch": "master",
-                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                    "git_sha": "233fa70811a03a4cecb2ece483b5c8396e2cee1d"
                 },
                 "tabix/bgziptabix": {
                     "branch": "master",
