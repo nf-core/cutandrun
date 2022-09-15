@@ -509,7 +509,7 @@ workflow CUTANDRUN {
                 /*
                 * CHANNEL: Add fake control channel
                 */
-                ch_bedgraph_split.target.map{ row-> [ row[0], row[1], [] ] }
+                ch_bedgraph_target.map{ row-> [ row[0], row[1], [] ] }
                 .set { ch_bedgraph_target_fctrl }
                 // EXAMPLE CHANNEL STRUCT: [[META], BED, FAKE_CTRL]
                 // ch_bedgraph_target_fctrl | view

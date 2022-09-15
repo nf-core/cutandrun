@@ -22,16 +22,16 @@
   exit_code: 1
 
 - name: test_peak_callers_seacr_macs2
-  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_removeduplicates --skip_multiqc --skip_preseq --peakcaller seacr,macs2 -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_multiqc --skip_preseq --peakcaller seacr,macs2 -c tests/config/nextflow.config
   tags:
     - test_peak_callers
     - test_peak_callers_seacr_macs2
   files:
     - path: results/03_peak_calling/04_called_peaks/seacr/h3k27me3_R1.seacr.peaks.stringent.bed
-    - path: results/03_peak_calling/04_called_peaks/macs2/h3k27me3_R1_macs2_peaks.narrowPeak
+    - path: results/03_peak_calling/04_called_peaks/macs2/h3k27me3_R1.macs2_peaks.narrowPeak
 
 - name: test_peak_callers_macs2_seacr
-  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_removeduplicates --skip_multiqc --skip_preseq --peakcaller macs2,seacr -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_multiqc --skip_preseq --peakcaller macs2,seacr -c tests/config/nextflow.config
   tags:
     - test_peak_callers
     - test_peak_callers_macs2_seacr
