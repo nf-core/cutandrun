@@ -663,7 +663,7 @@ workflow CUTANDRUN {
             * MODULE: Create igv session
             */
             IGV_SESSION (
-                PREPARE_GENOME.out.fasta,
+                PREPARE_GENOME.out.fasta.map {it[1]},
                 PREPARE_GENOME.out.fasta_index.map {it[1]},
                 PREPARE_GENOME.out.bed_index,
                 //PREPARE_GENOME.out.gtf.collect(),
