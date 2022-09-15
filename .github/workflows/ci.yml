@@ -28,15 +28,15 @@ jobs:
           # Test pipeline minimum Nextflow version
           - NXF_VER: "21.10.3"
           # Test latest nextflow version
-          - NXF_VER: ""
+          - NXF_VER: "latest-everything"
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
 
       - name: Install Nextflow
-        run: |
-          wget -qO- get.nextflow.io | bash
-          sudo mv nextflow /usr/local/bin/
+        uses: nf-core/setup-nextflow@v1
+        with:
+          version: "${{ matrix.NXF_VER }}"
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
       # files during pipeline execution
