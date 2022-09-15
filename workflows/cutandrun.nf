@@ -798,6 +798,7 @@ workflow CUTANDRUN {
             ch_peakqc_reprod_perc_mqc      = PEAK_QC.out.reprod_perc_mqc
             ch_software_versions           = ch_software_versions.mix(PEAK_QC.out.versions)
         }
+        //ch_peakqc_reprod_perc_mqc | view
 
         /*
         * CHANNEL: Combine bam and bai files on id
@@ -842,6 +843,7 @@ workflow CUTANDRUN {
         ch_frag_len_hist_mqc = FRAG_LEN_HIST.out.frag_len_mqc
         ch_software_versions = ch_software_versions.mix(FRAG_LEN_HIST.out.versions)
     }
+    //ch_frag_len_hist_mqc | view
 
     if (params.run_multiqc) {
         workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
@@ -879,8 +881,8 @@ workflow CUTANDRUN {
             ch_peakqc_count_mqc.collect{it[1]}.ifEmpty([]),
             ch_peakqc_frip_mqc.collect{it[1]}.ifEmpty([]),
             ch_peakqc_count_consensus_mqc.collect{it[1]}.ifEmpty([]),
-            ch_peakqc_reprod_perc_mqc.collect{it[1]}.ifEmpty([]),
-            ch_frag_len_hist_mqc.collect{it[1]}.ifEmpty([])
+            ch_peakqc_reprod_perc_mqc.collect().ifEmpty([]),
+            ch_frag_len_hist_mqc.collect().ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }
