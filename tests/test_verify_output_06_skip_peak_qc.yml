@@ -1,5 +1,5 @@
 - name: verify_output_reporting_skip_peak_qc_false
-  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_multiqc --skip_preseq -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_preseq -c tests/config/nextflow.config
   tags:
     - verify_output_reporting_skip_peak_qc
     - verify_output_reporting_skip_peak_qc_false
@@ -7,7 +7,7 @@
     - path: results/04_reporting/multiqc/multiqc_data/multiqc_primary_peakcounts_plot.txt
 
 - name: verify_output_reporting_skip_peak_qc_true
-  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_multiqc --skip_preseq --skip_peak_qc -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_preseq --skip_peak_qc -c tests/config/nextflow.config
   tags:
     - verify_output_reporting_skip_peak_qc
     - verify_output_reporting_skip_peak_qc_true

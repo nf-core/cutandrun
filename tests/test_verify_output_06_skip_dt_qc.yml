@@ -1,5 +1,5 @@
 - name: verify_output_reporting_skip_dtqc_false
-  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_multiqc --skip_preseq -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test_full_small --skip_fastqc --skip_multiqc --skip_preseq -c tests/config/nextflow.config
   tags:
     - verify_output_reporting_skip_dtqc
     - verify_output_reporting_skip_dtqc_false
@@ -9,7 +9,7 @@
     - path: results/04_reporting/deeptools_qc/h3k4me3_R1.plotFingerprint.pdf
 
 - name: verify_output_reporting_skip_dtqc_true
-  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_multiqc --skip_preseq --skip_dt_qc -c tests/config/nextflow.config
+  command: nextflow run main.nf -profile docker,test_full_small --skip_fastqc --skip_multiqc --skip_preseq --skip_dt_qc -c tests/config/nextflow.config
   tags:
     - verify_output_reporting_skip_dtqc
     - verify_output_reporting_skip_dtqc_true
