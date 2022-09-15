@@ -12,13 +12,13 @@ import pandas as pd
 ## PARSE ARGUMENTS
 ############################################
 ############################################
-Description = 'Calclate fragment histogram'
+Description = "Calclate fragment histogram"
 
 parser = argparse.ArgumentParser(description=Description)
 
 ## REQUIRED PARAMETERS
-parser.add_argument('--frag_path')
-parser.add_argument('--output')
+parser.add_argument("--frag_path")
+parser.add_argument("--output")
 args = parser.parse_args()
 
 ############################################
@@ -27,9 +27,9 @@ args = parser.parse_args()
 ############################################
 ############################################
 
-print('Calclate fragment histogram')
+print("Calclate fragment histogram")
 
-# Init
+# Init
 frag_path = os.path.abspath(args.frag_path)
 frag_hist = None
 
@@ -39,7 +39,7 @@ dt_frag_list.sort()
 
 for i in list(range(len(dt_frag_list))):
     # Create dataframe from csv file for each file and save to a list of data frames
-    dt_frag_i = pd.read_csv(dt_frag_list[i], sep='\t', header=None, names=['Size','Occurrences'])
+    dt_frag_i = pd.read_csv(dt_frag_list[i], sep="\t", header=None, names=["Size", "Occurrences"])
     frag_base_i = os.path.basename(dt_frag_list[i])
 
     # Split txt file paths on dots
@@ -63,14 +63,14 @@ for i in list(range(len(dt_frag_list))):
     dt_frag_i = dt_frag_i.astype(int)
 
     # Create long forms of fragment histograms
-    dt_frag_i_long = np.repeat(dt_frag_i['Size'].values, dt_frag_i['Occurrences'].values)
+    dt_frag_i_long = np.repeat(dt_frag_i["Size"].values, dt_frag_i["Occurrences"].values)
     dt_group_i_long = np.repeat(group_i, len(dt_frag_i_long))
     dt_rep_i_long = np.repeat(rep_i, len(dt_frag_i_long))
 
     dt_group_i_short = np.repeat(group_i, dt_frag_i.shape[0])
     dt_rep_i_short = np.repeat(rep_i, dt_frag_i.shape[0])
 
-    if i==0:
+    if i == 0:
         frags_arr = dt_frag_i_long
         group_arr = dt_group_i_long
         rep_arr = dt_rep_i_long
@@ -87,8 +87,8 @@ for i in list(range(len(dt_frag_list))):
         rep_short = np.append(rep_short, dt_rep_i_short)
         frag_hist = frag_hist.append(dt_frag_i)
 
-frag_hist['group'] = group_short
-frag_hist['replicate'] = rep_short
+frag_hist["group"] = group_short
+frag_hist["replicate"] = rep_short
 frag_hist = frag_hist.reset_index(drop=True)
 
 size_list = frag_hist["Size"].to_numpy().astype(str)
@@ -96,17 +96,17 @@ occurrences_list = frag_hist["Occurrences"].to_numpy().astype(str)
 size_list_sep = np.core.defchararray.add(size_list, " : ")
 x_y_list = np.core.defchararray.add(size_list_sep, occurrences_list)
 
-group_rep = frag_hist[['group','replicate']].groupby(['group','replicate']).size().reset_index()
+group_rep = frag_hist[["group", "replicate"]].groupby(["group", "replicate"]).size().reset_index()
 first_line = "data:"
 
 for i in list(range(group_rep.shape[0])):
-    group_i = group_rep.at[i,"group"]
-    rep_i = group_rep.at[i,"replicate"]
-    str_list = x_y_list[ (frag_hist['group'] == group_i) & (frag_hist['replicate'] == rep_i) ]
+    group_i = group_rep.at[i, "group"]
+    rep_i = group_rep.at[i, "replicate"]
+    str_list = x_y_list[(frag_hist["group"] == group_i) & (frag_hist["replicate"] == rep_i)]
 
     x_y_str = ", ".join(str_list)
     full_line_i = "    '" + group_i + "_" + rep_i + "' : {" + x_y_str + "}"
-    if i==0:
+    if i == 0:
         frag_len_hist_mqc_dict = "\n".join([first_line, full_line_i])
 
     else:

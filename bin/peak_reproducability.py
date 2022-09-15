@@ -13,15 +13,15 @@ import pandas as pd
 ## PARSE ARGUMENTS
 ############################################
 ############################################
-Description = 'Calclate peak reproducability percentage for each sample'
+Description = "Calclate peak reproducability percentage for each sample"
 
 parser = argparse.ArgumentParser(description=Description)
 
 ## REQUIRED PARAMETERS
-parser.add_argument('--sample_id', help="Sample id.")
-parser.add_argument('--intersect', help="Peaks intersect file.")
-parser.add_argument('--threads', help="the number of threads for the task.")
-parser.add_argument('--outpath', help="Full path to output directory.")
+parser.add_argument("--sample_id", help="Sample id.")
+parser.add_argument("--intersect", help="Peaks intersect file.")
+parser.add_argument("--threads", help="the number of threads for the task.")
+parser.add_argument("--outpath", help="Full path to output directory.")
 args = parser.parse_args()
 
 ############################################
@@ -30,12 +30,12 @@ args = parser.parse_args()
 ############################################
 ############################################
 
-# Init
+# Init
 peak_perc = 0
 numfiles = 0
 num_columns = 0
 
-print('Reading file')
+print("Reading file")
 
 # Read first line
 first_line = None
@@ -45,36 +45,60 @@ with open(args.intersect, "r") as file:
         break
 
 if first_line is not None:
-    first_line_split = first_line.split('\t')
+    first_line_split = first_line.split("\t")
     num_columns = len(first_line_split)
     numfiles = 1
 
 if numfiles != 0:
-    print('Number of columns: ' + str(num_columns))
+    print("Number of columns: " + str(num_columns))
 
     ddf_inter = None
     if num_columns == 6:
         # Read file in using dask
-        ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','key','file_num','count'],
-            dtype={'chrom':str,'start':np.int64,'end':np.int64,'key':str, 'file_num':np.int32, 'count':np.int32})
-        numfiles = ddf_inter['file_num'].max().compute()
+        ddf_inter = dd.read_csv(
+            args.intersect,
+            sep="\t",
+            header=None,
+            names=["chrom", "start", "end", "key", "file_num", "count"],
+            dtype={
+                "chrom": str,
+                "start": np.int64,
+                "end": np.int64,
+                "key": str,
+                "file_num": np.int32,
+                "count": np.int32,
+            },
+        )
+        numfiles = ddf_inter["file_num"].max().compute()
 
     elif num_columns == 5:
         # Read file in using dask
-        ddf_inter = dd.read_csv(args.intersect, sep='\t', header=None, names=['chrom','start','end','key','count'],
-            dtype={'chrom':str,'start':np.int64,'end':np.int64,'key':str, 'file_num':np.int32, 'count':np.int32})
+        ddf_inter = dd.read_csv(
+            args.intersect,
+            sep="\t",
+            header=None,
+            names=["chrom", "start", "end", "key", "count"],
+            dtype={
+                "chrom": str,
+                "start": np.int64,
+                "end": np.int64,
+                "key": str,
+                "file_num": np.int32,
+                "count": np.int32,
+            },
+        )
         numfiles = 1
     else:
-        print('Invalid file format detected')
+        print("Invalid file format detected")
         exit(1)
 
-    print('Number of files: ' + str(numfiles))
+    print("Number of files: " + str(numfiles))
 
     # Find total number of peaks
     ddf_inter_grouped = ddf_inter.groupby(by=["key"]).size()
     df_inter_grouped = ddf_inter_grouped.compute()
     total_peaks = len(df_inter_grouped.index)
-    print('Total peaks: ' + str(total_peaks))
+    print("Total peaks: " + str(total_peaks))
 
     if total_peaks > 0:
         # Filter for files which had an overlap and group by peak
@@ -82,17 +106,17 @@ if numfiles != 0:
         ddf_inter_grouped = ddf_inter_filt.groupby(by=["key"]).size()
         df_inter_grouped = ddf_inter_grouped.compute()
         df_inter_grouped = df_inter_grouped.reset_index()
-        df_inter_grouped = df_inter_grouped.rename({0: 'count'}, axis=1)
+        df_inter_grouped = df_inter_grouped.rename({0: "count"}, axis=1)
 
         # Filter for peaks which have full overlap
         df_inter_grouped_filter = df_inter_grouped[df_inter_grouped["count"] == numfiles]
         overlap_peaks = len(df_inter_grouped_filter.index)
-        print('Overlap peaks: ' + str(overlap_peaks))
+        print("Overlap peaks: " + str(overlap_peaks))
 
-        # Calc peak percentage
+        # Calc peak percentage
         peak_perc = (overlap_peaks / total_peaks) * 100
 else:
-    print('Empty file detected')
+    print("Empty file detected")
 
 # Create string and write to file
 output_string = str(peak_perc)
