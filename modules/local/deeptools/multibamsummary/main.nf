@@ -1,5 +1,5 @@
 process DEEPTOOLS_MULTIBAMSUMMARY {
-    tag "all_target_bams"
+    tag "$meta.id"
     label 'process_high'
 
     conda (params.enable_conda ? 'bioconda::deeptools=3.5.1' : null)
