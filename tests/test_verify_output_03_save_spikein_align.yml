@@ -7,5 +7,5 @@
     - path: results/02_alignment/bowtie2/spikein/igg_ctrl_R1.spikein.sorted.bam
     - path: results/02_alignment/bowtie2/spikein/h3k27me3_R1.spikein.sorted.bam.bai
     - path: results/02_alignment/bowtie2/spikein/igg_ctrl_R1.spikein.sorted.bam.bai
-    - path: results/02_alignment/bowtie2/spikein/h3k27me3_R1.spikein.sorted.bam.flagstat
-    - path: results/02_alignment/bowtie2/spikein/igg_ctrl_R1.spikein.sorted.bam.flagstat
+    - path: results/02_alignment/bowtie2/spikein/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/spikein/igg_ctrl_R1.flagstat
