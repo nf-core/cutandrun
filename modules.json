@@ -72,7 +72,7 @@
                 },
                 "picard/markduplicates": {
                     "branch": "master",
-                    "git_sha": "63db63757cab03cfa7a02c0d0f134b66fbfadea6"
+                    "git_sha": "682f789f93070bd047868300dd018faf3d434e7c"
                 },
                 "preseq/lcextrap": {
                     "branch": "master",
