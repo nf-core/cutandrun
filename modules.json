@@ -80,7 +80,7 @@
                 },
                 "samtools/faidx": {
                     "branch": "master",
-                    "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                    "git_sha": "3eb99152cedbb7280258858e5df08478a4670696"
                 },
                 "samtools/flagstat": {
                     "branch": "master",
