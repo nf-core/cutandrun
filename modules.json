@@ -64,7 +64,7 @@
                 },
                 "gunzip": {
                     "branch": "master",
-                    "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
+                    "git_sha": "fa37e0662690c4ec4260dae282fbce08777503e6"
                 },
                 "macs2/callpeak": {
                     "branch": "master",
