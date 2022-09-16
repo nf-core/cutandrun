@@ -67,7 +67,29 @@ nextflow pull nf-core/cutandrun
 
 There are some options detailed on the parameters page that are prefixed with `save`, `skip` or `only`. These are flow control options that allow for saving additional output to the results directory, skipping unwanted portions of the pipeline or running the pipeline up to a certain point, which can be useful for testing.
 
-### De-duplication
+### Genome Configuration
+
+The easiest way to run the pipeline is by using one of the pre-configured genomes that reflect the available genomes at [iGenomes]([AWS iGenomes](https://ewels.github.io/AWS-iGenomes/)). Assign `genome` to one of the key words for iGenomes and all the available reference data will be automatically fetched. The pipeline uses the following reference data:
+
+- Target genome FASTA
+
+- Target genome Bowtie2 Index
+
+- Target genome GTF
+
+- Target genome BED (will be generated from the GTF if not supplied)
+
+- Target genome Blacklist (blacklist files for major genomes are included in the pipeline)
+
+- Spike-in genome FASTA
+
+- Spike-in genome Bowtie2 Index
+
+If the `genome` parameter is not supplied, the user must provide all the target genome data themselves (except the gene BED file). The spike-in genome defaults to e.coli and usually is not changed.
+
+### Read Filtering and Duplication
+
+After alignment using Bowtie2 reads are filtered for mapped reads that pass a minimum quality threshold. This can be changed using the `minimum_alignment_q_score` parameter.
 
 CUT&RUN and CUT&Tag both integrate adapters into the vicinity of antibody-tethered enzymes, and the exact sites of integration are affected by the accessibility of surrounding DNA. Given these experimental parameters, it is expected that there are many fragments which share common starting and end positions; thus, such duplicates are generally valid but would be filtered out by de-duplication tools. However, there will be a fraction of fragments that are present due to PCR duplication that cannot be separated.
 
@@ -75,9 +97,9 @@ Control samples such as those from IgG datasets have relatively high duplication
 
 The default for the pipeline therefore is to only run de-duplication on control samples. If it is suspected that there is a heavy fraction of PCR duplicates present in the primary samples then the parameter `dedup_target_reads` can be set using
 
-`--dedup_target_reads true`
+`--dedup_target_reads`
 
-### Peak Normalisation
+### Read Normalisation
 
 The default mode in the pipeline is to normalise stacked reads before peak calling for epitope abundance using spike-in normalisation.
 
@@ -223,9 +245,9 @@ The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementatio
 2. Find the latest version of the Biocontainer available on [Quay.io](https://quay.io/repository/biocontainers/pangolin?tag=latest&tab=tags)
 
 3. Create the custom config accordingly:
-
+   
    - For Docker:
-
+     
      ```nextflow
      process {
          withName: PANGOLIN {
@@ -233,9 +255,9 @@ The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementatio
          }
      }
      ```
-
+   
    - For Singularity:
-
+     
      ```nextflow
      process {
          withName: PANGOLIN {
@@ -243,9 +265,9 @@ The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementatio
          }
      }
      ```
-
+   
    - For Conda:
-
+     
      ```nextflow
      process {
          withName: PANGOLIN {

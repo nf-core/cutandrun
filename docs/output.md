@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document describes the output produced by the pipeline. Example plots are taken from the pdf report which details summary details and analyses specific to CUT&Run/CUT&Tag data, and the MultiQC report, which summarises results from some tools used, at the end of the pipeline.
+This document describes the output produced by the pipeline. We try to show both good and bad outputs for each section of the output reporting. This document can be used as a general guide for CUT&RUN analysis. Unless specified all outputs shown are from the MultiQC report generated at the end of the pipeline run.
 
 The directories listed below will be created in the results directory after the pipeline has finished. All paths are relative to the top-level results directory.
 
@@ -46,6 +46,8 @@ The first step of the pipeline is to verify the samplesheet structure and experi
 
 ### Fastq merging
 
+If multiple libraries/runs have been provided for the same sample in the input samplesheet (e.g. to increase sequencing depth) then these will be merged at the very beginning of the pipeline in order to have consistent sample naming throughout the pipeline. Please refer to the [usage documentation](https://nf-co.re/rnaseq/usage#samplesheet-input) to see how to specify these samples in the input samplesheet.
+
 <details markdown="1">
 <summary>Output files</summary>
 
@@ -53,8 +55,6 @@ The first step of the pipeline is to verify the samplesheet structure and experi
   - `*.merged.fastq.gz`: If `--save_merged_fastq` is specified, concatenated FastQ files will be placed in this directory.
 
 </details>
-
-If multiple libraries/runs have been provided for the same sample in the input samplesheet (e.g. to increase sequencing depth) then these will be merged at the very beginning of the pipeline in order to have consistent sample naming throughout the pipeline. Please refer to the [usage documentation](https://nf-co.re/rnaseq/usage#samplesheet-input) to see how to specify these samples in the input samplesheet.
 
 ### FastQC
 
@@ -71,9 +71,71 @@ If multiple libraries/runs have been provided for the same sample in the input s
 
 [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/) gives general quality metrics about your sequenced reads. It provides information about the quality score distribution across your reads, per base sequence content (%A/T/G/C), adapter contamination and overrepresented sequences. For further reading and documentation see the [FastQC help pages](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/).
 
-![MultiQC - FastQC sequence counts plot](images/mqc_fastqc_counts.png)
+We perform FastQC on reads before and after trimming. The descriptions below apply to both reporting unless explicitly mentioned.
 
-![MultiQC - FastQC mean quality scores plot](images/mqc_fastqc_quality.png)
+### Sequence Counts
+
+This first FastQC report provides a first look at how many reads your FASTQ files contain. Predicted duplicates are also shown in black however, we recommend using the PICARD duplicate reports as they are more detailed and accurate.
+
+As a general rule of thumb for an abundant epitope like H3K27Me3, we recommend no fewer than 5M aligned reads, the sequence counts must reflect this number plus any unaligned error reads. Assuming a max alignment error rate of 20%, we recommend a minimum read count of 6M raw reads. Less abundant epitopes may require deeper sequencing for a good signal.
+
+Other things to look out for in this plot is the consistency of reads across your various groups and replicates. Large differences in the number of reads within biological replicates may be indicative of human error, problems with the wet-lab protocol or with the sequencing process.
+
+![MultiQC - FastQC sequence counts plot](images/output/mqc_01_fastqc_sequence_counts.png)
+
+#### Sequence Quality
+
+FastqQC provides several reports that look at sequence quality from different views. The mean quality scores plot shows the sequence quality along the length of the read. It is normal to see some drop off in quality towards the end of the read, especially with long-read sequencing (150 bp). The plot should be green and with modern sequencing on good quality samples, should be > 30 throughout the majority of the read. There are many factors that affect the read quality but users can expect drops in average score as they move towards primary tissue or other tissue types that are difficult to extra good quality CUT&RUN data from.
+
+![mqc_02_fastqc_per_base_sequence_quality](images/output/mqc_02_fastqc_per_base_sequence_quality.png)
+
+The Per-sequence quality score report shows a different view of sequencing quality, showing the distribution of scores for each sample. This chart will peak where the majority of the reads are scored. In modern Illumina sequencing this should be curve at the end of the chart in an area > 30.
+
+![f](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_03_fastqc_per_sequence_quality_scores.png)
+
+The Per-base sequence quality report is not applicable to CUT&RUN data generally. Any discordant sequence content at the beginning of the reads are common phenomenon for CUT&RUN reads. Failing to pass the Per base sequence content does not mean your data failed. It can be due to Tn5 preferential binding or what you might be detecting is the 10-bp periodicity that shows up as a sawtooth pattern in the length distribution. If so, this is normal and will not affect alignment or peak calling.
+
+The Per-sequence GC content report shows the distribution of the GC content of all reads in a sample. This should be centred around the average GC content % for your target organism.
+
+![mqc_04_fastqc_per_sequence_gc_content](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_04_fastqc_per_sequence_gc_content.png)
+
+An unusually shaped distribution such as one with dual peaks could indicate a contaminated library or some other kind of biased subset. In the image below, we see a signifiant batch effect between two groups of samples run on different days. The samples in red most likely are contaminated with DNA that has a different GC content to that of the target organism.
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_05_fastqc_per_sequence_gc_content.png)
+
+#### Overrepresented sequences
+
+FastQC provides three reports that focus on overrepresented sequences at the read level. All three must be looked at both before and after trimming to gain a detailed view of the types of sequence duplication that your samples contain.
+
+A normal high-throughput library will contain a diverse set of sequences, with no individual sequence making up a tiny fraction of the whole. Finding that a single sequence is very overrepresented in the set either means that it is highly biologically significant, or indicates that the library is contaminated, or not as diverse as you expected.
+
+The sequence duplication level plot shows percentages of the library that has a particular range of duplication counts. For example, the plot below shows that for some samples ~10% of the library has > 100 duplicated sequences. While not particularly informative on its own, if problems are identified in subsequent reports, it can help to identify the scale of the duplication problem.
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_06_fastqc_sequence_duplication_levels.png)
+
+The second two reports must be read together both before and after trimming for maximum insight. The first report, overrepresented sequences shows the % of identified sequences in each library; the second, adapter content, shows a cumulative plot of adapter content at each base position. Due to the short insert length for CUT&RUN, 25 bp sequencing is possible for samples. When the sequencing length increases, more of the sequencing adapters will be sequenced. These sequences should be trimmed off therefore it is important to look at both of these plots after trimming to check that the adapter content has been removed and there are only small levels of overrepresented sequences. A clear adapter content plot after trimming but where there are still significant levels of overrepresented sequences could indicate something biologically significant or experimental error such as contamination.
+
+**A 25 b.p CUT&Tag experiment with clear reports even before trimming**
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_07_fastqc_clear_overrep.png)
+
+**A 150 b.p. CUT&RUN experiment with significant adapter content before trimming but that is clear after trimming**
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_08_fastqc_adapter_content.png)
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_10_fastqc_overrepresented_sequences.png)
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_07_fastqc_clear_overrep.png)
+
+**CUT&RUN experiment that shows over represented sequences even after trimming all the adapter content away**
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_11_fastqc_overrepresented_sequences.png)
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_12_fastqc_adapter_content.png) 
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_13_fastqc_overrepresented_sequences.png)
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_09_fastqc_clear_adapter.png)
 
 ### TrimGalore
 
@@ -93,7 +155,9 @@ If multiple libraries/runs have been provided for the same sample in the input s
 
 > **NB:** TrimGalore! will only run using multiple cores if you are able to use more than > 5 and > 6 CPUs for single- and paired-end data, respectively. The total cores available to TrimGalore! will also be capped at 4 (7 and 8 CPUs in total for single- and paired-end data, respectively) because there is no longer a run-time benefit. See [release notes](https://github.com/FelixKrueger/TrimGalore/blob/master/Changelog.md#version-060-release-on-1-mar-2019) and [discussion whilst adding this logic to the nf-core/atacseq pipeline](https://github.com/nf-core/atacseq/pull/65).
 
-![MultiQC - cutadapt trimmed sequence length plot](images/mqc_cutadapt_trimmed.png)
+**Typical plot showing many small sequences being trimmed from reads**
+
+![MultiQC - cutadapt trimmed sequence length plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_14_fastqc_cutadapt_trimmed.png)
 
 ## Alignment
 
@@ -106,15 +170,41 @@ If multiple libraries/runs have been provided for the same sample in the input s
 
 </details>
 
-Adapter-trimmed reads are mapped to the target and spike-in genomes using [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml). A genome index is required to run Bowtie2 which is created automatically from the genome fasta input.
-
-The pipeline will output the `.bam` files with index and samtools stats for only the final set by default. For example, the full pipeline will only output picard duplicates processed files as this is the final step before peak calling. If the pipeline is run with `--only_align`, then the `bam` files from the initial sorting and indexing will be copied to the output directory as the other steps are not run.
+Adapter-trimmed reads are mapped to the target and spike-in genomes using [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml). The pipeline will output the `.bam` files with index and samtools stats for only the final set by default. For example, the full pipeline will only output picard duplicates processed files as this is the final step before peak calling. If the pipeline is run with `--only_align`, then the `bam` files from the initial sorting and indexing will be copied to the output directory as the other steps are not run.
 
 If `--save_align_intermed` is specified then all the `bam` files from all stages will be copied over to the output directory.
 
 If `--save_spikein_aligned` is specified then the spike-in alignment files will also be published.
 
-![MultiQC - Bowtie2 paired-end mapping stats](images/mqc_bowtie2_pe.png)
+MultiQC shows several alignment-based reports however, the most important is the alignment score plot. A typical plot for a well-defined genome will look like the image below with high alignment scores and low levels of multi-mapped and unaligned sequences. Low levels of alignment can be due to a multitude of different factors but is generally a strong sign that the input library was of a poor quality. That being said, if the total number of aligned reads is still above the required level for the target epitope abundance then it doesnt not mean the sample has failed as there still may be enough information to answer the biological question asked.
+
+![MultiQC - Bowtie2 paired-end mapping stats](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_15_bowtie2_pe.png)
+
+The MultiQC report also includes a spike-in alignment report. This plot is important for deciding whether to normalise your samples using the spike-in genome or by another method.  The default mode in the pipeline is to normalise stacked reads before peak calling for epitope abundance using spike-in normalisation.
+
+Traditionally, E. coli DNA is carried along with bacterially-produced enzymes that are used in CUT&RUN and CUT&Tag experiments and gets tagmented non-specifically during the reaction. The fraction of total reads that map to the E.coli genome depends on the yield of epitope-targeted CUT&Tag, and so depends on the number of cells used and the abundance of that epitope in chromatin. Since a constant amount of protein is added to the reactions and brings along a fixed amount of E. coli DNA, E. coli reads can be used to normalize epitope abundance in a set of experiments.
+
+Since the introduction of these techniques there are several factors that have reduced the usefulness of this type of normalisation in certain experimental conditions. Firstly, many commercially available kits now have very low levels of E.coli DNA in them, which therefore requires users to spike-in their own DNA for normalisation which is not always done. Secondly the normalisation approach is dependant on the cell count between samples being constant, which in our experience is quite difficult to achieve especially in tissue samples.
+
+The image below shows a typical plot for samples that have the correct amount of spike-in DNA for normalisation. The target samples have usually < 1% spike-in alignment (but still with > 1000 reads to reach above noise thresholds) while IgG should have the most as it has a large abundance (2-5%). In this example, the IgG will be brought inline with the other epitopes enabling proper peak calling using the IgG as a background. 
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_16_spikein_bowtie2_pe_plot.png)
+
+If you see very low spike-in levels for all samples, it is likely your Tn5 had no residual e.coli DNA and that no additional spike-in DNA was added. In this case spike-in normalisation cannot be used and normalisation must be switched to read count no normalisation at all. 
+
+If you see a strange distribution of spike-in DNA alignment that does not fit with your knowledge of the relative abundance of your IgG and target epitopes, this is indicative of a problem with the spike-in process and again, another normalisation option should be chosen.
+
+In the plot below, it may initially look as though the spike-in distribution is too varied to be useful however, the larger IgG spike-in alignments correspond to the target samples with more sequencing depth and more spike-in alignments. The alignment counts are also include with epitope abundance therefore, these samples are actually good candidates for spike-in normalisation. 
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_17_bowtie2_pe_plot.png)
+
+### Library Complexity
+
+To estimate library complexity and identify potentially over-sequenced libraries (or libraries with a low information content) we run preseq. [Library Complexity](http://smithlabresearch.org/software/preseq/) estimates the complexity of a library, showing how many additional unique reads are sequenced for increasing total read count. A shallow curve indicates complexity saturation. The dashed line shows a perfectly complex library where total reads = unique reads.
+
+The plot below shows a group of samples where the majority of unique molecules are accounted for by 50M. The total molecules detected stretches beyond 250M indicating the library is over sequenced and that an identical future experiment could be sequenced to a lower depth without loosing information.
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_18_preseq_plot.png)
 
 ## Alignment post-processing
 
@@ -131,9 +221,9 @@ If `--save_spikein_aligned` is specified then the spike-in alignment files will 
 
 </details>
 
-BAM files are filtered for a minimum quality score of 0 using [SAMtools](http://samtools.sourceforge.net/).
+BAM files are filtered for a minimum quality score using [SAMtools](http://samtools.sourceforge.net/).
 
-### picard MarkDuplicates/RemoveDuplicates
+### PICARD MarkDuplicates/RemoveDuplicates
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -150,7 +240,13 @@ By default, the pipeline uses [picard MarkDuplicates](https://broadinstitute.git
 
 If your data includes IgG controls, these will additionally be de-duplicated. It is not the normal protocol to de-duplicate the target reads, however, if this is required, use the `--dedup_target_reads true` switch.
 
-![MultiQC - Picard MarkDuplicates metrics plot](images/mqc_picard_markduplicates.png)
+The plot below shows a typical CUT&Tag experiment that has its PCR cycles optimised. We see a low level of non-optical duplication (from library amplification) in the target samples but more in the IgG samples as the reads in these samples derive from non-specific tagmentation in the CUT&Tag reactions.
+
+![MultiQC - Picard MarkDuplicates metrics plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_19_picard_markduplicates.png)
+
+High levels of duplication are not necessarily  a problem as long as they are consistent across biological replicates or other comparable groups. Given that the target samples are not de-duplicated by default, if the balance of duplicate reads is off when comparing two samples, it may lead to inaccurate peak calling and subsequent spurious signals. High levels of non-optical duplication are indicative of over-amplified samples.
+
+## Fragment-based QC
 
 ## Peak Calling
 
