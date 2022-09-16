@@ -25,11 +25,6 @@
                     "branch": "master",
                     "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
                 },
-                "bedtools/sort": {
-                    "branch": "master",
-                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d",
-                    "patch": "modules/nf-core/modules/bedtools/sort/bedtools-sort.diff"
-                },
                 "bowtie2/align": {
                     "branch": "master",
                     "git_sha": "848ee9a215d02d80be033bfa60881700f2bd914c"
@@ -74,10 +69,6 @@
                     "branch": "master",
                     "git_sha": "682f789f93070bd047868300dd018faf3d434e7c"
                 },
-                "preseq/lcextrap": {
-                    "branch": "master",
-                    "git_sha": "7111e571cc5b6069de4673cd6165af680f17b4d7"
-                },
                 "samtools/faidx": {
                     "branch": "master",
                     "git_sha": "3eb99152cedbb7280258858e5df08478a4670696"
@@ -101,11 +92,6 @@
                 "samtools/stats": {
                     "branch": "master",
                     "git_sha": "f4eab7945952dc4934224309701a49913ea05ae6"
-                },
-                "samtools/view": {
-                    "branch": "master",
-                    "git_sha": "5e7b1ef9a5a2d9258635bcbf70fcf37dacd1b247",
-                    "patch": "modules/nf-core/modules/samtools/view/samtools-view.diff"
                 },
                 "seacr/callpeak": {
                     "branch": "master",

@@ -15,10 +15,10 @@ include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN               } from '../../mod
 include { TABIX_BGZIPTABIX                                     } from '../../modules/nf-core/modules/tabix/bgziptabix/main'
 include { GTF2BED                                              } from '../../modules/local/gtf2bed'
 include { SAMTOOLS_FAIDX                                       } from '../../modules/nf-core/modules/samtools/faidx/main'
-include { BEDTOOLS_SORT as ANNOTATION_BEDTOOLS_SORT            } from "../../modules/nf-core/modules/bedtools/sort/main"
+include { BEDTOOLS_SORT as ANNOTATION_BEDTOOLS_SORT            } from "../../modules/local/for_patch/bedtools/sort/main"
 include { AWK as BLACKLIST_AWK                                 } from "../../modules/local/linux/awk"
 include { BEDTOOLS_INTERSECT as BLACKLIST_BEDTOOLS_INTERSECT   } from "../../modules/nf-core/modules/bedtools/intersect/main"
-include { BEDTOOLS_SORT as BLACKLIST_BEDTOOLS_SORT             } from "../../modules/nf-core/modules/bedtools/sort/main"
+include { BEDTOOLS_SORT as BLACKLIST_BEDTOOLS_SORT             } from "../../modules/local/for_patch/bedtools/sort/main"
 include { BEDTOOLS_COMPLEMENT as BLACKLIST_BEDTOOLS_COMPLEMENT } from "../../modules/nf-core/modules/bedtools/complement/main"
 
 workflow PREPARE_GENOME {

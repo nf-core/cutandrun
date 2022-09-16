@@ -122,7 +122,7 @@ include { PEAK_QC                                          } from "../subworkflo
  * MODULES
  */
 include { CAT_FASTQ                                                } from "../modules/nf-core/modules/cat/fastq/main"
-include { PRESEQ_LCEXTRAP                                          } from "../modules/nf-core/modules/preseq/lcextrap/main"
+include { PRESEQ_LCEXTRAP                                          } from "../modules/local/for_patch/preseq/lcextrap/main"
 include { SEACR_CALLPEAK                                           } from "../modules/nf-core/modules/seacr/callpeak/main"
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/modules/seacr/callpeak/main"
 include { MACS2_CALLPEAK                                           } from "../modules/nf-core/modules/macs2/callpeak/main"

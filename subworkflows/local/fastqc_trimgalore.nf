@@ -3,7 +3,7 @@
  */
 
 include { FASTQC     } from '../../modules/nf-core/modules/fastqc/main'
-include { TRIMGALORE } from '../../modules/local/trimgalore/main'
+include { TRIMGALORE } from '../../modules/local/for_patch/trimgalore/main'
 
 workflow FASTQC_TRIMGALORE {
     take:

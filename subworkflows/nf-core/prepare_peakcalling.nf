@@ -4,7 +4,7 @@
 
 include { BEDTOOLS_GENOMECOV    } from "../../modules/nf-core/modules/bedtools/genomecov/main"
 include { DEEPTOOLS_BAMCOVERAGE } from "../../modules/local/deeptools/bamcoverage/main"
-include { BEDTOOLS_SORT         } from "../../modules/nf-core/modules/bedtools/sort/main"
+include { BEDTOOLS_SORT         } from "../../modules/local/for_patch/bedtools/sort/main"
 include { UCSC_BEDCLIP          } from "../../modules/nf-core/modules/ucsc/bedclip/main"
 include { UCSC_BEDGRAPHTOBIGWIG } from "../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main"
 
