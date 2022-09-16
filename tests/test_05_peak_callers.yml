@@ -37,7 +37,7 @@
     - test_peak_callers_macs2_seacr
   files:
     - path: results/03_peak_calling/04_called_peaks/seacr/h3k27me3_R1.seacr.peaks.stringent.bed
-    - path: results/03_peak_calling/04_called_peaks/macs2/h3k27me3_R1_macs2_peaks.narrowPeak
+    - path: results/03_peak_calling/04_called_peaks/macs2/h3k27me3_R1.macs2_peaks.narrowPeak
 
 - name: test_peak_callers_seacr_macs2_noigg
   command: nextflow run main.nf -profile docker,test_no_control --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_multiqc --skip_preseq --peakcaller seacr,macs2 -c tests/config/nextflow.config
@@ -46,7 +46,7 @@
     - test_peak_callers_seacr_macs2_noigg
   files:
     - path: results/03_peak_calling/04_called_peaks/seacr/h3k27me3_R1.seacr.peaks.stringent.bed
-    - path: results/03_peak_calling/04_called_peaks/macs2/h3k27me3_R1_macs2_peaks.narrowPeak
+    - path: results/03_peak_calling/04_called_peaks/macs2/h3k27me3_R1.macs2_peaks.narrowPeak
 
 - name: test_peak_callers_seacr_single_ctrl_multi_rep
   command: nextflow run main.nf -profile docker,test --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_multiqc --skip_preseq --peakcaller seacr --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/test-GSE145187-all-multi-rep-single-ctrl.csv -c tests/config/nextflow.config
