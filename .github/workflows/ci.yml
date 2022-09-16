@@ -18,12 +18,12 @@ jobs:
     if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}"
     runs-on: ubuntu-latest
     env:
+      NXF_VER: ${{ matrix.NXF_VER }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       matrix:
-        # Nextflow versions: check pipeline minimum and current latest
-        nextflow_version: ["21.10.3", "latest-stable"]
+        NXF_VER: ["21.10.3", "latest-stable"]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -31,7 +31,7 @@ jobs:
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v1
         with:
-          version: "${{ matrix.nextflow_version }}"
+          version: "${{ matrix.NXF_VER }}"
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
       # files during pipeline execution
@@ -59,12 +59,13 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
+      NXF_VER: ${{ matrix.nxf_ver }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        nextflow_version: ["21.10.3", "latest-stable"]
+        NXF_VER: ["21.10.3", "latest-stable"]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -72,7 +73,7 @@ jobs:
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v1
         with:
-          version: "${{ matrix.nextflow_version }}"
+          version: "${{ matrix.NXF_VER }}"
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
       # files during pipeline execution
@@ -132,16 +133,17 @@ jobs:
   ###      UNIT TESTS        ###
   ##############################
   unit_tests:
-    name: ${{ matrix.nxf_version }} ${{ matrix.tags }}
+    name: ${{ matrix.NXF_VER }} ${{ matrix.tags }}
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-20.04
     env:
+      NXF_VER: ${{ matrix.NXF_VER }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       fail-fast: false
       matrix:
-        nextflow_version: ["21.10.3", "latest-stable"]
+        NXF_VER: ["21.10.3", "latest-stable"]
         tags:
           - test_genome_options
           - test_samplesheet
@@ -216,14 +218,14 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /usr/local/bin/nextflow
-          key: ${{ runner.os }}-nextflow-${{ matrix.nextflow_version }}
+          key: ${{ runner.os }}-nextflow-${{ matrix.NXF_VER }}
           restore-keys: |
             ${{ runner.os }}-nextflow-
 
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v1
         with:
-          version: "${{ matrix.nextflow_version }}"
+          version: "${{ matrix.NXF_VER }}"
 
       - name: Run pytest-workflow
         uses: Wandalen/wretry.action@v1.0.11
