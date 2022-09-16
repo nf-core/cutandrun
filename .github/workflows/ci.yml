@@ -18,20 +18,20 @@ jobs:
     if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}"
     runs-on: ubuntu-latest
     env:
-      NXF_VER: "21.10.3"
+      NXF_VER: ${{ matrix.NXF_VER }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       matrix:
-        NXF_VER: ["21.10.3", "latest-stable"]
+        NXF_VER: ["21.10.3", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
 
       - name: Install Nextflow
-        uses: nf-core/setup-nextflow@v1
-        with:
-          version: "${{ matrix.NXF_VER }}"
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
       # files during pipeline execution
@@ -65,15 +65,15 @@ jobs:
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        NXF_VER: ["21.10.3", "latest-stable"]
+        NXF_VER: ["21.10.3", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
 
       - name: Install Nextflow
-        uses: nf-core/setup-nextflow@v1
-        with:
-          version: "${{ matrix.NXF_VER }}"
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
       # files during pipeline execution
@@ -143,7 +143,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NXF_VER: ["21.10.3", "latest-stable"]
+        NXF_VER: ["21.10.3", ""]
         tags:
           - test_genome_options
           - test_samplesheet
@@ -218,14 +218,14 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /usr/local/bin/nextflow
-          key: ${{ runner.os }}-nextflow-${{ matrix.NXF_VER }}
+          key: ${{ runner.os }}-nextflow-${{ matrix.nxf_version }}
           restore-keys: |
             ${{ runner.os }}-nextflow-
 
       - name: Install Nextflow
-        uses: nf-core/setup-nextflow@v1
-        with:
-          version: "${{ matrix.NXF_VER }}"
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
 
       - name: Run pytest-workflow
         uses: Wandalen/wretry.action@v1.0.11
