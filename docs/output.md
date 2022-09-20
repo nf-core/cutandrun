@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document describes the output produced by the pipeline. We try to show both good and bad outputs for each section of the output reporting. This document can be used as a general guide for CUT&RUN analysis. Unless specified all outputs shown are from the MultiQC report generated at the end of the pipeline run.
+This document describes the output produced by the pipeline. This document can be used as a general guide for CUT&RUN analysis. Unless specified all outputs shown are from the MultiQC report generated at the end of the pipeline run.
 
 The directories listed below will be created in the results directory after the pipeline has finished. All paths are relative to the top-level results directory.
 
@@ -40,13 +40,13 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 
 ## Preprocessing
 
-### Samplesheet check
+### Sample Sheet Check
 
-The first step of the pipeline is to verify the samplesheet structure and experimental design to ensure that it is valid.
+The first step of the pipeline is to verify the sample sheet structure and experimental design to ensure that it is valid.
 
-### Fastq merging
+### FASTQ Merging
 
-If multiple libraries/runs have been provided for the same sample in the input samplesheet (e.g. to increase sequencing depth) then these will be merged at the very beginning of the pipeline in order to have consistent sample naming throughout the pipeline. Please refer to the [usage documentation](https://nf-co.re/rnaseq/usage#samplesheet-input) to see how to specify these samples in the input samplesheet.
+If multiple libraries/runs have been provided for the same sample in the input sample sheet (e.g. to increase sequencing depth), then these will be merged at the very beginning of the pipeline. Please refer to the [usage documentation](https://nf-co.re/rnaseq/usage#samplesheet-input) to see how to specify this type of sample in the input sample sheet.
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -85,7 +85,7 @@ Other things to look out for in this plot is the consistency of reads across you
 
 #### Sequence Quality
 
-FastqQC provides several reports that look at sequence quality from different views. The mean quality scores plot shows the sequence quality along the length of the read. It is normal to see some drop off in quality towards the end of the read, especially with long-read sequencing (150 bp). The plot should be green and with modern sequencing on good quality samples, should be > 30 throughout the majority of the read. There are many factors that affect the read quality but users can expect drops in average score as they move towards primary tissue or other tissue types that are difficult to extra good quality CUT&RUN data from.
+FastQC provides several reports that look at sequence quality from different views. The mean quality scores plot shows the sequence quality along the length of the read. It is normal to see some drop off in quality towards the end of the read, especially with long-read sequencing (150 b.p.). The plot should be green and with modern sequencing on good quality samples, should be > 30 throughout the majority of the read. There are many factors that affect the read quality but users can expect drops in average score as they move towards primary tissue or other tissue types that are difficult to sequence.
 
 ![mqc_02_fastqc_per_base_sequence_quality](images/output/mqc_02_fastqc_per_base_sequence_quality.png)
 
@@ -103,17 +103,17 @@ An unusually shaped distribution such as one with dual peaks could indicate a co
 
 ![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_05_fastqc_per_sequence_gc_content.png)
 
-#### Overrepresented sequences
+#### Overrepresented Sequences
 
 FastQC provides three reports that focus on overrepresented sequences at the read level. All three must be looked at both before and after trimming to gain a detailed view of the types of sequence duplication that your samples contain.
 
-A normal high-throughput library will contain a diverse set of sequences, with no individual sequence making up a tiny fraction of the whole. Finding that a single sequence is very overrepresented in the set either means that it is highly biologically significant, or indicates that the library is contaminated, or not as diverse as you expected.
+A normal high-throughput library will contain a diverse set of sequences with no individual sequence making up a large fraction of the whole. Finding that a single sequence is overrepresented in the set either means that it is biologically significant, or indicates that the library is contaminated, or not as diverse as you expected.
 
 The sequence duplication level plot shows percentages of the library that has a particular range of duplication counts. For example, the plot below shows that for some samples ~10% of the library has > 100 duplicated sequences. While not particularly informative on its own, if problems are identified in subsequent reports, it can help to identify the scale of the duplication problem.
 
 ![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_06_fastqc_sequence_duplication_levels.png)
 
-The second two reports must be read together both before and after trimming for maximum insight. The first report, overrepresented sequences shows the % of identified sequences in each library; the second, adapter content, shows a cumulative plot of adapter content at each base position. Due to the short insert length for CUT&RUN, 25 bp sequencing is possible for samples. When the sequencing length increases, more of the sequencing adapters will be sequenced. These sequences should be trimmed off therefore it is important to look at both of these plots after trimming to check that the adapter content has been removed and there are only small levels of overrepresented sequences. A clear adapter content plot after trimming but where there are still significant levels of overrepresented sequences could indicate something biologically significant or experimental error such as contamination.
+The second two reports must be read together both before and after trimming for maximum insight. The first report, overrepresented sequences, shows the % of identified sequences in each library; the second, adapter content, shows a cumulative plot of adapter content at each base position. Due to the short insert length for CUT&RUN, 25 b.p. read length sequencing is possible for samples. When the sequencing length increases, more of the sequencing adapters will be sequenced. These sequences should be trimmed off, therefore, it is important to look at both of these plots after trimming to check that the adapter content has been removed and there are only small levels of overrepresented sequences. A clear adapter content plot after trimming but where there are still significant levels of overrepresented sequences could indicate something biologically significant or experimental error such as contamination.
 
 **A 25 b.p CUT&Tag experiment with clear reports even before trimming**
 
@@ -248,6 +248,34 @@ High levels of duplication are not necessarily  a problem as long as they are co
 
 ## Fragment-based QC
 
+This section of the pipeline deals with proper quality control at the aligned fragment level. The read fragments are counted by binning them into regions genome-wide. the default is 500 b.p. but this can be changed using `dt_qc_bam_binsize`. All of the plots shown below are calculated from this initial binned data-set.
+
+### PCA
+
+Descriptions taken from the deepTools [manual]([plotFingerprint — deepTools 3.5.0 documentation](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html))
+
+Principal component analysis (PCA) can be used, for example, to determine whether samples display greater variability between experimental conditions than between replicates of the same treatment. PCA is also useful to identify unexpected patterns, such as those caused by batch effects or outliers. Principal components represent the directions along which the variation in the data is maximal, so that the information from thousands of regions can be represented by just a few dimensions.
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/deeptools_pca_plot.png)
+
+### Fingerprint
+
+Descriptions taken from the deepTools [manual](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html)
+
+This tool is based on a method developed by [Diaz et al.](http://www.ncbi.nlm.nih.gov/pubmed/22499706). It determines how well the signal in the CUT&RUN/Tag sample can be differentiated from the background distribution of reads in the control sample. For factors that will enrich well-defined, rather narrow regions (e.g. transcription factors such as p300), the resulting plot can be used to assess the strength of a CUT&RUN experiment, but the broader the enrichments are to be expected, the less clear the plot will be. Vice versa, if you do not know what kind of signal to expect, the fingerprint plot will give you a straight-forward indication of how careful you will have to be during your downstream analyses to separate biological noise from meaningful signal.
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/deeptools_fingerprint_plot.png)
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/deeptools_fingerprint_explan.png)
+
+### Correlation
+
+Descriptions taken from the deepTools [manual](https://deeptools.readthedocs.io/en/develop/content/tools/plotCorrelation.html)
+
+Computes the overall similarity between two or more samples based on read coverage within genomic regions The result of the correlation computation is a table of correlation coefficients that indicates how “strong” the relationship between two samples is and it will consist of numbers between -1 and 1. (-1 indicates perfect anti-correlation, 1 perfect correlation.)
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/deeptools_correlation_plot.png)
+
 ## Peak Calling
 
 ### Bam to bedgraph
@@ -261,8 +289,6 @@ High levels of duplication are not necessarily  a problem as long as they are co
 </details>
 
 Converts bam files to the bedgraph format.
-
-### Clip bedfiles
 
 ### Bed to bigwig
 
@@ -282,97 +308,82 @@ The [bigWig](https://genome.ucsc.edu/goldenpath/help/bigWig.html) format is an i
 <summary>Output files</summary>
 
 - `03_peak_calling/04_called_peaks/`
-  - `.peaks*.bed`: BED file containing peak coordinates and peak signal.
+  - BED file containing peak coordinates and peak signal.
 
 </details>
 
-[SEACR](https://github.com/FredHutch/SEACR) is a peak caller for data with low background-noise, so is well suited to CUT&Run/CUT&Tag data. SEACR can take in IgG control bedGraph files in order to avoid calling peaks in regions of the experimental data for which the IgG control is enriched. If `--igg_control false` is specified, SEACR calls enriched regions in target data by selecting the top 5% of regions by AUC by default. This threshold can be overwritten using `--peak_threshold`.
+[SEACR](https://github.com/FredHutch/SEACR) is a peak caller for data with low background-noise, so is well suited to CUT&Run/CUT&Tag data. SEACR can take in IgG control bedGraph files in order to avoid calling peaks in regions of the experimental data for which the IgG control is enriched. If `--use_control false` is specified, SEACR calls enriched regions in target data by selecting the top 5% of regions by AUC by default. This threshold can be overwritten using `--seacr_peak_threshold`.
 
-![Python reporting - peaks reproduced](images/py_reproduced_peaks.png)
+### MACS2 peak calling
 
-![Python reporting - aligned fragments within peaks](images/py_frags_in_peaks.png)
+- `03_peak_calling/04_called_peaks/`
+  - BED file containing peak coordinates and peak signal.
 
-### Bedtools
+MACS2 is a peak caller used in many other experiments such as ATAC-seq and ChIP-seq. It can deal with high levels of background noise but is generally less sensitive than SEACR. If you are having trouble calling peaks in SEACR, we recommend switching to this peak caller, especially if your QC is saying that you have a high level of background noise.
 
-<details markdown="1">
-<summary>Output files</summary>
+MACS2 has its main parameters exposed through the pipeline configuration. The default p-values and genome size can be changed using the `--macs2_pvalue` and `--macs2_gsize` parameters. MACS2 has two calling modes: narrow and broad peak. We recommend using broad peak for epitopes with a wide peak range such as histone marks, and narrow peak for small binding proteins such as transcription factors. This mode can be changed using `--macs2_narrow_peak`.
 
-- `seacr/`
-  - `{group}.consensus_peaks.pdf`: schematic showing which consensus peaks are shared across replicates within groups
-  - `all_peaks.consensus_peaks.pdf`: schematic showing which consensus peaks are shared across all samples
-- `seacr/consensus_peaks`
-  - `{group}.consensus.peaks.bed`: BED containing consensus peaks for each group
-  - `all_peaks.consensus.peaks.bed`: BED containing consensus peaks across all samples
+### Consensus Peaks
 
 </details>
 
-The merge function from [BEDtools](https://github.com/arq5x/bedtools2) is used to merge replicate peaks of the same experimental group to create a consensus peak set. This can then optionally be filtered for consensus peaks contributed to be a threshold number of replicates using `--replicate_threshold`. Additionally, the same workflow is run merging across all samples.
+The merge function from [BEDtools](https://github.com/arq5x/bedtools2) is used to merge replicate peaks of the same experimental group to create a consensus peak set. This can then optionally be filtered for consensus peaks contributed to be a threshold number of replicates using `--replicate_threshold`.
 
-![Peak calling - group consensus peak plot](images/consensus_peaks.png)
-![Peak calling - group consensus peak plot](images/all_consensus_peaks.png)
+## Peak-based QC
 
-## Reporting
+Once the peak calling process is complete, we run a separate set of reports that analyse the quality of the results at the peak level.
 
-### Python reporting
+### Peak Counts
 
-<details markdown="1">
-<summary>Output files</summary>
+For both the sample peaks and the consensus peaks, a simple count is taken. At the sample level, it is important to see consistency between peak counts of biological replicates. It is the first indicator of whether you replicates samples agree with each other after all of the processing has completed. If you use the consensus peak peaks and use a replicate threshold of more than 1, it is also important to see how many of your peaks across replicates have translated into consensus peaks.
 
-- `04_reporting/qc/`
-  - `report.pdf`: PDF report of all plots.
-  - `*.png`: individual plots featured in the PDF report.
-  - `*.csv`: corresponding data used to produce the plot.
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_20_primary_peakcounts.png)
 
-</details>
+### Peak Reproducibility
 
-Additional QC and analysis pertaining particularly to CUT&Run and CUT&Tag data are reported in this module. This report was adapted in python from the original CUT&Tag analysis [protocol](https://yezhengstat.github.io/CUTTag_tutorial/) from the [Henikoff Lab](https://research.fredhutch.org/henikoff/en.html).
+The peak reproducibility report intersects all samples within a group using `bedtools intersect` with a minimum overlap controlled by `min_peak_overlap`. This report is useful along with the peak count report for estimating how reliable the peaks called are between your biological replicates.
 
-![Python reporting - fragment length distribution](images/py_frag_hist.png)
+### FRiP Score
 
-### MultiQC
+The fragments in peaks (FRiP) score plot shows the number of aligned fragments that overlap with called peaks with a minimum overlap controlled by `min_frip_overlap`. The FRiP score can be used to assess the overall quality of a sample. Poor samples with a high level of background noise, small numbers of called peaks or other issues will have a large number of fragments falling outside the peaks that were called. Generally FRiP scores > 0.3 are considered to be reasonable with the highest quality data having FRiP scores of > 0.7. 
 
-[MultiQC](http://multiqc.info) is a visualization tool that generates a single HTML report summarizing all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available in the report data directory.
+It is worth noting that the peak caller settings are also crucial to this score, as event he highest quality data will have a low FRiP score if the pipeline is parameterised in a way that calls few peaks, such as setting the peak calling threshold very high.
 
-> **NB:** The FastQC plots displayed in the MultiQC report shows _untrimmed_ reads. They may contain adapter sequence and potentially regions with low quality.
+## Fragment Length Distribution
 
-<details markdown="1">
-<summary>Output files</summary>
+CUT&Tag inserts adapters on either side of chromatin particles in the vicinity of the tethered enzyme, although tagmentation within chromatin particles can also occur. So, CUT&Tag reactions targeting a histone modification predominantly results in fragments that are nucleosomal lengths (~180 bp), or multiples of that length. CUT&Tag targeting transcription factors predominantly produce nucleosome-sized fragments and variable amounts of shorter fragments, from neighbouring nucleosomes and the factor-bound site, respectively. Tagmentation of DNA on the surface of nucleosomes also occurs, and plotting fragment lengths with single-basepair resolution reveal a 10-bp sawtooth periodicity, which is typical of successful CUT&Tag experiments.
 
-- `04_reporting/multiqc/`
-  - `multiqc_report.html`: a standalone HTML file that can be viewed in your web browser.
-  - `multiqc_data/`: directory containing parsed statistics from the different tools used in the pipeline.
-  - `multiqc_plots/`: directory containing static images from the report in various formats.
+Experiments targeting transcription factors may produce different fragment distributions depending on factors beyond the scope of this article.
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_21_fragment_lengths.png)
+
+### Heatmaps
+
+Heatmaps for both genomic features and peaks are generated using deepTools. The parameters for the gene heatmap generation including kilobases to map before and after the gene body can be found with the prefix `dt_heatmap_gene_*`. Sillary, the peak-based heatmap pamaetrs can be found using `dt_heatmap_peak_*`.
+
+**NB:** These reports are generated outside of MultiQC
+
+
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/deeptools_heatmap.png)
+
+### Upset Plots
+
+Upset plots provide a different view on which sets of peaks are overlapping across different samples. Use in conjunction with the other peak-based QC metrics.
+
+**NB:** These reports are generated outside of MultiQC
+
+![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/all_consensus_peaks.png)
 
 </details>
 
 ### IGV
 
-<details markdown="1">
-<summary>Output files</summary>
-
-- `04_reporting/igv/`
-  - `igv_session.xml`: IGV session.
-  - `*.txt`: IGV input file configurations.
-
 </details>
 
-An IGV session file will be created at the end of the pipeline containing the normalised bigWig tracks, per-sample peaks, target genome fasta and annotation GTF. Once installed, open IGV, go to File > Open Session and select the igv_session.xml file for loading.
+An IGV session file will be created at the end of the pipeline containing the normalised bigWig tracks, per-sample peaks, target genome fasta and annotation GTF. Once installed, open IGV, go to File > Open Session and select the `igv_session.xml` file for loading.
 
 > **NB:** If you are not using an in-built genome provided by IGV you will need to load the annotation yourself e.g. in .gtf and/or .bed format.
-
-### Deeptools
-
-<details markdown="1">
-<summary>Output files</summary>
-
-- `04_reporting/heatmaps/<gene/peak>/`
-  - `.plotHeatmap.pdf`: heatmap PDF.
-  - `.computeMatrix.mat.gz`: heatmap matrix.
-  - `*.mat.tab`: matrix and heatmap configs.
-
-</details>
-
-[deeptools](https://github.com/deeptools/deepTools/) sub-tools computeMatrix and plotHeatmap are used to assess the distribution of fragments around genes and peaks.
 
 ## Workflow reporting and genomes
 
