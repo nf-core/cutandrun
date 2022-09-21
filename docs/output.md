@@ -103,17 +103,17 @@ FastQC provides several reports that look at sequence quality from different vie
 
 The Per-sequence quality score report shows a different view of sequencing quality, showing the distribution of scores for each sample. This chart will peak where the majority of the reads are scored. In modern Illumina sequencing this should be curve at the end of the chart in an area > 30.
 
-![f](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_03_fastqc_per_sequence_quality_scores.png)
+![f](images/output/mqc_03_fastqc_per_sequence_quality_scores.png)
 
 The Per-base sequence quality report is not applicable to CUT&RUN data generally. Any discordant sequence content at the beginning of the reads are common phenomenon for CUT&RUN reads. Failing to pass the Per base sequence content does not mean your data failed. It can be due to Tn5 preferential binding or what you might be detecting is the 10-bp periodicity that shows up as a sawtooth pattern in the length distribution. If so, this is normal and will not affect alignment or peak calling.
 
 The Per-sequence GC content report shows the distribution of the GC content of all reads in a sample. This should be centred around the average GC content % for your target organism.
 
-![mqc_04_fastqc_per_sequence_gc_content](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_04_fastqc_per_sequence_gc_content.png)
+![mqc_04_fastqc_per_sequence_gc_content](images/output/mqc_04_fastqc_per_sequence_gc_content.png)
 
 An unusually shaped distribution such as one with dual peaks could indicate a contaminated library or some other kind of biased subset. In the image below, we see a signifiant batch effect between two groups of samples run on different days. The samples in red most likely are contaminated with DNA that has a different GC content to that of the target organism.
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_05_fastqc_per_sequence_gc_content.png)
+![plot](images/output/mqc_05_fastqc_per_sequence_gc_content.png)
 
 #### 2.4.2. <a name='OverrepresentedSequences'></a>Overrepresented Sequences
 
@@ -123,35 +123,35 @@ A normal high-throughput library will contain a diverse set of sequences with no
 
 The sequence duplication level plot shows percentages of the library that has a particular range of duplication counts. For example, the plot below shows that for some samples ~10% of the library has > 100 duplicated sequences. While not particularly informative on its own, if problems are identified in subsequent reports, it can help to identify the scale of the duplication problem.
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_06_fastqc_sequence_duplication_levels.png)
+![plot](images/output/mqc_06_fastqc_sequence_duplication_levels.png)
 
 The second two reports must be analysed together both before and after trimming for maximum insight. The first report, overrepresented sequences, shows the percentage of identified sequences in each library; the second, adapter content, shows a cumulative plot of adapter content at each base position. Due to the short insert length for CUT&RUN, short read length sequencing (25 b.p.) is possible for samples; consequently, when the sequencing length increases, more of the sequencing adapters will be sequenced. Adaptor sequences should always be trimmed off, therefore, it is important to look at both of these plots after trimming as well to check that the adapter content has been removed and there are only small levels of overrepresented sequences. A clear adapter content plot after trimming but where there are still significant levels of overrepresented sequences could indicate something biologically significant or experimental error such as contamination.
 
 **A 25 b.p CUT&Tag experiment with clear reports even before trimming**
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_07_fastqc_clear_overrep.png)
+![plot](images/output/mqc_07_fastqc_clear_overrep.png)
 
 **A 150 b.p. CUT&RUN experiment with significant adapter content before trimming but that is clear after trimming**
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_08_fastqc_adapter_content.png)
+![plot](images/output/mqc_08_fastqc_adapter_content.png)
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_10_fastqc_overrepresented_sequences.png)
+![plot](images/output/mqc_10_fastqc_overrepresented_sequences.png)
 
 **After trimming**
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_07_fastqc_clear_overrep.png)
+![plot](images/output/mqc_07_fastqc_clear_overrep.png)
 
 **CUT&RUN experiment that shows over represented sequences even after trimming all the adapter content away**
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_11_fastqc_overrepresented_sequences.png)
+![plot](images/output/mqc_11_fastqc_overrepresented_sequences.png)
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_12_fastqc_adapter_content.png) 
+![plot](images/output/mqc_12_fastqc_adapter_content.png) 
 
 **After trimming**
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_13_fastqc_overrepresented_sequences.png)
+![plot](images/output/mqc_13_fastqc_overrepresented_sequences.png)
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_09_fastqc_clear_adapter.png)
+![plot](images/output/mqc_09_fastqc_clear_adapter.png)
 
 ### 2.5. <a name='TrimGalore'></a>TrimGalore
 
@@ -173,7 +173,7 @@ The second two reports must be analysed together both before and after trimming 
 
 **Typical plot showing many small sequences being trimmed from reads**
 
-![MultiQC - cutadapt trimmed sequence length plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_14_fastqc_cutadapt_trimmed.png)
+![MultiQC - cutadapt trimmed sequence length plot](images/output/mqc_14_fastqc_cutadapt_trimmed.png)
 
 ## 3. <a name='Alignment'></a>Alignment
 
@@ -194,7 +194,7 @@ If `--save_spikein_aligned` is specified then the spike-in alignment files will 
 
 MultiQC shows several alignment-based reports however, the most important is the alignment score plot. A typical plot for a well-defined genome will look like the image below with high alignment scores and low levels of multi-mapped and unaligned sequences. Low levels of alignment can be due to a multitude of different factors but is generally a strong sign that the input library was of poor quality. That being said, if the total number of aligned reads is still above the required level for the target epitope abundance then it does not mean the sample has failed, as there still may be enough information to answer the biological question asked.
 
-![MultiQC - Bowtie2 paired-end mapping stats](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_15_bowtie2_pe.png)
+![MultiQC - Bowtie2 paired-end mapping stats](images/output/mqc_15_bowtie2_pe.png)
 
 The MultiQC report also includes a spike-in alignment report. This plot is important for deciding whether to normalise your samples using the spike-in genome or by another method.  The default mode in the pipeline is to normalise stacked reads before peak calling for epitope abundance using spike-in normalisation.
 
@@ -204,7 +204,7 @@ Since the introduction of these techniques there are several factors that have r
 
 The image below shows a typical plot for samples that have the correct amount of spike-in DNA for normalisation. The target samples have usually < 1% spike-in alignment (but still with > 1000 reads to reach above noise thresholds) while IgG should have the most as it has a large abundance (2-5%). In this example, the IgG will be brought inline with the other epitopes enabling proper peak calling using the IgG as a background. 
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_16_spikein_bowtie2_pe_plot.png)
+![plot](images/output/mqc_16_spikein_bowtie2_pe_plot.png)
 
 If you see very low spike-in levels for all samples, it is likely your Tn5 had no residual E.coli DNA and that no additional spike-in DNA was added. In this case spike-in normalisation cannot be used and normalisation must be switched to read count or no normalisation at all. 
 
@@ -212,7 +212,7 @@ If you see a strange distribution of spike-in DNA alignment that does not fit wi
 
 In the plot below, it may initially look as though the spike-in distribution is too varied to be useful however, the larger IgG spike-in alignment counts correspond to the target samples with more sequencing depth and more spike-in alignments; therefore, these samples are actually good candidates for spike-in normalisation. 
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_17_bowtie2_pe_plot.png)
+![plot](images/output/mqc_17_bowtie2_pe_plot.png)
 
 ### 3.2. <a name='LibraryComplexity'></a>Library Complexity
 
@@ -220,7 +220,7 @@ To estimate library complexity and identify potentially over-sequenced libraries
 
 The plot below shows a group of samples where the majority of unique molecules are accounted for by 50M. The total molecules detected stretches beyond 250M indicating the library is over sequenced and that an identical future experiment could be sequenced to a lower depth without loosing information.
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_18_preseq_plot.png)
+![plot](images/output/mqc_18_preseq_plot.png)
 
 ## 4. <a name='Alignmentpost-processing'></a>Alignment post-processing
 
@@ -249,7 +249,7 @@ If your data includes IgG controls, these will additionally be de-duplicated. It
 
 The plot below shows a typical CUT&Tag experiment that has its PCR cycles optimised. We see a low level of non-optical duplication (from library amplification) in the target samples but more in the IgG samples as the reads in these samples derive from non-specific tagmentation in the CUT&Tag reactions.
 
-![MultiQC - Picard MarkDuplicates metrics plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_19_picard_markduplicates.png)
+![MultiQC - Picard MarkDuplicates metrics plot](images/output/mqc_19_picard_markduplicates.png)
 
 High levels of duplication are not necessarily a problem as long as they are consistent across biological replicates or other comparable groups. Given that the target samples are not de-duplicated by default, if the balance of duplicate reads is off when comparing two samples, it may lead to inaccurate peak calling and subsequent spurious signals. High levels of non-optical duplication are indicative of over-amplified samples.
 
@@ -263,7 +263,7 @@ Descriptions taken from the deepTools [manual]([plotFingerprint — deepTools 3.
 
 Principal component analysis (PCA) can be used, for example, to determine whether samples display greater variability between experimental conditions than between replicates of the same treatment. PCA is also useful to identify unexpected patterns, such as those caused by batch effects or outliers. Principal components represent the directions along which the variation in the data is maximal, so that the information from thousands of regions can be represented by just a few dimensions.
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/deeptools_pca_plot.png)
+![plot](images/output/deeptools_pca_plot.png)
 
 ### 5.2. <a name='Fingerprint'></a>Fingerprint
 
@@ -271,9 +271,9 @@ Descriptions taken from the deepTools [manual](https://deeptools.readthedocs.io/
 
 This tool is based on a method developed by [Diaz et al.](http://www.ncbi.nlm.nih.gov/pubmed/22499706). It determines how well the signal in the CUT&RUN/Tag sample can be differentiated from the background distribution of reads in the control sample. For factors that will enrich well-defined, rather narrow regions (e.g. transcription factors such as p300), the resulting plot can be used to assess the strength of a CUT&RUN experiment, but the broader the enrichments are to be expected, the less clear the plot will be. Vice versa, if you do not know what kind of signal to expect, the fingerprint plot will give you a straight-forward indication of how careful you will have to be during your downstream analyses to separate biological noise from meaningful signal.
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/deeptools_fingerprint_plot.png)
+![plot](images/output/deeptools_fingerprint_plot.png)
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/deeptools_fingerprint_explan.png)
+![plot](images/output/deeptools_fingerprint_explan.png)
 
 ### 5.3. <a name='Correlation'></a>Correlation
 
@@ -281,7 +281,7 @@ Descriptions taken from the deepTools [manual](https://deeptools.readthedocs.io/
 
 Computes the overall similarity between two or more samples based on read coverage within genomic regions The result of the correlation computation is a table of correlation coefficients that indicates how “strong” the relationship between two samples is and it will consist of numbers between -1 and 1. (-1 indicates perfect anti-correlation, 1 perfect correlation.)
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/deeptools_correlation_plot.png)
+![plot](images/output/deeptools_correlation_plot.png)
 
 ## 6. <a name='PeakCalling'></a>Peak Calling
 
@@ -346,7 +346,7 @@ For both the sample peaks and the consensus peaks, a simple count is taken. At t
 
 In the image below we see comparable peak counts for the h3k27me3 dataset, but a large disparity for the h3k4me3.
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_20_primary_peakcounts.png)
+![plot](images/output/mqc_20_primary_peakcounts.png)
 
 ### 7.2. <a name='PeakReproducibility'></a>Peak Reproducibility
 
@@ -354,7 +354,7 @@ The peak reproducibility report intersects all samples within a group using `bed
 
 For example, in the image below when combined with the peak count information we see that although the h3k27me3 replicates both have similar peak counts, < 30% of the peaks are replicated across the replicate set. For h3k4me3, we see that replicate 1 has a small number of peaks called, but that almost 100% of those peaks are replicated in the second replicate. Replicate 2 has < 20% of its replicates reproduced in replicate 1 but by looking at the peak counts we can see this is due to the low number of peaks called.
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_22_primary_peakrepro.png)
+![plot](images/output/mqc_22_primary_peakrepro.png)
 
 ### 7.3. <a name='FRiPScore'></a>FRiP Score
 
@@ -368,7 +368,7 @@ CUT&Tag inserts adapters on either side of chromatin particles in the vicinity o
 
 **NB:** Experiments targeting transcription factors may produce different fragment distributions depending on factors beyond the scope of this article.
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/mqc_21_fragment_lengths.png)
+![plot](images/output/mqc_21_fragment_lengths.png)
 
 ### 8.1. <a name='Heatmaps'></a>Heatmaps
 
@@ -376,7 +376,7 @@ Heatmaps for both genomic features and peaks are generated using deepTools. The 
 
 **NB:** These reports are generated outside of MultiQC
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/deeptools_heatmap.png)
+![plot](images/output/deeptools_heatmap.png)
 
 ### 8.2. <a name='UpsetPlots'></a>Upset Plots
 
@@ -384,7 +384,7 @@ Upset plots provide a different view on which sets of peaks are overlapping acro
 
 **NB:** These reports are generated outside of MultiQC
 
-![plot](/Users/cheshic/dev/repos/luslab/cutandrun/docs/images/output/all_consensus_peaks.png)
+![plot](images/output/all_consensus_peaks.png)
 
 </details>
 
