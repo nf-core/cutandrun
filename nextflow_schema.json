@@ -339,6 +339,12 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "Specifies whether to use a control to normalise peak calls against (e.g. IgG)"
                 },
+                "extend_fragments": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies whether to extend paired-end fragments between the read mates when calculating coveage tracks"
+                },
                 "igg_scale_factor": {
                     "type": "number",
                     "default": 1,
@@ -356,14 +362,20 @@
                     "default": "non",
                     "fa_icon": "fas fa-align-justify",
                     "description": "SEACR normalization. ",
-                    "enum": ["non", "norm"]
+                    "enum": [
+                        "non",
+                        "norm"
+                    ]
                 },
                 "seacr_stringent": {
                     "type": "string",
                     "default": "stringent",
                     "fa_icon": "fas fa-align-justify",
                     "description": "SEACR stringency.",
-                    "enum": ["stringent", "relaxed"]
+                    "enum": [
+                        "stringent",
+                        "relaxed"
+                    ]
                 },
                 "macs2_pvalue": {
                     "type": "number",
