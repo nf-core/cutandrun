@@ -3,7 +3,6 @@
  */
 
 include { PICARD_MARKDUPLICATES } from '../../modules/nf-core/modules/picard/markduplicates/main'
-include { SAMTOOLS_INDEX        } from '../../modules/nf-core/modules/samtools/index/main'
 include { BAM_SORT_SAMTOOLS     } from './bam_sort_samtools'
 
 workflow MARK_DUPLICATES_PICARD {
