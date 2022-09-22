@@ -2,6 +2,7 @@
  * Extract fragments from a BAM file into a bedfile format
 */
 
+include { SAMTOOLS_SORT      } from "../../modules/nf-core/modules/samtools/sort/main.nf"
 include { BEDTOOLS_BAMTOBED  } from "../../modules/nf-core/modules/bedtools/bamtobed/main.nf"
 include { AWK                } from '../../modules/local/linux/awk'
 include { CUT                } from '../../modules/local/linux/cut'
@@ -13,10 +14,17 @@ workflow EXTRACT_FRAGMENTS {
     ch_versions = Channel.empty()
 
     /*
+    * MODULE: Sort reads by name for bamtobed
+    */
+    SAMTOOLS_SORT (
+        bam
+    )
+
+    /*
     * MODULE: Convert BAM file to paired-end bed format
     */
     BEDTOOLS_BAMTOBED(
-        bam
+        SAMTOOLS_SORT.out.bam
     )
     ch_versions = ch_versions.mix(BEDTOOLS_BAMTOBED.out.versions)
     // BEDTOOLS_BAMTOBED.out.bed | view
