@@ -16,7 +16,7 @@ workflow PEAK_QC {
     peaks_with_ids                      // channel: [ val(meta), [ bed ] ]
     consensus_peaks                     // channel: [ val(meta), [ bed ] ]
     consensus_peaks_unfiltered          // channel: [ val(meta), [ bed ] ]
-    bam                                 // channel: [ val(meta), [ bam ] ]
+    fragments_bed                       // channel: [ val(meta), [ bed ] ]
     flagstat                            // channel: [ val(meta), [ flagstat ] ]
     min_frip_overlap                    // val
     frip_score_header_multiqc           // file
@@ -32,7 +32,7 @@ workflow PEAK_QC {
     */
     PEAK_FRIP(
         peaks,
-        bam,
+        fragments_bed,
         flagstat,
         frip_score_header_multiqc,
         min_frip_overlap

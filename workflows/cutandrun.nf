@@ -110,6 +110,7 @@ include { EXTRACT_METADATA_AWK as EXTRACT_BT2_SPIKEIN_META } from "../subworkflo
 include { EXTRACT_METADATA_AWK as EXTRACT_PICARD_DUP_META  } from "../subworkflows/local/extract_metadata_awk"
 include { CONSENSUS_PEAKS                                  } from "../subworkflows/local/consensus_peaks"
 include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL           } from "../subworkflows/local/consensus_peaks"
+include { EXTRACT_FRAGMENTS                                } from "../subworkflows/local/extract_fragments"
 include { PEAK_QC                                          } from "../subworkflows/local/peak_qc"
 
 /*
@@ -777,6 +778,13 @@ workflow CUTANDRUN {
             //ch_flagstat_target | view
 
             /*
+            * SUBWORKFLOW: Extract fragments from bam files for fragment-based FRiP score
+            */
+            EXTRACT_FRAGMENTS (
+                ch_bam_target
+            )
+
+            /*
             * SUBWORKFLOW: Run suite of peak QC on peaks
             */
             PEAK_QC(
@@ -784,7 +792,7 @@ workflow CUTANDRUN {
                 AWK_NAME_PEAK_BED.out.file,
                 ch_consensus_peaks,
                 ch_consensus_peaks_unfilt,
-                ch_bam_target,
+                EXTRACT_FRAGMENTS.out.bed,
                 ch_flagstat_target,
                 params.min_frip_overlap,
                 ch_frip_score_header_multiqc,
