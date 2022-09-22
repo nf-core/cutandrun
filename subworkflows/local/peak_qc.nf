@@ -28,12 +28,21 @@ workflow PEAK_QC {
     ch_versions = Channel.empty()
 
     /*
+    * CHANNEL: Combine channel together for frip calculation
+    */
+    peaks
+    .map { row -> [row[0].id, row ].flatten()}
+    .join ( fragments_bed.map { row -> [row[0].id, row ].flatten()} )
+    .join ( flagstat.map { row -> [row[0].id, row ].flatten()} )
+    .map { row -> [ row[1], row[2], row[4], row[6] ]}
+    .set { ch_frip }
+    //ch_frip | view 
+
+    /*
     * MODULE: Calculate frip scores for primary peaks
     */
     PEAK_FRIP(
-        peaks,
-        fragments_bed,
-        flagstat,
+        ch_frip,
         frip_score_header_multiqc,
         min_frip_overlap
     )

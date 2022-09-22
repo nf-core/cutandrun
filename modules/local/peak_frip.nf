@@ -8,9 +8,7 @@ process PEAK_FRIP {
         'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0' }"
 
     input:
-    tuple val(meta), path(peaks_bed)
-    tuple val(meta), path(fragments_bed)
-    tuple val(meta), path(flagstat)
+    tuple val(meta), path(peaks_bed), path(fragments_bed), path(flagstat)
     path  frip_score_header
     val   min_frip_overlap
 
