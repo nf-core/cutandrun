@@ -672,7 +672,7 @@ workflow CUTANDRUN {
                 ch_peaks_secondary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_bigwig.collect{it[1]}.ifEmpty([])
             )
-            ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
+            //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
 
         if (params.run_deeptools_heatmaps && params.run_peak_calling) {
