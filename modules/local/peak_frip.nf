@@ -22,7 +22,7 @@ process PEAK_FRIP {
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    READS_IN_PEAKS=\$(bedtools intersect -a ${fragments_bed} -b ${peaks_bed} -bed -c -f $min_frip_overlap |  awk -F '\t' '{sum += \$NF} END {print sum}')
+    READS_IN_PEAKS=\$(bedtools intersect -a ${fragments_bed} -b ${peaks_bed} -bed -c -f $min_frip_overlap |  awk -F '\t' '{sum += \$NF} END {print sum * 2}')
     grep -m 1 'mapped (' ${flagstat} | awk -v a="\$READS_IN_PEAKS" -v OFS='\t' '{print "Peak FRiP Score", a/\$1}' | cat $frip_score_header - > ${prefix}_mqc.tsv
 
     cat <<-END_VERSIONS > versions.yml
