@@ -6,8 +6,8 @@
   files:
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.markdup.bam
-    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam.bai
-    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.markdup.bam.bai
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.markdup.sorted.bam.bai
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.flagstat
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.flagstat
 
@@ -19,8 +19,8 @@
   files:
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam
-    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam.bai
-    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam.bai
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.sorted.bam.bai
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.flagstat
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.flagstat
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.dedup.bam
@@ -34,7 +34,7 @@
   files:
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.dedup.bam
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam
-    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.dedup.bam.bai
-    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam.bai
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.dedup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.sorted.bam.bai
     - path: results/02_alignment/bowtie2/target/h3k27me3_R1.flagstat
     - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.flagstat
