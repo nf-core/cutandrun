@@ -245,9 +245,9 @@ The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementatio
 2. Find the latest version of the Biocontainer available on [Quay.io](https://quay.io/repository/biocontainers/pangolin?tag=latest&tab=tags)
 
 3. Create the custom config accordingly:
-   
+
    - For Docker:
-     
+
      ```nextflow
      process {
          withName: PANGOLIN {
@@ -255,9 +255,9 @@ The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementatio
          }
      }
      ```
-   
+
    - For Singularity:
-     
+
      ```nextflow
      process {
          withName: PANGOLIN {
@@ -265,9 +265,9 @@ The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementatio
          }
      }
      ```
-   
+
    - For Conda:
-     
+
      ```nextflow
      process {
          withName: PANGOLIN {

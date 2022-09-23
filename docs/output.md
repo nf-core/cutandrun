@@ -1,41 +1,41 @@
 <!-- vscode-markdown-toc -->
 
-* 1. [Introduction](#Introduction)
-* 2. [Preprocessing](#Preprocessing)
-     * 2.1. [Sample Sheet Check](#SampleSheetCheck)
-     * 2.2. [FASTQ Merging](#FASTQMerging)
-     * 2.3. [FastQC](#FastQC)
-     * 2.4. [Sequence Counts](#SequenceCounts)
-       * 2.4.1. [Sequence Quality](#SequenceQuality)
-       * 2.4.2. [Overrepresented Sequences](#OverrepresentedSequences)
-     * 2.5. [TrimGalore](#TrimGalore)
-* 3. [Alignment](#Alignment)
-     * 3.1. [Bowtie 2](#Bowtie2)
-     * 3.2. [Library Complexity](#LibraryComplexity)
-* 4. [Alignment post-processing](#Alignmentpost-processing)
-     * 4.1. [Quality Filtering](#QualityFiltering)
-     * 4.2. [PICARD MarkDuplicates/RemoveDuplicates](#PICARDMarkDuplicatesRemoveDuplicates)
-* 5. [Fragment-based QC](#Fragment-basedQC)
-     * 5.1. [PCA](#PCA)
-     * 5.2. [Fingerprint](#Fingerprint)
-     * 5.3. [Correlation](#Correlation)
-* 6. [Peak Calling](#PeakCalling)
-     * 6.1. [Bam to bedgraph](#Bamtobedgraph)
-     * 6.2. [Bed to bigwig](#Bedtobigwig)
-     * 6.3. [SEACR peak calling](#SEACRpeakcalling)
-     * 6.4. [MACS2 peak calling](#MACS2peakcalling)
-     * 6.5. [Consensus Peaks](#ConsensusPeaks)
-* 7. [Peak-based QC](#Peak-basedQC)
-     * 7.1. [Peak Counts](#PeakCounts)
-     * 7.2. [Peak Reproducibility](#PeakReproducibility)
-     * 7.3. [FRiP Score](#FRiPScore)
-* 8. [Fragment Length Distribution](#FragmentLengthDistribution)
-     * 8.1. [Heatmaps](#Heatmaps)
-     * 8.2. [Upset Plots](#UpsetPlots)
-     * 8.3. [IGV](#IGV)
-* 9. [Workflow reporting and genomes](#Workflowreportingandgenomes)
-     * 9.1. [Reference genome files](#Referencegenomefiles)
-     * 9.2. [Pipeline information](#Pipelineinformation)
+- 1. [Introduction](#Introduction)
+- 2. [Preprocessing](#Preprocessing)
+     - 2.1. [Sample Sheet Check](#SampleSheetCheck)
+     - 2.2. [FASTQ Merging](#FASTQMerging)
+     - 2.3. [FastQC](#FastQC)
+     - 2.4. [Sequence Counts](#SequenceCounts)
+       - 2.4.1. [Sequence Quality](#SequenceQuality)
+       - 2.4.2. [Overrepresented Sequences](#OverrepresentedSequences)
+     - 2.5. [TrimGalore](#TrimGalore)
+- 3. [Alignment](#Alignment)
+     - 3.1. [Bowtie 2](#Bowtie2)
+     - 3.2. [Library Complexity](#LibraryComplexity)
+- 4. [Alignment post-processing](#Alignmentpost-processing)
+     - 4.1. [Quality Filtering](#QualityFiltering)
+     - 4.2. [PICARD MarkDuplicates/RemoveDuplicates](#PICARDMarkDuplicatesRemoveDuplicates)
+- 5. [Fragment-based QC](#Fragment-basedQC)
+     - 5.1. [PCA](#PCA)
+     - 5.2. [Fingerprint](#Fingerprint)
+     - 5.3. [Correlation](#Correlation)
+- 6. [Peak Calling](#PeakCalling)
+     - 6.1. [Bam to bedgraph](#Bamtobedgraph)
+     - 6.2. [Bed to bigwig](#Bedtobigwig)
+     - 6.3. [SEACR peak calling](#SEACRpeakcalling)
+     - 6.4. [MACS2 peak calling](#MACS2peakcalling)
+     - 6.5. [Consensus Peaks](#ConsensusPeaks)
+- 7. [Peak-based QC](#Peak-basedQC)
+     - 7.1. [Peak Counts](#PeakCounts)
+     - 7.2. [Peak Reproducibility](#PeakReproducibility)
+     - 7.3. [FRiP Score](#FRiPScore)
+- 8. [Fragment Length Distribution](#FragmentLengthDistribution)
+     - 8.1. [Heatmaps](#Heatmaps)
+     - 8.2. [Upset Plots](#UpsetPlots)
+     - 8.3. [IGV](#IGV)
+- 9. [Workflow reporting and genomes](#Workflowreportingandgenomes)
+     - 9.1. [Reference genome files](#Referencegenomefiles)
+     - 9.2. [Pipeline information](#Pipelineinformation)
 
 <!-- vscode-markdown-toc-config
     numbering=true
@@ -145,7 +145,7 @@ The second two reports must be analysed together both before and after trimming 
 
 ![plot](images/output/mqc_11_fastqc_overrepresented_sequences.png)
 
-![plot](images/output/mqc_12_fastqc_adapter_content.png) 
+![plot](images/output/mqc_12_fastqc_adapter_content.png)
 
 **After trimming**
 
@@ -196,21 +196,21 @@ MultiQC shows several alignment-based reports however, the most important is the
 
 ![MultiQC - Bowtie2 paired-end mapping stats](images/output/mqc_15_bowtie2_pe.png)
 
-The MultiQC report also includes a spike-in alignment report. This plot is important for deciding whether to normalise your samples using the spike-in genome or by another method.  The default mode in the pipeline is to normalise stacked reads before peak calling for epitope abundance using spike-in normalisation.
+The MultiQC report also includes a spike-in alignment report. This plot is important for deciding whether to normalise your samples using the spike-in genome or by another method. The default mode in the pipeline is to normalise stacked reads before peak calling for epitope abundance using spike-in normalisation.
 
 Traditionally, E. coli DNA is carried along with bacterially-produced enzymes that are used in CUT&RUN and CUT&Tag experiments and gets tagmented non-specifically during the reaction. The fraction of total reads that map to the E.coli genome depends on the yield of the epitope targeted, and so depends on the number of cells used and the abundance of that epitope in chromatin. Since a constant amount of protein is added to the reactions and brings along a fixed amount of E. coli DNA, E. coli reads can be used to normalise against epitope abundance in a set of experiments. This is assuming that the amount of E.coli and the numbers of cells is consistent between samples.
 
 Since the introduction of these techniques there are several factors that have reduced the usefulness of this type of normalisation in certain experimental conditions. Firstly, many commercially available kits now have very low levels of E.coli DNA in them, which therefore requires users to spike-in their own DNA for normalisation which is not always done. Secondly the normalisation approach is dependant on the cell count between samples being constant, which in our experience is quite difficult to achieve especially in primary tissue samples.
 
-The image below shows a typical plot for samples that have the correct amount of spike-in DNA for normalisation. The target samples have usually < 1% spike-in alignment (but still with > 1000 reads to reach above noise thresholds) while IgG should have the most as it has a large abundance (2-5%). In this example, the IgG will be brought inline with the other epitopes enabling proper peak calling using the IgG as a background. 
+The image below shows a typical plot for samples that have the correct amount of spike-in DNA for normalisation. The target samples have usually < 1% spike-in alignment (but still with > 1000 reads to reach above noise thresholds) while IgG should have the most as it has a large abundance (2-5%). In this example, the IgG will be brought inline with the other epitopes enabling proper peak calling using the IgG as a background.
 
 ![plot](images/output/mqc_16_spikein_bowtie2_pe_plot.png)
 
-If you see very low spike-in levels for all samples, it is likely your Tn5 had no residual E.coli DNA and that no additional spike-in DNA was added. In this case spike-in normalisation cannot be used and normalisation must be switched to read count or no normalisation at all. 
+If you see very low spike-in levels for all samples, it is likely your Tn5 had no residual E.coli DNA and that no additional spike-in DNA was added. In this case spike-in normalisation cannot be used and normalisation must be switched to read count or no normalisation at all.
 
 If you see a strange distribution of spike-in DNA alignment that does not fit with your knowledge of the relative abundance of your IgG and target epitopes, this is indicative of a problem with the spike-in process and again, another normalisation option should be chosen.
 
-In the plot below, it may initially look as though the spike-in distribution is too varied to be useful however, the larger IgG spike-in alignment counts correspond to the target samples with more sequencing depth and more spike-in alignments; therefore, these samples are actually good candidates for spike-in normalisation. 
+In the plot below, it may initially look as though the spike-in distribution is too varied to be useful however, the larger IgG spike-in alignment counts correspond to the target samples with more sequencing depth and more spike-in alignments; therefore, these samples are actually good candidates for spike-in normalisation.
 
 ![plot](images/output/mqc_17_bowtie2_pe_plot.png)
 
@@ -228,7 +228,7 @@ The plot below shows a group of samples where the majority of unique molecules a
 
 </details>
 
-BAM files are filtered for a minimum quality score and for fully mapped reads using [SAMtools](http://samtools.sourceforge.net/). These results are then passed on to Picard for duplicate removal. 
+BAM files are filtered for a minimum quality score and for fully mapped reads using [SAMtools](http://samtools.sourceforge.net/). These results are then passed on to Picard for duplicate removal.
 
 ### 4.2. <a name='PICARDMarkDuplicatesRemoveDuplicates'></a>PICARD MarkDuplicates/RemoveDuplicates
 
@@ -358,7 +358,7 @@ For example, in the image below when combined with the peak count information we
 
 ### 7.3. <a name='FRiPScore'></a>FRiP Score
 
-Fraction of fragments in peaks (FRiP), defined as the fraction of all mapped paired-end reads extended into fragments that fall into the called peak regions, i.e. usable fragments in significantly enriched peaks divided by all usable fragments. In general, FRiP scores correlate positively with the number of regions. (Landt et al, Genome Research Sept. 2012, 22(9): 1813–1831). A minimum overlap is controlled by `min_frip_overlap`. The FRiP score can be used to assess the overall quality of a sample. Poor samples with a high level of background noise, small numbers of called peaks or other issues will have a large number of fragments falling outside the peaks that were called. Generally FRiP scores > 0.3 are considered to be reasonable with the highest quality data having FRiP scores of > 0.7. 
+Fraction of fragments in peaks (FRiP), defined as the fraction of all mapped paired-end reads extended into fragments that fall into the called peak regions, i.e. usable fragments in significantly enriched peaks divided by all usable fragments. In general, FRiP scores correlate positively with the number of regions. (Landt et al, Genome Research Sept. 2012, 22(9): 1813–1831). A minimum overlap is controlled by `min_frip_overlap`. The FRiP score can be used to assess the overall quality of a sample. Poor samples with a high level of background noise, small numbers of called peaks or other issues will have a large number of fragments falling outside the peaks that were called. Generally FRiP scores > 0.3 are considered to be reasonable with the highest quality data having FRiP scores of > 0.7.
 
 It is worth noting that the peak caller settings are also crucial to this score, as even the highest quality data will have a low FRiP score if the pipeline is parameterised in a way that calls few peaks, such as setting the peak calling threshold very high.
 
