@@ -1,0 +1,192 @@
+# Test incorrect header
+- name: test_samplesheet_header_error
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/header_error.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test use_control false when noigg in sample sheet does not produce error
+- name: test_samplesheet_noigg_pos
+  command: nextflow run main.nf -profile docker,test --only_input --use_control false --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/no_igg.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test use_control false when control in sample sheet does not produce error
+- name: test_samplesheet_noigg_pos_ctrl_neg
+  command: nextflow run main.nf -profile docker,test --only_input --use_control false --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/test-GSE145187-small.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test use_control true when noigg in sample sheet does produce error
+- name: test_samplesheet_noigg_neg
+  command: nextflow run main.nf -profile docker,test --only_input --use_control true --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/no_igg.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test dot in group id
+- name: test_samplesheet_check_group_name_with_dot
+  command: nextflow run main.nf -profile docker,test --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/sample_dot.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test invalid number of columns in row
+- name: test_samplesheet_invalid_cols_in_row
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/invalid_column_in_row.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test group is blank
+- name: test_samplesheet_group_is_blank
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/group_is_blank.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test group has spaces
+- name: test_samplesheet_group_has_spaces
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/group_has_spaces.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test control has spaces
+- name: test_samplesheet_control_has_spaces
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/control_has_spaces.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test group equals control
+- name: test_samplesheet_group_equals_control
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/group_equals_control.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test negative replicate number
+- name: test_samplesheet_neg_rep
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/negative_rep_num.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test replicate number does not start at 1
+- name: test_samplesheet_rep_not_start_one
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/rep_not_start_one.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test fastq ext incorrect
+- name: test_samplesheet_fastq_ext_error
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/fastq_ext_error.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test fastq path spaces
+- name: test_samplesheet_fastq_path_spaces_error
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/fastq_file_spaces.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test duplicate rows
+- name: test_samplesheet_dup_rows
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/duplicate_rows.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test control not exist
+- name: test_samplesheet_ctrl_not_exist
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/control_not_exist.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test control with control
+- name: test_samplesheet_ctrl_with_ctrl
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/control_with_control.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  exit_code: 1
+
+# Test small sample sheet
+- name: test_samplesheet_small
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/test-GSE145187-small.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test small tech reps
+- name: test_samplesheet_small_tech_reps
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/test-GSE145187-small-tech-reps.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test noigg small
+- name: test_samplesheet_small_noigg
+  command: nextflow run main.nf -profile docker,test --only_input --use_control false --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/test-GSE145187-noigg-small.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet_2
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test all
+- name: test_samplesheet_all
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/test-GSE145187-all.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet_2
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test all small
+- name: test_samplesheet_all_small
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/test-GSE145187-all-small.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet_2
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test all multi-rep
+- name: test_samplesheet_all_multi_rep
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/test-GSE145187-all-multi-rep.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet_2
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test all multi-rep single-ctrl
+- name: test_samplesheet_multi_rep_single_ctrl
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/test-GSE145187-all-multi-rep-single-ctrl.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet_2
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test all multi-rep multi-single-ctrl
+- name: test_samplesheet_multi_rep_multi_single_ctrl
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/test-GSE145187-all-multi-rep-multi-single-ctrl.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet_2
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv
+
+# Test legacy 1_0 samplesheet
+- name: test_samplesheet_legacy_1_0
+  command: nextflow run main.nf -profile docker,test --only_input --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_2_0/unit_tests/legacy/1_0_samplesheet.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet_2
+  exit_code: 1

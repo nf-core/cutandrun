@@ -1,0 +1,11 @@
+- name: verify_output_only_filtering
+  command: nextflow run main.nf -profile docker,test --only_filtering --skip_fastqc --skip_removeduplicates --skip_preseq -c tests/config/nextflow.config
+  tags:
+    - verify_output_only_filtering
+  files:
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.markdup.bam
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.markdup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.flagstat

@@ -2,21 +2,22 @@
  * Run bam files through samtools view and reindex and calc stats
  */
 
-include { SAMTOOLS_VIEW      } from '../../modules/nf-core/modules/samtools/view/main'
+include { SAMTOOLS_VIEW      } from '../../modules/local/for_patch/samtools/view/main'
 include { SAMTOOLS_SORT      } from '../../modules/nf-core/modules/samtools/sort/main'
 include { SAMTOOLS_INDEX     } from '../../modules/nf-core/modules/samtools/index/main'
 include { BAM_STATS_SAMTOOLS } from '../nf-core/bam_stats_samtools'
 
 workflow SAMTOOLS_VIEW_SORT_STATS {
     take:
-    bam // channel: [ val(meta), [ bam ] ]
+    bam       // channel: [ val(meta), [ bam ] ]
+    regions   // channel: [ regions ]
 
     main:
     ch_versions = Channel.empty()
     /*
      * Filter BAM file
      */
-    SAMTOOLS_VIEW ( bam.map{ row -> [ row[0], row[1], [] ] }, [] )
+    SAMTOOLS_VIEW ( bam.map{ row -> [ row[0], row[1], [], ] }, [], regions )
     ch_versions = ch_versions.mix(SAMTOOLS_VIEW.out.versions.first())
 
     /*
@@ -45,5 +46,5 @@ workflow SAMTOOLS_VIEW_SORT_STATS {
     stats    = BAM_STATS_SAMTOOLS.out.stats     // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_STATS_SAMTOOLS.out.flagstat  // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_STATS_SAMTOOLS.out.idxstats  // channel: [ val(meta), [ idxstats ] ]
-    versions = ch_versions                    // channel: [ versions.yml ]
+    versions = ch_versions                      // channel: [ versions.yml ]
 }

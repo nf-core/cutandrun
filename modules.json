@@ -3,86 +3,116 @@
     "homePage": "https://github.com/nf-core/cutandrun",
     "repos": {
         "nf-core/modules": {
-            "bedtools/bamtobed": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "bedtools/genomecov": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "bedtools/intersect": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "bedtools/merge": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "bedtools/sort": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "bowtie2/align": {
-                "git_sha": "cbc47767f7bb4751a9d178395bd66f051401a0c1"
-            },
-            "bowtie2/build": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "cat/fastq": {
-                "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
-            },
-            "custom/getchromsizes": {
-                "git_sha": "213403187932dbbdd936a04474cc8cd8abae7a08"
-            },
-            "deeptools/computematrix": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "deeptools/plotheatmap": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "fastqc": {
-                "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
-            },
-            "gunzip": {
-                "git_sha": "9aadd9a6d3f5964476582319b3a1c54a3e3fe7c9"
-            },
-            "macs2/callpeak": {
-                "git_sha": "f0800157544a82ae222931764483331a81812012"
-            },
-            "picard/markduplicates": {
-                "git_sha": "63db63757cab03cfa7a02c0d0f134b66fbfadea6"
-            },
-            "samtools/faidx": {
-                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
-            },
-            "samtools/flagstat": {
-                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
-            },
-            "samtools/idxstats": {
-                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
-            },
-            "samtools/index": {
-                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
-            },
-            "samtools/sort": {
-                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
-            },
-            "samtools/stats": {
-                "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
-            },
-            "samtools/view": {
-                "git_sha": "6b64f9cb6c3dd3577931cc3cd032d6fb730000ce"
-            },
-            "seacr/callpeak": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "tabix/bgziptabix": {
-                "git_sha": "9dbaffff88013bc21460a989cde7a5aa172c2e0b"
-            },
-            "ucsc/bedclip": {
-                "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
-            },
-            "ucsc/bedgraphtobigwig": {
-                "git_sha": "e20e57f90b6787ac9a010a980cf6ea98bd990046"
-            },
-            "untar": {
-                "git_sha": "51be617b1ca9bff973655eb899d591ed6ab253b5"
+            "git_url": "https://github.com/nf-core/modules.git",
+            "modules": {
+                "bedtools/bamtobed": {
+                    "branch": "master",
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
+                },
+                "bedtools/complement": {
+                    "branch": "master",
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
+                },
+                "bedtools/genomecov": {
+                    "branch": "master",
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
+                },
+                "bedtools/intersect": {
+                    "branch": "master",
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
+                },
+                "bedtools/merge": {
+                    "branch": "master",
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
+                },
+                "bowtie2/align": {
+                    "branch": "master",
+                    "git_sha": "848ee9a215d02d80be033bfa60881700f2bd914c"
+                },
+                "bowtie2/build": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "cat/fastq": {
+                    "branch": "master",
+                    "git_sha": "c13f2274fb9c93ad265640e0e56e6526bd4f42d4"
+                },
+                "custom/getchromsizes": {
+                    "branch": "master",
+                    "git_sha": "d75b37fef175f241230ee25c485bd574c768e282"
+                },
+                "deeptools/computematrix": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "deeptools/plotfingerprint": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "deeptools/plotheatmap": {
+                    "branch": "master",
+                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                },
+                "fastqc": {
+                    "branch": "master",
+                    "git_sha": "49b18b1639f4f7104187058866a8fab33332bdfe"
+                },
+                "gunzip": {
+                    "branch": "master",
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
+                },
+                "macs2/callpeak": {
+                    "branch": "master",
+                    "git_sha": "f0800157544a82ae222931764483331a81812012"
+                },
+                "picard/markduplicates": {
+                    "branch": "master",
+                    "git_sha": "682f789f93070bd047868300dd018faf3d434e7c"
+                },
+                "samtools/faidx": {
+                    "branch": "master",
+                    "git_sha": "3eb99152cedbb7280258858e5df08478a4670696"
+                },
+                "samtools/flagstat": {
+                    "branch": "master",
+                    "git_sha": "bbb99cb8d679555cc01c98766de7869f83283545"
+                },
+                "samtools/idxstats": {
+                    "branch": "master",
+                    "git_sha": "ecece498f10b47b7c9d06f53a310cea5811b4c5f"
+                },
+                "samtools/index": {
+                    "branch": "master",
+                    "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                },
+                "samtools/sort": {
+                    "branch": "master",
+                    "git_sha": "d5d785b3d8b422cda9c6d84a23f629a8e9ff8cd8"
+                },
+                "samtools/stats": {
+                    "branch": "master",
+                    "git_sha": "f4eab7945952dc4934224309701a49913ea05ae6"
+                },
+                "seacr/callpeak": {
+                    "branch": "master",
+                    "git_sha": "233fa70811a03a4cecb2ece483b5c8396e2cee1d"
+                },
+                "tabix/bgziptabix": {
+                    "branch": "master",
+                    "git_sha": "5e7b1ef9a5a2d9258635bcbf70fcf37dacd1b247"
+                },
+                "ucsc/bedclip": {
+                    "branch": "master",
+                    "git_sha": "233fa70811a03a4cecb2ece483b5c8396e2cee1d"
+                },
+                "ucsc/bedgraphtobigwig": {
+                    "branch": "master",
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
+                },
+                "untar": {
+                    "branch": "master",
+                    "git_sha": "b63b9f752dc8e43fc70b0491aad5e0a270ab0e10"
+                }
             }
         }
     }

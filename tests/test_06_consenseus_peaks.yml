@@ -1,0 +1,26 @@
+- name: test_consensus_peaks_group
+  command: nextflow run main.nf -profile docker,test_full_small --only_peak_calling --skip_fastqc --skip_multiqc --skip_preseq --consensus_peak_mode group -c tests/config/nextflow.config
+  tags:
+    - test_consensus_peaks
+    - test_consensus_peaks_group
+  files:
+    - path: results/03_peak_calling/05_consensus_peaks/h3k4me3.consensus.peak_counts.bed
+    - path: results/03_peak_calling/05_consensus_peaks/h3k4me3.consensus.peaks.awk.bed
+    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peak_counts.bed
+    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peaks.awk.bed
+
+- name: test_consensus_peaks_all
+  command: nextflow run main.nf -profile docker,test_full_small --only_peak_calling --skip_fastqc --skip_multiqc --skip_preseq --consensus_peak_mode all -c tests/config/nextflow.config
+  tags:
+    - test_consensus_peaks
+    - test_consensus_peaks_all
+  files:
+    - path: results/03_peak_calling/05_consensus_peaks/all_samples.consensus.peaks.awk.bed
+    - path: results/03_peak_calling/05_consensus_peaks/all_samples.consensus.peak_counts.bed
+
+- name: test_consensus_peaks_invalid
+  command:
+    nextflow run main.nf -profile docker,test_full_small --only_peak_calling --skip_fastqc --skip_multiqc --skip_preseq --consensus_peak_mode test -c tests/config/nextflow.config
+    - test_consensus_peaks
+    - test_consensus_peaks_invalid
+  exit_code: 1

@@ -1,0 +1,19 @@
+- name: verify_output_reporting_skip_heatmaps_false
+  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_multiqc --skip_preseq -c tests/config/nextflow.config
+  tags:
+    - verify_output_reporting_skip_heatmaps
+    - verify_output_reporting_skip_heatmaps_false
+  files:
+    - path: results/04_reporting/deeptools_heatmaps/gene/h3k27me3_R1.computeMatrix.mat.gz
+    - path: results/04_reporting/deeptools_heatmaps/peaks/h3k27me3_R1.computeMatrix.mat.gz
+
+- name: verify_output_reporting_skip_heatmaps_true
+  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_multiqc --skip_preseq --skip_heatmaps -c tests/config/nextflow.config
+  tags:
+    - verify_output_reporting_skip_heatmaps
+    - verify_output_reporting_skip_heatmaps_true
+  files:
+    - path: results/04_reporting/deeptools_heatmaps/gene/h3k27me3_R1.computeMatrix.mat.gz
+      should_exist: false
+    - path: results/04_reporting/deeptools_heatmaps/peaks/h3k27me3_R1.computeMatrix.mat.gz
+      should_exist: false

@@ -4,7 +4,7 @@
     nf-core/cutandrun
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Github : https://github.com/nf-core/cutandrun
-    Website: https://nf-co.re/cutandrun
+Website: https://nf-co.re/cutandrun
     Slack  : https://nfcore.slack.com/channels/cutandrun
 ----------------------------------------------------------------------------------------
 */
