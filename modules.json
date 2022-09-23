@@ -7,23 +7,23 @@
             "modules": {
                 "bedtools/bamtobed": {
                     "branch": "master",
-                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
                 },
                 "bedtools/complement": {
                     "branch": "master",
-                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
                 },
                 "bedtools/genomecov": {
                     "branch": "master",
-                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
                 },
                 "bedtools/intersect": {
                     "branch": "master",
-                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
                 },
                 "bedtools/merge": {
                     "branch": "master",
-                    "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
                 },
                 "bowtie2/align": {
                     "branch": "master",
@@ -35,7 +35,7 @@
                 },
                 "cat/fastq": {
                     "branch": "master",
-                    "git_sha": "b034029b59b1198075da8019074bc02051a6100e"
+                    "git_sha": "c13f2274fb9c93ad265640e0e56e6526bd4f42d4"
                 },
                 "custom/getchromsizes": {
                     "branch": "master",
@@ -59,7 +59,7 @@
                 },
                 "gunzip": {
                     "branch": "master",
-                    "git_sha": "fa37e0662690c4ec4260dae282fbce08777503e6"
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
                 },
                 "macs2/callpeak": {
                     "branch": "master",
@@ -87,7 +87,7 @@
                 },
                 "samtools/sort": {
                     "branch": "master",
-                    "git_sha": "897c33d5da084b61109500ee44c01da2d3e4e773"
+                    "git_sha": "d5d785b3d8b422cda9c6d84a23f629a8e9ff8cd8"
                 },
                 "samtools/stats": {
                     "branch": "master",
@@ -107,7 +107,7 @@
                 },
                 "ucsc/bedgraphtobigwig": {
                     "branch": "master",
-                    "git_sha": "233fa70811a03a4cecb2ece483b5c8396e2cee1d"
+                    "git_sha": "90aef30f432332bdf0ce9f4b9004aa5d5c4960bb"
                 },
                 "untar": {
                     "branch": "master",
