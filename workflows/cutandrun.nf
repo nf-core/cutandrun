@@ -681,13 +681,20 @@ workflow CUTANDRUN {
             */
             ch_bigwig.filter { it[0].is_control == false }
             .set { ch_bigwig_no_igg }
-            ch_bigwig_no_igg | view
+            //ch_bigwig_no_igg | view
+
+             /*
+            * CHANNEL: Map test
+            */
+            ch_bigwig_no_igg.map { it }
+            .set { ch_bigwig_no_igg_map }
+            ch_bigwig_no_igg_map | view
 
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
             */
             DEEPTOOLS_COMPUTEMATRIX_GENE (
-                ch_bigwig_no_igg,
+                ch_bigwig_no_igg_map,
                 PREPARE_GENOME.out.bed
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions)
