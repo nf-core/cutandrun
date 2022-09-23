@@ -358,7 +358,7 @@ For example, in the image below when combined with the peak count information we
 
 ### 7.3. <a name='FRiPScore'></a>FRiP Score
 
-The fragments in peaks (FRiP) score plot shows the number of aligned fragments that overlap with called peaks with a minimum overlap controlled by `min_frip_overlap`. The FRiP score can be used to assess the overall quality of a sample. Poor samples with a high level of background noise, small numbers of called peaks or other issues will have a large number of fragments falling outside the peaks that were called. Generally FRiP scores > 0.3 are considered to be reasonable with the highest quality data having FRiP scores of > 0.7. 
+Fraction of fragments in peaks (FRiP), defined as the fraction of all mapped paired-end reads extended into fragments that fall into the called peak regions, i.e. usable fragments in significantly enriched peaks divided by all usable fragments. In general, FRiP scores correlate positively with the number of regions. (Landt et al, Genome Research Sept. 2012, 22(9): 1813–1831). A minimum overlap is controlled by `min_frip_overlap`. The FRiP score can be used to assess the overall quality of a sample. Poor samples with a high level of background noise, small numbers of called peaks or other issues will have a large number of fragments falling outside the peaks that were called. Generally FRiP scores > 0.3 are considered to be reasonable with the highest quality data having FRiP scores of > 0.7. 
 
 It is worth noting that the peak caller settings are also crucial to this score, as even the highest quality data will have a low FRiP score if the pipeline is parameterised in a way that calls few peaks, such as setting the peak calling threshold very high.
 
