@@ -676,6 +676,7 @@ workflow CUTANDRUN {
         }
 
         if (params.run_deeptools_heatmaps && params.run_peak_calling) {
+            ch_bigwig | view
             /*
             * CHANNEL: Remove IgG from bigwig channel
             */
