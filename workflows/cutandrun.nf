@@ -707,52 +707,52 @@ workflow CUTANDRUN {
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_GENE.out.versions)
 
-            /*
-            * CHANNEL: Structure output for join on id
-            */
-            ch_peaks_summits
-            .map { row -> [row[0].id, row ].flatten()}
-            .set { ch_peaks_summits_id }
-            //ch_peaks_bed_id | view
+            // /*
+            // * CHANNEL: Structure output for join on id
+            // */
+            // ch_peaks_summits
+            // .map { row -> [row[0].id, row ].flatten()}
+            // .set { ch_peaks_summits_id }
+            // //ch_peaks_bed_id | view
 
-            /*
-            * CHANNEL: Join beds and bigwigs on id
-            */
-            ch_bigwig_no_igg
-            .map { row -> [row[0].id, row ].flatten()}
-            .join ( ch_peaks_summits_id )
-            .set { ch_dt_bigwig_summits }
-            //ch_dt_peaks | view
+            // /*
+            // * CHANNEL: Join beds and bigwigs on id
+            // */
+            // ch_bigwig_no_igg
+            // .map { row -> [row[0].id, row ].flatten()}
+            // .join ( ch_peaks_summits_id )
+            // .set { ch_dt_bigwig_summits }
+            // //ch_dt_peaks | view
 
-            ch_dt_bigwig_summits
-            .map { row -> row[1,2] }
-            .set { ch_ordered_bigwig }
-            //ch_ordered_bigwig | view
+            // ch_dt_bigwig_summits
+            // .map { row -> row[1,2] }
+            // .set { ch_ordered_bigwig }
+            // //ch_ordered_bigwig | view
 
-            ch_dt_bigwig_summits
-            .map { row -> row[-1] }
-            .filter { it -> it.size() > 1}
-            .set { ch_ordered_peaks_max }
-            //ch_ordered_peaks_max | view
+            // ch_dt_bigwig_summits
+            // .map { row -> row[-1] }
+            // .filter { it -> it.size() > 1}
+            // .set { ch_ordered_peaks_max }
+            // //ch_ordered_peaks_max | view
 
-            /*
-            * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
-            */
-            DEEPTOOLS_COMPUTEMATRIX_PEAKS (
-                ch_ordered_bigwig,
-                ch_ordered_peaks_max
-            )
-            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
-            //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
-            //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
+            // /*
+            // * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
+            // */
+            // DEEPTOOLS_COMPUTEMATRIX_PEAKS (
+            //     ch_ordered_bigwig,
+            //     ch_ordered_peaks_max
+            // )
+            // ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
+            // //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
+            // //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
 
-            /*
-            * MODULE: Calculate DeepTools heatmap
-            */
-            DEEPTOOLS_PLOTHEATMAP_PEAKS (
-                DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
-            )
-            ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions)
+            // /*
+            // * MODULE: Calculate DeepTools heatmap
+            // */
+            // DEEPTOOLS_PLOTHEATMAP_PEAKS (
+            //     DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
+            // )
+            // ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions)
         }
 
         if(params.run_deeptools_qc) {
