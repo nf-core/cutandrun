@@ -676,13 +676,12 @@ workflow CUTANDRUN {
         }
 
         if (params.run_deeptools_heatmaps && params.run_peak_calling) {
-            ch_bigwig | view
             /*
             * CHANNEL: Remove IgG from bigwig channel
             */
             ch_bigwig.filter { it[0].is_control == false }
             .set { ch_bigwig_no_igg }
-            //ch_bigwig_no_igg | view
+            ch_bigwig_no_igg | view
 
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
