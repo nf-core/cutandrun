@@ -117,8 +117,11 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 - We have listened to user comments that there is no guide on how to interpret the results from the pipeline. In response, we have revamped the documentation in the `output.md` document to describe the reporting in much more depth including good and bad examples of reporting output where possible.
 
 - [[#140](https://github.com/nf-core/cutandrun/issues/140)] - IGV browser output has been reworked. We first fixed the performance issues with long load times by including the genome index into the session folder. IGV output now includes peaks from all peak callers used in pipeline, not just the primary one. Users can now select whether the gene track exported with the IGV session contains gene symbols or gene names. Several visual changes have been made to improve the default appearance and order of tracks.
+
 - Added PreSeq library complexity reporting.
+
 - Added full suite of fragment-based deepTools QC using the `multiBAMSummary` module. We generate three reporting from this fragment dataset: PCA, correlation and fingerprint plots. This has replaced our previous python implementation of sample correlation calculation.
+
 - All coverage tracks generated from reads now extend reads to full fragment length by default. We feel this creates more realistic coverage tracks for CUT&RUN and improves the accuracy of other fragment-based reports.
 
 ### Enhancements
