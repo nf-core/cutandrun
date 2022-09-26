@@ -132,7 +132,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 - [[#138](https://github.com/nf-core/cutandrun/issues/138)] - Better sample sheet error reporting.
 - Gene bed files will now be automatically created from the GTF file if not supplied.
 - The default minimum q-score for read quality has been changed from 0 to 20.
-- SEACR has been better parameterized with dedicated config values for stringency and normalization.
+- [[#156](https://github.com/nf-core/cutandrun/issues/156)] SEACR has been better parameterized with dedicated config values for stringency and normalization. Credit to `CloXD` for this.
 - deepTools heatmap generation has been better parameterized with dedicated config values for the gene and peak region settings.
 - Consensus peak count reporting has been added to MultiQC.
 - Reviewed and updated CI tests for better code coverage.
