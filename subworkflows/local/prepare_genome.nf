@@ -2,24 +2,24 @@
  * Uncompress and prepare reference genome files
 */
 
-include { GUNZIP as GUNZIP_FASTA                               } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { GUNZIP as GUNZIP_SPIKEIN_FASTA                       } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { GUNZIP as GUNZIP_GTF                                 } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { GUNZIP as GUNZIP_BED                                 } from '../../modules/nf-core/modules/gunzip/main.nf'
-include { CUSTOM_GETCHROMSIZES as TARGET_CHROMSIZES            } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
-include { CUSTOM_GETCHROMSIZES as SPIKEIN_CHROMSIZES           } from '../../modules/nf-core/modules/custom/getchromsizes/main.nf'
-include { UNTAR as UNTAR_INDEX_TARGET                          } from '../../modules/nf-core/modules/untar/main.nf'
-include { UNTAR as UNTAR_INDEX_SPIKEIN                         } from '../../modules/nf-core/modules/untar/main.nf'
-include { BOWTIE2_BUILD as BOWTIE2_BUILD_TARGET                } from '../../modules/nf-core/modules/bowtie2/build/main'
-include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN               } from '../../modules/nf-core/modules/bowtie2/build/main'
-include { TABIX_BGZIPTABIX                                     } from '../../modules/nf-core/modules/tabix/bgziptabix/main'
+include { GUNZIP as GUNZIP_FASTA                               } from '../../modules/nf-core/gunzip/main.nf'
+include { GUNZIP as GUNZIP_SPIKEIN_FASTA                       } from '../../modules/nf-core/gunzip/main.nf'
+include { GUNZIP as GUNZIP_GTF                                 } from '../../modules/nf-core/gunzip/main.nf'
+include { GUNZIP as GUNZIP_BED                                 } from '../../modules/nf-core/gunzip/main.nf'
+include { CUSTOM_GETCHROMSIZES as TARGET_CHROMSIZES            } from '../../modules/nf-core/custom/getchromsizes/main.nf'
+include { CUSTOM_GETCHROMSIZES as SPIKEIN_CHROMSIZES           } from '../../modules/nf-core/custom/getchromsizes/main.nf'
+include { UNTAR as UNTAR_INDEX_TARGET                          } from '../../modules/nf-core/untar/main.nf'
+include { UNTAR as UNTAR_INDEX_SPIKEIN                         } from '../../modules/nf-core/untar/main.nf'
+include { BOWTIE2_BUILD as BOWTIE2_BUILD_TARGET                } from '../../modules/nf-core/bowtie2/build/main'
+include { BOWTIE2_BUILD as BOWTIE2_BUILD_SPIKEIN               } from '../../modules/nf-core/bowtie2/build/main'
+include { TABIX_BGZIPTABIX                                     } from '../../modules/nf-core/tabix/bgziptabix/main'
 include { GTF2BED                                              } from '../../modules/local/gtf2bed'
-include { SAMTOOLS_FAIDX                                       } from '../../modules/nf-core/modules/samtools/faidx/main'
+include { SAMTOOLS_FAIDX                                       } from '../../modules/nf-core/samtools/faidx/main'
 include { BEDTOOLS_SORT as ANNOTATION_BEDTOOLS_SORT            } from "../../modules/local/for_patch/bedtools/sort/main"
 include { AWK as BLACKLIST_AWK                                 } from "../../modules/local/linux/awk"
-include { BEDTOOLS_INTERSECT as BLACKLIST_BEDTOOLS_INTERSECT   } from "../../modules/nf-core/modules/bedtools/intersect/main"
+include { BEDTOOLS_INTERSECT as BLACKLIST_BEDTOOLS_INTERSECT   } from "../../modules/nf-core/bedtools/intersect/main"
 include { BEDTOOLS_SORT as BLACKLIST_BEDTOOLS_SORT             } from "../../modules/local/for_patch/bedtools/sort/main"
-include { BEDTOOLS_COMPLEMENT as BLACKLIST_BEDTOOLS_COMPLEMENT } from "../../modules/nf-core/modules/bedtools/complement/main"
+include { BEDTOOLS_COMPLEMENT as BLACKLIST_BEDTOOLS_COMPLEMENT } from "../../modules/nf-core/bedtools/complement/main"
 
 workflow PREPARE_GENOME {
     take:

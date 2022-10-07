@@ -3,8 +3,8 @@
  */
 
 include { SAMTOOLS_VIEW      } from '../../modules/local/for_patch/samtools/view/main'
-include { SAMTOOLS_SORT      } from '../../modules/nf-core/modules/samtools/sort/main'
-include { SAMTOOLS_INDEX     } from '../../modules/nf-core/modules/samtools/index/main'
+include { SAMTOOLS_SORT      } from '../../modules/nf-core/samtools/sort/main'
+include { SAMTOOLS_INDEX     } from '../../modules/nf-core/samtools/index/main'
 include { BAM_STATS_SAMTOOLS } from '../nf-core/bam_stats_samtools'
 
 workflow SAMTOOLS_VIEW_SORT_STATS {

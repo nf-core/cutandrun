@@ -2,8 +2,8 @@
  * Extract fragments from a BAM file into a bedfile format
 */
 
-include { SAMTOOLS_SORT      } from "../../modules/nf-core/modules/samtools/sort/main.nf"
-include { BEDTOOLS_BAMTOBED  } from "../../modules/nf-core/modules/bedtools/bamtobed/main.nf"
+include { SAMTOOLS_SORT      } from "../../modules/nf-core/samtools/sort/main.nf"
+include { BEDTOOLS_BAMTOBED  } from "../../modules/nf-core/bedtools/bamtobed/main.nf"
 include { AWK                } from '../../modules/local/linux/awk'
 include { CUT                } from '../../modules/local/linux/cut'
 

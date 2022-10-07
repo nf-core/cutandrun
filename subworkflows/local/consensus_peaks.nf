@@ -3,7 +3,7 @@
  */
 
 include { SORT                 } from '../../modules/local/linux/sort'
-include { BEDTOOLS_MERGE       } from '../../modules/nf-core/modules/bedtools/merge/main'
+include { BEDTOOLS_MERGE       } from '../../modules/nf-core/bedtools/merge/main'
 include { AWK                  } from '../../modules/local/linux/awk'
 
 workflow CONSENSUS_PEAKS {
