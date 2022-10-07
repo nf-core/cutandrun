@@ -230,7 +230,7 @@ jobs:
       - name: Run pytest-workflow
         uses: Wandalen/wretry.action@v1.0.11
         with:
-          command: pytest --tag ${{ matrix.tags }} --symlink --kwdof --git-aware --color=yes
+          command: pytest --tag ${{ matrix.tags }} --kwdof
           attempt_limit: 3
 
       # - name: Output log on failure
