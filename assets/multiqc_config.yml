@@ -70,7 +70,7 @@ table_columns_visible:
   fastqc:
     percent_duplicates: False
 
-extra_fn_clean_exts:
+extra_fn_clean_trim:
   - ".spikein"
   - ".target"
   - ".target.filtered"
