@@ -152,7 +152,6 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 | ---------- | ----------- | ----------- |
 | `multiqc`  | 1.12        | 1.13        |
 | `picard`   | 2.27.2      | 2.27.4      |
-| `samtools` | 1.15.1      | 1.16.1      |
 
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.
