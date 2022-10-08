@@ -460,7 +460,7 @@
                 "min_peak_overlap": {
                     "type": "number",
                     "default": 0.2,
-                    "description": "Minimum peak overlap for peak reproducability plot",
+                    "description": "Minimum peak overlap for peak reproducibility plot",
                     "fa_icon": "fas fa-align-justify"
                 }
             }
