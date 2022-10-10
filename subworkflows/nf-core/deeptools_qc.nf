@@ -5,7 +5,7 @@
 include { DEEPTOOLS_MULTIBAMSUMMARY } from '../../modules/local/deeptools/multibamsummary/main'
 include { DEEPTOOLS_PLOTCORRELATION } from '../../modules/local/deeptools/plotcorrelation/main'
 include { DEEPTOOLS_PLOTPCA         } from '../../modules/local/deeptools/plotpca/main'
-include { DEEPTOOLS_PLOTFINGERPRINT } from '../../modules/nf-core/modules/deeptools/plotfingerprint/main'
+include { DEEPTOOLS_PLOTFINGERPRINT } from '../../modules/nf-core/deeptools/plotfingerprint/main'
 
 workflow DEEPTOOLS_QC {
     take:

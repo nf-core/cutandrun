@@ -6,7 +6,7 @@ include { PEAK_FRIP                            } from "../../modules/local/peak_
 include { PEAK_COUNTS as PRIMARY_PEAK_COUNTS   } from "../../modules/local/peak_counts"
 include { PEAK_COUNTS as CONSENSUS_PEAK_COUNTS } from "../../modules/local/peak_counts"
 include { CUT as CUT_CALC_REPROD               } from "../../modules/local/linux/cut"
-include { BEDTOOLS_INTERSECT                   } from "../../modules/nf-core/modules/bedtools/intersect/main.nf"
+include { BEDTOOLS_INTERSECT                   } from "../../modules/nf-core/bedtools/intersect/main.nf"
 include { CALCULATE_PEAK_REPROD                } from "../../modules/local/python/peak_reprod"
 include { PLOT_CONSENSUS_PEAKS                 } from '../../modules/local/python/plot_consensus_peaks'
 

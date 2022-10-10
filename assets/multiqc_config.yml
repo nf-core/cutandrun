@@ -70,7 +70,7 @@ table_columns_visible:
   fastqc:
     percent_duplicates: False
 
-extra_fn_clean_exts:
+extra_fn_clean_trim:
   - ".spikein"
   - ".target"
   - ".target.filtered"
@@ -81,7 +81,7 @@ extra_fn_clean_exts:
 
 section_comments:
   fastqc_raw_fastqc_per_base_sequence_content: >
-    Discordant sequence content at the begining of the reads are common phenomenon for CUT&TAG/RUN reads. Failing to pass the Per-base seuqnence content does not mean your data failed.
+    Discordant sequence content at the beginning of the reads are common phenomenon for CUT&TAG/RUN reads. Failing to pass the Per-base sequence content does not mean your data failed.
     - It can be due to the Tn5 preference.
     - What you might be detecting is the 10-bp periodicity that shows up as a sawtooth pattern in the length distribution. If so, this is normal and will not affect alignment or peak calling. In any case we do not recommend trimming as the bowtie2 parameters that we list will give accurate mapping information without trimming.
 

@@ -13,7 +13,7 @@ import upsetplot
 ## PARSE ARGUMENTS
 ############################################
 ############################################
-Description = "Upset ven diagram of consensus peaks."
+Description = "Upset venn diagram of consensus peaks."
 Epilog = """Example usage: python consensus_peaks.py <MERGED_INTERVAL_FILE> """
 
 parser = argparse.ArgumentParser(description=Description, epilog=Epilog)

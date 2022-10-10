@@ -338,7 +338,7 @@
                 },
                 "igg_scale_factor": {
                     "type": "number",
-                    "default": 1,
+                    "default": 0.5,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Specifies whether the background control is scaled prior to being used to normalise peaks."
                 },
@@ -370,7 +370,7 @@
                 },
                 "macs_gsize": {
                     "type": "number",
-                    "default": 2700000000,
+                    "default": 2700000000.0,
                     "fa_icon": "fas fa-align-justify",
                     "description": "parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38."
                 },
@@ -395,7 +395,7 @@
                 },
                 "replicate_threshold": {
                     "type": "number",
-                    "default": 1,
+                    "default": 1.0,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
                 },
@@ -596,6 +596,13 @@
                     "type": "boolean",
                     "description": "Do not use coloured log outputs.",
                     "fa_icon": "fas fa-palette",
+                    "hidden": true
+                },
+                "hook_url": {
+                    "type": "string",
+                    "description": "Incoming hook URL for messaging service",
+                    "fa_icon": "fas fa-people-group",
+                    "help_text": "Incoming hook URL for messaging service. Currently, only MS Teams is supported.",
                     "hidden": true
                 },
                 "multiqc_config": {

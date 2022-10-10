@@ -2,7 +2,7 @@
  * Read QC, read trimming and post trim QC
  */
 
-include { FASTQC     } from '../../modules/nf-core/modules/fastqc/main'
+include { FASTQC     } from '../../modules/nf-core/fastqc/main'
 include { TRIMGALORE } from '../../modules/local/for_patch/trimgalore/main'
 
 workflow FASTQC_TRIMGALORE {
