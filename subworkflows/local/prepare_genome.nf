@@ -210,7 +210,6 @@ workflow PREPARE_GENOME {
     bed                    = ch_gene_bed                 // path: genome.bed
     bed_index              = ch_gene_bed_index           // path: genome.bed_index
     allowed_regions        = ch_genome_include_regions   // path: genome.regions
-
     bowtie2_index          = ch_bt2_index                // path: bt2/index/
     bowtie2_spikein_index  = ch_bt2_spikein_index        // path: bt2/index/
 
