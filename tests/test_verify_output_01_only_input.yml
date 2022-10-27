@@ -1,0 +1,6 @@
+- name: test_verify_output_only_input
+  command: nextflow run main.nf -profile docker,test --only_input true -c tests/config/nextflow.config
+  tags:
+    - verify_output_only_input
+  files:
+    - path: results/pipeline_info/samplesheet.valid.csv

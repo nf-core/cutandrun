@@ -1,0 +1,13 @@
+- name: test_verify_output_align_intermed
+  command: nextflow run main.nf -profile docker,test --only_filtering --skip_fastqc --skip_preseq --save_align_intermed -c tests/config/nextflow.config
+  tags:
+    - verify_output_align_intermed
+  files:
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.bam
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.filtered.bam
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.markdup.bam
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.sorted.bam
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.dedup.bam
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.filtered.bam
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.markdup.bam
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.sorted.bam

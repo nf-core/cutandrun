@@ -2,8 +2,8 @@
  * Read QC, read trimming and post trim QC
  */
 
-include { FASTQC     } from '../../modules/nf-core/modules/fastqc/main'
-include { TRIMGALORE } from '../../modules/local/modules/trimgalore/main'
+include { FASTQC     } from '../../modules/nf-core/fastqc/main'
+include { TRIMGALORE } from '../../modules/local/for_patch/trimgalore/main'
 
 workflow FASTQC_TRIMGALORE {
     take:
@@ -35,7 +35,6 @@ workflow FASTQC_TRIMGALORE {
         trim_zip        = TRIMGALORE.out.zip
         trim_log        = TRIMGALORE.out.log
         ch_versions     = ch_versions.mix(TRIMGALORE.out.versions)
-
     }
 
     emit:

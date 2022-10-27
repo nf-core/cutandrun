@@ -1,0 +1,11 @@
+- name: test_filtering_noqfilter
+  command: nextflow run main.nf -profile docker,test --only_filtering true -c tests/config/nextflow.config
+  tags:
+    - test_filtering
+    - test_filtering_noqfilter
+
+- name: test_filtering_withqfilter
+  command: nextflow run main.nf -profile docker,test --only_filtering true --minimum_alignment_q_score 10 -c tests/config/nextflow.config
+  tags:
+    - test_filtering
+    - test_filtering_withqfilter

@@ -46,9 +46,9 @@ This will launch the pipeline with the `docker` configuration profile. See below
 
 Note that the pipeline will create the following files in your working directory:
 
-```console
+```bash
 work                # Directory containing the nextflow working files
-<OUTIDR>            # Finished results in specified location (defined with --outdir)
+<OUTDIR>            # Finished results in specified location (defined with --outdir)
 .nextflow_log       # Log file from Nextflow
 # Other nextflow hidden files, eg. history of pipeline runs and old logs.
 ```
@@ -57,7 +57,7 @@ work                # Directory containing the nextflow working files
 
 When you run the above command, Nextflow automatically pulls the pipeline code from GitHub and stores it as a cached version. When running the pipeline after this, it will always use the cached version if available - even if the pipeline has been updated since. To make sure that you're running the latest version of the pipeline, make sure that you regularly update the cached version of the pipeline:
 
-```console
+```bash
 nextflow pull nf-core/cutandrun
 ```
 
@@ -67,7 +67,29 @@ nextflow pull nf-core/cutandrun
 
 There are some options detailed on the parameters page that are prefixed with `save`, `skip` or `only`. These are flow control options that allow for saving additional output to the results directory, skipping unwanted portions of the pipeline or running the pipeline up to a certain point, which can be useful for testing.
 
-### De-duplication
+### Genome Configuration
+
+The easiest way to run the pipeline is by using one of the pre-configured genomes that reflect the available genomes at [iGenomes]([AWS iGenomes](https://ewels.github.io/AWS-iGenomes/)). Assign `genome` to one of the key words for iGenomes and all the available reference data will be automatically fetched. The pipeline uses the following reference data:
+
+- Target genome FASTA
+
+- Target genome Bowtie2 Index
+
+- Target genome GTF
+
+- Target genome BED (will be generated from the GTF if not supplied)
+
+- Target genome Blacklist (blacklist files for major genomes are included in the pipeline)
+
+- Spike-in genome FASTA
+
+- Spike-in genome Bowtie2 Index
+
+If the `genome` parameter is not supplied, the user must provide all the target genome data themselves (except the gene BED file). The default spike-in genome is e.coli given that this is the natural spike-in product of the protein production process. However, it is possible to spike-in different DNA during the experimental protocol and then set the `spikein_genome` to the target organism.
+
+### Read Filtering and Duplication
+
+After alignment using Bowtie2, mapped reads are filtered to remove those which do not pass a minimum quality threshold. This threshold can be changed using the `minimum_alignment_q_score` parameter.
 
 CUT&RUN and CUT&Tag both integrate adapters into the vicinity of antibody-tethered enzymes, and the exact sites of integration are affected by the accessibility of surrounding DNA. Given these experimental parameters, it is expected that there are many fragments which share common starting and end positions; thus, such duplicates are generally valid but would be filtered out by de-duplication tools. However, there will be a fraction of fragments that are present due to PCR duplication that cannot be separated.
 
@@ -75,9 +97,9 @@ Control samples such as those from IgG datasets have relatively high duplication
 
 The default for the pipeline therefore is to only run de-duplication on control samples. If it is suspected that there is a heavy fraction of PCR duplicates present in the primary samples then the parameter `dedup_target_reads` can be set using
 
-`--dedup_target_reads true`
+`--dedup_target_reads`
 
-### Peak Normalisation
+### Read Normalisation
 
 The default mode in the pipeline is to normalise stacked reads before peak calling for epitope abundance using spike-in normalisation.
 
@@ -264,6 +286,14 @@ See the main [Nextflow documentation](https://www.nextflow.io/docs/latest/config
 
 If you have any questions or issues please send us a message on [Slack](https://nf-co.re/join/slack) on the [`#configs` channel](https://nfcore.slack.com/channels/configs).
 
+## Azure Resource Requests
+
+To be used with the `azurebatch` profile by specifying the `-profile azurebatch`.
+We recommend providing a compute `params.vm_type` of `Standard_D16_v3` VMs by default but these options can be changed if required.
+
+Note that the choice of VM size depends on your quota and the overall workload during the analysis.
+For a thorough list, please refer the [Azure Sizes for virtual machines in Azure](https://docs.microsoft.com/en-us/azure/virtual-machines/sizes).
+
 ## Running in the background
 
 Nextflow handles job submissions and supervises the running jobs. The Nextflow process must run until the pipeline is finished.
@@ -278,6 +308,6 @@ Some HPC setups also allow you to run nextflow within a cluster job submitted yo
 In some cases, the Nextflow Java virtual machines can start to request a large amount of memory.
 We recommend adding the following line to your environment to limit this (typically in `~/.bashrc` or `~./bash_profile`):
 
-```console
+```bash
 NXF_OPTS='-Xms1g -Xmx4g'
 ```

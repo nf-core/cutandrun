@@ -1,0 +1,13 @@
+#id: 'consensus_peak_counts'
+#parent_id: 'peak_qc'
+#parent_name: 'Peak QC'
+#parent_description: 'This section contains peak-based QC reports'
+#section_name: 'Consensus Peak Count'
+#description: 'Calculated from the total number of peaks called by MACS2 or SEACR'
+#plot_type: 'bargraph'
+#anchor: 'consensus_peakcounts'
+#pconfig:
+#    id: 'consensus_peakcounts_plot'
+#    title: 'Total Peak Counts'
+#    ylab: "# Peaks"
+#    cpswitch_counts_label: 'Number of Peaks'

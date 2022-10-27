@@ -9,12 +9,15 @@ process IGV_SESSION {
 
     input:
     path genome
-    path gtf
+    path genome_index
+    //path gtf
+    tuple val(meta), path(gtf_bed), path(gtf_bed_index)
     path beds
+    path secondary_beds
     path bigwig
 
     output:
-    path('*.{txt,xml,bed,bigWig,fa,fna,gtf,gff}', includeInputs:true)
+    path('*.{txt,xml,bed,bigWig,fa,fai,fna,gtf,gff,narrowPeak,broadPeak,gz,tbi,bedGraph}', includeInputs:true)
     path  "versions.yml"                , emit: versions
 
     when:
@@ -26,6 +29,7 @@ process IGV_SESSION {
     colour_pos = 0
 
     file_list = beds.collect{it.toString()}.sort()
+    file_list += secondary_beds.collect{it.toString()}.sort()
     file_list += bigwig.collect{it.toString()}.sort()
     for(file in file_list){
         file_split = file.split('_R')
@@ -49,7 +53,7 @@ process IGV_SESSION {
     find -L * -iname "*.gtf" -exec echo -e {}"\\t0,48,73" \\; > gtf.igv.txt
     find -L * -iname "*.gff" -exec echo -e {}"\\t0,48,73" \\; > gff.igv.txt
     cat *.txt > igv_files.txt
-    igv_files_to_session.py igv_session.xml igv_files.txt $genome --path_prefix './'
+    igv_files_to_session.py igv_session.xml igv_files.txt $genome $gtf_bed --path_prefix './'
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

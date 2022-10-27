@@ -1,0 +1,34 @@
+- name: test_param_check_custom_genome_blacklist
+  command: nextflow run main.nf -profile docker,test_fasta_only --only_genome --gtf https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz --blacklist ./assets/blacklists/hg38-blacklist.bed -c tests/config/nextflow.config
+  tags:
+    - test_genome_options
+
+- name: test_param_check_custom_genome_noblacklist
+  command: nextflow run main.nf -profile docker,test_fasta_only --only_genome --gtf https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz -c tests/config/nextflow.config
+  tags:
+    - test_genome_options
+
+- name: test_param_check_custom_genome_nobed
+  command: nextflow run main.nf -profile docker,test --only_genome -c tests/config/nextflow.config
+  tags:
+    - test_genome_options
+
+- name: test_param_check_custom_genome_gtf
+  command: nextflow run main.nf -profile docker,test_fasta_only --only_genome --gtf https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr7-genes.gtf -c tests/config/nextflow.config
+  tags:
+    - test_genome_options
+
+- name: test_param_check_custom_genome_gtf_gz
+  command: nextflow run main.nf -profile docker,test_fasta_only --only_genome --gtf https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz -c tests/config/nextflow.config
+  tags:
+    - test_genome_options
+
+- name: test_param_check_custom_genome_bed
+  command: nextflow run main.nf -profile docker,test_fasta_only --only_genome --gtf https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz --gene_bed https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr7-genes.bed -c tests/config/nextflow.config
+  tags:
+    - test_genome_options
+
+- name: test_param_check_custom_genome_bed_gz
+  command: nextflow run main.nf -profile docker,test_fasta_only --only_genome --gtf https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz --gene_bed https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr7-genes.bed.gz -c tests/config/nextflow.config
+  tags:
+    - test_genome_options

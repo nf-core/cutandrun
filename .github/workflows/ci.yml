@@ -8,6 +8,11 @@ on:
   release:
     types: [published]
 
+# Cancel if a newer run is started
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ##############################
   ### SMALL INTEGRATION TEST ###
@@ -18,17 +23,12 @@ jobs:
     if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}"
     runs-on: ubuntu-latest
     env:
-      NXF_VER: ${{ matrix.nxf_ver }}
+      NXF_VER: ${{ matrix.NXF_VER }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       matrix:
-        # Nextflow versions
-        include:
-          # Test pipeline minimum Nextflow version
-          - NXF_VER: "21.10.3"
-          # Test latest nextflow version
-          - NXF_VER: ""
+        NXF_VER: ["21.10.3", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -70,7 +70,7 @@ jobs:
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        nxf_ver: ["21.10.3", ""]
+        NXF_VER: ["21.10.3", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v2
@@ -106,8 +106,6 @@ jobs:
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-latest
     env:
-      NXF_VER: ""
-      NXF_EDGE: 1
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     steps:
@@ -115,10 +113,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install Nextflow
-        run: |
-          wget -qO- get.nextflow.io | bash
-          sudo mv nextflow /usr/local/bin/
-          nextflow self-update
+        uses: nf-core/setup-nextflow@v1
+        with:
+          version: "latest-everything"
 
       # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
       # files during pipeline execution
@@ -141,34 +138,23 @@ jobs:
   ###      UNIT TESTS        ###
   ##############################
   unit_tests:
-    name: ${{ matrix.nxf_version }} ${{ matrix.tags }}
+    name: ${{ matrix.NXF_VER }} ${{ matrix.tags }}
     if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
     runs-on: ubuntu-20.04
     env:
+      NXF_VER: ${{ matrix.NXF_VER }}
       NXF_ANSI_LOG: false
       CAPSULE_LOG: none
     strategy:
       fail-fast: false
       matrix:
-        nxf_version: ["21.10.3", ""]
+        NXF_VER: ["21.10.3", ""]
         tags:
-          - test_params
+          - test_genome_options
           - test_samplesheet
-          - verify_output_save_ref
-          - verify_output_only_input
-          - verify_output_save_merged
-          - verify_output_skip_fastqc
-          - verify_output_save_trimmed
-          - verify_output_skip_trimming
-          - verify_output_align_intermed
-          - verify_output_align_only_align
-          - verify_output_align_save_spikein_align
-          - verify_output_align_save_unaligned
-          - verify_output_only_filtering
-          - verify_output_align_duplicates_mark
-          - verify_output_align_duplicates_remove
-          - verify_output_align_duplicates_remove_target
-          - verify_output_peak_calling_only_peak_calling
+          - test_samplesheet_2
+          - test_filtering_noqfilter
+          - test_filtering_withqfilter
           - test_bam_scale_none
           - test_bam_scale_spikein
           - test_bam_scale_cpm
@@ -182,14 +168,37 @@ jobs:
           - test_peak_callers_macs2_seacr
           - test_peak_callers_seacr_macs2_noigg
           - test_peak_callers_ctrl_tests
-          - test_conseneus_peaks_group
-          - test_conseneus_peaks_all
-          - test_conseneus_peaks_invalid
+          - test_consensus_peaks_group
+          - test_consensus_peaks_all
+          - test_consensus_peaks_invalid
+          - verify_output_only_input
+          - verify_output_save_merged
+          - verify_output_save_trimmed
+          - verify_output_skip_trimming
+          - verify_output_skip_fastqc
+          - verify_output_save_ref
+          - verify_output_align_only_align
+          - verify_output_align_intermed
+          - verify_output_align_save_spikein_align
+          - verify_output_align_save_unaligned
+          - verify_output_align_duplicates_mark
+          - verify_output_align_duplicates_remove
+          - verify_output_align_duplicates_remove_target
+          - verify_output_only_filtering
+          - verify_output_peak_calling_only_peak_calling
+          - verify_output_reporting_skip_preseq_false
+          - verify_output_reporting_skip_preseq_true
+          - verify_output_reporting_skip_dtqc_false
+          - verify_output_reporting_skip_dtqc_true
+          - verify_output_reporting_skip_heatmaps_false
+          - verify_output_reporting_skip_heatmaps_true
+          - verify_output_reporting_skip_igv_false
+          - verify_output_reporting_skip_igv_true
+          - verify_output_reporting_skip_multiqc_false
+          - verify_output_reporting_skip_multiqc_true
+          - verify_output_reporting_skip_peak_qc_false
+          - verify_output_reporting_skip_peak_qc_true
           - verify_output_reporting_skip_reporting
-          - verify_output_reporting_skip_igv
-          - verify_output_reporting_skip_heatmaps
-          - verify_output_reporting_skip_multiqc
-          - verify_output_skip_frip
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -219,9 +228,6 @@ jobs:
             ${{ runner.os }}-nextflow-
 
       - name: Install Nextflow
-        env:
-          NXF_VER: ${{ matrix.nxf_version }}
-          CAPSULE_LOG: none
         run: |
           wget -qO- get.nextflow.io | bash
           sudo mv nextflow /usr/local/bin/
@@ -229,16 +235,23 @@ jobs:
       - name: Run pytest-workflow
         uses: Wandalen/wretry.action@v1.0.11
         with:
-          command: pytest --tag ${{ matrix.tags }} --kwdof
+          command: TMPDIR=~ PROFILE=docker pytest --tag ${{ matrix.tags }} --symlink --kwdof --color=yes
           attempt_limit: 3
 
+      - name: Output log on failure
+        if: failure()
+        run: |
+          sudo apt install bat > /dev/null
+          batcat --decorations=always --color=always /home/runner/pytest_workflow_*/*/log.{out,err}
       - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@v2
         with:
-          name: logs-${{ matrix.tags }}-${{ matrix.profile }}-${{ matrix.nxf_version }}
+          name: logs-unit-tests
           path: |
-            /tmp/pytest_workflow_*/*/.nextflow.log
-            /tmp/pytest_workflow_*/*/log.out
-            /tmp/pytest_workflow_*/*/log.err
-            /tmp/pytest_workflow_*/*/work
+            /home/runner/pytest_workflow_*/*/.nextflow.log
+            /home/runner/pytest_workflow_*/*/log.out
+            /home/runner/pytest_workflow_*/*/log.err
+            /home/runner/pytest_workflow_*/*/work
+            !/home/runner/pytest_workflow_*/*/work/conda
+            !/home/runner/pytest_workflow_*/*/work/singularity

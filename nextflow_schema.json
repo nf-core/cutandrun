@@ -202,30 +202,34 @@
                     "fa_icon": "fas fa-random",
                     "description": "Skips reporting"
                 },
+                "skip_preseq": {
+                    "type": "boolean",
+                    "description": "Skips preseq reporting"
+                },
                 "skip_igv": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
                     "description": "Skips igv session generation"
+                },
+                "skip_dt_qc": {
+                    "type": "boolean",
+                    "description": "Skips deeptools QC repoting",
+                    "fa_icon": "fas fa-random"
                 },
                 "skip_heatmaps": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
                     "description": "Skips deeptools heatmap generation"
                 },
+                "skip_peak_qc": {
+                    "type": "boolean",
+                    "description": "Skips peak QC reporting",
+                    "fa_icon": "fas fa-random"
+                },
                 "skip_multiqc": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
                     "description": "Skips multiqc"
-                },
-                "skip_upset_plots": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-random",
-                    "description": "Skip upset plot calculation"
-                },
-                "skip_frip": {
-                    "type": "boolean",
-                    "description": "Skip fragments in peaks calculation",
-                    "fa_icon": "fas fa-random"
                 }
             },
             "fa_icon": "fas fa-exchange-alt"
@@ -314,12 +318,6 @@
                     "description": "If normsalisation option is one of  \"RPKM\", \"CPM\", \"BPM\" - then the binsize that the reads count is calculated on is used.",
                     "fa_icon": "fas fa-arrows-alt-h"
                 },
-                "peak_threshold": {
-                    "type": "number",
-                    "default": 0.05,
-                    "fa_icon": "fas fa-grip-lines",
-                    "description": "Threshold for peak calling when no IgG is present"
-                },
                 "peakcaller": {
                     "type": "string",
                     "default": "seacr",
@@ -332,11 +330,37 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "Specifies whether to use a control to normalise peak calls against (e.g. IgG)"
                 },
+                "extend_fragments": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies whether to extend paired-end fragments between the read mates when calculating coveage tracks"
+                },
                 "igg_scale_factor": {
                     "type": "number",
-                    "default": 1.0,
+                    "default": 0.5,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Specifies whether the background control is scaled prior to being used to normalise peaks."
+                },
+                "seacr_peak_threshold": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "SEACR p-value threshold for peaks"
+                },
+                "seacr_norm": {
+                    "type": "string",
+                    "default": "non",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "SEACR normalization. ",
+                    "enum": ["non", "norm"]
+                },
+                "seacr_stringent": {
+                    "type": "string",
+                    "default": "stringent",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "SEACR stringency.",
+                    "enum": ["stringent", "relaxed"]
                 },
                 "macs2_pvalue": {
                     "type": "number",
@@ -350,10 +374,17 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38."
                 },
-                "run_narrow_peak": {
+                "macs2_narrow_peak": {
                     "type": "boolean",
+                    "default": true,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Specifies whether to run macs2 in narrow peak mode"
+                    "description": "Determines whether MACS2 broad or narrow peak mode is used for the peak caller"
+                },
+                "macs2_broad_cutoff": {
+                    "type": "number",
+                    "default": 0.1,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "MACS2 broad cutoff parameter"
                 },
                 "consensus_peak_mode": {
                     "type": "string",
@@ -367,9 +398,72 @@
                     "default": 1.0,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
+                },
+                "igv_show_gene_names": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Show gene names instead of symbols in IGV browser sessions"
                 }
             },
             "fa_icon": "fas fa-cog"
+        },
+        "reporting_options": {
+            "title": "Reporting Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "fa_icon": "fas fa-atlas",
+            "properties": {
+                "dt_qc_bam_binsize": {
+                    "type": "integer",
+                    "default": 500,
+                    "description": "Deeptools multiBamSummary bam bin size",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_gene_beforelen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap gene plot before length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_gene_bodylen": {
+                    "type": "integer",
+                    "default": 5000,
+                    "description": "Deeptools heatmap gene plot body length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_gene_afterlen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap gene plot after length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_peak_beforelen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap peak plot before length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_peak_afterlen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap peak plot after length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "min_frip_overlap": {
+                    "type": "number",
+                    "default": 0.2,
+                    "description": "Minimum fragment overlap for FriP score",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "min_peak_overlap": {
+                    "type": "number",
+                    "default": 0.2,
+                    "description": "Minimum peak overlap for peak reproducibility plot",
+                    "fa_icon": "fas fa-align-justify"
+                }
+            }
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -504,6 +598,13 @@
                     "fa_icon": "fas fa-palette",
                     "hidden": true
                 },
+                "hook_url": {
+                    "type": "string",
+                    "description": "Incoming hook URL for messaging service",
+                    "fa_icon": "fas fa-people-group",
+                    "help_text": "Incoming hook URL for messaging service. Currently, only MS Teams is supported.",
+                    "hidden": true
+                },
                 "multiqc_config": {
                     "type": "string",
                     "description": "Custom config file to supply to MultiQC.",
@@ -555,6 +656,9 @@
         },
         {
             "$ref": "#/definitions/pipeline_options"
+        },
+        {
+            "$ref": "#/definitions/reporting_options"
         },
         {
             "$ref": "#/definitions/institutional_config_options"

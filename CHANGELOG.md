@@ -103,3 +103,56 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.
 > **NB:** Dependency has been **removed** if version information isn't present.
+
+## [3.0] - 2022-09-26
+
+### Major Changes
+
+- Major rework of the pipeline internal flow structure. Metadata from processes (such as read counts) was previously annotated to a channel dictionary that was passed through the pipeline where various reporting processes could use the data. This was interacting with quite a few bugs in the Nextflow pipeline resume feature, causing lots of processes to rerun unnecessarily on resume. Any metadata generated in the pipeline is now written to files and passed where necessary to consuming reporting processes. This has drastically improved the number of processes that incorrectly rerun on resume.
+
+- Re-organized the pipeline into clearer sections, breaking related processes into sub-workflows where possible. This is for better readability, but also to prepare the pipeline for the major upcoming nf-core feature of re-usable sub-workflows. as part of this rework, the pipeline now has distinct sections for fragment-based QC and peak-based QC.
+
+- All reporting has been moved into MultiQC where possible. All PDF-based charting has been removed. Other PDF reports such as heatmaps and upset plots are still generated.
+
+- We have listened to user comments that there is no guide on how to interpret the results from the pipeline. In response, we have revamped the documentation in the `output.md` document to describe the reporting in much more depth including good and bad examples of reporting output where possible.
+
+- [[#140](https://github.com/nf-core/cutandrun/issues/140)] - IGV browser output has been reworked. We first fixed the performance issues with long load times by including the genome index into the session folder. IGV output now includes peaks from all peak callers used in pipeline, not just the primary one. Users can now select whether the gene track exported with the IGV session contains gene symbols or gene names. Several visual changes have been made to improve the default appearance and order of tracks.
+
+- Added PreSeq library complexity reporting.
+
+- Added full suite of fragment-based deepTools QC using the `multiBAMSummary` module. We generate three reporting from this fragment dataset: PCA, correlation and fingerprint plots. This has replaced our previous python implementation of sample correlation calculation.
+
+- All coverage tracks generated from reads now extend reads to full fragment length by default. We feel this creates more realistic coverage tracks for CUT&RUN and improves the accuracy of other fragment-based reports.
+
+### Enhancements
+
+- Updated pipeline template to nf-core/tools `2.5.1`.
+- [[#149](https://github.com/nf-core/cutandrun/issues/149)] - Pipeline will now use a blacklist file if provided to create an include list for the genome.
+- The FRiP score is now calculated based on extended read fragments and not just mapped reads.
+- [[#138](https://github.com/nf-core/cutandrun/issues/138)] - Better sample sheet error reporting.
+- Gene bed files will now be automatically created from the GTF file if not supplied.
+- The default minimum q-score for read quality has been changed from 0 to 20.
+- [[#156](https://github.com/nf-core/cutandrun/issues/156)] SEACR has been better parameterized with dedicated config values for stringency and normalization. Credit to `CloXD` for this.
+- deepTools heatmap generation has been better parameterized with dedicated config values for the gene and peak region settings.
+- Consensus peak count reporting has been added to MultiQC.
+- Reviewed and updated CI tests for better code coverage.
+- Updated all nf-core modules to latest versions.
+
+### Fixes
+
+- Fixed some bugs in the passing of MACS2 peak data through the pipeline in v2.0. MACS2 peaks will now be correctly used and reporting on in the pipeline.
+- [[#135](https://github.com/nf-core/cutandrun/issues/135)] - Removed many of the yellow warnings that were appearing in the pipeline to do with resource config options for processes that were not run.
+- [[#137](https://github.com/nf-core/cutandrun/issues/137)] - Fixed the `workflow.OnComplete` error.
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+| Dependency | Old version | New version |
+| ---------- | ----------- | ----------- |
+| `multiqc`  | 1.12        | 1.13        |
+| `picard`   | 2.27.2      | 2.27.4      |
+
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
