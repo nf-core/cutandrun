@@ -13,7 +13,7 @@ import pandas as pd
 ## PARSE ARGUMENTS
 ############################################
 ############################################
-Description = "Calculate peak reproducibility percentage for each sample"
+Description = "Calclate peak reproducibility percentage for each sample"
 
 parser = argparse.ArgumentParser(description=Description)
 

@@ -85,11 +85,11 @@ The easiest way to run the pipeline is by using one of the pre-configured genome
 
 - Spike-in genome Bowtie2 Index
 
-If the `genome` parameter is not supplied, the user must provide all the target genome data themselves (except the gene BED file). The spike-in genome defaults to e.coli and usually is not changed.
+If the `genome` parameter is not supplied, the user must provide all the target genome data themselves (except the gene BED file). The default spike-in genome is e.coli given that this is the natural spike-in product of the protein production process. However, it is possible to spike-in different DNA during the experimental protocol and then set the `spikein_genome` to the target organism.
 
 ### Read Filtering and Duplication
 
-After alignment using Bowtie2 reads are filtered for mapped reads that pass a minimum quality threshold. This can be changed using the `minimum_alignment_q_score` parameter.
+After alignment using Bowtie2, mapped reads are filtered to remove those which do not pass a minimum quality threshold. This threshold can be changed using the `minimum_alignment_q_score` parameter.
 
 CUT&RUN and CUT&Tag both integrate adapters into the vicinity of antibody-tethered enzymes, and the exact sites of integration are affected by the accessibility of surrounding DNA. Given these experimental parameters, it is expected that there are many fragments which share common starting and end positions; thus, such duplicates are generally valid but would be filtered out by de-duplication tools. However, there will be a fraction of fragments that are present due to PCR duplication that cannot be separated.
 

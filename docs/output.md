@@ -89,15 +89,15 @@ We perform FastQC on reads before and after trimming. The descriptions below app
 
 This first FastQC report provides a first look at how many reads your FASTQ files contain. Predicted duplicates are also shown in black however, we recommend using the PICARD duplicate reports as they are more detailed and accurate.
 
-As a general rule of thumb for an abundant epitope like H3K27Me3, we recommend no fewer than 5M aligned reads, the sequence counts must reflect this number plus any unaligned error reads. Assuming a max alignment error rate of 20%, we recommend a minimum read count of 6M raw reads. Less abundant epitopes may require deeper sequencing for a good signal.
+As a general rule of thumb for an abundant epitope like H3K27me3, we recommend no fewer than 5M aligned reads, the sequence counts must reflect this number plus any unaligned error reads. Assuming a max alignment error rate of 20%, we recommend a minimum read count of 6M raw reads. Less abundant epitopes may require deeper sequencing for a good signal.
 
-Other things to look out for in this plot is the consistency of reads across your various groups and replicates. Large differences in the number of reads within biological replicates may be indicative of human error, problems with the wet-lab protocol or with the sequencing process.
+Another thing to look out for in this plot is the consistency of reads across your various groups and replicates. Large differences in the number of reads between biological replicates may be indicative of technical variation arising due to human error, or problems with the wet-lab protocol or sequencing process.
 
 ![MultiQC - FastQC sequence counts plot](images/output/mqc_01_fastqc_sequence_counts.png)
 
 #### 2.4.1. <a name='SequenceQuality'></a>Sequence Quality
 
-FastQC provides several reports that look at sequence quality from different views. The mean quality scores plot shows the sequence quality along the length of the read. It is normal to see some drop off in quality towards the end of the read, especially with long-read sequencing (150 b.p.). The plot should be green and with modern sequencing on good quality samples, should be > 30 throughout the majority of the read. There are many factors that affect the read quality but users can expect drops in average score as they move towards primary tissue or other tissue types that are difficult to sequence.
+FastQC provides several reports that look at sequence quality from different views. The mean quality scores plot shows the sequence quality along the length of the read. It is normal to see some drop off in quality towards the end of the read, especially with long-read sequencing (150 b.p.). The plot should be green and with modern sequencing on good quality samples, should be > 30 throughout the majority of the read. There are many factors that affect the read quality but users can expect drops in average score when working with primary tissue or other tissues that are difficult to sequence.
 
 ![mqc_02_fastqc_per_base_sequence_quality](images/output/mqc_02_fastqc_per_base_sequence_quality.png)
 
@@ -105,7 +105,7 @@ The Per-sequence quality score report shows a different view of sequencing quali
 
 ![f](images/output/mqc_03_fastqc_per_sequence_quality_scores.png)
 
-The Per-base sequence quality report is not applicable to CUT&RUN data generally. Any discordant sequence content at the beginning of the reads are common phenomenon for CUT&RUN reads. Failing to pass the Per base sequence content does not mean your data failed. It can be due to Tn5 preferential binding or what you might be detecting is the 10-bp periodicity that shows up as a sawtooth pattern in the length distribution. If so, this is normal and will not affect alignment or peak calling.
+The Per-base sequence quality report is not applicable to CUT&RUN data generally. Any discordant sequence content at the beginning of the reads is a common phenomenon for CUT&RUN reads. Failing to pass the Per-base sequence content does not mean your data failed. It can be due to Tn5 preferential binding or what you might be detecting is the 10-bp periodicity that shows up as a sawtooth pattern in the length distribution. If so, this is normal and will not affect alignment or peak calling.
 
 The Per-sequence GC content report shows the distribution of the GC content of all reads in a sample. This should be centred around the average GC content % for your target organism.
 
@@ -119,13 +119,13 @@ An unusually shaped distribution such as one with dual peaks could indicate a co
 
 FastQC provides three reports that focus on overrepresented sequences at the read level. All three must be looked at both before and after trimming to gain a detailed view of the types of sequence duplication that your samples contain.
 
-A normal high-throughput library will contain a diverse set of sequences with no individual sequence making up a large fraction of the whole. Finding that a single sequence is overrepresented in the set either means that it is biologically significant, or indicates that the library is contaminated, or not as diverse as you expected.
+A normal high-throughput library will contain a diverse set of sequences with no individual sequence making up a large fraction of the whole library. Finding that a single sequence is overrepresented can be biologically significant, however it also often indicates that the library is contaminated, or is not as diverse as expected.
 
 The sequence duplication level plot shows percentages of the library that has a particular range of duplication counts. For example, the plot below shows that for some samples ~10% of the library has > 100 duplicated sequences. While not particularly informative on its own, if problems are identified in subsequent reports, it can help to identify the scale of the duplication problem.
 
 ![plot](images/output/mqc_06_fastqc_sequence_duplication_levels.png)
 
-The second two reports must be analysed together both before and after trimming for maximum insight. The first report, overrepresented sequences, shows the percentage of identified sequences in each library; the second, adapter content, shows a cumulative plot of adapter content at each base position. Due to the short insert length for CUT&RUN, short read length sequencing (25 b.p.) is possible for samples; consequently, when the sequencing length increases, more of the sequencing adapters will be sequenced. Adaptor sequences should always be trimmed off, therefore, it is important to look at both of these plots after trimming as well to check that the adapter content has been removed and there are only small levels of overrepresented sequences. A clear adapter content plot after trimming but where there are still significant levels of overrepresented sequences could indicate something biologically significant or experimental error such as contamination.
+The second two reports must be analysed together both before and after trimming for maximum insight. The first report, overrepresented sequences, shows the percentage of identified sequences in each library; the second, adapter content, shows a cumulative plot of adapter content at each base position. Due to the short insert length for CUT&RUN, short read length sequencing (25 b.p.) is possible for samples; consequently, when the sequencing length increases, more of the sequencing adapters will be sequenced. Adapter sequences should always be trimmed off, therefore, it is important to look at both of these plots after trimming as well to check that the adapter content has been removed and there are only small levels of overrepresented sequences. A clear adapter content plot after trimming but where there are still significant levels of overrepresented sequences could indicate something biologically significant or experimental error such as contamination.
 
 **A 25 b.p CUT&Tag experiment with clear reports even before trimming**
 
@@ -269,7 +269,7 @@ Principal component analysis (PCA) can be used, for example, to determine whethe
 
 Descriptions taken from the deepTools [manual](https://deeptools.readthedocs.io/en/develop/content/tools/plotFingerprint.html)
 
-This tool is based on a method developed by [Diaz et al.](http://www.ncbi.nlm.nih.gov/pubmed/22499706). It determines how well the signal in the CUT&RUN/Tag sample can be differentiated from the background distribution of reads in the control sample. For factors that will enrich well-defined, rather narrow regions (e.g. transcription factors such as p300), the resulting plot can be used to assess the strength of a CUT&RUN experiment, but the broader the enrichments are to be expected, the less clear the plot will be. Vice versa, if you do not know what kind of signal to expect, the fingerprint plot will give you a straight-forward indication of how careful you will have to be during your downstream analyses to separate biological noise from meaningful signal.
+This tool is based on a method developed by [Diaz et al.](http://www.ncbi.nlm.nih.gov/pubmed/22499706). It determines how well the signal in the CUT&RUN/Tag sample can be differentiated from the background distribution of reads in the control sample. For factors that exhibit enrichment of well-defined and relatively narrow regions (e.g. transcription factors such as p300), the resulting plot can be used to assess the strength of a CUT&RUN experiment. However, when broad regions of enrichment are to be expected, the less clear the plot will be. Vice versa, if you do not know what kind of signal to expect, the fingerprint plot will give you a straight-forward indication of how careful you will have to be during your downstream analyses to separate noise from meaningful biological signal.
 
 ![plot](images/output/deeptools_fingerprint_plot.png)
 
@@ -279,7 +279,7 @@ This tool is based on a method developed by [Diaz et al.](http://www.ncbi.nlm.n
 
 Descriptions taken from the deepTools [manual](https://deeptools.readthedocs.io/en/develop/content/tools/plotCorrelation.html)
 
-Computes the overall similarity between two or more samples based on read coverage within genomic regions The result of the correlation computation is a table of correlation coefficients that indicates how “strong” the relationship between two samples is and it will consist of numbers between -1 and 1. (-1 indicates perfect anti-correlation, 1 perfect correlation.)
+Computes the overall similarity between two or more samples based on read coverage within genomic regions. The result of the correlation computation is a table of correlation coefficients that indicates how “strong” the relationship between two samples is (values are between -1 and 1: -1 indicates perfect anti-correlation, 1 perfect correlation.)
 
 ![plot](images/output/deeptools_correlation_plot.png)
 
@@ -344,7 +344,7 @@ Once the peak calling process is complete, we run a separate set of reports that
 
 For both the sample peaks and the consensus peaks, a simple count is taken. At the sample level, it is important to see consistency between peak counts of biological replicates. It is the first indicator of whether you replicates samples agree with each other after all of the processing has completed. If you use the consensus peaks and use a replicate threshold of more than 1, it is also important to see how many of your peaks across replicates have translated into consensus peaks.
 
-In the image below we see comparable peak counts for the h3k27me3 dataset, but a large disparity for the h3k4me3.
+In the image below we see comparable peak counts for the H3K27me3 dataset, but a large disparity for the H3K4me3.
 
 ![plot](images/output/mqc_20_primary_peakcounts.png)
 
@@ -352,7 +352,7 @@ In the image below we see comparable peak counts for the h3k27me3 dataset, but a
 
 The peak reproducibility report intersects all samples within a group using `bedtools intersect` with a minimum overlap controlled by `min_peak_overlap`. This report is useful along with the peak count report for estimating how reliable the peaks called are between your biological replicates.
 
-For example, in the image below when combined with the peak count information we see that although the h3k27me3 replicates both have similar peak counts, < 30% of the peaks are replicated across the replicate set. For h3k4me3, we see that replicate 1 has a small number of peaks called, but that almost 100% of those peaks are replicated in the second replicate. Replicate 2 has < 20% of its replicates reproduced in replicate 1 but by looking at the peak counts we can see this is due to the low number of peaks called.
+For example, in the image below when combined with the peak count information we see that although the H3K27me3 replicates both have similar peak counts, < 30% of the peaks are replicated across the replicate set. For H3K4me3, we see that replicate 1 has a small number of peaks called, but that almost 100% of those peaks are replicated in the second replicate. Replicate 2 has < 20% of its replicates reproduced in replicate 1 but by looking at the peak counts we can see this is due to the low number of peaks called.
 
 ![plot](images/output/mqc_22_primary_peakrepro.png)
 

@@ -23,7 +23,7 @@ process CALCULATE_PEAK_REPROD {
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """
-    peak_reproducability.py \\
+    peak_reproducibility.py \\
         --sample_id $meta.id \\
         --intersect $bed \\
         --threads ${task.cpus} \\
