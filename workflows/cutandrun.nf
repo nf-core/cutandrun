@@ -124,9 +124,9 @@ include { PEAK_QC                                          } from "../subworkflo
  */
 include { CAT_FASTQ                                                } from "../modules/nf-core/cat/fastq/main"
 include { PRESEQ_LCEXTRAP                                          } from "../modules/local/for_patch/preseq/lcextrap/main"
-include { SEACR_CALLPEAK                                           } from "../modules/nf-core/seacr/callpeak/main"
+include { SEACR_CALLPEAK as SEACR_CALLPEAK_IGG                     } from "../modules/nf-core/seacr/callpeak/main"
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/seacr/callpeak/main"
-include { MACS2_CALLPEAK                                           } from "../modules/nf-core/macs2/callpeak/main"
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_IGG                     } from "../modules/nf-core/macs2/callpeak/main"
 include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/macs2/callpeak/main"
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/deeptools/computematrix/main"
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/deeptools/computematrix/main"
@@ -454,14 +454,14 @@ workflow CUTANDRUN {
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
                 //ch_bedgraph_paired | view
 
-                SEACR_CALLPEAK (
+                SEACR_CALLPEAK_IGG (
                     ch_bedgraph_paired,
                     params.seacr_peak_threshold
                 )
-                ch_seacr_peaks       = SEACR_CALLPEAK.out.bed
-                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
+                ch_seacr_peaks       = SEACR_CALLPEAK_IGG.out.bed
+                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_IGG.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
-                //SEACR_CALLPEAK.out.bed | view
+                //SEACR_CALLPEAK_IGG.out.bed | view
             }
 
             if('macs2' in callers) {
@@ -491,15 +491,15 @@ workflow CUTANDRUN {
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
                 // ch_bam_paired | view
 
-                MACS2_CALLPEAK (
+                MACS2_CALLPEAK_IGG (
                     ch_bam_paired,
                     params.macs_gsize
                 )
-                ch_macs2_peaks       = MACS2_CALLPEAK.out.peak
-                ch_peaks_summits     = MACS2_CALLPEAK.out.bed
-                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+                ch_macs2_peaks       = MACS2_CALLPEAK_IGG.out.peak
+                ch_peaks_summits     = MACS2_CALLPEAK_IGG.out.bed
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_IGG.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
-                //MACS2_CALLPEAK.out.peak | view
+                //MACS2_CALLPEAK_IGG.out.peak | view
             }
         }
         else {
