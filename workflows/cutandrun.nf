@@ -100,7 +100,7 @@ include { FRAG_LEN_HIST                   } from "../modules/local/python/frag_l
 include { MULTIQC                         } from "../modules/local/multiqc"
 
 /*
- * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
+ * SUBWORKFLOWS
  */
 include { PREPARE_GENOME                                   } from "../subworkflows/local/prepare_genome"
 include { FASTQC_TRIMGALORE                                } from "../subworkflows/local/fastqc_trimgalore"
@@ -108,10 +108,15 @@ include { ALIGN_BOWTIE2                                    } from "../subworkflo
 include { EXTRACT_METADATA_AWK as EXTRACT_BT2_TARGET_META  } from "../subworkflows/local/extract_metadata_awk"
 include { EXTRACT_METADATA_AWK as EXTRACT_BT2_SPIKEIN_META } from "../subworkflows/local/extract_metadata_awk"
 include { EXTRACT_METADATA_AWK as EXTRACT_PICARD_DUP_META  } from "../subworkflows/local/extract_metadata_awk"
+include { MARK_DUPLICATES_PICARD                           } from "../subworkflows/local/mark_duplicates_picard"
+include { MARK_DUPLICATES_PICARD as DEDUPLICATE_PICARD     } from "../subworkflows/local/mark_duplicates_picard"
 include { CONSENSUS_PEAKS                                  } from "../subworkflows/local/consensus_peaks"
 include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL           } from "../subworkflows/local/consensus_peaks"
 include { EXTRACT_FRAGMENTS                                } from "../subworkflows/local/extract_fragments"
+include { PREPARE_PEAKCALLING                              } from "../subworkflows/local/prepare_peakcalling"
+include { DEEPTOOLS_QC                                     } from "../subworkflows/local/deeptools_qc"
 include { PEAK_QC                                          } from "../subworkflows/local/peak_qc"
+include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS         } from "../subworkflows/local/samtools_view_sort_stats"
 
 /*
 ========================================================================================
@@ -135,13 +140,9 @@ include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../mo
 include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/custom_dumpsoftwareversions"
 
 /*
- * SUBWORKFLOW: Consisting entirely of nf-core/modules
+ * SUBWORKFLOWS
  */
-include { MARK_DUPLICATES_PICARD                       } from "../subworkflows/nf-core/mark_duplicates_picard"
-include { MARK_DUPLICATES_PICARD as DEDUPLICATE_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"
-include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS     } from "../subworkflows/nf-core/samtools_view_sort_stats"
-include { PREPARE_PEAKCALLING                          } from "../subworkflows/nf-core/prepare_peakcalling"
-include { DEEPTOOLS_QC                                 } from "../subworkflows/nf-core/deeptools_qc"
+
 
 /*
 ========================================================================================

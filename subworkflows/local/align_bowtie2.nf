@@ -4,8 +4,8 @@
 
 include { BOWTIE2_ALIGN as BOWTIE2_TARGET_ALIGN          } from '../../modules/nf-core/bowtie2/align/main'
 include { BOWTIE2_ALIGN as BOWTIE2_SPIKEIN_ALIGN         } from '../../modules/nf-core/bowtie2/align/main'
-include { BAM_SORT_SAMTOOLS                              } from '../nf-core/bam_sort_samtools'
-include { BAM_SORT_SAMTOOLS as BAM_SORT_SAMTOOLS_SPIKEIN } from '../nf-core/bam_sort_samtools'
+include { BAM_SORT_SAMTOOLS                              } from '../nf-core/bam_sort_samtools/main'
+include { BAM_SORT_SAMTOOLS as BAM_SORT_SAMTOOLS_SPIKEIN } from '../nf-core/bam_sort_samtools/main'
 
 workflow ALIGN_BOWTIE2 {
     take:
