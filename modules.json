@@ -55,6 +55,16 @@
                         "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
                         "installed_by": ["modules"]
                     },
+                    "deeptools/multibamsummary": {
+                        "branch": "master",
+                        "git_sha": "ab3ac47444f4900a31b2e7fc2fd539ada21dfba1",
+                        "installed_by": ["modules"]
+                    },
+                    "deeptools/plotcorrelation": {
+                        "branch": "master",
+                        "git_sha": "ab3ac47444f4900a31b2e7fc2fd539ada21dfba1",
+                        "installed_by": ["modules"]
+                    },
                     "deeptools/plotfingerprint": {
                         "branch": "master",
                         "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
@@ -63,6 +73,11 @@
                     "deeptools/plotheatmap": {
                         "branch": "master",
                         "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "installed_by": ["modules"]
+                    },
+                    "deeptools/plotpca": {
+                        "branch": "master",
+                        "git_sha": "ab3ac47444f4900a31b2e7fc2fd539ada21dfba1",
                         "installed_by": ["modules"]
                     },
                     "fastqc": {

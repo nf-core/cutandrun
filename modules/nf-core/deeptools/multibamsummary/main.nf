@@ -1,6 +1,6 @@
-process DEEPTOOLS_PLOTCORRELATION {
+process DEEPTOOLS_MULTIBAMSUMMARY {
     tag "$meta.id"
-    label 'process_low'
+    label 'process_high'
 
     conda (params.enable_conda ? 'bioconda::deeptools=3.5.1' : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -8,29 +8,29 @@ process DEEPTOOLS_PLOTCORRELATION {
         'quay.io/biocontainers/deeptools:3.5.1--py_0' }"
 
     input:
-    tuple val(meta), path(matrix)
+    tuple val(meta), path(bams), path(bais), val(labels)
 
     output:
-    tuple val(meta), path("*.pdf"), emit: pdf
-    tuple val(meta), path("*.tab"), emit: matrix
-    path  "versions.yml"          , emit: versions
+    tuple val(meta), path("*.npz") , emit: matrix
+    path  "versions.yml"           , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def label = labels ? "--labels ${labels.join(' ')}" : ''
     """
-    plotCorrelation \\
+    multiBamSummary bins \\
         $args \\
-        --corData $matrix \\
-        --plotFile ${prefix}.plotCorrelation.pdf \\
-        --outFileCorMatrix ${prefix}.plotCorrelation.mat.tab
+        $label \\
+        --bamfiles ${bams.join(' ')} \\
+        --numberOfProcessors $task.cpus \\
+        --outFileName all_bam.bamSummary.npz
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        deeptools: \$(plotCorrelation --version | sed -e "s/plotCorrelation //g")
+        deeptools: \$(multiBamSummary --version | sed -e "s/multiBamSummary //g")
     END_VERSIONS
     """
 }
