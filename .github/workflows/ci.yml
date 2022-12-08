@@ -32,7 +32,7 @@ jobs:
       CAPSULE_LOG: none
     strategy:
       matrix:
-        NXF_VER: ["21.10.3", ""]
+        NXF_VER: ["22.10.1", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v3
@@ -74,10 +74,10 @@ jobs:
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        NXF_VER: ["21.10.3", ""]
+        NXF_VER: ["22.10.1", ""]
     steps:
       - name: Check out pipeline code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Nextflow
         run: |
@@ -114,7 +114,7 @@ jobs:
       CAPSULE_LOG: none
     steps:
       - name: Check out pipeline code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v1
@@ -152,7 +152,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NXF_VER: ["21.10.3", ""]
+        NXF_VER: ["22.10.1", ""]
         tags:
           - test_genome_options
           - test_samplesheet
@@ -205,7 +205,7 @@ jobs:
           - verify_output_reporting_skip_reporting
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v2
@@ -213,7 +213,7 @@ jobs:
           python-version: "3.x"
 
       - name: Setup Pip Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -224,7 +224,7 @@ jobs:
         run: python -m pip install --upgrade pip pytest-workflow
 
       - name: Restore Keys
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: /usr/local/bin/nextflow
           key: ${{ runner.os }}-nextflow-${{ matrix.nxf_version }}
