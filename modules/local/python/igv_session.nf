@@ -4,7 +4,7 @@ process IGV_SESSION {
     tag "igv"
     label 'process_min'
 
-    conda     (params.enable_conda ? "conda-forge::python=3.8.3" : null)
+    conda "conda-forge::python=3.8.3"
     container "quay.io/biocontainers/python:3.8.3"
 
     input:
