@@ -203,6 +203,7 @@ workflow PREPARE_GENOME {
 
     emit:
     fasta                  = ch_fasta                    // path: genome.fasta
+    spikein_fasta          = ch_spikein_fasta            // path: genome.fasta
     fasta_index            = ch_fasta_index              // path: genome.fai
     chrom_sizes            = ch_chrom_sizes              // path: genome.sizes
     spikein_chrom_sizes    = ch_spikein_chrom_sizes      // path: genome.sizes

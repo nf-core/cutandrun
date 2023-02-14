@@ -9,8 +9,9 @@ include { DEEPTOOLS_PLOTFINGERPRINT } from '../../modules/nf-core/deeptools/plot
 
 workflow DEEPTOOLS_QC {
     take:
-    bam // channel: [ val(meta), [ bam ] ]
-    bai // channel: [ val(meta), [ bai ] ]
+    bam         // channel: [ val(meta), [ bam ] ]
+    bai         // channel: [ val(meta), [ bai ] ]
+    corr_method // val
 
     main:
     ch_versions = Channel.empty()
@@ -62,7 +63,9 @@ workflow DEEPTOOLS_QC {
     * MODULE: Plot correlation matrix
     */
     DEEPTOOLS_PLOTCORRELATION (
-        DEEPTOOLS_MULTIBAMSUMMARY.out.matrix
+        DEEPTOOLS_MULTIBAMSUMMARY.out.matrix,
+        corr_method,
+        "heatmap"
     )
     ch_versions = ch_versions.mix(DEEPTOOLS_PLOTCORRELATION.out.versions)
     //DEEPTOOLS_MULTIBAMSUMMARY.out.matrix | view

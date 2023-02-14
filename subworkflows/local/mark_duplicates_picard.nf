@@ -9,6 +9,8 @@ workflow MARK_DUPLICATES_PICARD {
     take:
     bam            // channel: [ val(meta), [ bam ] ]
     process_target // boolean
+    fasta          // channel: [ fasta ]
+    fai            // channel: [ fai ]
 
     main:
     /*
@@ -18,7 +20,11 @@ workflow MARK_DUPLICATES_PICARD {
     metrics     = Channel.empty()
     ch_versions = Channel.empty()
     if( process_target ) {
-        PICARD_MARKDUPLICATES ( bam )
+        PICARD_MARKDUPLICATES ( 
+            bam,
+            fasta,
+            fai
+        )
         ch_bam      = PICARD_MARKDUPLICATES.out.bam
         metrics     = PICARD_MARKDUPLICATES.out.metrics
         ch_versions = ch_versions.mix( PICARD_MARKDUPLICATES.out.versions )
@@ -32,7 +38,11 @@ workflow MARK_DUPLICATES_PICARD {
         //ch_split.target | view
         //ch_split.control | view
 
-        PICARD_MARKDUPLICATES ( ch_split.control )
+        PICARD_MARKDUPLICATES ( 
+            ch_split.control,
+            fasta,
+            fai
+        )
 
         // Prevents issues with resume with the branch elements coming in the wrong order
         ch_sorted_targets = ch_split.target
@@ -53,7 +63,8 @@ workflow MARK_DUPLICATES_PICARD {
     * WORKFLOW: Re sort and index all the bam files + calculate stats
     */
     BAM_SORT_STATS_SAMTOOLS (
-        ch_bam 
+        ch_bam,
+        fasta
     )
 
     emit:

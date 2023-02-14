@@ -9,8 +9,9 @@ include { BAM_STATS_SAMTOOLS } from '../nf-core/bam_stats_samtools'
 
 workflow SAMTOOLS_VIEW_SORT_STATS {
     take:
-    bam       // channel: [ val(meta), [ bam ] ]
-    regions   // channel: [ regions ]
+    bam     // channel: [ val(meta), [ bam ] ]
+    regions // channel: [ regions ]
+    fasta   // channel: [ fasta ]
 
     main:
     ch_versions = Channel.empty()
@@ -37,7 +38,7 @@ workflow SAMTOOLS_VIEW_SORT_STATS {
     ch_bai_sample_id = SAMTOOLS_INDEX.out.bai.map { row -> [row[0].id, row] }
     ch_bam_bai = ch_bam_sample_id.join(ch_bai_sample_id, by: [0]).map {row -> [row[1][0], row[1][1], row[2][1]]}
 
-    BAM_STATS_SAMTOOLS ( ch_bam_bai )
+    BAM_STATS_SAMTOOLS ( ch_bam_bai, fasta )
     ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     emit:

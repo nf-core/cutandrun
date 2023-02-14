@@ -243,7 +243,9 @@ workflow CUTANDRUN {
             ALIGN_BOWTIE2 (
                 ch_trimmed_reads,
                 PREPARE_GENOME.out.bowtie2_index,
-                PREPARE_GENOME.out.bowtie2_spikein_index
+                PREPARE_GENOME.out.bowtie2_spikein_index,
+                PREPARE_GENOME.out.fasta.collect{it[1]},
+                PREPARE_GENOME.out.spikein_fasta.collect{it[1]}
             )
             ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.versions)
             ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
@@ -302,7 +304,8 @@ workflow CUTANDRUN {
     if (params.run_read_filter) {
         FILTER_READS (
             ch_samtools_bam,
-            PREPARE_GENOME.out.allowed_regions.collect{it[1]}.ifEmpty([])
+            PREPARE_GENOME.out.allowed_regions.collect{it[1]}.ifEmpty([]),
+            PREPARE_GENOME.out.fasta.collect{it[1]}
         )
         ch_samtools_bam      = FILTER_READS.out.bam
         ch_samtools_bai      = FILTER_READS.out.bai
@@ -333,7 +336,9 @@ workflow CUTANDRUN {
     if (params.run_mark_dups) {
         MARK_DUPLICATES_PICARD (
             ch_samtools_bam,
-            true
+            true,
+            PREPARE_GENOME.out.fasta.collect{it[1]},
+            PREPARE_GENOME.out.fasta_index.collect{it[1]}
         )
         ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
         ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
@@ -352,7 +357,9 @@ workflow CUTANDRUN {
     if (params.run_remove_dups) {
         DEDUPLICATE_PICARD (
             ch_samtools_bam,
-            params.dedup_target_reads
+            params.dedup_target_reads,
+            PREPARE_GENOME.out.fasta.collect{it[1]},
+            PREPARE_GENOME.out.fasta_index.collect{it[1]}
         )
         ch_samtools_bam      = DEDUPLICATE_PICARD.out.bam
         ch_samtools_bai      = DEDUPLICATE_PICARD.out.bai
@@ -755,7 +762,8 @@ workflow CUTANDRUN {
             */
             DEEPTOOLS_QC (
                 ch_samtools_bam,
-                ch_samtools_bai
+                ch_samtools_bai,
+                params.dt_qc_corr_method
             )
             ch_dt_corrmatrix     = DEEPTOOLS_QC.out.correlation_matrix
             ch_dt_pcadata        = DEEPTOOLS_QC.out.pca_data
