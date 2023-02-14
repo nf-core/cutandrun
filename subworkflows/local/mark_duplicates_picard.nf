@@ -2,8 +2,8 @@
  * Picard MarkDuplicates, sort, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-include { PICARD_MARKDUPLICATES } from '../../modules/nf-core/picard/markduplicates/main'
-include { BAM_SORT_SAMTOOLS     } from './bam_sort_samtools'
+include { PICARD_MARKDUPLICATES   } from '../../modules/nf-core/picard/markduplicates/main'
+include { BAM_SORT_STATS_SAMTOOLS } from '../nf-core/bam_sort_stats_samtools/main'
 
 workflow MARK_DUPLICATES_PICARD {
     take:
@@ -52,17 +52,17 @@ workflow MARK_DUPLICATES_PICARD {
     /*
     * WORKFLOW: Re sort and index all the bam files + calculate stats
     */
-    BAM_SORT_SAMTOOLS ( 
+    BAM_SORT_STATS_SAMTOOLS (
         ch_bam 
     )
 
     emit:
-    bam      = BAM_SORT_SAMTOOLS.out.bam        // channel: [ val(meta), [ bam ] ]
-    bai      = BAM_SORT_SAMTOOLS.out.bai        // channel: [ val(meta), [ bai ] ]
-    stats    = BAM_SORT_SAMTOOLS.out.stats      // channel: [ val(meta), [ stats ] ]
-    flagstat = BAM_SORT_SAMTOOLS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
-    idxstats = BAM_SORT_SAMTOOLS.out.idxstats   // channel: [ val(meta), [ idxstats ] ]
-    metrics                                     // channel: [ val(meta), [ metrics ] ]
+    bam      = BAM_SORT_STATS_SAMTOOLS.out.bam        // channel: [ val(meta), [ bam ] ]
+    bai      = BAM_SORT_STATS_SAMTOOLS.out.bai        // channel: [ val(meta), [ bai ] ]
+    stats    = BAM_SORT_STATS_SAMTOOLS.out.stats      // channel: [ val(meta), [ stats ] ]
+    flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
+    idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats   // channel: [ val(meta), [ idxstats ] ]
+    metrics                                           // channel: [ val(meta), [ metrics ] ]
 
-    versions = ch_versions                      // channel: [ versions.yml ]
+    versions = ch_versions                            // channel: [ versions.yml ]
 }
