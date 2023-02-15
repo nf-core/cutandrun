@@ -346,7 +346,7 @@
                     "type": "number",
                     "default": 0.05,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "SEACR specifies a numeric threshold of n between 0 and 1 returns the top n fraction of peaks based on total signal within peaks. This is only used if there are no controls included with the samples, or if `--use_control` is `false`"
+                    "description": "SEACR specifies a numeric threshold of n between 0 and 1 returns the top n fraction of peaks based on total signal within peaks. This is only used if there are no controls included with the samples and if `--use_control` is `false`"
                 },
                 "seacr_norm": {
                     "type": "string",
