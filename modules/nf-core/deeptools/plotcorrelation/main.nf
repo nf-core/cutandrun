@@ -2,13 +2,16 @@ process DEEPTOOLS_PLOTCORRELATION {
     tag "$meta.id"
     label 'process_low'
 
-    conda (params.enable_conda ? 'bioconda::deeptools=3.5.1' : null)
+    conda "bioconda::deeptools=3.5.1"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/deeptools:3.5.1--py_0' :
         'quay.io/biocontainers/deeptools:3.5.1--py_0' }"
 
     input:
     tuple val(meta), path(matrix)
+    val(method)
+    val(plot_type)
+
 
     output:
     tuple val(meta), path("*.pdf"), emit: pdf
@@ -21,10 +24,14 @@ process DEEPTOOLS_PLOTCORRELATION {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
+    def resolved_method = method ?: 'spearman'
+    def resolved_plot_type = plot_type ?: 'heatmap'
     """
     plotCorrelation \\
         $args \\
         --corData $matrix \\
+        --corMethod $resolved_method \\
+        --whatToPlot $resolved_plot_type \\
         --plotFile ${prefix}.plotCorrelation.pdf \\
         --outFileCorMatrix ${prefix}.plotCorrelation.mat.tab
 

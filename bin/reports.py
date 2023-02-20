@@ -39,6 +39,7 @@ def init_logger(app_name, log_file=None):
 # ========================================================================================
 # */
 
+
 # Input a collection of file tables from different samples and append the sample ids, then output one table
 def merge_samples(args):
     # Init

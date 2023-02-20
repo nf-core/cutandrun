@@ -100,7 +100,7 @@ include { FRAG_LEN_HIST                   } from "../modules/local/python/frag_l
 include { MULTIQC                         } from "../modules/local/multiqc"
 
 /*
- * SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
+ * SUBWORKFLOWS
  */
 include { PREPARE_GENOME                                   } from "../subworkflows/local/prepare_genome"
 include { FASTQC_TRIMGALORE                                } from "../subworkflows/local/fastqc_trimgalore"
@@ -108,10 +108,15 @@ include { ALIGN_BOWTIE2                                    } from "../subworkflo
 include { EXTRACT_METADATA_AWK as EXTRACT_BT2_TARGET_META  } from "../subworkflows/local/extract_metadata_awk"
 include { EXTRACT_METADATA_AWK as EXTRACT_BT2_SPIKEIN_META } from "../subworkflows/local/extract_metadata_awk"
 include { EXTRACT_METADATA_AWK as EXTRACT_PICARD_DUP_META  } from "../subworkflows/local/extract_metadata_awk"
+include { MARK_DUPLICATES_PICARD                           } from "../subworkflows/local/mark_duplicates_picard"
+include { MARK_DUPLICATES_PICARD as DEDUPLICATE_PICARD     } from "../subworkflows/local/mark_duplicates_picard"
 include { CONSENSUS_PEAKS                                  } from "../subworkflows/local/consensus_peaks"
 include { CONSENSUS_PEAKS as CONSENSUS_PEAKS_ALL           } from "../subworkflows/local/consensus_peaks"
 include { EXTRACT_FRAGMENTS                                } from "../subworkflows/local/extract_fragments"
+include { PREPARE_PEAKCALLING                              } from "../subworkflows/local/prepare_peakcalling"
+include { DEEPTOOLS_QC                                     } from "../subworkflows/local/deeptools_qc"
 include { PEAK_QC                                          } from "../subworkflows/local/peak_qc"
+include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS         } from "../subworkflows/local/samtools_view_sort_stats"
 
 /*
 ========================================================================================
@@ -124,9 +129,9 @@ include { PEAK_QC                                          } from "../subworkflo
  */
 include { CAT_FASTQ                                                } from "../modules/nf-core/cat/fastq/main"
 include { PRESEQ_LCEXTRAP                                          } from "../modules/local/for_patch/preseq/lcextrap/main"
-include { SEACR_CALLPEAK                                           } from "../modules/nf-core/seacr/callpeak/main"
+include { SEACR_CALLPEAK as SEACR_CALLPEAK_IGG                     } from "../modules/nf-core/seacr/callpeak/main"
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/seacr/callpeak/main"
-include { MACS2_CALLPEAK                                           } from "../modules/nf-core/macs2/callpeak/main"
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_IGG                     } from "../modules/nf-core/macs2/callpeak/main"
 include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/macs2/callpeak/main"
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/deeptools/computematrix/main"
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/deeptools/computematrix/main"
@@ -135,13 +140,9 @@ include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../mo
 include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/custom_dumpsoftwareversions"
 
 /*
- * SUBWORKFLOW: Consisting entirely of nf-core/modules
+ * SUBWORKFLOWS
  */
-include { MARK_DUPLICATES_PICARD                       } from "../subworkflows/nf-core/mark_duplicates_picard"
-include { MARK_DUPLICATES_PICARD as DEDUPLICATE_PICARD } from "../subworkflows/nf-core/mark_duplicates_picard"
-include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS     } from "../subworkflows/nf-core/samtools_view_sort_stats"
-include { PREPARE_PEAKCALLING                          } from "../subworkflows/nf-core/prepare_peakcalling"
-include { DEEPTOOLS_QC                                 } from "../subworkflows/nf-core/deeptools_qc"
+
 
 /*
 ========================================================================================
@@ -242,7 +243,9 @@ workflow CUTANDRUN {
             ALIGN_BOWTIE2 (
                 ch_trimmed_reads,
                 PREPARE_GENOME.out.bowtie2_index,
-                PREPARE_GENOME.out.bowtie2_spikein_index
+                PREPARE_GENOME.out.bowtie2_spikein_index,
+                PREPARE_GENOME.out.fasta.collect{it[1]},
+                PREPARE_GENOME.out.spikein_fasta.collect{it[1]}
             )
             ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.versions)
             ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
@@ -301,7 +304,8 @@ workflow CUTANDRUN {
     if (params.run_read_filter) {
         FILTER_READS (
             ch_samtools_bam,
-            PREPARE_GENOME.out.allowed_regions.collect{it[1]}.ifEmpty([])
+            PREPARE_GENOME.out.allowed_regions.collect{it[1]}.ifEmpty([]),
+            PREPARE_GENOME.out.fasta.collect{it[1]}
         )
         ch_samtools_bam      = FILTER_READS.out.bam
         ch_samtools_bai      = FILTER_READS.out.bai
@@ -332,7 +336,9 @@ workflow CUTANDRUN {
     if (params.run_mark_dups) {
         MARK_DUPLICATES_PICARD (
             ch_samtools_bam,
-            true
+            true,
+            PREPARE_GENOME.out.fasta.collect{it[1]},
+            PREPARE_GENOME.out.fasta_index.collect{it[1]}
         )
         ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
         ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
@@ -351,7 +357,9 @@ workflow CUTANDRUN {
     if (params.run_remove_dups) {
         DEDUPLICATE_PICARD (
             ch_samtools_bam,
-            params.dedup_target_reads
+            params.dedup_target_reads,
+            PREPARE_GENOME.out.fasta.collect{it[1]},
+            PREPARE_GENOME.out.fasta_index.collect{it[1]}
         )
         ch_samtools_bam      = DEDUPLICATE_PICARD.out.bam
         ch_samtools_bai      = DEDUPLICATE_PICARD.out.bai
@@ -454,14 +462,14 @@ workflow CUTANDRUN {
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
                 //ch_bedgraph_paired | view
 
-                SEACR_CALLPEAK (
+                SEACR_CALLPEAK_IGG (
                     ch_bedgraph_paired,
                     params.seacr_peak_threshold
                 )
-                ch_seacr_peaks       = SEACR_CALLPEAK.out.bed
-                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK.out.versions)
+                ch_seacr_peaks       = SEACR_CALLPEAK_IGG.out.bed
+                ch_software_versions = ch_software_versions.mix(SEACR_CALLPEAK_IGG.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
-                //SEACR_CALLPEAK.out.bed | view
+                //SEACR_CALLPEAK_IGG.out.bed | view
             }
 
             if('macs2' in callers) {
@@ -491,15 +499,15 @@ workflow CUTANDRUN {
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
                 // ch_bam_paired | view
 
-                MACS2_CALLPEAK (
+                MACS2_CALLPEAK_IGG (
                     ch_bam_paired,
                     params.macs_gsize
                 )
-                ch_macs2_peaks       = MACS2_CALLPEAK.out.peak
-                ch_peaks_summits     = MACS2_CALLPEAK.out.bed
-                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK.out.versions)
+                ch_macs2_peaks       = MACS2_CALLPEAK_IGG.out.peak
+                ch_peaks_summits     = MACS2_CALLPEAK_IGG.out.bed
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_IGG.out.versions)
                 // EXAMPLE CHANNEL STRUCT: [[META], BED]
-                //MACS2_CALLPEAK.out.peak | view
+                //MACS2_CALLPEAK_IGG.out.peak | view
             }
         }
         else {
@@ -754,7 +762,8 @@ workflow CUTANDRUN {
             */
             DEEPTOOLS_QC (
                 ch_samtools_bam,
-                ch_samtools_bai
+                ch_samtools_bai,
+                params.dt_qc_corr_method
             )
             ch_dt_corrmatrix     = DEEPTOOLS_QC.out.correlation_matrix
             ch_dt_pcadata        = DEEPTOOLS_QC.out.pca_data
@@ -904,7 +913,7 @@ workflow.onComplete {
     NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)
     NfcoreTemplate.summary(workflow, params, log)
     if (params.hook_url) {
-        NfcoreTemplate.adaptivecard(workflow, params, summary_params, projectDir, log)
+        NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
     }
 }
 
