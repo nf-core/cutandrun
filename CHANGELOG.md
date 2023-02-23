@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IgG controls will now be analysed by the deeptools QC subworkflow giving greater visibility on the quality of control samples.
 - Updated the MACS2 default parameters to better process PA-Tn5/PA-Mnase based experiments. The new defaults use the q-value of `0.01` as the default cutoff in place of the p-value. The defaults have also been updated to keep duplicate reads int he peak finding process and also to shift the model to better account for nucleosome positioning `--nomodel --shift -75 --extsize 150 --keep-dup all`
 
-
 ### Enhancements
 
 - Updated pipeline template to nf-core/tools `2.7.2`.
@@ -35,7 +34,6 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.
 > **NB:** Dependency has been **removed** if version information isn't present.
-
 
 ## [3.0] - 2022-09-26
 

@@ -8,7 +8,6 @@
       should_exist: false
     - path: results/01_prealign/trimgalore/fastqc/h3k27me3_R1_1_fastqc.trimmed.html
       should_exist: false
-
 # - name: test_verify_output_skip_fastqc_false
 #   command: nextflow run main.nf -profile docker,test --only_preqc --skip_fastqc false
 #   tags:
