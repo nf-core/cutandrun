@@ -336,6 +336,7 @@ workflow CUTANDRUN {
     if (params.run_mark_dups) {
         MARK_DUPLICATES_PICARD (
             ch_samtools_bam,
+            ch_samtools_bai,
             true,
             PREPARE_GENOME.out.fasta.collect{it[1]},
             PREPARE_GENOME.out.fasta_index.collect{it[1]}
@@ -357,6 +358,7 @@ workflow CUTANDRUN {
     if (params.run_remove_dups) {
         DEDUPLICATE_PICARD (
             ch_samtools_bam,
+            ch_samtools_bai,
             params.dedup_target_reads,
             PREPARE_GENOME.out.fasta.collect{it[1]},
             PREPARE_GENOME.out.fasta_index.collect{it[1]}
@@ -369,7 +371,7 @@ workflow CUTANDRUN {
         ch_software_versions = ch_software_versions.mix(DEDUPLICATE_PICARD.out.versions)
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
-    //ch_samtools_bam | view
+    //ch_samtools_bai | view
 
     /*
     * SUBWORKFLOW: extract duplication stats from picard report
