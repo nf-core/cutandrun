@@ -3,9 +3,37 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unpublished Version / DEV]
+## [3.1] - 2023-02-20
 
-### Enhancements & fixes
+### Major Changes
+
+- IgG controls will now be analysed by the deeptools QC subworkflow giving greater visibility on the quality of control samples.
+- Updated the MACS2 default parameters to better process PA-Tn5/PA-Mnase based experiments. The new defaults use the q-value of `0.01` as the default cutoff in place of the p-value. The defaults have also been updated to keep duplicate reads int he peak finding process and also to shift the model to better account for nucleosome positioning `--nomodel --shift -75 --extsize 150 --keep-dup all`
+
+### Enhancements
+
+- Updated pipeline template to nf-core/tools `2.7.2`.
+- Updated pipeline syntax to conform to new Nextflow version standards.
+- Some locally defined subworkflows/modules have now been added to nf-core and re-imported as official modules/subworkflows.
+
+### Fixes
+
+- Fixed confusing config warnings that were being displayed on legitmate parameter configurations.
+- Fixed deeptools correlation plots that were showing low levels of correlation even in test data by changing the plot to use the pearson test.
+- Corrected the SEACR p-value parameter description.
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+| Dependency | Old version | New version |
+| ---------- | ----------- | ----------- |
+| `multiqc`  | 1.14        | 1.16.1      |
+| `samtools` | 2.27.2      | 2.27.4      |
+
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
 
 ## [3.0] - 2022-09-26
 

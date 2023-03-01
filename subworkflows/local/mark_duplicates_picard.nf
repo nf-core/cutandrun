@@ -8,72 +8,88 @@ include { BAM_SORT_STATS_SAMTOOLS } from '../nf-core/bam_sort_stats_samtools/mai
 workflow MARK_DUPLICATES_PICARD {
     take:
     bam            // channel: [ val(meta), [ bam ] ]
+    bai            // channel: [ val(meta), [ bai ] ]
     process_target // boolean
     fasta          // channel: [ fasta ]
     fai            // channel: [ fai ]
 
     main:
-    /*
-    * Picard MarkDuplicates
-    */
+    // Init
     ch_bam      = Channel.empty()
-    metrics     = Channel.empty()
+    ch_bai      = Channel.empty()
+    ch_metrics  = Channel.empty()
+    ch_stats    = Channel.empty()
+    ch_flagstat = Channel.empty()
+    ch_idxstats = Channel.empty()
     ch_versions = Channel.empty()
+
     if( process_target ) {
-        PICARD_MARKDUPLICATES ( 
+        PICARD_MARKDUPLICATES (
             bam,
             fasta,
             fai
         )
-        ch_bam      = PICARD_MARKDUPLICATES.out.bam
-        metrics     = PICARD_MARKDUPLICATES.out.metrics
+        ch_metrics  = PICARD_MARKDUPLICATES.out.metrics
         ch_versions = ch_versions.mix( PICARD_MARKDUPLICATES.out.versions )
+
+        /*
+        * WORKFLOW: Re sort and index all the bam files + calculate stats
+        */
+        BAM_SORT_STATS_SAMTOOLS (
+            PICARD_MARKDUPLICATES.out.bam,
+            fasta
+        )
+        ch_bam      = BAM_SORT_STATS_SAMTOOLS.out.bam
+        ch_bai      = BAM_SORT_STATS_SAMTOOLS.out.bai
+        ch_stats    = BAM_SORT_STATS_SAMTOOLS.out.stats
+        ch_flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat
+        ch_idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats
+        ch_versions = ch_versions.mix( BAM_SORT_STATS_SAMTOOLS.out.versions )
     }
     else { // Split out control files and run only on these
         bam.branch { it ->
             target:  it[0].is_control == false
             control: it[0].is_control == true
         }
-        .set { ch_split }
+        .set { ch_split_bam }
         //ch_split.target | view
         //ch_split.control | view
 
-        PICARD_MARKDUPLICATES ( 
-            ch_split.control,
+        bai.branch { it ->
+            target:  it[0].is_control == false
+            control: it[0].is_control == true
+        }
+        .set { ch_split_bai }
+
+        PICARD_MARKDUPLICATES (
+            ch_split_bam.control,
             fasta,
             fai
         )
-
-        // Prevents issues with resume with the branch elements coming in the wrong order
-        ch_sorted_targets = ch_split.target
-            .toSortedList { row -> row[0].id }
-            .flatMap()
-
-        ch_sorted_controls = PICARD_MARKDUPLICATES.out.bam
-            .toSortedList { row -> row[0].id }
-            .flatMap()
-
-        ch_bam      = ch_sorted_targets.concat ( ch_sorted_controls )
-        metrics     = PICARD_MARKDUPLICATES.out.metrics
+        ch_metrics  = PICARD_MARKDUPLICATES.out.metrics
         ch_versions = ch_versions.mix( PICARD_MARKDUPLICATES.out.versions )
-    }
-    //ch_bam | view
 
-    /*
-    * WORKFLOW: Re sort and index all the bam files + calculate stats
-    */
-    BAM_SORT_STATS_SAMTOOLS (
-        ch_bam,
-        fasta
-    )
+        /*
+        * WORKFLOW: Re sort and index all the bam files + calculate stats
+        */
+        BAM_SORT_STATS_SAMTOOLS (
+            PICARD_MARKDUPLICATES.out.bam,
+            fasta
+        )
+        ch_bam      = BAM_SORT_STATS_SAMTOOLS.out.bam.mix(ch_split_bam.target)
+        ch_bai      = BAM_SORT_STATS_SAMTOOLS.out.bai.mix(ch_split_bai.target)
+        ch_stats    = BAM_SORT_STATS_SAMTOOLS.out.stats
+        ch_flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat
+        ch_idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats
+        ch_versions = ch_versions.mix( BAM_SORT_STATS_SAMTOOLS.out.versions )
+    }
 
     emit:
-    bam      = BAM_SORT_STATS_SAMTOOLS.out.bam        // channel: [ val(meta), [ bam ] ]
-    bai      = BAM_SORT_STATS_SAMTOOLS.out.bai        // channel: [ val(meta), [ bai ] ]
-    stats    = BAM_SORT_STATS_SAMTOOLS.out.stats      // channel: [ val(meta), [ stats ] ]
-    flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
-    idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats   // channel: [ val(meta), [ idxstats ] ]
-    metrics                                           // channel: [ val(meta), [ metrics ] ]
-
-    versions = ch_versions                            // channel: [ versions.yml ]
+    bam      = ch_bam      // channel: [ val(meta), [ bam ] ]
+    bai      = ch_bai      // channel: [ val(meta), [ bai ] ]
+    stats    = ch_stats    // channel: [ val(meta), [ stats ] ]
+    flagstat = ch_flagstat // channel: [ val(meta), [ flagstat ] ]
+    idxstats = ch_idxstats // channel: [ val(meta), [ idxstats ] ]
+    metrics  = ch_metrics  // channel: [ val(meta), [ metrics ] ]
+    versions = ch_versions // channel: [ versions.yml ]
 }
