@@ -117,6 +117,7 @@ include { PREPARE_PEAKCALLING                              } from "../subworkflo
 include { DEEPTOOLS_QC                                     } from "../subworkflows/local/deeptools_qc"
 include { PEAK_QC                                          } from "../subworkflows/local/peak_qc"
 include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS         } from "../subworkflows/local/samtools_view_sort_stats"
+include { DEDUPLICATE_LA                                   } from "../subworkflows/local/deduplicate_la"
 
 /*
 ========================================================================================
@@ -387,6 +388,25 @@ workflow CUTANDRUN {
         ch_software_versions          = ch_software_versions.mix(EXTRACT_PICARD_DUP_META.out.versions)
     }
     //ch_metadata_picard_duplicates | view
+
+
+    /*
+     * SUBWORKFLOW: Remove linear amplification duplicates - default is false
+     */
+    if (params.remove_la_duplicates) {
+        DEDUPLICATE_LA (
+            ch_samtools_bam,
+            params.dedup_target_reads
+        )
+        ch_samtools_bam      = DEDUPLICATE_LA.out.bam
+        ch_samtools_bai      = DEDUPLICATE_LA.out.bai
+        ch_samtools_stats    = DEDUPLICATE_LA.out.stats
+        ch_samtools_flagstat = DEDUPLICATE_LA.out.flagstat
+        ch_samtools_idxstats = DEDUPLICATE_LA.out.idxstats
+        ch_software_versions = ch_software_versions.mix(DEDUPLICATE_LA.out.versions)
+    }
+
+
 
     ch_bedgraph               = Channel.empty()
     ch_bigwig                 = Channel.empty()

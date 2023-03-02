@@ -78,11 +78,11 @@ with open(bed_path) as csvfile:
 alignments = [i[1][0][:-2] for i in alignments.items()] 
 
 # Collect metrics into a string
-report = 'T7 DUPLICATION METRICS'
+report = 'LINEAR AMPLIFICATION DUPLICATION METRICS'
 report += f'\nReads before filtering:\t{i}'
-report += f'\nT7 duplicates removed (n):\t{i-len(alignments)}'
-report += f'\nT7 duplicates removed (%):\t{round((i-len(alignments))/i*100, 2)}'
-report += f'\nUnique reads after T7 duplicate removal:\t{len(alignments)}'
+report += f'\nLA duplicates removed (n):\t{i-len(alignments)}'
+report += f'\nLA duplicates removed (%):\t{round((i-len(alignments))/i*100, 2)}'
+report += f'\nUnique reads after LA duplicate removal:\t{len(alignments)}'
 report += f'\nMitochondrial reads removed(n):\t{chrM_reads}'
 
 # Write string to a text file
