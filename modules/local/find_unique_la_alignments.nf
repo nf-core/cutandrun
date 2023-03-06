@@ -24,7 +24,7 @@ process FIND_UNIQUE_LA_ALIGNMENTS {
     find_unique_reads.py \\
         --bed_path $input \\
         --output_path "${prefix}_unique_alignments.txt" \\
-        --metrics_path "${prefix}_la_duplication_metrics.txt"
+        --metrics_path "${prefix}_metrics.txt"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

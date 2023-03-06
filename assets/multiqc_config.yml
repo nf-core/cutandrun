@@ -58,6 +58,7 @@ report_section_order:
 
 custom_content:
   order:
+    - la_duplication
     - primary_peak_counts
     - consensus_peak_counts
     - primary_frip_score

@@ -64,6 +64,7 @@ ch_frip_score_header_multiqc            = file("$projectDir/assets/multiqc/frip_
 ch_peak_counts_header_multiqc           = file("$projectDir/assets/multiqc/peak_counts_header.txt", checkIfExists: true)
 ch_peak_counts_consensus_header_multiqc = file("$projectDir/assets/multiqc/peak_counts_consensus_header.txt", checkIfExists: true)
 ch_peak_reprod_header_multiqc           = file("$projectDir/assets/multiqc/peak_reprod_header.txt", checkIfExists: true)
+ch_la_duplication_header_multiqc        = file("$projectDir/assets/multiqc/la_duplication_header.txt", checkIfExists: true)
 
 /*
 ========================================================================================
@@ -139,6 +140,8 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../mo
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/deeptools/plotheatmap/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/deeptools/plotheatmap/main"
 include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/custom_dumpsoftwareversions"
+include { LA_DUPLICATION_METRICS                                   } from "../modules/local/la_duplication_metrics"
+
 
 /*
  * SUBWORKFLOWS
@@ -393,6 +396,7 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Remove linear amplification duplicates - default is false
      */
+    ch_la_metrics = Channel.empty()
     if (params.remove_la_duplicates) {
         DEDUPLICATE_LA (
             ch_samtools_bam,
@@ -403,6 +407,7 @@ workflow CUTANDRUN {
         ch_samtools_stats    = DEDUPLICATE_LA.out.stats
         ch_samtools_flagstat = DEDUPLICATE_LA.out.flagstat
         ch_samtools_idxstats = DEDUPLICATE_LA.out.idxstats
+        ch_la_metrics        = DEDUPLICATE_LA.out.metrics
         ch_software_versions = ch_software_versions.mix(DEDUPLICATE_LA.out.versions)
     }
 
@@ -688,6 +693,8 @@ workflow CUTANDRUN {
     ch_peakqc_count_consensus_mqc = Channel.empty()
     ch_peakqc_reprod_perc_mqc     = Channel.empty()
     ch_frag_len_hist_mqc          = Channel.empty()
+    ch_la_duplication_mqc         = Channel.empty()
+
     if(params.run_reporting) {
         if(params.run_igv) {
             /*
@@ -884,6 +891,13 @@ workflow CUTANDRUN {
     }
     //ch_frag_len_hist_mqc | view
 
+    
+    if (params.run_multiqc && params.remove_la_duplicates) {
+        LA_DUPLICATION_METRICS(ch_la_metrics, ch_la_duplication_header_multiqc)
+        ch_la_duplication_mqc = LA_DUPLICATION_METRICS.la_metircs_mqc
+    }
+
+
     if (params.run_multiqc) {
         workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
@@ -921,7 +935,8 @@ workflow CUTANDRUN {
             ch_peakqc_frip_mqc.collect{it[1]}.ifEmpty([]),
             ch_peakqc_count_consensus_mqc.collect{it[1]}.ifEmpty([]),
             ch_peakqc_reprod_perc_mqc.collect().ifEmpty([]),
-            ch_frag_len_hist_mqc.collect().ifEmpty([])
+            ch_frag_len_hist_mqc.collect().ifEmpty([]),
+            ch_la_duplication_mqc.collect{it[1]}.ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

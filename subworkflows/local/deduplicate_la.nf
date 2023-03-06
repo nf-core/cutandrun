@@ -18,7 +18,7 @@ workflow DEDUPLICATE_LA {
     * Find unique linear amplification alignments
     */
     ch_bam           = Channel.empty()
-    metrics          = Channel.empty()
+    ch_metrics       = Channel.empty()
     ch_versions      = Channel.empty()
     ch_la_duplicates = Channel.empty()
 
@@ -32,7 +32,7 @@ workflow DEDUPLICATE_LA {
         // Use custom .py script to find names of unique alignments
         FIND_UNIQUE_LA_ALIGNMENTS ( BEDTOOLS_BAMTOBED.out.bed )
         ch_la_duplicates    = FIND_UNIQUE_LA_ALIGNMENTS.out.txt
-        metrics             = FIND_UNIQUE_LA_ALIGNMENTS.out.metrics
+        ch_metrics          = FIND_UNIQUE_LA_ALIGNMENTS.out.metrics
         ch_versions         = ch_versions.mix( FIND_UNIQUE_LA_ALIGNMENTS.out.versions )
 
         // Subset original .bam file to contain only unique alignments
@@ -65,7 +65,7 @@ workflow DEDUPLICATE_LA {
         // Use custom .py script to find names of unique alignments in control files only
         FIND_UNIQUE_LA_ALIGNMENTS ( BEDTOOLS_BAMTOBED.out.bed )
         ch_la_duplicates    = FIND_UNIQUE_LA_ALIGNMENTS.out.txt
-        metrics             = FIND_UNIQUE_LA_ALIGNMENTS.out.metrics
+        ch_metrics             = FIND_UNIQUE_LA_ALIGNMENTS.out.metrics
         ch_versions         = ch_versions.mix( FIND_UNIQUE_LA_ALIGNMENTS.out.versions )
 
         // Subset original .bam file to contain only unique alignments
@@ -109,5 +109,6 @@ workflow DEDUPLICATE_LA {
     stats    = BAM_SORT_STATS_SAMTOOLS.out.stats      // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats   // channel: [ val(meta), [ idxstats ] ]
-    versions = ch_versions                      // channel: [ versions.yml ]
+    metrics  = ch_metrics                             // channel: [ val(meta), [ metrics ] ]
+    versions = ch_versions                            // channel: [ versions.yml ]
 }
