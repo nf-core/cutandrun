@@ -151,6 +151,7 @@ jobs:
         NXF_VER: ["22.10.1", ""]
         tags:
           - test_genome_options
+          - test_genome_options_spikein
           - test_samplesheet
           - test_samplesheet_2
           - test_filtering_noqfilter

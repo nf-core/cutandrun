@@ -16,11 +16,18 @@ checkPathParamList = [
     params.bowtie2,
     params.fasta,
     params.gtf,
-    params.input,
-    params.spikein_bowtie2,
-    params.spikein_fasta
+    params.input
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+
+if(params.normalisation_mode == "Spikein") { 
+    // Check spike-in only if it is enabled
+    checkPathParamList = [
+        params.spikein_bowtie2,
+        params.spikein_fasta
+    ]
+    for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+}
 
 // Check mandatory parameters that cannot be checked in the groovy lib as we want a channel for them
 if (params.input) { ch_input = file(params.input) } else { exit 1, "Input samplesheet not specified!" }
