@@ -27,7 +27,8 @@ workflow PREPARE_GENOME {
     blacklist            // channel: blacklist file or empty channel
 
     main:
-    ch_versions = Channel.empty()
+    ch_versions      = Channel.empty()
+    ch_spikein_fasta = Channel.empty()
 
     /*
     * Uncompress genome fasta file if required
@@ -42,11 +43,13 @@ workflow PREPARE_GENOME {
     /*
     * Uncompress spike-in genome fasta file if required
     */
-    if (params.spikein_fasta.endsWith(".gz")) {
-        ch_spikein_fasta = GUNZIP_SPIKEIN_FASTA ( [ [id:"spikein_fasta"], params.spikein_fasta ] ).gunzip
-        ch_versions      = ch_versions.mix(GUNZIP_SPIKEIN_FASTA.out.versions)
-    } else {
-        ch_spikein_fasta = Channel.from( file(params.spikein_fasta) ).map { row -> [[id:"spikein_fasta"], row] }
+    if(params.normalisation_mode == "Spikein") {
+        if (params.spikein_fasta.endsWith(".gz")) {
+            ch_spikein_fasta = GUNZIP_SPIKEIN_FASTA ( [ [id:"spikein_fasta"], params.spikein_fasta ] ).gunzip
+            ch_versions      = ch_versions.mix(GUNZIP_SPIKEIN_FASTA.out.versions)
+        } else {
+            ch_spikein_fasta = Channel.from( file(params.spikein_fasta) ).map { row -> [[id:"spikein_fasta"], row] }
+        }
     }
     //ch_spikein_fasta | view
 
@@ -144,7 +147,7 @@ workflow PREPARE_GENOME {
             ch_versions  = ch_versions.mix(BOWTIE2_BUILD_TARGET.out.versions)
         }
 
-        if (params.spikein_bowtie2) {
+        if (params.normalisation_mode == "Spikein" && params.spikein_bowtie2) {
             if (params.spikein_bowtie2.endsWith(".tar.gz")) {
                 ch_bt2_spikein_index = UNTAR_INDEX_SPIKEIN ( [ [], params.spikein_bowtie2 ] ).untar.map{ row -> [ row[1] ] }
                 ch_versions          = ch_versions.mix(UNTAR_INDEX_SPIKEIN.out.versions)

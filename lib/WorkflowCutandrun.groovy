@@ -18,7 +18,7 @@ class WorkflowCutandrun {
             System.exit(1)
         }
 
-        if (!params.spikein_fasta) {
+        if (params.normalisation_mode == "Spikein" && !params.spikein_fasta) {
             log.error "Spike-in fasta file not specified with e.g. '--spikein_fasta genome.fa' or via a detectable config file."
             System.exit(1)
         }
