@@ -1,15 +1,11 @@
 #id: 'la_duplication'
-#parent_id: 'deduplication'
-#parent_name: 'Deduplication based on 5' start site'
-#parent_description: 'This section includes statistics on the duplication rates based on unique 5' start sites'
-#section_name: 'Linear Amplification (LA) Duplication'
+#section_name: 'Removal of Duplicates from Linear Amplification'
 #description: 'Calculated from the (PCR deduplicated if requested) .bam file using unique 5' start sites. '
 #plot_type: 'bargraph'
 #anchor: 'la_duplication_rate'
 #pconfig:
-#    id: 'la_duplication_rate_plot'
-#    title: 'LA Duplication Rates'
+#    title: 'Duplication rate'
 #    ylab: "Duplication rate"
-#    ymax: 100
+#    ymax: 1
 #    ymin: 0
 #    tt_decimals: 2

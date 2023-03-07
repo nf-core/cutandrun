@@ -47,18 +47,19 @@ module_order:
   - custom_content
 
 report_section_order:
-  fragment_lengths:
+  la_deduplication:
     order: -1001
-  peak_qc:
+  fragment_lengths:
     order: -1002
-  software_versions:
+  peak_qc:
     order: -1003
-  nf-core-cutandrun-summary:
+  software_versions:
     order: -1004
+  nf-core-cutandrun-summary:
+    order: -1005
 
 custom_content:
   order:
-    - la_duplication
     - primary_peak_counts
     - consensus_peak_counts
     - primary_frip_score

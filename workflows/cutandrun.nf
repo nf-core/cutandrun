@@ -893,8 +893,11 @@ workflow CUTANDRUN {
 
     
     if (params.run_multiqc && params.remove_la_duplicates) {
-        LA_DUPLICATION_METRICS(ch_la_metrics, ch_la_duplication_header_multiqc)
-        ch_la_duplication_mqc = LA_DUPLICATION_METRICS.la_metircs_mqc
+        LA_DUPLICATION_METRICS(
+            ch_la_metrics, 
+            ch_la_duplication_header_multiqc
+        )
+        ch_la_duplication_mqc = LA_DUPLICATION_METRICS.out.la_metrics_mqc
     }
 
 

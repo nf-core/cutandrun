@@ -109,6 +109,6 @@ workflow DEDUPLICATE_LA {
     stats    = BAM_SORT_STATS_SAMTOOLS.out.stats      // channel: [ val(meta), [ stats ] ]
     flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats   // channel: [ val(meta), [ idxstats ] ]
-    metrics  = ch_metrics                             // channel: [ val(meta), [ metrics ] ]
+    metrics  = ch_metrics                             // channel: [ metrics.txt  ]
     versions = ch_versions                            // channel: [ versions.yml ]
 }

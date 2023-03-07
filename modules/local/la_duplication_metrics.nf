@@ -12,7 +12,7 @@ process LA_DUPLICATION_METRICS {
     path  la_duplication_header
 
     output:
-    tuple val(meta), path("*mqc.tsv"), emit: la_metircs_mqc
+    tuple val(meta), path("*mqc.tsv"), emit: la_metrics_mqc
     path  "versions.yml"             , emit: versions
 
     when:
@@ -21,7 +21,7 @@ process LA_DUPLICATION_METRICS {
     script:
     def prefix = task.ext.prefix ?: "la_duplication_${meta.id}"
     """
-    awk 'NR / 4 == 1' $la_stats > ${prefix}_mqc.tsv
+    (cat $la_duplication_header && sed -n '4p' $la_stats) > ${prefix}_mqc.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

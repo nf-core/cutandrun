@@ -12,7 +12,7 @@ process FIND_UNIQUE_LA_ALIGNMENTS {
 
     output:
     path '*alignments.txt', emit: txt
-    path '*metrics.txt',    emit: metrics
+    tuple val(meta), path('*metrics.txt'), emit: metrics
     path  "versions.yml",   emit: versions
 
     when:
