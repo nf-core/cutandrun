@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - IgG controls will now be analysed by the deeptools QC subworkflow giving greater visibility on the quality of control samples.
 - Updated the MACS2 default parameters to better process PA-Tn5/PA-Mnase based experiments. The new defaults use the q-value of `0.01` as the default cutoff in place of the p-value. The defaults have also been updated to keep duplicate reads int he peak finding process and also to shift the model to better account for nucleosome positioning `--nomodel --shift -75 --extsize 150 --keep-dup all`
+- Deeptools plotHeatmap will now run for all samples as well as for singles. This can be disabled using the parameter `--dt_calc_all_matrix false`
 
 ### Enhancements
 
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected the SEACR p-value parameter description.
 - Fixed output of picard mark/remove duplicate files so that the sorted, indexed bams for all files always output to the results folder.
 - Spikein genome processes and checks no longer run when the normalisation mode is set to something other than `SpikeIn`.
+- Pipeline will now fail gracefully when single-end reads are detected.
 
 ### Software dependencies
 
