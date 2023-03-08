@@ -190,3 +190,10 @@
   tags:
     - test_samplesheet_2
   exit_code: 1
+
+# Test Single end
+- name: test_samplesheet_single_end
+  command: nextflow run main.nf -profile docker,test --only_input --use_control false --input https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/samplesheet_3_0/unit_tests/single_end.csv -c tests/config/nextflow.config
+  tags:
+    - test_samplesheet_3
+  exit_code: 1

@@ -123,6 +123,10 @@ def check_samplesheet(file_in, file_out, use_control):
                 if control.find(" ") != -1:
                     print_error("Control entry contains spaces!", "Line", line)
 
+            ## Check for single-end
+            if fastq_2 == "":
+                print_error("Single-end detected. This pipeline does not support single-end reads!", "Line", line)
+
             ## Check control sample name is not equal to sample name entry
             if sample == control:
                 print_error("Control entry and sample entry must be different!", "Line", line)
