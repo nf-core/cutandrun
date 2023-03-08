@@ -461,6 +461,11 @@
                     "description": "Deeptools heatmap peak plot after length (bases)",
                     "fa_icon": "fas fa-align-justify"
                 },
+                "dt_calc_all_matrix": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Flag for whether to generate a heatmap for all samples together"
+                },
                 "min_frip_overlap": {
                     "type": "number",
                     "default": 0.2,
