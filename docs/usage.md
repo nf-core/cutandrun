@@ -4,6 +4,8 @@
 
 **nf-core/cutandrun** is a best-practice bioinformatic analysis pipeline for CUT&RUN and CUT&Tag experimental protocols that where developed to study protein-DNA interactions and epigenomic profiling.
 
+**NOTE: This pipeline does not support single-end reads**
+
 ## Samplesheet input
 
 You will need to create a samplesheet file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with the correct data structure as shown in the examples below.
