@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixes
 
 - Fixed confusing config warnings that were being displayed on legitmate parameter configurations.
-- Fixed deeptools correlation plots that were showing low levels of correlation even in test data by changing the plot to use the pearson test.
+- Fixed deeptools correlation plots that were showing low levels of correlation even in test data by changing the plot to use Pearson correlation.
 - Corrected the SEACR p-value parameter description.
 - Fixed output of picard mark/remove duplicate files so that the sorted, indexed bams for all files always output to the results folder.
 - Spikein genome processes and checks no longer run when the normalisation mode is set to something other than `SpikeIn`.
