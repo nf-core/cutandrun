@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IgG controls will now be analysed by the deeptools QC subworkflow giving greater visibility on the quality of control samples.
 - Updated the MACS2 default parameters to better process PA-Tn5/PA-Mnase based experiments. The new defaults use the q-value of `0.01` as the default cutoff in place of the p-value. The defaults have also been updated to keep duplicate reads int he peak finding process and also to shift the model to better account for nucleosome positioning `--nomodel --shift -75 --extsize 150 --keep-dup all`
 - Deeptools plotHeatmap will now run for all samples as well as for singles. This can be disabled using the parameter `--dt_calc_all_matrix false`
+- Bowtie2 default parameters have been updated to use the `--dovetail` option. After careful consideration and literature review, we have decided that overlapping mates can occur in CUT&RUN data and are still valid reads. This is also the agreed parameterisation in similar pipelines and also on the 4D nucleome portal.
 
 ### Enhancements
 
