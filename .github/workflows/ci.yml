@@ -154,6 +154,7 @@ jobs:
           - test_genome_options_spikein
           - test_samplesheet
           - test_samplesheet_2
+          - test_samplesheet_3
           - test_filtering_noqfilter
           - test_filtering_withqfilter
           - test_bam_scale_none
@@ -193,6 +194,7 @@ jobs:
           - verify_output_reporting_skip_dtqc_true
           - verify_output_reporting_skip_heatmaps_false
           - verify_output_reporting_skip_heatmaps_true
+          - verify_output_reporting_skip_heatmaps_grouped
           - verify_output_reporting_skip_igv_false
           - verify_output_reporting_skip_igv_true
           - verify_output_reporting_skip_multiqc_false
