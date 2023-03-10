@@ -66,6 +66,7 @@ ch_peak_counts_consensus_header_multiqc = file("$projectDir/assets/multiqc/peak_
 ch_peak_reprod_header_multiqc           = file("$projectDir/assets/multiqc/peak_reprod_header.txt", checkIfExists: true)
 ch_la_duplication_header_multiqc        = file("$projectDir/assets/multiqc/la_duplication_header.txt", checkIfExists: true)
 
+
 /*
 ========================================================================================
     INIALISE PARAMETERS AND OPTIONS
@@ -694,6 +695,7 @@ workflow CUTANDRUN {
     ch_peakqc_reprod_perc_mqc     = Channel.empty()
     ch_frag_len_hist_mqc          = Channel.empty()
     ch_la_duplication_mqc         = Channel.empty()
+
 
     if(params.run_reporting) {
         if(params.run_igv) {

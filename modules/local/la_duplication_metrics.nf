@@ -19,7 +19,7 @@ process LA_DUPLICATION_METRICS {
     task.ext.when == null || task.ext.when
 
     script:
-    def prefix = task.ext.prefix ?: "la_duplication_${meta.id}"
+    def prefix = task.ext.prefix ?: "${meta.id}"
     """
     (cat $la_duplication_header && sed -n '4p' $la_stats) > ${prefix}_mqc.tsv
 
