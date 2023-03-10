@@ -60,7 +60,6 @@ def check_samplesheet(file_in, file_out, use_control):
     sample_run_dict = {}
 
     with open(file_in, "r") as fin:
-
         ## Check header
         MIN_COLS = 3
         LEGACY_HEADER = ["group", "replicate", "control_group", "fastq_1", "fastq_2"]
@@ -123,6 +122,10 @@ def check_samplesheet(file_in, file_out, use_control):
             if control:
                 if control.find(" ") != -1:
                     print_error("Control entry contains spaces!", "Line", line)
+
+            ## Check for single-end
+            if fastq_2 == "":
+                print_error("Single-end detected. This pipeline does not support single-end reads!", "Line", line)
 
             ## Check control sample name is not equal to sample name entry
             if sample == control:
@@ -222,13 +225,11 @@ def check_samplesheet(file_in, file_out, use_control):
         out_dir = os.path.dirname(file_out)
         make_dir(out_dir)
         with open(file_out, "w") as fout:
-
             fout.write(
                 ",".join(["id", "group", "replicate", "control", "single_end", "fastq_1", "fastq_2", "is_control"])
                 + "\n"
             )
             for sample in sorted(sample_run_dict.keys()):
-
                 ## Check that replicate ids are in format 1..<NUM_REPS>
                 uniq_rep_ids = set(sample_run_dict[sample].keys())
                 if len(uniq_rep_ids) != max(uniq_rep_ids):
@@ -238,7 +239,6 @@ def check_samplesheet(file_in, file_out, use_control):
                         sample,
                     )
                 for replicate in sorted(sample_run_dict[sample].keys()):
-
                     ## Check tech reps have same control group id
                     check_group = sample_run_dict[sample][replicate][0][2]
                     for tech_rep in sample_run_dict[sample][replicate]:

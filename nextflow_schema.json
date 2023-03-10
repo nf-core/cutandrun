@@ -346,7 +346,7 @@
                     "type": "number",
                     "default": 0.05,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "SEACR p-value threshold for peaks"
+                    "description": "SEACR specifies returns the top n fraction (between 0 and 1) of peaks based on total signal within peaks. This is only used if there are no controls included with the samples and if `--use_control` is `false`"
                 },
                 "seacr_norm": {
                     "type": "string",
@@ -362,15 +362,20 @@
                     "description": "SEACR stringency.",
                     "enum": ["stringent", "relaxed"]
                 },
+                "macs2_qvalue": {
+                    "type": "number",
+                    "default": 0.01,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Q-value threshold for MACS2 peak caller."
+                },
                 "macs2_pvalue": {
                     "type": "number",
-                    "default": 0.05,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "P-value threshold for macs2 peak caller"
+                    "description": "P-value threshold for macs2 peak caller. If set it will overide the qvalue."
                 },
                 "macs_gsize": {
                     "type": "number",
-                    "default": 2700000000.0,
+                    "default": 2700000000,
                     "fa_icon": "fas fa-align-justify",
                     "description": "parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38."
                 },
@@ -395,7 +400,7 @@
                 },
                 "replicate_threshold": {
                     "type": "number",
-                    "default": 1.0,
+                    "default": 1,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
                 },
@@ -420,6 +425,11 @@
                     "default": 500,
                     "description": "Deeptools multiBamSummary bam bin size",
                     "fa_icon": "fas fa-align-justify"
+                },
+                "dt_qc_corr_method": {
+                    "type": "string",
+                    "default": "pearson",
+                    "description": "Deeptools Correlation Plot statistical calculation method"
                 },
                 "dt_heatmap_gene_beforelen": {
                     "type": "integer",
@@ -450,6 +460,11 @@
                     "default": 3000,
                     "description": "Deeptools heatmap peak plot after length (bases)",
                     "fa_icon": "fas fa-align-justify"
+                },
+                "dt_calc_all_matrix": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Flag for whether to generate a heatmap for all samples together"
                 },
                 "min_frip_overlap": {
                     "type": "number",
@@ -561,6 +576,12 @@
                     "fa_icon": "fas fa-question-circle",
                     "hidden": true
                 },
+                "version": {
+                    "type": "boolean",
+                    "description": "Display version and exit.",
+                    "fa_icon": "fas fa-question-circle",
+                    "hidden": true
+                },
                 "publish_dir_mode": {
                     "type": "string",
                     "default": "copy",
@@ -602,7 +623,7 @@
                     "type": "string",
                     "description": "Incoming hook URL for messaging service",
                     "fa_icon": "fas fa-people-group",
-                    "help_text": "Incoming hook URL for messaging service. Currently, only MS Teams is supported.",
+                    "help_text": "Incoming hook URL for messaging service. Currently, MS Teams and Slack are supported.",
                     "hidden": true
                 },
                 "multiqc_config": {
@@ -631,12 +652,6 @@
                     "description": "Show all params when using `--help`",
                     "hidden": true,
                     "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
-                },
-                "enable_conda": {
-                    "type": "boolean",
-                    "description": "Run this workflow with Conda. You can also use '-profile conda' instead of providing this parameter.",
-                    "hidden": true,
-                    "fa_icon": "fas fa-bacon"
                 }
             }
         }

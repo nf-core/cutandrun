@@ -4,7 +4,6 @@
     nf-core/cutandrun
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Github : https://github.com/nf-core/cutandrun
-
     Website: https://nf-co.re/cutandrun
     Slack  : https://nfcore.slack.com/channels/cutandrun
 ----------------------------------------------------------------------------------------
@@ -30,8 +29,10 @@ params.blacklist = WorkflowMain.getGenomeAttribute(params, 'blacklist')
 ========================================================================================
 */
 
-params.spikein_fasta   = WorkflowMain.getGenomeAttributeSpikeIn(params, 'fasta')
-params.spikein_bowtie2 = WorkflowMain.getGenomeAttributeSpikeIn(params, 'bowtie2')
+if(params.normalisation_mode == "Spikein") {
+    params.spikein_fasta   = WorkflowMain.getGenomeAttributeSpikeIn(params, 'fasta')
+    params.spikein_bowtie2 = WorkflowMain.getGenomeAttributeSpikeIn(params, 'bowtie2')
+}
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

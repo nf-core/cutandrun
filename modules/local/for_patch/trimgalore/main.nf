@@ -2,7 +2,7 @@ process TRIMGALORE {
     tag "$meta.id"
     label 'process_high'
 
-    conda (params.enable_conda ? "bioconda::trim-galore=0.6.6" : null)
+    conda "bioconda::trim-galore=0.6.6"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/trim-galore:0.6.6--0' :
         'quay.io/biocontainers/trim-galore:0.6.6--0' }"

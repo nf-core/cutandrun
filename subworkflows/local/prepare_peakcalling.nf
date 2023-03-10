@@ -3,7 +3,7 @@
  */
 
 include { BEDTOOLS_GENOMECOV    } from "../../modules/nf-core/bedtools/genomecov/main"
-include { DEEPTOOLS_BAMCOVERAGE } from "../../modules/local/deeptools/bamcoverage/main"
+include { DEEPTOOLS_BAMCOVERAGE } from "../../modules/local/for_patch/deeptools/bamcoverage/main"
 include { BEDTOOLS_SORT         } from "../../modules/local/for_patch/bedtools/sort/main"
 include { UCSC_BEDCLIP          } from "../../modules/nf-core/ucsc/bedclip/main"
 include { UCSC_BEDGRAPHTOBIGWIG } from "../../modules/nf-core/ucsc/bedgraphtobigwig/main"
