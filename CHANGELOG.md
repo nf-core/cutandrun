@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IgG controls will now be analysed by the deeptools QC subworkflow giving greater visibility on the quality of control samples.
 - Updated the MACS2 default parameters to better process PA-Tn5/PA-Mnase based experiments. The new defaults use the q-value of `0.01` as the default cutoff in place of the p-value. The defaults have also been updated to keep duplicate reads int he peak finding process and also to shift the model to better account for nucleosome positioning `--nomodel --shift -75 --extsize 150 --keep-dup all`
 - Deeptools plotHeatmap will now run for all samples as well as for singles. This can be disabled using the parameter `--dt_calc_all_matrix false`
+- Bowtie2 default parameters have been updated to use the `--dovetail` option. After careful consideration and literature review, we have decided that overlapping mates can occur in CUT&RUN data and are still valid reads. This is also the agreed parameterisation in similar pipelines and also on the 4D nucleome portal.
 
 ### Enhancements
 
@@ -20,9 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixes
 
 - Fixed confusing config warnings that were being displayed on legitmate parameter configurations.
-- Fixed deeptools correlation plots that were showing low levels of correlation even in test data by changing the plot to use the pearson test.
+- Fixed deeptools correlation plots that were showing low levels of correlation even in test data by changing the plot to use Pearson correlation.
 - Corrected the SEACR p-value parameter description.
-- Fixed output of picard mark/remove duplicate files so that the sorted, indexed bams for all files always output to the results folder.
+- Fixed output of Picard mark/remove duplicate files so that the sorted, indexed bams for all files always output to the results folder.
 - Spikein genome processes and checks no longer run when the normalisation mode is set to something other than `SpikeIn`.
 - Pipeline will now fail gracefully when single-end reads are detected.
 
@@ -32,8 +33,8 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 
 | Dependency | Old version | New version |
 | ---------- | ----------- | ----------- |
-| `multiqc`  | 1.14        | 1.16.1      |
-| `samtools` | 2.27.2      | 2.27.4      |
+| `multiqc`  | 1.13        | 1.14        |
+| `samtools` | 1.15.1      | 1.16.1      |
 
 > **NB:** Dependency has been **updated** if both old and new version information is present.
 > **NB:** Dependency has been **added** if just the new version information is present.
