@@ -36,9 +36,6 @@ alignments = dict()
 # Counter for alignments before filtering
 i = 0    
 
-# Counter for mitochondrial reads
-chrM_reads = 0
-
 # Open BED file containing new line for each alignment
 with open(bed_path) as csvfile:  
     
@@ -48,9 +45,6 @@ with open(bed_path) as csvfile:
         
         # Skip read 2
         if row[3].endswith("2"):
-            continue
-        elif row[0] == "chrM":
-            chrM_reads += 1
             continue
 
         # String for unique reads, starts with chromosome
@@ -83,7 +77,6 @@ report += f'\nReads before filtering\t{i}'
 report += f'\nLA duplicates removed (n)\t{i-len(alignments)}'
 report += f'\nLA duplicates removed (%)\t{round((i-len(alignments))/i*100, 2)}'
 report += f'\nUnique reads after LA duplicate removal\t{len(alignments)}'
-report += f'\nMitochondrial (chrM) reads removed(n)\t{chrM_reads}'
 
 # Write string to a text file
 with open(metrics_path, 'w') as f:

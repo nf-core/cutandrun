@@ -300,6 +300,12 @@
                     "fa_icon": "fas fa-sort-numeric-down",
                     "description": "Filter reads below a q-score threshold"
                 },
+                "remove_mitochondrial_reads": {
+                    "type": "boolean",
+                    "default": false,
+                    "fa_icon": "fas fa-clone",
+                    "description": "Filter mitochondrial reads"
+                },
                 "dedup_target_reads": {
                     "type": "boolean",
                     "fa_icon": "fas fa-clone",

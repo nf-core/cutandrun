@@ -91,7 +91,7 @@ If the `genome` parameter is not supplied, the user must provide all the target 
 
 ### Read Filtering and Duplication
 
-After alignment using Bowtie2, mapped reads are filtered to remove those which do not pass a minimum quality threshold. This threshold can be changed using the `minimum_alignment_q_score` parameter.
+After alignment using Bowtie2, mapped reads are filtered to remove those which do not pass a minimum quality threshold. This threshold can be changed using the `minimum_alignment_q_score` parameter. The mitochondrial reads can be filtered by setting `remove_mitochondrial_reads` to `true`.
 
 CUT&RUN and CUT&Tag both integrate adapters into the vicinity of antibody-tethered enzymes, and the exact sites of integration are affected by the accessibility of surrounding DNA. Given these experimental parameters, it is expected that there are many fragments which share common starting and end positions; thus, such duplicates are generally valid but would be filtered out by de-duplication tools. However, there will be a fraction of fragments that are present due to PCR duplication that cannot be separated.
 
@@ -100,6 +100,8 @@ Control samples such as those from IgG datasets have relatively high duplication
 The default for the pipeline therefore is to only run de-duplication on control samples. If it is suspected that there is a heavy fraction of PCR duplicates present in the primary samples then the parameter `dedup_target_reads` can be set using
 
 `--dedup_target_reads`
+
+If the assay has been modified to include a linear amplification step prior to PCR amplification, the user might want to remove the duplicates arising from the linear amplification step. This can be achieved by setting the `remove_la_duplicates` to `true`. In this way, the pipeline uses a custom `.py` script to filter the reads so that all read 1's have a unique start site and always choosing the read with highest mapping quality. The removal of these kind of duplicates is an essential step of TIPseq analysis.
 
 ### Read Normalisation
 

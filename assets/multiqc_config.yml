@@ -49,16 +49,14 @@ module_order:
 report_section_order:
   la_duplication_levels:
     order: -1001
-  mitochondrial_reads:
-    order: -1002
   fragment_lengths:
-    order: -1003
+    order: -1002
   peak_qc:
-    order: -1004
+    order: -1003
   software_versions:
-    order: -1005
+    order: -1004
   nf-core-cutandrun-summary:
-    order: -1006
+    order: -1005
 
 custom_content:
   order:

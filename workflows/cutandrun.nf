@@ -316,6 +316,7 @@ workflow CUTANDRUN {
      *  - Multi-mapped reads
      *  - Filter out reads aligned to blacklist regions
      *  - Filter out reads below a threshold q score
+     *  - Filter out mitochondrial reads (if required)
      */ 
     if (params.run_read_filter) {
         FILTER_READS (
@@ -422,14 +423,6 @@ workflow CUTANDRUN {
         ch_la_metrics        = DEDUPLICATE_LA.out.metrics
         ch_software_versions = ch_software_versions.mix(DEDUPLICATE_LA.out.versions)
     }
-
-
-    // INSERT NEW SUBWORKFLWOW TO REMOVE CHR_M OR NON STANDARD CHROMOSOMES HERE
-    // get metrics for the alignments from this file ch_samtools_idxstats
-    // remove aligned reads using samtools? 
-    // get name for mitochondrial reads and use this in samtools view to filter these out
-    // params.genomes[ params.genome ][ "mito_name"]
-
 
     ch_bedgraph               = Channel.empty()
     ch_bigwig                 = Channel.empty()
