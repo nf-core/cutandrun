@@ -16,11 +16,18 @@ checkPathParamList = [
     params.bowtie2,
     params.fasta,
     params.gtf,
-    params.input,
-    params.spikein_bowtie2,
-    params.spikein_fasta
+    params.input
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+
+if(params.normalisation_mode == "Spikein") { 
+    // Check spike-in only if it is enabled
+    checkPathParamList = [
+        params.spikein_bowtie2,
+        params.spikein_fasta
+    ]
+    for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+}
 
 // Check mandatory parameters that cannot be checked in the groovy lib as we want a channel for them
 if (params.input) { ch_input = file(params.input) } else { exit 1, "Input samplesheet not specified!" }
@@ -130,18 +137,22 @@ include { DEDUPLICATE_LA                                   } from "../subworkflo
 /*
  * MODULES
  */
-include { CAT_FASTQ                                                } from "../modules/nf-core/cat/fastq/main"
-include { PRESEQ_LCEXTRAP                                          } from "../modules/local/for_patch/preseq/lcextrap/main"
-include { SEACR_CALLPEAK as SEACR_CALLPEAK_IGG                     } from "../modules/nf-core/seacr/callpeak/main"
-include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                   } from "../modules/nf-core/seacr/callpeak/main"
-include { MACS2_CALLPEAK as MACS2_CALLPEAK_IGG                     } from "../modules/nf-core/macs2/callpeak/main"
-include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                   } from "../modules/nf-core/macs2/callpeak/main"
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE  } from "../modules/nf-core/deeptools/computematrix/main"
-include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS } from "../modules/nf-core/deeptools/computematrix/main"
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE      } from "../modules/nf-core/deeptools/plotheatmap/main"
-include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS     } from "../modules/nf-core/deeptools/plotheatmap/main"
-include { CUSTOM_DUMPSOFTWAREVERSIONS                              } from "../modules/local/custom_dumpsoftwareversions"
-include { LA_DUPLICATION_METRICS                                   } from "../modules/local/la_duplication_metrics"
+include { CAT_FASTQ                                                    } from "../modules/nf-core/cat/fastq/main"
+include { PRESEQ_LCEXTRAP                                              } from "../modules/local/for_patch/preseq/lcextrap/main"
+include { SEACR_CALLPEAK as SEACR_CALLPEAK_IGG                         } from "../modules/nf-core/seacr/callpeak/main"
+include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                       } from "../modules/nf-core/seacr/callpeak/main"
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_IGG                         } from "../modules/nf-core/macs2/callpeak/main"
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                       } from "../modules/nf-core/macs2/callpeak/main"
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE      } from "../modules/nf-core/deeptools/computematrix/main"
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS     } from "../modules/nf-core/deeptools/computematrix/main"
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE          } from "../modules/nf-core/deeptools/plotheatmap/main"
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS         } from "../modules/nf-core/deeptools/plotheatmap/main"
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE_ALL  } from "../modules/nf-core/deeptools/computematrix/main"
+include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS_ALL } from "../modules/nf-core/deeptools/computematrix/main"
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE_ALL      } from "../modules/nf-core/deeptools/plotheatmap/main"
+include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS_ALL     } from "../modules/nf-core/deeptools/plotheatmap/main"
+include { CUSTOM_DUMPSOFTWAREVERSIONS                                  } from "../modules/local/custom_dumpsoftwareversions"
+include { LA_DUPLICATION_METRICS                                       } from "../modules/local/la_duplication_metrics"
 
 
 /*
@@ -792,6 +803,38 @@ workflow CUTANDRUN {
                 DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_PLOTHEATMAP_PEAKS.out.versions)
+
+            if(params.dt_calc_all_matrix) {
+                /*
+                * MODULE: Run calc gene matrix for all samples
+                */
+                DEEPTOOLS_COMPUTEMATRIX_GENE_ALL (
+                    ch_bigwig_no_igg.map{it[1]}.toSortedList().map{ [[id:'all_genes'], it]},
+                    PREPARE_GENOME.out.bed.toSortedList()
+                )
+
+                // /*
+                // * MODULE: Run calc peak matrix for all samples
+                // */
+                // DEEPTOOLS_COMPUTEMATRIX_PEAKS_ALL (
+                //     ch_ordered_bigwig.collect{ it[1] }.map{ [[id:'all_peaks'], it]},
+                //     ch_ordered_peaks_max.collect()
+                // )
+
+                /*
+                * MODULE: Calculate DeepTools heatmap for all samples
+                */
+                DEEPTOOLS_PLOTHEATMAP_GENE_ALL (
+                    DEEPTOOLS_COMPUTEMATRIX_GENE_ALL.out.matrix
+                )
+
+                // /*
+                // * MODULE: Calculate DeepTools heatmap for all samples
+                // */
+                // DEEPTOOLS_PLOTHEATMAP_PEAKS_ALL (
+                //     DEEPTOOLS_COMPUTEMATRIX_PEAKS_ALL.out.matrix
+                // )
+            }
         }
 
         if(params.run_deeptools_qc) {
