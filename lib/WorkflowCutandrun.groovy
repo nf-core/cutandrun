@@ -1,4 +1,4 @@
-spike//
+//
 // This file holds several functions specific to the workflow/cutandrun.nf in the nf-core/cutandrun pipeline
 //
 
