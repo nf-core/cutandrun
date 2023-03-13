@@ -413,6 +413,12 @@ workflow CUTANDRUN {
     }
 
 
+    // INSERT NEW SUBWORKFLWOW TO REMOVE CHR_M OR NON STANDARD CHROMOSOMES HERE
+    // get metrics for the alignments from this file ch_samtools_idxstats
+    // remove aligned reads using samtools? 
+    // get name for mitochondrial reads and use this in samtools view to filter these out
+    // params.genomes[ params.genome ][ "mito_name"]
+
 
     ch_bedgraph               = Channel.empty()
     ch_bigwig                 = Channel.empty()
@@ -695,6 +701,7 @@ workflow CUTANDRUN {
     ch_peakqc_reprod_perc_mqc     = Channel.empty()
     ch_frag_len_hist_mqc          = Channel.empty()
     ch_la_duplication_mqc         = Channel.empty()
+
 
 
     if(params.run_reporting) {
