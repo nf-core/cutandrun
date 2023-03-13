@@ -351,7 +351,7 @@
                     "type": "number",
                     "default": 0.05,
                     "fa_icon": "fas fa-align-justify",
-                    "description": "SEACR specifies a numeric threshold of n between 0 and 1 returns the top n fraction of peaks based on total signal within peaks. This is only used if there are no controls included with the samples and if `--use_control` is `false`"
+                    "description": "SEACR specifies returns the top n fraction (between 0 and 1) of peaks based on total signal within peaks. This is only used if there are no controls included with the samples and if `--use_control` is `false`"
                 },
                 "seacr_norm": {
                     "type": "string",
@@ -465,6 +465,11 @@
                     "default": 3000,
                     "description": "Deeptools heatmap peak plot after length (bases)",
                     "fa_icon": "fas fa-align-justify"
+                },
+                "dt_calc_all_matrix": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Flag for whether to generate a heatmap for all samples together"
                 },
                 "min_frip_overlap": {
                     "type": "number",

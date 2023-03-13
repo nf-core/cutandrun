@@ -1,4 +1,4 @@
-//
+spike//
 // This file holds several functions specific to the workflow/cutandrun.nf in the nf-core/cutandrun pipeline
 //
 
@@ -18,7 +18,7 @@ class WorkflowCutandrun {
             System.exit(1)
         }
 
-        if (!params.spikein_fasta) {
+        if (params.normalisation_mode == "Spikein" && !params.spikein_fasta) {
             log.error "Spike-in fasta file not specified with e.g. '--spikein_fasta genome.fa' or via a detectable config file."
             System.exit(1)
         }
@@ -35,6 +35,10 @@ class WorkflowCutandrun {
             if (params.gtf.contains('/UCSC/') && params.gtf.contains('Annotation/Genes/genes.gtf')) {
                 ucscGenomeWarn(log)
             }
+        }
+
+        if (params.dt_calc_all_matrix) {
+            matrixWarn(log)
         }
     }
 
@@ -143,5 +147,16 @@ class WorkflowCutandrun {
         log.warn "=============================================================================\n" +
             "  No genome blacklist file specified, switching to dummy empty file...\n" +
             "==================================================================================="
+    }
+
+    //
+    // Print a warning if gen all plots are on
+    //
+    private static void matrixWarn(log) {
+        log.warn "==========================================================================================================\n" +
+            "  dt_calc_all_matrix is switched on which will calculate a deeptools matrix for all samples. \n" +
+            "  If you have a large sample count, this may affect pipeline performance and result in errors. \n" +
+            "  Set this option to false to disable this feature and only calculate deeptools heatmaps for single samples\n" +
+            "==============================================================================================================="
     }
 }

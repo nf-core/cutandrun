@@ -32,3 +32,14 @@
   command: nextflow run main.nf -profile docker,test_fasta_only --only_genome --gtf https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz --gene_bed https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr7-genes.bed.gz -c tests/config/nextflow.config
   tags:
     - test_genome_options
+
+- name: test_spikein_no_genome_error
+  command: nextflow run main.nf -profile docker,test_no_genome --only_input --spikein_genome TEST -c tests/config/nextflow.config
+  tags:
+    - test_genome_options_spikein
+  exit_code: 1
+
+- name: test_spikein_no_genome_pass
+  command: nextflow run main.nf -profile docker,test_no_genome --spikein_genome TEST --normalisation_mode CPM --fasta https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20.fa.gz --bowtie2 https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-bowtie2.tar.gz --gtf https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz --gene_bed https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.bed.gz -c tests/config/nextflow.config
+  tags:
+    - test_genome_options_spikein
