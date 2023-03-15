@@ -37,8 +37,7 @@ workflow DEDUPLICATE_LA {
 
         // Subset original .bam file to contain only unique alignments
         SAMTOOLS_VIEW_FILTER_LA (
-            bam,
-            ch_la_duplicates
+            bam.join(ch_la_duplicates)
         )
 
         // Return the filtered bam in the channel
@@ -70,8 +69,7 @@ workflow DEDUPLICATE_LA {
 
         // Subset original .bam file to contain only unique alignments
         SAMTOOLS_VIEW_FILTER_LA (
-            ch_split.control,
-            ch_la_duplicates
+            ch_split.control.join(ch_la_duplicates)
         )
         ch_bam = SAMTOOLS_VIEW_FILTER_LA.out.bam
 
