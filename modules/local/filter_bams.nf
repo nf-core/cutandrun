@@ -11,21 +11,18 @@ process FILTER_BAMS {
     tuple val(meta), path(bam)
 
     output:
-    tuple val(meta), path(bam)         , optional: true, emit: bam
-    path  "versions.yml"               , emit: versions
-
+    tuple val(meta), path(bam), stdout  , emit: bam
 
     when:
-    num_alignments > 1000
+    task.ext.when == null || task.ext.when 
 
     script:
     """
-    num_alignments=\$(samtools view -c ${bam})
-    echo "Number of alignments in ${bam}: \${num_alignments}"
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
-    END_VERSIONS
+    if [[ \$(samtools view -c $bam) -ge 1000 ]];
+    then
+        echo "1"
+    else
+        echo "0"
+    fi
     """
 }

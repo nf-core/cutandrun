@@ -16,7 +16,7 @@ workflow DEEPTOOLS_QC {
 
     main:
     ch_versions = Channel.empty()
-    ch_bam_filtered = Channel.empty()
+    ch_test = Channel.empty()
 
     /*
     * MODULE: Filter bams based on number of alignments
@@ -24,22 +24,31 @@ workflow DEEPTOOLS_QC {
     FILTER_BAMS (
         bam
     )
-    ch_bam_filtered = FILTER_BAMS.out.bam
+    
+    ch_test = FILTER_BAMS.out.bam
+    
+    ch_test | view
+
+    ch_test
+    .filter { row -> row[2].strip() == "1"}
+    .map {row -> [row[0], row[1]]}
+    .set { ch_bam_filtered}
+
+    ch_bam_filtered | view
 
     /*
     * CHANNEL: Combine bam and bai files on id
-    */
-    ch_bam_filtered.map { row -> [row[0].id, row ].flatten()}
-    .join ( bai.map { row -> [row[0].id, row ].flatten()} )
-    .map { row -> [row[1], row[2], row[4]] }
+    */    
+    ch_bam_filtered
+    .join( bai )
     .set { ch_bam_bai }
     // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
-    //ch_bam_bai | view
+    // ch_bam_bai | view
 
     /*
     * CHANNEL: Get list of sample ids
     */
-    ch_bam_filtered.map { row -> [row[0].id] }
+    ch_bam_bai.map { row -> [row[0].id] }
     .collect()
     .map { row -> [row] }
     .set { ch_ids }
@@ -49,16 +58,16 @@ workflow DEEPTOOLS_QC {
     * CHANNEL: Combine bam and bai files into one list
     * if we only have one file then cancel correlation and PCA
     */
-    ch_bam_filtered.map { row -> [row[1]] }
+    ch_bam_bai.map { row -> [row[1]] }
     .collect()
     .map { row -> [row] } 
-    .combine( bai.map { row -> [row[1]] }.collect().map { row -> [row] } )
+    .combine( ch_bam_bai.map { row -> [row[2]] }.collect().map { row -> [row] } )
     .combine( ch_ids )
     .map { row -> [[id: 'all_target_bams'], row[0], row[1], row[2], row[1].size()] }
     .filter { row -> row[4] > 1 }
     .map { row -> [row[0], row[1], row[2], row[3]] }
     .set { ch_bam_bai_all }
-    //ch_bam_bai_all | view
+    ch_bam_bai_all | view
 
     /*
     * MODULE: Summarise bams into bins

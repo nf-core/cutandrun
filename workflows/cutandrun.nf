@@ -731,14 +731,14 @@ workflow CUTANDRUN {
             */
             ch_bigwig.filter { it[0].is_control == false }
             .set { ch_bigwig_no_igg }
-            //ch_bigwig_no_igg | view
+            // ch_bigwig_no_igg | view
 
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
             */
+            ch_bigwig_no_igg.combine( PREPARE_GENOME.out.bed ).set { ch_computematrix_gene }
             DEEPTOOLS_COMPUTEMATRIX_GENE (
-                ch_bigwig_no_igg,
-                PREPARE_GENOME.out.bed.collect()
+                ch_computematrix_gene
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions)
 
@@ -761,29 +761,14 @@ workflow CUTANDRUN {
             /*
             * CHANNEL: Join beds and bigwigs on id
             */
-            ch_bigwig_no_igg
-            .map { row -> [row[0].id, row ].flatten()}
-            .join ( ch_peaks_summits_id )
-            .set { ch_dt_bigwig_summits }
-            //ch_dt_peaks | view
-
-            ch_dt_bigwig_summits
-            .map { row -> row[1,2] }
-            .set { ch_ordered_bigwig }
-            //ch_ordered_bigwig | view
-
-            ch_dt_bigwig_summits
-            .map { row -> row[-1] }
-            .filter { it -> it.size() > 1}
-            .set { ch_ordered_peaks_max }
-            //ch_ordered_peaks_max | view
-
+            ch_bigwig_no_igg.join(ch_peaks_summits).filter { row -> row[2].size() > 1}.set{ ch_computematrix_peaks }            
+            
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
+
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
-                ch_ordered_bigwig,
-                ch_ordered_peaks_max
+                ch_computematrix_peaks
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
@@ -801,18 +786,12 @@ workflow CUTANDRUN {
                 /*
                 * MODULE: Run calc gene matrix for all samples
                 */
-                DEEPTOOLS_COMPUTEMATRIX_GENE_ALL (
-                    ch_bigwig_no_igg.map{it[1]}.toSortedList().map{ [[id:'all_genes'], it]},
-                    PREPARE_GENOME.out.bed.toSortedList()
-                )
+                ch_bigwig_no_igg.map{it[1]}.toSortedList().map{ [[id:'all_genes'], it]}.combine( PREPARE_GENOME.out.bed )
+                .set {ch_computematrix_gene_all}
 
-                // /*
-                // * MODULE: Run calc peak matrix for all samples
-                // */
-                // DEEPTOOLS_COMPUTEMATRIX_PEAKS_ALL (
-                //     ch_ordered_bigwig.collect{ it[1] }.map{ [[id:'all_peaks'], it]},
-                //     ch_ordered_peaks_max.collect()
-                // )
+                DEEPTOOLS_COMPUTEMATRIX_GENE_ALL (
+                    ch_computematrix_gene_all
+                )
 
                 /*
                 * MODULE: Calculate DeepTools heatmap for all samples
@@ -820,13 +799,6 @@ workflow CUTANDRUN {
                 DEEPTOOLS_PLOTHEATMAP_GENE_ALL (
                     DEEPTOOLS_COMPUTEMATRIX_GENE_ALL.out.matrix
                 )
-
-                // /*
-                // * MODULE: Calculate DeepTools heatmap for all samples
-                // */
-                // DEEPTOOLS_PLOTHEATMAP_PEAKS_ALL (
-                //     DEEPTOOLS_COMPUTEMATRIX_PEAKS_ALL.out.matrix
-                // )
             }
         }
 
