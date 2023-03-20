@@ -6,6 +6,7 @@ include { DEEPTOOLS_MULTIBAMSUMMARY } from '../../modules/nf-core/deeptools/mult
 include { DEEPTOOLS_PLOTCORRELATION } from '../../modules/nf-core/deeptools/plotcorrelation/main'
 include { DEEPTOOLS_PLOTPCA         } from '../../modules/nf-core/deeptools/plotpca/main'
 include { DEEPTOOLS_PLOTFINGERPRINT } from '../../modules/nf-core/deeptools/plotfingerprint/main'
+include { FILTER_BAMS               } from '../../modules/local/filter_bams'
 
 workflow DEEPTOOLS_QC {
     take:
@@ -15,11 +16,20 @@ workflow DEEPTOOLS_QC {
 
     main:
     ch_versions = Channel.empty()
+    ch_bam_filtered = Channel.empty()
+
+    /*
+    * MODULE: Filter bams based on number of alignments
+    */
+    FILTER_BAMS (
+        bam
+    )
+    ch_bam_filtered = FILTER_BAMS.out.bam
 
     /*
     * CHANNEL: Combine bam and bai files on id
     */
-    bam.map { row -> [row[0].id, row ].flatten()}
+    ch_bam_filtered.map { row -> [row[0].id, row ].flatten()}
     .join ( bai.map { row -> [row[0].id, row ].flatten()} )
     .map { row -> [row[1], row[2], row[4]] }
     .set { ch_bam_bai }
@@ -29,7 +39,7 @@ workflow DEEPTOOLS_QC {
     /*
     * CHANNEL: Get list of sample ids
     */
-    bam.map { row -> [row[0].id] }
+    ch_bam_filtered.map { row -> [row[0].id] }
     .collect()
     .map { row -> [row] }
     .set { ch_ids }
@@ -39,7 +49,7 @@ workflow DEEPTOOLS_QC {
     * CHANNEL: Combine bam and bai files into one list
     * if we only have one file then cancel correlation and PCA
     */
-    bam.map { row -> [row[1]] }
+    ch_bam_filtered.map { row -> [row[1]] }
     .collect()
     .map { row -> [row] } 
     .combine( bai.map { row -> [row[1]] }.collect().map { row -> [row] } )
