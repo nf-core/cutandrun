@@ -24,17 +24,12 @@ workflow DEEPTOOLS_QC {
     FILTER_BAMS (
         bam
     )
-    
-    ch_test = FILTER_BAMS.out.bam
-    
-    ch_test | view
 
-    ch_test
+    FILTER_BAMS.out.bam
     .filter { row -> row[2].strip() == "1"}
     .map {row -> [row[0], row[1]]}
     .set { ch_bam_filtered}
-
-    ch_bam_filtered | view
+    //ch_bam_filtered | view
 
     /*
     * CHANNEL: Combine bam and bai files on id
@@ -67,7 +62,7 @@ workflow DEEPTOOLS_QC {
     .filter { row -> row[4] > 1 }
     .map { row -> [row[0], row[1], row[2], row[3]] }
     .set { ch_bam_bai_all }
-    ch_bam_bai_all | view
+    //ch_bam_bai_all | view
 
     /*
     * MODULE: Summarise bams into bins

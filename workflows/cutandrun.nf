@@ -413,6 +413,8 @@ workflow CUTANDRUN {
     if (params.remove_la_duplicates) {
         DEDUPLICATE_LA (
             ch_samtools_bam,
+            PREPARE_GENOME.out.fasta.collect{it[1]},
+            PREPARE_GENOME.out.fasta_index.collect{it[1]},
             params.dedup_target_reads
         )
         ch_samtools_bam      = DEDUPLICATE_LA.out.bam

@@ -11,6 +11,8 @@ include { SAMTOOLS_SORT      } from "../../modules/nf-core/samtools/sort/main.nf
 workflow DEDUPLICATE_LA {
     take:
     bam            // channel: [ val(meta), [ bam ] ]
+    fasta          // cahnnel: [ fasta ]
+    fai            // channel: [ fai ]
     process_target // boolean
 
     main:
@@ -95,7 +97,7 @@ workflow DEDUPLICATE_LA {
     */
     BAM_SORT_STATS_SAMTOOLS ( 
         ch_bam,
-        Channel.empty()
+        fasta
     )
 
     // Save versions from BAM_SORT_STATS_SAMTOOLS
