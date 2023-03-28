@@ -12,6 +12,7 @@ process FILTER_BAMS {
 
     output:
     tuple val(meta), path(bam), stdout  , emit: bam
+    path  "versions.yml"              , emit: versions
 
     when:
     task.ext.when == null || task.ext.when 
@@ -24,5 +25,10 @@ process FILTER_BAMS {
     else
         echo "0"
     fi
+    
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+    END_VERSIONS
     """
 }

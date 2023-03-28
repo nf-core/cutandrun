@@ -24,6 +24,7 @@ workflow DEEPTOOLS_QC {
     FILTER_BAMS (
         bam
     )
+    ch_versions = ch_versions.mix(FILTER_BAMS.out.versions)
 
     FILTER_BAMS.out.bam
     .filter { row -> row[2].strip() == "1"}

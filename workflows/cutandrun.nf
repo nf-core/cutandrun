@@ -152,7 +152,7 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS_ALL } from ".
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE_ALL      } from "../modules/nf-core/deeptools/plotheatmap/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS_ALL     } from "../modules/nf-core/deeptools/plotheatmap/main"
 include { CUSTOM_DUMPSOFTWAREVERSIONS                                  } from "../modules/local/custom_dumpsoftwareversions"
-include { LA_DUPLICATION_METRICS                                       } from "../modules/local/la_duplication_metrics"
+include { LA_DUPLICATION_METRICS                                       } from "../modules/local/linux/la_duplication_metrics"
 
 
 /*
@@ -917,6 +917,7 @@ workflow CUTANDRUN {
             ch_la_duplication_header_multiqc
         )
         ch_la_duplication_mqc = LA_DUPLICATION_METRICS.out.la_metrics_mqc
+        ch_software_versions = ch_software_versions.mix(LA_DUPLICATION_METRICS.out.versions)
     }
 
 
