@@ -316,6 +316,11 @@
                     "fa_icon": "fas fa-clone",
                     "description": "De-duplicate reads based on read 1 5' start position. Relevant for assays using linear amplification with tagmentation (default is false)."
                 },
+                "end_to_end": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-clone",
+                    "description": "Force --end-to-end mode of Bowtie2 during alignment"
+                },
                 "normalisation_mode": {
                     "type": "string",
                     "default": "Spikein",
