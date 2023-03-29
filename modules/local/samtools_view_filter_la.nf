@@ -18,7 +18,7 @@ process SAMTOOLS_VIEW_FILTER_LA {
     task.ext.when == null || task.ext.when
 
     script:
-    def prefix = task.ext.prefix ?: ''
+    def prefix = task.ext.prefix ?: '${meta.id}.target.la_dedup'
     """
     samtools view -N $unique_alignments  -@ $task.cpus $bam -o ${prefix}.bam
 
