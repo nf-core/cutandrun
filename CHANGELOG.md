@@ -3,6 +3,23 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] - 2023-03-30
+
+### Major Changes
+
+- Duplicates arising from linear amplification can be now removed by setting `--remove_la_duplicates true`
+
+### Enhancements
+
+- Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default.
+- The user can now specify explicitly if `end-to-end` vs `local` mode of Bowtie2 should be used by setting `--end_to_end` to `true` or `false`. `false` is default.
+- Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps
+- Added a filtering step to filter out bam files with less than 1000 reads before the Deeptools step 
+
+### Fixes
+
+- Modified the input channel for DEEPTOOLS_COMPUTEMATRIX to make sure correct files are paired as the input for this process
+
 ## [3.1] - 2023-02-20
 
 ### Major Changes
