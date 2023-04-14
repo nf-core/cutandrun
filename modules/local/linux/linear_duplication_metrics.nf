@@ -1,4 +1,4 @@
-process LA_DUPLICATION_METRICS {
+process LINEAR_DUPLICATION_METRICS {
     tag "$meta.id"
     label 'process_single'
 
@@ -8,11 +8,11 @@ process LA_DUPLICATION_METRICS {
         'ubuntu:20.04' }"
 
     input:
-    tuple val(meta), path(la_stats)
-    path  la_duplication_header
+    tuple val(meta), path(linear_stats)
+    path  linear_duplication_header
 
     output:
-    tuple val(meta), path("*mqc.tsv"), emit: la_metrics_mqc
+    tuple val(meta), path("*mqc.tsv"), emit: linear_metrics_mqc
     path  "versions.yml"             , emit: versions
 
     when:
@@ -21,7 +21,7 @@ process LA_DUPLICATION_METRICS {
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    (cat $la_duplication_header && sed -n '4p' $la_stats) > ${prefix}_mqc.tsv
+    (cat $linear_duplication_header && sed -n '4p' $linear_stats) > ${prefix}_mqc.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

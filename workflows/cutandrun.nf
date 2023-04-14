@@ -71,7 +71,7 @@ ch_frip_score_header_multiqc            = file("$projectDir/assets/multiqc/frip_
 ch_peak_counts_header_multiqc           = file("$projectDir/assets/multiqc/peak_counts_header.txt", checkIfExists: true)
 ch_peak_counts_consensus_header_multiqc = file("$projectDir/assets/multiqc/peak_counts_consensus_header.txt", checkIfExists: true)
 ch_peak_reprod_header_multiqc           = file("$projectDir/assets/multiqc/peak_reprod_header.txt", checkIfExists: true)
-ch_la_duplication_header_multiqc        = file("$projectDir/assets/multiqc/la_duplication_header.txt", checkIfExists: true)
+ch_linear_duplication_header_multiqc    = file("$projectDir/assets/multiqc/linear_duplication_header.txt", checkIfExists: true)
 
 
 /*
@@ -126,7 +126,7 @@ include { PREPARE_PEAKCALLING                              } from "../subworkflo
 include { DEEPTOOLS_QC                                     } from "../subworkflows/local/deeptools_qc"
 include { PEAK_QC                                          } from "../subworkflows/local/peak_qc"
 include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS         } from "../subworkflows/local/samtools_view_sort_stats"
-include { DEDUPLICATE_LA                                   } from "../subworkflows/local/deduplicate_la"
+include { DEDUPLICATE_LINEAR                               } from "../subworkflows/local/deduplicate_linear"
 
 /*
 ========================================================================================
@@ -152,7 +152,7 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS_ALL } from ".
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE_ALL      } from "../modules/nf-core/deeptools/plotheatmap/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS_ALL     } from "../modules/nf-core/deeptools/plotheatmap/main"
 include { CUSTOM_DUMPSOFTWAREVERSIONS                                  } from "../modules/local/custom_dumpsoftwareversions"
-include { LA_DUPLICATION_METRICS                                       } from "../modules/local/linux/la_duplication_metrics"
+include { LINEAR_DUPLICATION_METRICS                                   } from "../modules/local/linux/linear_duplication_metrics"
 
 
 /*
@@ -409,21 +409,21 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Remove linear amplification duplicates - default is false
      */
-    ch_la_metrics = Channel.empty()
-    if (params.remove_la_duplicates) {
-        DEDUPLICATE_LA (
+    ch_linear_metrics = Channel.empty()
+    if (params.remove_linear_duplicates) {
+        DEDUPLICATE_LINEAR (
             ch_samtools_bam,
             PREPARE_GENOME.out.fasta.collect{it[1]},
             PREPARE_GENOME.out.fasta_index.collect{it[1]},
             params.dedup_target_reads
         )
-        ch_samtools_bam      = DEDUPLICATE_LA.out.bam
-        ch_samtools_bai      = DEDUPLICATE_LA.out.bai
-        ch_samtools_stats    = DEDUPLICATE_LA.out.stats
-        ch_samtools_flagstat = DEDUPLICATE_LA.out.flagstat
-        ch_samtools_idxstats = DEDUPLICATE_LA.out.idxstats
-        ch_la_metrics        = DEDUPLICATE_LA.out.metrics
-        ch_software_versions = ch_software_versions.mix(DEDUPLICATE_LA.out.versions)
+        ch_samtools_bam      = DEDUPLICATE_LINEAR.out.bam
+        ch_samtools_bai      = DEDUPLICATE_LINEAR.out.bai
+        ch_samtools_stats    = DEDUPLICATE_LINEAR.out.stats
+        ch_samtools_flagstat = DEDUPLICATE_LINEAR.out.flagstat
+        ch_samtools_idxstats = DEDUPLICATE_LINEAR.out.idxstats
+        ch_linear_metrics    = DEDUPLICATE_LINEAR.out.metrics
+        ch_software_versions = ch_software_versions.mix(DEDUPLICATE_LINEAR.out.versions)
     }
 
     ch_bedgraph               = Channel.empty()
@@ -706,7 +706,7 @@ workflow CUTANDRUN {
     ch_peakqc_count_consensus_mqc = Channel.empty()
     ch_peakqc_reprod_perc_mqc     = Channel.empty()
     ch_frag_len_hist_mqc          = Channel.empty()
-    ch_la_duplication_mqc         = Channel.empty()
+    ch_linear_duplication_mqc     = Channel.empty()
 
 
 
@@ -911,13 +911,13 @@ workflow CUTANDRUN {
     //ch_frag_len_hist_mqc | view
 
     
-    if (params.run_multiqc && params.remove_la_duplicates) {
-        LA_DUPLICATION_METRICS(
-            ch_la_metrics, 
-            ch_la_duplication_header_multiqc
+    if (params.run_multiqc && params.remove_linear_duplicates) {
+        LINEAR_DUPLICATION_METRICS(
+            ch_linear_metrics, 
+            ch_linear_duplication_header_multiqc
         )
-        ch_la_duplication_mqc = LA_DUPLICATION_METRICS.out.la_metrics_mqc
-        ch_software_versions = ch_software_versions.mix(LA_DUPLICATION_METRICS.out.versions)
+        ch_linear_duplication_mqc = LINEAR_DUPLICATION_METRICS.out.linear_metrics_mqc
+        ch_software_versions = ch_software_versions.mix(LINEAR_DUPLICATION_METRICS.out.versions)
     }
 
 
@@ -959,7 +959,7 @@ workflow CUTANDRUN {
             ch_peakqc_count_consensus_mqc.collect{it[1]}.ifEmpty([]),
             ch_peakqc_reprod_perc_mqc.collect().ifEmpty([]),
             ch_frag_len_hist_mqc.collect().ifEmpty([]),
-            ch_la_duplication_mqc.collect{it[1]}.ifEmpty([])
+            ch_linear_duplication_mqc.collect{it[1]}.ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

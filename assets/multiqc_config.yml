@@ -47,7 +47,7 @@ module_order:
   - custom_content
 
 report_section_order:
-  la_duplication_levels:
+  linear_duplication_levels:
     order: -1001
   fragment_lengths:
     order: -1002

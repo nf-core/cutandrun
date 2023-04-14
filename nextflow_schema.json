@@ -311,7 +311,7 @@
                     "fa_icon": "fas fa-clone",
                     "description": "De-duplicate target reads AND control reads (default is control only)"
                 },
-                "remove_la_duplicates": {
+                "remove_linear_duplicates": {
                     "type": "boolean",
                     "fa_icon": "fas fa-clone",
                     "description": "De-duplicate reads based on read 1 5' start position. Relevant for assays using linear amplification with tagmentation (default is false)."

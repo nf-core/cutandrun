@@ -1,10 +1,10 @@
-#id: 'la_duplication_levels'
-#section_name: 'LA Duplication Levels'
+#id: 'linear_duplication_levels'
+#section_name: 'Linear Duplication Levels'
 #description: "Calculated from the .bam file using unique 5' start sites."
 #plot_type: 'bargraph'
-#anchor: 'la_duplicationrate'
+#anchor: 'linear_duplicationrate'
 #pconfig:
-#    id: 'la_duplicationrate_plot'
+#    id: 'linear_duplicationrate_plot'
 #    title: 'Duplication rate'
 #    ylab: 'Duplication rate'
 #    ymin: 0
