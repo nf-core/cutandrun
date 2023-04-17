@@ -4,9 +4,9 @@
 
 include { BEDTOOLS_BAMTOBED           } from "../../modules/nf-core/bedtools/bamtobed/main"
 include { FIND_UNIQUE_ALIGNMENTS   } from '../../modules/local/find_unique_alignments'
-include { SAMTOOLS_VIEW_FILTER_LI     } from '../../modules/local/samtools_view_filter_li'
 include { BAM_SORT_STATS_SAMTOOLS } from '../nf-core/bam_sort_stats_samtools/main'
 include { SAMTOOLS_SORT      } from "../../modules/nf-core/samtools/sort/main.nf"
+include { SAMTOOLS_VIEW      } from "../../modules/nf-core/samtools/view/main.nf"
 
 workflow DEDUPLICATE_LINEAR {
     take:
@@ -37,13 +37,29 @@ workflow DEDUPLICATE_LINEAR {
         ch_metrics          = FIND_UNIQUE_ALIGNMENTS.out.metrics
         ch_versions         = ch_versions.mix( FIND_UNIQUE_ALIGNMENTS.out.versions )
 
-        // Subset original .bam file to contain only unique alignments
-        SAMTOOLS_VIEW_FILTER_LI (
-            bam.join(ch_linear_duplicates)
-        )
+        bam
+        .join ( ch_linear_duplicates )
+        .set { ch_bam_txt }
+        ch_bam_txt | view
 
-        // Return the filtered bam in the channel
-        ch_bam = SAMTOOLS_VIEW_FILTER_LI.out.bam
+        ch_bam_txt
+        .map { row -> row[1,2] }
+        .set { ch_ordered_bams }
+        //ch_ordered_bams | view
+
+        ch_bam_txt
+        .map { row -> row[-1] }
+        .filter { it -> it.size() > 1 }
+        .set { ch_ordered_txt }
+        //ch_ordered_txt | view
+
+        // Subset original .bam file to contain only unique alignments
+        SAMTOOLS_VIEW (
+            ch_ordered_bams.collect(),
+            Channel.empty(),
+            ch_ordered_txt.collect()
+        )
+        ch_bam = SAMTOOLS_VIEW.out.bam
 
     }
     else { // Split out control files and run only on these
@@ -58,7 +74,7 @@ workflow DEDUPLICATE_LINEAR {
 
         SAMTOOLS_SORT (
             ch_split.control
-        )        
+        )
 
         // Run .bam to bed on control files only and find unique alignments in control files
         BEDTOOLS_BAMTOBED ( SAMTOOLS_SORT.out.bam )
@@ -69,11 +85,29 @@ workflow DEDUPLICATE_LINEAR {
         ch_metrics          = FIND_UNIQUE_ALIGNMENTS.out.metrics
         ch_versions         = ch_versions.mix( FIND_UNIQUE_ALIGNMENTS.out.versions )
 
+        ch_split.control
+        .join ( ch_linear_duplicates )
+        .set { ch_bam_txt }
+        //ch_bam_txt | view
+
+        ch_bam_txt
+        .map { row -> row[1,2] }
+        .set { ch_ordered_bams }
+        //ch_ordered_bams | view
+
+        ch_bam_txt
+        .map { row -> row[-1] }
+        .filter { it -> it.size() > 1}
+        .set { ch_ordered_txt }
+        //ch_ordered_txt | view
+
         // Subset original .bam file to contain only unique alignments
-        SAMTOOLS_VIEW_FILTER_LI (
-            ch_split.control.join(ch_linear_duplicates)
+        SAMTOOLS_VIEW (
+            ch_ordered_bams.collect(),
+            Channel.empty(),
+            ch_ordered_txt.collect()
         )
-        ch_bam = SAMTOOLS_VIEW_FILTER_LI.out.bam
+        ch_bam = SAMTOOLS_VIEW.out.bam
 
         // Prevents issues with resume with the branch elements coming in the wrong order
         ch_sorted_targets = ch_split.target
@@ -90,12 +124,12 @@ workflow DEDUPLICATE_LINEAR {
     //ch_bam | view
 
     // Save versions from the SAMTOOLS VIEW process
-    ch_versions = ch_versions.mix( SAMTOOLS_VIEW_FILTER_LI.out.versions )
+    ch_versions = ch_versions.mix( SAMTOOLS_VIEW.out.versions )
 
     /*
     * WORKFLOW: Re sort and index all the bam files + calculate stats
     */
-    BAM_SORT_STATS_SAMTOOLS ( 
+    BAM_SORT_STATS_SAMTOOLS (
         ch_bam,
         fasta
     )

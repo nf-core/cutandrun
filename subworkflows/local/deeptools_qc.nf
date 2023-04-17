@@ -16,7 +16,6 @@ workflow DEEPTOOLS_QC {
 
     main:
     ch_versions = Channel.empty()
-    ch_test = Channel.empty()
 
     /*
     * MODULE: Filter bams based on number of alignments
@@ -34,7 +33,7 @@ workflow DEEPTOOLS_QC {
 
     /*
     * CHANNEL: Combine bam and bai files on id
-    */    
+    */
     ch_bam_filtered
     .join( bai )
     .set { ch_bam_bai }
@@ -56,7 +55,7 @@ workflow DEEPTOOLS_QC {
     */
     ch_bam_bai.map { row -> [row[1]] }
     .collect()
-    .map { row -> [row] } 
+    .map { row -> [row] }
     .combine( ch_bam_bai.map { row -> [row[2]] }.collect().map { row -> [row] } )
     .combine( ch_ids )
     .map { row -> [[id: 'all_target_bams'], row[0], row[1], row[2], row[1].size()] }

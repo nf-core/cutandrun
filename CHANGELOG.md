@@ -16,9 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps
 - Added a filtering step to filter out bam files with less than 1000 reads before the Deeptools step
 
-### Fixes
-
-- Modified the input channel for DEEPTOOLS_COMPUTEMATRIX to make sure correct files are paired as the input for this process
 
 ## [3.1] - 2023-02-20
 

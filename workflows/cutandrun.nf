@@ -707,9 +707,6 @@ workflow CUTANDRUN {
     ch_peakqc_reprod_perc_mqc     = Channel.empty()
     ch_frag_len_hist_mqc          = Channel.empty()
     ch_linear_duplication_mqc     = Channel.empty()
-
-
-
     if(params.run_reporting) {
         if(params.run_igv) {
             /*
@@ -786,7 +783,7 @@ workflow CUTANDRUN {
 
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
                 ch_ordered_bigwig,
-                ch_ordered_peaks_max
+                ch_ordered_peaks_max.collect()
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
@@ -887,7 +884,7 @@ workflow CUTANDRUN {
         .map { row -> [row[1], row[2], row[4]] }
         .set { ch_bam_bai }
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
-        //ch_bam_bai | view
+        ch_bam_bai | view
 
         /*
         * MODULE: Calculate fragment lengths
@@ -896,7 +893,7 @@ workflow CUTANDRUN {
             ch_bam_bai
         )
         ch_software_versions = ch_software_versions.mix(SAMTOOLS_CUSTOMVIEW.out.versions)
-        //SAMTOOLS_CUSTOMVIEW.out.tsv | view
+        SAMTOOLS_CUSTOMVIEW.out.tsv | view
 
         /*
         * CHANNEL: Prepare data for generate reports
@@ -910,7 +907,8 @@ workflow CUTANDRUN {
             list.each{ v -> output.add(v[1]) }
             output
         }
-        //ch_frag_len | view
+
+        ch_frag_len | view
 
         /*
         * MODULE: Calculate fragment length histogram for mqc
@@ -923,7 +921,6 @@ workflow CUTANDRUN {
         ch_software_versions = ch_software_versions.mix(FRAG_LEN_HIST.out.versions)
     }
     //ch_frag_len_hist_mqc | view
-
 
     if (params.run_multiqc && params.remove_linear_duplicates) {
         LINEAR_DUPLICATION_METRICS(
