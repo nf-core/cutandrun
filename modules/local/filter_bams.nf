@@ -15,16 +15,11 @@ process FILTER_BAMS {
     path  "versions.yml"              , emit: versions
 
     when:
-    task.ext.when == null || task.ext.when 
+    task.ext.when == null || task.ext.when
 
     script:
     """
-    if [[ \$(samtools view -c $bam) -ge 1000 ]];
-    then
-        echo "1"
-    else
-        echo "0"
-    fi
+    if [[ \$(samtools view -c $bam) -ge 1000 ]]; then echo "1"; else echo "0"; fi
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
