@@ -20,7 +20,7 @@ checkPathParamList = [
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
-if(params.normalisation_mode == "Spikein") { 
+if(params.normalisation_mode == "Spikein") {
     // Check spike-in only if it is enabled
     checkPathParamList = [
         params.spikein_bowtie2,
@@ -317,7 +317,7 @@ workflow CUTANDRUN {
      *  - Filter out reads aligned to blacklist regions
      *  - Filter out reads below a threshold q score
      *  - Filter out mitochondrial reads (if required)
-     */ 
+     */
     if (params.run_read_filter) {
         FILTER_READS (
             ch_samtools_bam,
@@ -333,7 +333,7 @@ workflow CUTANDRUN {
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
-    
+
     /*
      * MODULE: Run preseq on BAM files before de-duplication
     */
@@ -738,9 +738,9 @@ workflow CUTANDRUN {
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
             */
-            ch_bigwig_no_igg.combine( PREPARE_GENOME.out.bed ).set { ch_computematrix_gene }
             DEEPTOOLS_COMPUTEMATRIX_GENE (
-                ch_computematrix_gene
+                ch_bigwig_no_igg,
+                PREPARE_GENOME.out.bed.collect()
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_GENE.out.versions)
 
@@ -763,14 +763,30 @@ workflow CUTANDRUN {
             /*
             * CHANNEL: Join beds and bigwigs on id
             */
-            ch_bigwig_no_igg.join(ch_peaks_summits).filter { row -> row[2].size() > 1}.set{ ch_computematrix_peaks }            
-            
+            ch_bigwig_no_igg
+            .map { row -> [row[0].id, row ].flatten()}
+            .join ( ch_peaks_summits_id )
+            .set { ch_dt_bigwig_summits }
+            //ch_dt_peaks | view
+
+            ch_dt_bigwig_summits
+            .map { row -> row[1,2] }
+            .set { ch_ordered_bigwig }
+            //ch_ordered_bigwig | view
+
+            ch_dt_bigwig_summits
+            .map { row -> row[-1] }
+            .filter { it -> it.size() > 1}
+            .set { ch_ordered_peaks_max }
+            //ch_ordered_peaks_max | view
+
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
 
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
-                ch_computematrix_peaks
+                ch_ordered_bigwig,
+                ch_ordered_peaks_max
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
@@ -788,11 +804,9 @@ workflow CUTANDRUN {
                 /*
                 * MODULE: Run calc gene matrix for all samples
                 */
-                ch_bigwig_no_igg.map{it[1]}.toSortedList().map{ [[id:'all_genes'], it]}.combine( PREPARE_GENOME.out.bed )
-                .set {ch_computematrix_gene_all}
-
                 DEEPTOOLS_COMPUTEMATRIX_GENE_ALL (
-                    ch_computematrix_gene_all
+                    ch_bigwig_no_igg.map{it[1]}.toSortedList().map{ [[id:'all_genes'], it]},
+                    PREPARE_GENOME.out.bed.toSortedList()
                 )
 
                 /*
@@ -910,10 +924,10 @@ workflow CUTANDRUN {
     }
     //ch_frag_len_hist_mqc | view
 
-    
+
     if (params.run_multiqc && params.remove_linear_duplicates) {
         LINEAR_DUPLICATION_METRICS(
-            ch_linear_metrics, 
+            ch_linear_metrics,
             ch_linear_duplication_header_multiqc
         )
         ch_linear_duplication_mqc = LINEAR_DUPLICATION_METRICS.out.linear_metrics_mqc

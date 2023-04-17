@@ -8,7 +8,8 @@ process DEEPTOOLS_COMPUTEMATRIX {
         'quay.io/biocontainers/deeptools:3.5.1--py_0' }"
 
     input:
-    tuple val(meta), path(bigwig), path(bed)
+    tuple val(meta), path(bigwig)
+    path bed
 
     output:
     tuple val(meta), path("*.mat.gz") , emit: matrix
