@@ -137,25 +137,25 @@ workflow PREPARE_GENOME {
     if ("bowtie2" in prepare_tool_indices) {
         if (params.bowtie2) {
             if (params.bowtie2.endsWith(".tar.gz")) {
-                ch_bt2_index = UNTAR_INDEX_TARGET ( [ [], params.bowtie2 ] ).untar.map{ row -> [ row[1] ] }
+                ch_bt2_index = UNTAR_INDEX_TARGET ( [ [], params.bowtie2 ] ).untar.map{ row -> [ [id:"target_index"], row[1] ] }
                 ch_versions  = ch_versions.mix(UNTAR_INDEX_TARGET.out.versions)
             } else {
-                ch_bt2_index = file(params.bowtie2)
+                ch_bt2_index = [ [id:"target_index"], file(params.bowtie2) ]
             }
         } else {
-            ch_bt2_index = BOWTIE2_BUILD_TARGET ( ch_fasta ).index
+            ch_bt2_index = BOWTIE2_BUILD_TARGET ( ch_fasta ).index.map{ row -> [ [id:"target_index"], row[1] ] }
             ch_versions  = ch_versions.mix(BOWTIE2_BUILD_TARGET.out.versions)
         }
 
         if (params.normalisation_mode == "Spikein" && params.spikein_bowtie2) {
             if (params.spikein_bowtie2.endsWith(".tar.gz")) {
-                ch_bt2_spikein_index = UNTAR_INDEX_SPIKEIN ( [ [], params.spikein_bowtie2 ] ).untar.map{ row -> [ row[1] ] }
+                ch_bt2_spikein_index = UNTAR_INDEX_SPIKEIN ( [ [], params.spikein_bowtie2 ] ).untar.map{ row -> [ [id:"spikein_index"], row[1] ] }
                 ch_versions          = ch_versions.mix(UNTAR_INDEX_SPIKEIN.out.versions)
             } else {
-                ch_bt2_spikein_index = file(params.spikein_bowtie2)
+                ch_bt2_spikein_index = [ [id:"spikein_index"], file(params.spikein_bowtie2) ]
             }
         } else {
-            ch_bt2_spikein_index = BOWTIE2_BUILD_SPIKEIN ( ch_spikein_fasta ).index
+            ch_bt2_spikein_index = BOWTIE2_BUILD_SPIKEIN ( ch_spikein_fasta ).index.map{ row -> [ [id:"spikein_index"], row[1] ] }
             ch_versions          = ch_versions.mix(BOWTIE2_BUILD_SPIKEIN.out.versions)
         }
     }
