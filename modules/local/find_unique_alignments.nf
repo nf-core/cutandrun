@@ -25,7 +25,6 @@ process FIND_UNIQUE_ALIGNMENTS {
         --bed_path $input \\
         --output_path "${prefix}_unique_alignments.txt" \\
         --metrics_path "${prefix}_metrics.txt"
-        
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")

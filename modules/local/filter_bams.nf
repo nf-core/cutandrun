@@ -25,7 +25,6 @@ process FILTER_BAMS {
     else
         echo "0"
     fi
-    
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
