@@ -87,15 +87,15 @@ workflow PREPARE_GENOME {
     /*
     * Sort and index the bed annotation file
     */
-    ch_tabix = ch_gene_bed.map { 
-        row -> [ [ id:row.getName() ] , row ] 
+    ch_tabix = ch_gene_bed.map {
+        row -> [ [ id:row.getName() ] , row ]
     }
 
     if (params.gene_bed && params.gene_bed.endsWith(".gz")) {
         ch_tabix = ch_tabix.map {
             row ->
                 new_id = row[0].id.split("\\.")[0]
-                [ [ id: new_id ] , row[1] ] 
+                [ [ id: new_id ] , row[1] ]
         }
     }
 
@@ -137,25 +137,25 @@ workflow PREPARE_GENOME {
     if ("bowtie2" in prepare_tool_indices) {
         if (params.bowtie2) {
             if (params.bowtie2.endsWith(".tar.gz")) {
-                ch_bt2_index = UNTAR_INDEX_TARGET ( [ [], params.bowtie2 ] ).untar.map{ row -> [ row[1] ] }
+                ch_bt2_index = UNTAR_INDEX_TARGET ( [ [], params.bowtie2 ] ).untar.map{ row -> [ [id:"target_index"], row[1] ] }
                 ch_versions  = ch_versions.mix(UNTAR_INDEX_TARGET.out.versions)
             } else {
-                ch_bt2_index = file(params.bowtie2)
+                ch_bt2_index = [ [id:"target_index"], file(params.bowtie2) ]
             }
         } else {
-            ch_bt2_index = BOWTIE2_BUILD_TARGET ( ch_fasta ).index
+            ch_bt2_index = BOWTIE2_BUILD_TARGET ( ch_fasta ).index.map{ row -> [ [id:"target_index"], row[1] ] }
             ch_versions  = ch_versions.mix(BOWTIE2_BUILD_TARGET.out.versions)
         }
 
         if (params.normalisation_mode == "Spikein" && params.spikein_bowtie2) {
             if (params.spikein_bowtie2.endsWith(".tar.gz")) {
-                ch_bt2_spikein_index = UNTAR_INDEX_SPIKEIN ( [ [], params.spikein_bowtie2 ] ).untar.map{ row -> [ row[1] ] }
+                ch_bt2_spikein_index = UNTAR_INDEX_SPIKEIN ( [ [], params.spikein_bowtie2 ] ).untar.map{ row -> [ [id:"spikein_index"], row[1] ] }
                 ch_versions          = ch_versions.mix(UNTAR_INDEX_SPIKEIN.out.versions)
             } else {
-                ch_bt2_spikein_index = file(params.spikein_bowtie2)
+                ch_bt2_spikein_index = [ [id:"spikein_index"], file(params.spikein_bowtie2) ]
             }
         } else {
-            ch_bt2_spikein_index = BOWTIE2_BUILD_SPIKEIN ( ch_spikein_fasta ).index
+            ch_bt2_spikein_index = BOWTIE2_BUILD_SPIKEIN ( ch_spikein_fasta ).index.map{ row -> [ [id:"spikein_index"], row[1] ] }
             ch_versions          = ch_versions.mix(BOWTIE2_BUILD_SPIKEIN.out.versions)
         }
     }
@@ -172,7 +172,7 @@ workflow PREPARE_GENOME {
         ch_versions = ch_versions.mix(BLACKLIST_AWK.out.versions)
 
         // Create intersect channel between the chrom sizes bed and the blacklist bed
-        // This reduces the blacklist file down to the 
+        // This reduces the blacklist file down to the
         ch_blacklist_intersect = blacklist
             .map {row -> [ [id: "blacklist"], row ]}
             .combine( BLACKLIST_AWK.out.file )

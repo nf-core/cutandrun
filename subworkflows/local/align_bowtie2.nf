@@ -10,8 +10,8 @@ include { BAM_SORT_STATS_SAMTOOLS as BAM_SORT_STATS_SAMTOOLS_SPIKEIN } from '../
 workflow ALIGN_BOWTIE2 {
     take:
     reads         // channel: [ val(meta), [ reads ] ]
-    index         // channel: /path/to/bowtie2/target/index/
-    spikein_index // channel: /path/to/bowtie2/spikein/index/
+    index         // channel: [ val(meta), [ index ] ]
+    spikein_index // channel: [ val(meta), [ index ] ]
     fasta         // channel: [ fasta ]
     spikein_fasta // channel: [ fasta ]
 
@@ -24,9 +24,9 @@ workflow ALIGN_BOWTIE2 {
     ch_index = index.map { [[id:it.baseName], it] }
     BOWTIE2_TARGET_ALIGN (
         reads,
-        ch_index.collect(),
+        ch_index.collect{ it[1] },
         params.save_unaligned,
-        false 
+        false
     )
     ch_versions = ch_versions.mix(BOWTIE2_TARGET_ALIGN.out.versions)
 
@@ -36,7 +36,7 @@ workflow ALIGN_BOWTIE2 {
     ch_spikein_index = spikein_index.map { [[id:it.baseName], it] }
     BOWTIE2_SPIKEIN_ALIGN (
         reads,
-        ch_spikein_index.collect(),
+        ch_spikein_index.collect{ it[1] },
         params.save_unaligned,
         false
     )
