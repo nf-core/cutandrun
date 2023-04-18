@@ -763,6 +763,7 @@ workflow CUTANDRUN {
             ch_bigwig_no_igg
             .map { row -> [row[0].id, row ].flatten()}
             .join ( ch_peaks_summits_id )
+            .filter ( it -> it[-1].size() > 1)
             .set { ch_dt_bigwig_summits }
             //ch_dt_peaks | view
 
@@ -773,7 +774,6 @@ workflow CUTANDRUN {
 
             ch_dt_bigwig_summits
             .map { row -> row[-1] }
-            .filter { it -> it.size() > 1}
             .set { ch_ordered_peaks_max }
             //ch_ordered_peaks_max | view
 
@@ -783,7 +783,7 @@ workflow CUTANDRUN {
 
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
                 ch_ordered_bigwig,
-                ch_ordered_peaks_max.collect()
+                ch_ordered_peaks_max
             )
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
@@ -879,12 +879,13 @@ workflow CUTANDRUN {
         /*
         * CHANNEL: Combine bam and bai files on id
         */
+
         ch_bam_target.map { row -> [row[0].id, row ].flatten()}
         .join ( ch_bai_target.map { row -> [row[0].id, row ].flatten()} )
         .map { row -> [row[1], row[2], row[4]] }
         .set { ch_bam_bai }
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
-        ch_bam_bai | view
+        //ch_bam_bai | view
 
         /*
         * MODULE: Calculate fragment lengths
@@ -893,7 +894,7 @@ workflow CUTANDRUN {
             ch_bam_bai
         )
         ch_software_versions = ch_software_versions.mix(SAMTOOLS_CUSTOMVIEW.out.versions)
-        SAMTOOLS_CUSTOMVIEW.out.tsv | view
+        //SAMTOOLS_CUSTOMVIEW.out.tsv | view
 
         /*
         * CHANNEL: Prepare data for generate reports
@@ -907,8 +908,7 @@ workflow CUTANDRUN {
             list.each{ v -> output.add(v[1]) }
             output
         }
-
-        ch_frag_len | view
+        //ch_frag_len | view
 
         /*
         * MODULE: Calculate fragment length histogram for mqc
