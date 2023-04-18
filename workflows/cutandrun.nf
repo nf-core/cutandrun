@@ -786,12 +786,6 @@ workflow CUTANDRUN {
                 ch_ordered_peaks_max
             )
 
-            ch_bigwig_no_igg
-            .join ( ch_peaks_summits_id )
-            .filter ( it -> it[-1].size() > 1)
-            .set { ch_testtest }
-            ch_testtest | view
-
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
