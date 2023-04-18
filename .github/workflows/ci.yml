@@ -186,6 +186,8 @@ jobs:
           - verify_output_align_duplicates_mark
           - verify_output_align_duplicates_remove
           - verify_output_align_duplicates_remove_target
+          - verify_output_align_linear_duplicates_remove
+          - verify_output_align_linear_duplicates_remove_target
           - verify_output_only_filtering
           - verify_output_peak_calling_only_peak_calling
           - verify_output_reporting_skip_preseq_false
