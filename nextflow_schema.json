@@ -84,26 +84,10 @@
                     "fa_icon": "fas fa-book",
                     "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`. \n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
                 },
-                "bowtie2": {
-                    "type": "string",
-                    "fa_icon": "fas fa-book",
-                    "description": "Path to bowtie2 index"
-                },
-                "gtf": {
-                    "type": "string",
-                    "fa_icon": "fas fa-book",
-                    "description": "Path to GTF annotation file"
-                },
-                "gene_bed": {
-                    "type": "string",
-                    "fa_icon": "fas fa-book",
-                    "description": "Path to gene BED file"
-                },
-                "blacklist": {
-                    "type": "string",
-                    "fa_icon": "fas fa-book",
-                    "description": "Path to genome blacklist"
-                },
+                "bowtie2": { "type": "string", "fa_icon": "fas fa-book", "description": "Path to bowtie2 index" },
+                "gtf": { "type": "string", "fa_icon": "fas fa-book", "description": "Path to GTF annotation file" },
+                "gene_bed": { "type": "string", "fa_icon": "fas fa-book", "description": "Path to gene BED file" },
+                "blacklist": { "type": "string", "fa_icon": "fas fa-book", "description": "Path to genome blacklist" },
                 "spikein_genome": {
                     "type": "string",
                     "default": "K12-MG1655",
@@ -187,25 +171,14 @@
                     "fa_icon": "fas fa-random",
                     "description": "Skips fastqc reporting"
                 },
-                "skip_trimming": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-random",
-                    "description": "Skips trimming"
-                },
+                "skip_trimming": { "type": "boolean", "fa_icon": "fas fa-random", "description": "Skips trimming" },
                 "skip_removeduplicates": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
                     "description": "Skips de-duplication"
                 },
-                "skip_reporting": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-random",
-                    "description": "Skips reporting"
-                },
-                "skip_preseq": {
-                    "type": "boolean",
-                    "description": "Skips preseq reporting"
-                },
+                "skip_reporting": { "type": "boolean", "fa_icon": "fas fa-random", "description": "Skips reporting" },
+                "skip_preseq": { "type": "boolean", "description": "Skips preseq reporting" },
                 "skip_igv": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
@@ -226,11 +199,7 @@
                     "description": "Skips peak QC reporting",
                     "fa_icon": "fas fa-random"
                 },
-                "skip_multiqc": {
-                    "type": "boolean",
-                    "fa_icon": "fas fa-random",
-                    "description": "Skips multiqc"
-                }
+                "skip_multiqc": { "type": "boolean", "fa_icon": "fas fa-random", "description": "Skips multiqc" }
             },
             "fa_icon": "fas fa-exchange-alt"
         },
@@ -675,32 +644,14 @@
         }
     },
     "allOf": [
-        {
-            "$ref": "#/definitions/input_output_options"
-        },
-        {
-            "$ref": "#/definitions/reference_data_options"
-        },
-        {
-            "$ref": "#/definitions/flow_switching_options"
-        },
-        {
-            "$ref": "#/definitions/trimming_options"
-        },
-        {
-            "$ref": "#/definitions/pipeline_options"
-        },
-        {
-            "$ref": "#/definitions/reporting_options"
-        },
-        {
-            "$ref": "#/definitions/institutional_config_options"
-        },
-        {
-            "$ref": "#/definitions/max_job_request_options"
-        },
-        {
-            "$ref": "#/definitions/generic_options"
-        }
+        { "$ref": "#/definitions/input_output_options" },
+        { "$ref": "#/definitions/reference_data_options" },
+        { "$ref": "#/definitions/flow_switching_options" },
+        { "$ref": "#/definitions/trimming_options" },
+        { "$ref": "#/definitions/pipeline_options" },
+        { "$ref": "#/definitions/reporting_options" },
+        { "$ref": "#/definitions/institutional_config_options" },
+        { "$ref": "#/definitions/max_job_request_options" },
+        { "$ref": "#/definitions/generic_options" }
     ]
 }
