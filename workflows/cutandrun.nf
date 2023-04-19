@@ -135,7 +135,7 @@ include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS         } from "../subworkflo
  * MODULES
  */
 include { CAT_FASTQ                                                    } from "../modules/nf-core/cat/fastq/main"
-include { PRESEQ_LCEXTRAP                                              } from "../modules/local/for_patch/preseq/lcextrap/main"
+include { PRESEQ_LCEXTRAP                                              } from "../modules/nf-core/preseq/lcextrap/main"
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_IGG                         } from "../modules/nf-core/seacr/callpeak/main"
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                       } from "../modules/nf-core/seacr/callpeak/main"
 include { MACS2_CALLPEAK as MACS2_CALLPEAK_IGG                         } from "../modules/nf-core/macs2/callpeak/main"

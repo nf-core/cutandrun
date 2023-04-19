@@ -100,6 +100,11 @@
                         "git_sha": "75027bf77472b1f4fd2cdd7e46f83119dfb0f2c6",
                         "installed_by": ["modules"]
                     },
+                    "preseq/lcextrap": {
+                        "branch": "master",
+                        "git_sha": "0f8a77ff00e65eaeebc509b8156eaa983192474b",
+                        "installed_by": ["modules"]
+                    },
                     "samtools/faidx": {
                         "branch": "master",
                         "git_sha": "c8e35eb2055c099720a75538d1b8adb3fb5a464c",
