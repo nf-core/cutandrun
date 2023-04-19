@@ -29,8 +29,8 @@ process PRESEQ_LCEXTRAP {
         $args \\
         $paired_end \\
         -output ${prefix}.lc_extrap.txt \\
-        $bam \\
-    && cp .command.log ${prefix}.command.log || cp .command.log ${prefix}.command.log
+        $bam
+    cp .command.err ${prefix}.command.log
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
