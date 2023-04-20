@@ -17,6 +17,8 @@ parser = argparse.ArgumentParser(description=Description)
 parser.add_argument("--bed_path")
 parser.add_argument("--output_path")
 parser.add_argument("--metrics_path")
+parser.add_argument("--header_path")
+parser.add_argument("--mqc_path")
 args = parser.parse_args()
 
 ############################################
@@ -29,6 +31,8 @@ args = parser.parse_args()
 output_path = os.path.abspath(args.output_path)
 bed_path = os.path.abspath(args.bed_path)
 metrics_path = os.path.abspath(args.metrics_path)
+header_path = os.path.abspath(args.header_path)
+mqc_path = os.path.abspath(args.mqc_path)
 
 # Empty dictionary for the alignments
 alignments = dict()
@@ -38,11 +42,9 @@ i = 0
 
 # Open BED file containing new line for each alignment
 with open(bed_path) as csvfile:
-
     # Loop through CSV reader object
     data = csv.reader(csvfile, delimiter="\t")
     for row in data:
-
         # Skip read 2
         if row[3].endswith("2"):
             continue
@@ -71,16 +73,28 @@ with open(bed_path) as csvfile:
 # Extract alignment names only (QNAME from BAM)
 alignments = [i[1][0][:-2] for i in alignments.items()]
 
+# Line to be saved in MultiQC file
+mqc_line = f"LA duplicates removed (%)\t{round((i-len(alignments))/i*100, 2)}"
+
 # Collect metrics into a string
 report = "LINEAR AMPLIFICATION DUPLICATION METRICS"
 report += f"\nReads before filtering\t{i}"
 report += f"\nLA duplicates removed (n)\t{i-len(alignments)}"
-report += f"\nLA duplicates removed (%)\t{round((i-len(alignments))/i*100, 2)}"
+report += "\n" + mqc_line
 report += f"\nUnique reads after LA duplicate removal\t{len(alignments)}"
 
 # Write string to a text file
 with open(metrics_path, "w") as f:
     f.write(report)
+
+# Read header and append metrics
+with open(header_path, "r") as f:
+    mqc_file = f.read()
+    mqc_file += mqc_line
+
+# Write MultiQC header + metrics in to a new text file
+with open(mqc_path, "w") as f:
+    f.write(mqc_file)
 
 # Write alignment names to a text file
 with open(output_path, "w") as f:

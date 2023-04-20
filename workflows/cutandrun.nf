@@ -99,14 +99,14 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
 /*
  * MODULES
  */
-include { INPUT_CHECK                     } from "../subworkflows/local/input_check"
-include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
-include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
-include { IGV_SESSION                     } from "../modules/local/python/igv_session"
-include { AWK as AWK_EXTRACT_SUMMITS      } from "../modules/local/linux/awk"
-include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
-include { FRAG_LEN_HIST                   } from "../modules/local/python/frag_len_hist"
-include { MULTIQC                         } from "../modules/local/multiqc"
+include { INPUT_CHECK                } from "../subworkflows/local/input_check"
+include { CUT as PEAK_TO_BED         } from '../modules/local/linux/cut'
+include { AWK as AWK_NAME_PEAK_BED   } from "../modules/local/linux/awk"
+include { IGV_SESSION                } from "../modules/local/python/igv_session"
+include { AWK as AWK_EXTRACT_SUMMITS } from "../modules/local/linux/awk"
+include { SAMTOOLS_CUSTOMVIEW        } from "../modules/local/samtools_custom_view"
+include { FRAG_LEN_HIST              } from "../modules/local/python/frag_len_hist"
+include { MULTIQC                    } from "../modules/local/multiqc"
 
 /*
  * SUBWORKFLOWS
@@ -152,8 +152,6 @@ include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS_ALL } from ".
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE_ALL      } from "../modules/nf-core/deeptools/plotheatmap/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_PEAKS_ALL     } from "../modules/nf-core/deeptools/plotheatmap/main"
 include { CUSTOM_DUMPSOFTWAREVERSIONS                                  } from "../modules/local/custom_dumpsoftwareversions"
-include { LINEAR_DUPLICATION_METRICS                                   } from "../modules/local/linux/linear_duplication_metrics"
-
 
 /*
  * SUBWORKFLOWS
@@ -409,21 +407,25 @@ workflow CUTANDRUN {
     /*
      * SUBWORKFLOW: Remove linear amplification duplicates - default is false
      */
-    ch_linear_metrics = Channel.empty()
+    ch_linear_metrics         = Channel.empty()
+    ch_linear_duplication_mqc = Channel.empty()
     if (params.remove_linear_duplicates) {
         DEDUPLICATE_LINEAR (
             ch_samtools_bam,
+            ch_samtools_bai,
             PREPARE_GENOME.out.fasta.collect{it[1]},
             PREPARE_GENOME.out.fasta_index.collect{it[1]},
-            params.dedup_target_reads
+            params.dedup_target_reads,
+            ch_linear_duplication_header_multiqc
         )
-        ch_samtools_bam      = DEDUPLICATE_LINEAR.out.bam
-        ch_samtools_bai      = DEDUPLICATE_LINEAR.out.bai
-        ch_samtools_stats    = DEDUPLICATE_LINEAR.out.stats
-        ch_samtools_flagstat = DEDUPLICATE_LINEAR.out.flagstat
-        ch_samtools_idxstats = DEDUPLICATE_LINEAR.out.idxstats
-        ch_linear_metrics    = DEDUPLICATE_LINEAR.out.metrics
-        ch_software_versions = ch_software_versions.mix(DEDUPLICATE_LINEAR.out.versions)
+        ch_samtools_bam           = DEDUPLICATE_LINEAR.out.bam
+        ch_samtools_bai           = DEDUPLICATE_LINEAR.out.bai
+        ch_samtools_stats         = DEDUPLICATE_LINEAR.out.stats
+        ch_samtools_flagstat      = DEDUPLICATE_LINEAR.out.flagstat
+        ch_samtools_idxstats      = DEDUPLICATE_LINEAR.out.idxstats
+        ch_linear_metrics         = DEDUPLICATE_LINEAR.out.metrics
+        ch_linear_duplication_mqc = DEDUPLICATE_LINEAR.out.linear_metrics_mqc
+        ch_software_versions      = ch_software_versions.mix(DEDUPLICATE_LINEAR.out.versions)
     }
 
     ch_bedgraph               = Channel.empty()
@@ -706,7 +708,6 @@ workflow CUTANDRUN {
     ch_peakqc_count_consensus_mqc = Channel.empty()
     ch_peakqc_reprod_perc_mqc     = Channel.empty()
     ch_frag_len_hist_mqc          = Channel.empty()
-    ch_linear_duplication_mqc     = Channel.empty()
     if(params.run_reporting) {
         if(params.run_igv) {
             /*
@@ -922,15 +923,6 @@ workflow CUTANDRUN {
         ch_software_versions = ch_software_versions.mix(FRAG_LEN_HIST.out.versions)
     }
     //ch_frag_len_hist_mqc | view
-
-    if (params.run_multiqc && params.remove_linear_duplicates) {
-        LINEAR_DUPLICATION_METRICS(
-            ch_linear_metrics,
-            ch_linear_duplication_header_multiqc
-        )
-        ch_linear_duplication_mqc = LINEAR_DUPLICATION_METRICS.out.linear_metrics_mqc
-        ch_software_versions = ch_software_versions.mix(LINEAR_DUPLICATION_METRICS.out.versions)
-    }
 
 
     if (params.run_multiqc) {

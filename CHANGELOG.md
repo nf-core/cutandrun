@@ -7,14 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Major Changes
 
-- Duplicates arising from linear amplification can be now removed by setting `--remove_linear_duplicates true`
+- Duplicates arising from linear amplification can be now removed by setting `--remove_linear_duplicates true`. [Linear amplification](https://doi.org/10.1186/1471-2164-4-19) is used in the [TIPseq protocol](https://doi.org/10.1083/jcb.202103078) in which genomic DNA is cut with Tn5 loaded with T7 promoter sequence that gets inserted in the cut DNA fragment. The T7 promoter sequence is then used to perform in vitro transcription to produce copies of the cut fragment. These duplicates are referred to as linear duplicates.
 
 ### Enhancements
 
 - Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default.
-- The user can now specify explicitly if `end-to-end` vs `local` mode of Bowtie2 should be used by setting `--end_to_end` to `true` or `false`. `false` is default.
+- The user can now specify explicitly if `end-to-end` vs `local` mode of Bowtie2 should be used by setting `--end_to_end` to `true` or `false`. `true` is default.
 - Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps
-- Added a filtering step to filter out bam files with less than 1000 reads before the Deeptools step
+- Added a filtering step to filter out bam files with less than 1000 reads before NFCORE_CUTANDRUN:CUTANDRUN:DEEPTOOLS_QC:\* processes.
 
 ## [3.1] - 2023-02-20
 

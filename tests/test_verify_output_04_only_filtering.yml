@@ -9,3 +9,15 @@
     - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.target.markdup.sorted.bam
     - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.target.markdup.sorted.bam.bai
     - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.flagstat
+
+- name: verify_output_only_filtering_without_mitochondrial_reads
+  command: nextflow run main.nf -profile docker,test --only_filtering --skip_fastqc --skip_removeduplicates --skip_preseq -c tests/config/nextflow.config --remove_mitochondrial_reads true
+  tags:
+    - verify_output_only_filtering_without_mitochondrial_reads
+  files:
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.target.markdup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.target.markdup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.flagstat

@@ -289,7 +289,7 @@
                 "end_to_end": {
                     "type": "boolean",
                     "fa_icon": "fas fa-clone",
-                    "default": false,
+                    "default": true,
                     "description": "Use --end-to-end mode of Bowtie2 during alignment"
                 },
                 "normalisation_mode": {

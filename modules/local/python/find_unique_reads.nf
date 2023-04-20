@@ -1,4 +1,4 @@
-process FIND_UNIQUE_ALIGNMENTS {
+process FIND_UNIQUE_READS {
     tag "$meta.id"
     label 'process_single'
 
@@ -9,10 +9,12 @@ process FIND_UNIQUE_ALIGNMENTS {
 
     input:
     tuple val(meta), path(input)
+    path mqc_header
 
     output:
     tuple val(meta), path('*alignments.txt'), emit: txt
     tuple val(meta), path('*metrics.txt'), emit: metrics
+    tuple val(meta), path('*mqc.tsv'), emit: linear_metrics_mqc
     path  "versions.yml",   emit: versions
 
     when:
@@ -24,7 +26,9 @@ process FIND_UNIQUE_ALIGNMENTS {
     find_unique_reads.py \\
         --bed_path $input \\
         --output_path "${prefix}_unique_alignments.txt" \\
-        --metrics_path "${prefix}_metrics.txt"
+        --metrics_path "${prefix}_metrics.txt" \\
+        --header_path $mqc_header \\
+        --mqc_path "${prefix}_mqc.tsv"
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         python: \$(python --version | grep -E -o \"([0-9]{1,}\\.)+[0-9]{1,}\")

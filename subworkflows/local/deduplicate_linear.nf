@@ -2,18 +2,20 @@
  * First use custom .py script to find unique linear amplification alignments, samtools filter unique alignments, index BAM file and run samtools stats, flagstat and idxstats
  */
 
-include { BEDTOOLS_BAMTOBED           } from "../../modules/nf-core/bedtools/bamtobed/main"
-include { FIND_UNIQUE_ALIGNMENTS   } from '../../modules/local/find_unique_alignments'
+include { BEDTOOLS_BAMTOBED       } from "../../modules/nf-core/bedtools/bamtobed/main"
+include { FIND_UNIQUE_READS       } from '../../modules/local/python/find_unique_reads'
 include { BAM_SORT_STATS_SAMTOOLS } from '../nf-core/bam_sort_stats_samtools/main'
-include { SAMTOOLS_SORT      } from "../../modules/nf-core/samtools/sort/main.nf"
-include { SAMTOOLS_VIEW_FILTER_LI as SAMTOOLS_VIEW } from "../../modules/local/samtools_view_filter_li.nf"
+include { SAMTOOLS_SORT           } from "../../modules/nf-core/samtools/sort/main.nf"
+include { SAMTOOLS_VIEW           } from "../../modules/nf-core/samtools/view/main.nf"
 
 workflow DEDUPLICATE_LINEAR {
     take:
     bam            // channel: [ val(meta), [ bam ] ]
-    fasta          // cahnnel: [ fasta ]
+    bai            // channel: [ val(meta), [ bai ] ]
+    fasta          // channel: [ fasta ]
     fai            // channel: [ fai ]
     process_target // boolean
+    mqc_header     // path
 
     main:
     /*
@@ -26,20 +28,42 @@ workflow DEDUPLICATE_LINEAR {
 
     if( process_target ) {
 
-        SAMTOOLS_SORT ( bam )
+        SAMTOOLS_SORT (
+            bam
+        )
 
         // Convert .bam files to bed to find unique Tn5-ME-A insertion sites
-        BEDTOOLS_BAMTOBED ( SAMTOOLS_SORT.out.bam )
+        BEDTOOLS_BAMTOBED (
+            SAMTOOLS_SORT.out.bam
+        )
 
         // Use custom .py script to find names of unique alignments
-        FIND_UNIQUE_ALIGNMENTS ( BEDTOOLS_BAMTOBED.out.bed )
-        ch_linear_duplicates    = FIND_UNIQUE_ALIGNMENTS.out.txt
-        ch_metrics          = FIND_UNIQUE_ALIGNMENTS.out.metrics
-        ch_versions         = ch_versions.mix( FIND_UNIQUE_ALIGNMENTS.out.versions )
+        FIND_UNIQUE_READS (
+            BEDTOOLS_BAMTOBED.out.bed,
+            mqc_header
+        )
+        ch_linear_duplicates = FIND_UNIQUE_READS.out.txt
+        ch_metrics           = FIND_UNIQUE_READS.out.metrics
+        ch_versions          = ch_versions.mix( FIND_UNIQUE_READS.out.versions )
 
         // Subset original .bam file to contain only unique alignments
+        bam
+        .join( bai )
+        .join( ch_linear_duplicates )
+        .set { ch_bam_bai_txt }
+
+        ch_bam_bai_txt
+        .map { row -> row[0,1,2]}
+        .set { ch_bam_bai }
+
+        ch_bam_bai_txt
+        .map { row -> row[3]}
+        .set { ch_txt}
+
         SAMTOOLS_VIEW (
-            bam.join(ch_linear_duplicates)
+            ch_bam_bai,
+            fasta,
+            ch_txt
         )
 
         // Return the filtered bam in the channel
@@ -61,17 +85,38 @@ workflow DEDUPLICATE_LINEAR {
         )
 
         // Run .bam to bed on control files only and find unique alignments in control files
-        BEDTOOLS_BAMTOBED ( SAMTOOLS_SORT.out.bam )
+        BEDTOOLS_BAMTOBED (
+            SAMTOOLS_SORT.out.bam
+        )
 
         // Use custom .py script to find names of unique alignments in control files only
-        FIND_UNIQUE_ALIGNMENTS ( BEDTOOLS_BAMTOBED.out.bed )
-        ch_linear_duplicates = FIND_UNIQUE_ALIGNMENTS.out.txt
-        ch_metrics          = FIND_UNIQUE_ALIGNMENTS.out.metrics
-        ch_versions         = ch_versions.mix( FIND_UNIQUE_ALIGNMENTS.out.versions )
+        FIND_UNIQUE_READS (
+            BEDTOOLS_BAMTOBED.out.bed,
+            mqc_header
+        )
+        ch_linear_duplicates = FIND_UNIQUE_READS.out.txt
+        ch_metrics           = FIND_UNIQUE_READS.out.metrics
+        ch_versions          = ch_versions.mix( FIND_UNIQUE_READS.out.versions )
 
          // Subset original .bam file to contain only unique alignments
+        ch_split.control
+        .join( bai )
+        .join( ch_linear_duplicates )
+        .set { ch_bam_bai_txt }
+
+        ch_bam_bai_txt
+        .map { row -> row[0,1,2]}
+        .set { ch_bam_bai }
+
+        ch_bam_bai_txt
+        .map { row -> row[3]}
+        .set { ch_txt}
+
+        // Subset original .bam file to contain only unique alignments
         SAMTOOLS_VIEW (
-            ch_split.control.join(ch_linear_duplicates)
+            ch_bam_bai,
+            fasta,
+            ch_txt
         )
 
          // Return the filtered bam in the channel
@@ -87,7 +132,7 @@ workflow DEDUPLICATE_LINEAR {
             .flatMap()
 
         // Return the filtered control bam file concatenated with the original target bam
-        ch_bam    = ch_sorted_targets.concat ( ch_sorted_controls )
+        ch_bam = ch_sorted_targets.concat( ch_sorted_controls )
     }
     //ch_bam | view
 
@@ -106,11 +151,12 @@ workflow DEDUPLICATE_LINEAR {
     ch_versions = ch_versions.mix( BAM_SORT_STATS_SAMTOOLS.out.versions )
 
     emit:
-    bam      = BAM_SORT_STATS_SAMTOOLS.out.bam        // channel: [ val(meta), [ bam ] ]
-    bai      = BAM_SORT_STATS_SAMTOOLS.out.bai        // channel: [ val(meta), [ bai ] ]
-    stats    = BAM_SORT_STATS_SAMTOOLS.out.stats      // channel: [ val(meta), [ stats ] ]
-    flagstat = BAM_SORT_STATS_SAMTOOLS.out.flagstat   // channel: [ val(meta), [ flagstat ] ]
-    idxstats = BAM_SORT_STATS_SAMTOOLS.out.idxstats   // channel: [ val(meta), [ idxstats ] ]
-    metrics  = ch_metrics                             // channel: [ metrics.txt  ]
-    versions = ch_versions                            // channel: [ versions.yml ]
+    bam                = BAM_SORT_STATS_SAMTOOLS.out.bam           // channel: [ val(meta), [ bam ] ]
+    bai                = BAM_SORT_STATS_SAMTOOLS.out.bai           // channel: [ val(meta), [ bai ] ]
+    stats              = BAM_SORT_STATS_SAMTOOLS.out.stats         // channel: [ val(meta), [ stats ] ]
+    flagstat           = BAM_SORT_STATS_SAMTOOLS.out.flagstat      // channel: [ val(meta), [ flagstat ] ]
+    idxstats           = BAM_SORT_STATS_SAMTOOLS.out.idxstats      // channel: [ val(meta), [ idxstats ] ]
+    metrics            = ch_metrics                                // channel: [ metrics.txt  ]
+    linear_metrics_mqc = FIND_UNIQUE_READS.out.linear_metrics_mqc  // channel: [ mqc.tsv ]
+    versions           = ch_versions                               // channel: [ versions.yml ]
 }
