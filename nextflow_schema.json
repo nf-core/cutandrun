@@ -275,6 +275,12 @@
                     "fa_icon": "fas fa-clone",
                     "description": "Filter mitochondrial reads"
                 },
+                "mito_name": {
+                    "type": "string",
+                    "default": null,
+                    "fa_icon": "fas fa-book",
+                    "description": "Name of mitochondrial reads in reference genome. Only necessary when using a custom (non-igenomes) reference genome."
+                },
                 "dedup_target_reads": {
                     "type": "boolean",
                     "fa_icon": "fas fa-clone",
