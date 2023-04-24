@@ -11,10 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements
 
-- Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default.
+- Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default. If using a custom reference genome, user can specify the string that is used to denote the mitochondrial reads in the reference using `--mito_name` parameter.
 - The user can now specify explicitly if `end-to-end` vs `local` mode of Bowtie2 should be used by setting `--end_to_end` to `true` or `false`. `true` is default.
 - Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps
-- Added a filtering step to filter out bam files with less than 1000 reads before NFCORE_CUTANDRUN:CUTANDRUN:DEEPTOOLS_QC:\* processes.
 
 ## [3.1] - 2023-02-20
 

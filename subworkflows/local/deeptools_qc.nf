@@ -6,7 +6,6 @@ include { DEEPTOOLS_MULTIBAMSUMMARY } from '../../modules/nf-core/deeptools/mult
 include { DEEPTOOLS_PLOTCORRELATION } from '../../modules/nf-core/deeptools/plotcorrelation/main'
 include { DEEPTOOLS_PLOTPCA         } from '../../modules/nf-core/deeptools/plotpca/main'
 include { DEEPTOOLS_PLOTFINGERPRINT } from '../../modules/nf-core/deeptools/plotfingerprint/main'
-include { FILTER_BAMS               } from '../../modules/local/filter_bams'
 
 workflow DEEPTOOLS_QC {
     take:
@@ -18,23 +17,9 @@ workflow DEEPTOOLS_QC {
     ch_versions = Channel.empty()
 
     /*
-    * MODULE: Filter bams based on number of alignments
-    */
-    FILTER_BAMS (
-        bam
-    )
-    ch_versions = ch_versions.mix(FILTER_BAMS.out.versions)
-
-    FILTER_BAMS.out.bam
-    .filter { row -> row[2].strip() == "1"}
-    .map {row -> [row[0], row[1]]}
-    .set { ch_bam_filtered}
-    //ch_bam_filtered | view
-
-    /*
     * CHANNEL: Combine bam and bai files on id
     */
-    ch_bam_filtered
+    bam
     .join( bai )
     .set { ch_bam_bai }
     // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
