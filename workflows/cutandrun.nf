@@ -409,7 +409,7 @@ workflow CUTANDRUN {
      */
     ch_linear_metrics         = Channel.empty()
     ch_linear_duplication_mqc = Channel.empty()
-    if (params.remove_linear_duplicates) {
+    if (params.run_remove_linear_dups) {
         DEDUPLICATE_LINEAR (
             ch_samtools_bam,
             ch_samtools_bai,
