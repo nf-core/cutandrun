@@ -71,11 +71,11 @@ Each row represents a pair of fastq files (paired end).
 Now, you can run the pipeline using:
 
 nextflow run nf-core/cutandrun \
-   -profile <docker/singularity/.../institute> \
-   --input samplesheet.csv \
-   --peakcaller 'seacr,MACS2' \
-   --genome GRCh38 \
-   --outdir <OUTDIR>
+ -profile <docker/singularity/.../institute> \
+ --input samplesheet.csv \
+ --peakcaller 'seacr,MACS2' \
+ --genome GRCh38 \
+ --outdir <OUTDIR>
 
 > **Warning:**
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those
