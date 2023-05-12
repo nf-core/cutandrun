@@ -17,6 +17,29 @@ class WorkflowCutandrun {
         if (!params.fasta) {
             Nextflow.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
         }
+
+        if (params.normalisation_mode == "Spikein" && !params.spikein_fasta) {
+            log.error "Spike-in fasta file not specified with e.g. '--spikein_fasta genome.fa' or via a detectable config file."
+            System.exit(1)
+        }
+
+        if (!params.gtf) {
+            log.error "No GTF annotation specified!"
+            System.exit(1)
+        }
+
+        if (params.gtf) {
+            if (params.genome == 'GRCh38' && params.gtf.contains('Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf')) {
+                ncbiGenomeWarn(log)
+            }
+            if (params.gtf.contains('/UCSC/') && params.gtf.contains('Annotation/Genes/genes.gtf')) {
+                ucscGenomeWarn(log)
+            }
+        }
+
+        if (params.dt_calc_all_matrix) {
+            matrixWarn(log)
+        }
     }
 
     //
@@ -75,5 +98,67 @@ class WorkflowCutandrun {
                 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
             Nextflow.error(error_string)
         }
+    }
+
+    //
+    // Print a warning if using GRCh38 assembly from igenomes.config
+    //
+    private static void ncbiGenomeWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  When using '--genome GRCh38' the assembly is from the NCBI and NOT Ensembl.\n" +
+            "==================================================================================="
+    }
+
+    //
+    // Print a warning if using a UCSC assembly from igenomes.config
+    //
+    private static void ucscGenomeWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  When using UCSC assemblies the 'gene_biotype' field is absent from the GTF file.\n" +
+            "  Biotype QC will be skipped to circumvent the issue below:\n" +
+            "  https://github.com/nf-core/rnaseq/issues/460\n\n" +
+            "  If you would like to use the soft-masked Ensembl assembly instead please see:\n" +
+            "  https://github.com/nf-core/rnaseq/issues/159#issuecomment-501184312\n" +
+            "==================================================================================="
+    }
+
+    private static void varryingReplicateNumbersError(log) {
+        log.error "===================================================================================\n" +
+            "  There are varrying numbers of replicates across experiemental and IgG samples.\n" +
+            "  Options:\n" +
+            "    - provide a consistent number of replicates across all experiments and control\n" +
+            "    - provide any number of experimental replicates along with just one control rep\n" +
+            "    - provide any number of experimental replicates and give all control replicates\n" +
+            "      the same replicate number, so that they will be merged for downstream analysis\n" +
+            "==================================================================================="
+        System.exit(1)
+    }
+
+    private static void varryingReplicateNumbersWarn(log) {
+        log.warn "===================================================================================\n" +
+            "  The number of replicates for IgG control does not match the number of replicates \n" +
+            "  for experimental data. Only the first IgG replicate will be used for SEACR \n" +
+            "  peak-caller normalisation and downstream analysis.\n" +
+            "==================================================================================="
+    }
+
+    //
+    // Print a warning if not blacklist detected
+    //
+    private static void blacklistWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  No genome blacklist file specified, switching to dummy empty file...\n" +
+            "==================================================================================="
+    }
+
+    //
+    // Print a warning if gen all plots are on
+    //
+    private static void matrixWarn(log) {
+        log.warn "==========================================================================================================\n" +
+            "  dt_calc_all_matrix is switched on which will calculate a deeptools matrix for all samples. \n" +
+            "  If you have a large sample count, this may affect pipeline performance and result in errors. \n" +
+            "  Set this option to false to disable this feature and only calculate deeptools heatmaps for single samples\n" +
+            "==============================================================================================================="
     }
 }

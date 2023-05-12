@@ -1,0 +1,16 @@
+- name: test_verify_output_only_peak_calling
+  command: nextflow run main.nf -profile docker,test_full_small --only_peak_calling --skip_fastqc --skip_preseq -c tests/config/nextflow.config
+  tags:
+    - verify_output_peak_calling_only_peak_calling
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+    - path: results/03_peak_calling/01_bam_to_bedgraph/igg_ctrl_R1.sorted.bedGraph
+    - path: results/03_peak_calling/02_clip_bed/h3k27me3_R1.clipped.bedGraph
+    - path: results/03_peak_calling/02_clip_bed/igg_ctrl_R1.clipped.bedGraph
+    - path: results/03_peak_calling/03_bed_to_bigwig/h3k27me3_R1.bigWig
+    - path: results/03_peak_calling/03_bed_to_bigwig/igg_ctrl_R1.bigWig
+    - path: results/03_peak_calling/04_called_peaks/seacr/h3k27me3_R1.seacr.peaks.stringent.bed
+    - path: results/03_peak_calling/04_called_peaks/seacr/igg_ctrl_R1.seacr.peaks.stringent.bed
+      should_exist: false
+    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peaks.awk.bed
+    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peak_counts.bed

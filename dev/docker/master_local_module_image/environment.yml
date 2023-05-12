@@ -1,0 +1,19 @@
+# conda env create -f environment.yml
+name: packages
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  # python version
+  - python=3.9.*
+
+  # conda packages
+  - numpy=1.22.*
+  - pandas=1.4.*
+  - seaborn=0.11.*
+  - deeptools=3.5.*
+  - pysam=0.19.*
+  - pyranges=0.0.*
+  - dask=2022.*
+  - conda-forge::upsetplot=0.6.*

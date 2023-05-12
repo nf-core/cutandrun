@@ -1,258 +1,259 @@
 #!/usr/bin/env python
 
-
-"""Provide a command line tool to validate and transform tabular samplesheets."""
-
-
-import argparse
-import csv
-import logging
+import os
 import sys
-from collections import Counter
-from pathlib import Path
-
-logger = logging.getLogger()
+import errno
+import argparse
 
 
-class RowChecker:
-    """
-    Define a service that can validate and transform each given row.
+def parse_args(args=None):
+    Description = "Reformat nf-core/cutandrun samplesheet file and check its contents."
+    Epilog = "Example usage: python check_samplesheet.py <FILE_IN> <FILE_OUT> <USE_CONTROL>"
 
-    Attributes:
-        modified (list): A list of dicts, where each dict corresponds to a previously
-            validated and transformed row. The order of rows is maintained.
-
-    """
-
-    VALID_FORMATS = (
-        ".fq.gz",
-        ".fastq.gz",
+    parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
+    parser.add_argument("FILE_IN", help="Input samplesheet file.")
+    parser.add_argument("FILE_OUT", help="Output file.")
+    parser.add_argument(
+        "USE_CONTROL",
+        help="Boolean for whether or not the user has specified the pipeline must normalise against a control",
     )
+    return parser.parse_args(args)
 
-    def __init__(
-        self,
-        sample_col="sample",
-        first_col="fastq_1",
-        second_col="fastq_2",
-        single_col="single_end",
-        **kwargs,
-    ):
-        """
-        Initialize the row checker with the expected column names.
 
-        Args:
-            sample_col (str): The name of the column that contains the sample name
-                (default "sample").
-            first_col (str): The name of the column that contains the first (or only)
-                FASTQ file path (default "fastq_1").
-            second_col (str): The name of the column that contains the second (if any)
-                FASTQ file path (default "fastq_2").
-            single_col (str): The name of the new column that will be inserted and
-                records whether the sample contains single- or paired-end sequencing
-                reads (default "single_end").
+def make_dir(path):
+    if len(path) > 0:
+        try:
+            os.makedirs(path)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise exception
 
-        """
-        super().__init__(**kwargs)
-        self._sample_col = sample_col
-        self._first_col = first_col
-        self._second_col = second_col
-        self._single_col = single_col
-        self._seen = set()
-        self.modified = []
 
-    def validate_and_transform(self, row):
-        """
-        Perform all validations on the given row and insert the read pairing status.
+def print_error(error, context="Line", context_str=""):
+    error_str = "ERROR: Please check samplesheet -> {}".format(error)
+    if context != "" and context_str != "":
+        error_str = "ERROR: Please check samplesheet -> {}\n{}: '{}'".format(
+            error, context.strip(), context_str.strip()
+        )
+    print(error_str)
+    sys.exit(1)
 
-        Args:
-            row (dict): A mapping from column headers (keys) to elements of that row
-                (values).
 
-        """
-        self._validate_sample(row)
-        self._validate_first(row)
-        self._validate_second(row)
-        self._validate_pair(row)
-        self._seen.add((row[self._sample_col], row[self._first_col]))
-        self.modified.append(row)
+def check_samplesheet(file_in, file_out, use_control):
+    """
+    This function checks that the samplesheet follows the following structure:
 
-    def _validate_sample(self, row):
-        """Assert that the sample name exists and convert spaces to underscores."""
-        if len(row[self._sample_col]) <= 0:
-            raise AssertionError("Sample input is required.")
-        # Sanitize samples slightly.
-        row[self._sample_col] = row[self._sample_col].replace(" ", "_")
+    group,replicate,fastq_1,fastq_2,control
+    WT,1,WT_LIB1_REP1_1.fastq.gz,WT_LIB1_REP1_2.fastq.gz,CONTROL_GROUP
+    WT,1,WT_LIB2_REP1_1.fastq.gz,WT_LIB2_REP1_2.fastq.gz,CONTROL_GROUP
+    WT,2,WT_LIB1_REP2_1.fastq.gz,WT_LIB1_REP2_2.fastq.gz,CONTROL_GROUP
+    KO,1,KO_LIB1_REP1_1.fastq.gz,KO_LIB1_REP1_2.fastq.gz,CONTROL_GROUP
+    CONTROL_GROUP,1,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz,
+    CONTROL_GROUP,2,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz,
+    """
 
-    def _validate_first(self, row):
-        """Assert that the first FASTQ entry is non-empty and has the right format."""
-        if len(row[self._first_col]) <= 0:
-            raise AssertionError("At least the first FASTQ file is required.")
-        self._validate_fastq_format(row[self._first_col])
+    # Init
+    control_present = False
+    num_fastq_list = []
+    sample_names_list = []
+    control_names_list = []
+    sample_run_dict = {}
 
-    def _validate_second(self, row):
-        """Assert that the second FASTQ entry has the right format if it exists."""
-        if len(row[self._second_col]) > 0:
-            self._validate_fastq_format(row[self._second_col])
+    with open(file_in, "r") as fin:
+        ## Check header
+        MIN_COLS = 3
+        LEGACY_HEADER = ["group", "replicate", "control_group", "fastq_1", "fastq_2"]
+        HEADER = ["group", "replicate", "fastq_1", "fastq_2", "control"]
+        HEADER_LEN = len(HEADER)
+        header = [x.strip('"') for x in fin.readline().strip().split(",")]
 
-    def _validate_pair(self, row):
-        """Assert that read pairs have the same file extension. Report pair status."""
-        if row[self._first_col] and row[self._second_col]:
-            row[self._single_col] = False
-            first_col_suffix = Path(row[self._first_col]).suffixes[-2:]
-            second_col_suffix = Path(row[self._second_col]).suffixes[-2:]
-            if first_col_suffix != second_col_suffix:
-                raise AssertionError("FASTQ pairs must have the same file extensions.")
-        else:
-            row[self._single_col] = True
+        if len(header) >= len(LEGACY_HEADER) and header[: len(LEGACY_HEADER)] == LEGACY_HEADER:
+            print(
+                "ERROR: It looks like you are using a legacy header format with a newer version of the pipeline -> {} != {}".format(
+                    ",".join(header), ",".join(HEADER)
+                )
+            )
+            sys.exit(1)
 
-    def _validate_fastq_format(self, filename):
-        """Assert that a given filename has one of the expected FASTQ extensions."""
-        if not any(filename.endswith(extension) for extension in self.VALID_FORMATS):
-            raise AssertionError(
-                f"The FASTQ file has an unrecognized extension: {filename}\n"
-                f"It should be one of: {', '.join(self.VALID_FORMATS)}"
+        if header[: len(HEADER)] != HEADER:
+            print("ERROR: Please check samplesheet header -> {} != {}".format(",".join(header), ",".join(HEADER)))
+            sys.exit(1)
+
+        ## Check sample entries
+        line_no = 1
+        for line in fin:
+            lspl = [x.strip().strip('"') for x in line.strip().split(",")]
+
+            ## Check if its just a blank line so we dont error
+            if line.strip() == "":
+                continue
+
+            ## Check valid number of columns per row
+            if len(lspl) != HEADER_LEN:
+                print_error(
+                    "Invalid number of columns (found {} should be {})! - line no. {}".format(
+                        len(lspl), len(HEADER), line_no
+                    ),
+                    "Line",
+                    line,
+                )
+
+            ## Set control_present to true if the control column is not empty
+            if lspl[4] != "":
+                control_present = True
+
+            ## Check valid number of populated columns per row
+            num_cols = len([x for x in lspl if x])
+            if num_cols < MIN_COLS:
+                print_error(
+                    "Invalid number of populated columns (minimum = {})!".format(MIN_COLS),
+                    "Line",
+                    line,
+                )
+
+            ## Check sample name entries
+            sample, replicate, fastq_1, fastq_2, control = lspl[: len(HEADER)]
+            if sample:
+                if sample.find(" ") != -1:
+                    print_error("Group entry contains spaces!", "Line", line)
+            else:
+                print_error("Group entry has not been specified!", "Line", line)
+
+            if control:
+                if control.find(" ") != -1:
+                    print_error("Control entry contains spaces!", "Line", line)
+
+            ## Check for single-end
+            if fastq_2 == "":
+                print_error("Single-end detected. This pipeline does not support single-end reads!", "Line", line)
+
+            ## Check control sample name is not equal to sample name entry
+            if sample == control:
+                print_error("Control entry and sample entry must be different!", "Line", line)
+
+            ## Check replicate entry is integer
+            if not replicate.isdigit():
+                print_error("Replicate id not an integer", "Line", line)
+            replicate = int(replicate)
+            if replicate <= 0:
+                print_error("Replicate must be > 0", "Line", line)
+
+            ## Check FastQ file extension
+            for fastq in [fastq_1, fastq_2]:
+                if fastq:
+                    if fastq.find(" ") != -1:
+                        print_error("FastQ file contains spaces!", "Line", line)
+                    if not fastq.endswith(".fastq.gz") and not fastq.endswith(".fq.gz"):
+                        print_error(
+                            "FastQ file does not have extension '.fastq.gz' or '.fq.gz'!",
+                            "Line",
+                            line,
+                        )
+            num_fastq = len([fastq for fastq in [fastq_1, fastq_2] if fastq])
+            num_fastq_list.append(num_fastq)
+
+            ## Auto-detect paired-end/single-end
+            sample_info = []
+            if sample and fastq_1 and fastq_2:  ## Paired-end short reads
+                sample_info = [sample, str(replicate), control, "0", fastq_1, fastq_2]
+            elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
+                sample_info = [sample, str(replicate), control, "1", fastq_1, fastq_2]
+            else:
+                print_error("Invalid combination of columns provided!", "Line", line)
+
+            ## Create sample mapping dictionary = {sample: {replicate : [ single_end, fastq_1, fastq_2 ]}}
+            if sample not in sample_run_dict:
+                sample_run_dict[sample] = {}
+            if replicate not in sample_run_dict[sample]:
+                sample_run_dict[sample][replicate] = [sample_info]
+            else:
+                if sample_info in sample_run_dict[sample][replicate]:
+                    print_error("Samplesheet contains duplicate rows!", "Line", line)
+                else:
+                    sample_run_dict[sample][replicate].append(sample_info)
+
+            ## Store unique sample names
+            if sample not in sample_names_list:
+                sample_names_list.append(sample)
+
+            ## Store unique control names
+            if control not in control_names_list:
+                control_names_list.append(control)
+
+            line_no = line_no + 1
+
+    ## Check data is either paired-end/single-end and not both
+    if min(num_fastq_list) != max(num_fastq_list):
+        print_error("Mixture of paired-end and single-end reads!")
+
+    ## Check control group exists
+    for ctrl in control_names_list:
+        if ctrl != "" and ctrl not in sample_names_list:
+            print_error(
+                "Each control entry must match at least one group entry! Unmatched control entry: {}.".format(ctrl)
             )
 
-    def validate_unique_samples(self):
-        """
-        Assert that the combination of sample name and FASTQ filename is unique.
+    ## Create control identity variable
+    for sample in sorted(sample_run_dict.keys()):
+        for replicate in sorted(sample_run_dict[sample].keys()):
+            for idx, sample_info in enumerate(sample_run_dict[sample][replicate]):
+                if control_present:
+                    if sample_info[0] in control_names_list:
+                        sample_info.append("1")
+                        if sample_info[2] != "":
+                            print_error("Control cannot have a control: {}.".format(sample_info[0]))
+                    else:
+                        sample_info.append("0")
+                else:
+                    sample_info.append("0")
 
-        In addition to the validation, also rename all samples to have a suffix of _T{n}, where n is the
-        number of times the same sample exist, but with different FASTQ files, e.g., multiple runs per experiment.
+    ## Check use_control parameter is consistent with input groups
+    if use_control == "true" and not control_present:
+        print_error(
+            "ERROR: No 'control' group was found in "
+            + str(file_in)
+            + " If you are not supplying a control, please specify --use_control 'false' on command line."
+        )
 
-        """
-        if len(self._seen) != len(self.modified):
-            raise AssertionError("The pair of sample name and FASTQ must be unique.")
-        seen = Counter()
-        for row in self.modified:
-            sample = row[self._sample_col]
-            seen[sample] += 1
-            row[self._sample_col] = f"{sample}_T{seen[sample]}"
+    if use_control == "false" and control_present:
+        print(
+            "WARNING: Parameter --use_control was set to false, but an control group was found in " + str(file_in) + "."
+        )
 
+    ## Write validated samplesheet with appropriate columns
+    if len(sample_run_dict) > 0:
+        out_dir = os.path.dirname(file_out)
+        make_dir(out_dir)
+        with open(file_out, "w") as fout:
+            fout.write(
+                ",".join(["id", "group", "replicate", "control", "single_end", "fastq_1", "fastq_2", "is_control"])
+                + "\n"
+            )
+            for sample in sorted(sample_run_dict.keys()):
+                ## Check that replicate ids are in format 1..<NUM_REPS>
+                uniq_rep_ids = set(sample_run_dict[sample].keys())
+                if len(uniq_rep_ids) != max(uniq_rep_ids):
+                    print_error(
+                        "Replicate ids must start with 1!",
+                        "Group",
+                        sample,
+                    )
+                for replicate in sorted(sample_run_dict[sample].keys()):
+                    ## Check tech reps have same control group id
+                    check_group = sample_run_dict[sample][replicate][0][2]
+                    for tech_rep in sample_run_dict[sample][replicate]:
+                        if tech_rep[2] != check_group:
+                            print_error("Control group must match within technical replicates", tech_rep[2])
 
-def read_head(handle, num_lines=10):
-    """Read the specified number of lines from the current position in the file."""
-    lines = []
-    for idx, line in enumerate(handle):
-        if idx == num_lines:
-            break
-        lines.append(line)
-    return "".join(lines)
-
-
-def sniff_format(handle):
-    """
-    Detect the tabular format.
-
-    Args:
-        handle (text file): A handle to a `text file`_ object. The read position is
-        expected to be at the beginning (index 0).
-
-    Returns:
-        csv.Dialect: The detected tabular format.
-
-    .. _text file:
-        https://docs.python.org/3/glossary.html#term-text-file
-
-    """
-    peek = read_head(handle)
-    handle.seek(0)
-    sniffer = csv.Sniffer()
-    dialect = sniffer.sniff(peek)
-    return dialect
-
-
-def check_samplesheet(file_in, file_out):
-    """
-    Check that the tabular samplesheet has the structure expected by nf-core pipelines.
-
-    Validate the general shape of the table, expected columns, and each row. Also add
-    an additional column which records whether one or two FASTQ reads were found.
-
-    Args:
-        file_in (pathlib.Path): The given tabular samplesheet. The format can be either
-            CSV, TSV, or any other format automatically recognized by ``csv.Sniffer``.
-        file_out (pathlib.Path): Where the validated and transformed samplesheet should
-            be created; always in CSV format.
-
-    Example:
-        This function checks that the samplesheet follows the following structure,
-        see also the `viral recon samplesheet`_::
-
-            sample,fastq_1,fastq_2
-            SAMPLE_PE,SAMPLE_PE_RUN1_1.fastq.gz,SAMPLE_PE_RUN1_2.fastq.gz
-            SAMPLE_PE,SAMPLE_PE_RUN2_1.fastq.gz,SAMPLE_PE_RUN2_2.fastq.gz
-            SAMPLE_SE,SAMPLE_SE_RUN1_1.fastq.gz,
-
-    .. _viral recon samplesheet:
-        https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/samplesheet/samplesheet_test_illumina_amplicon.csv
-
-    """
-    required_columns = {"sample", "fastq_1", "fastq_2"}
-    # See https://docs.python.org/3.9/library/csv.html#id3 to read up on `newline=""`.
-    with file_in.open(newline="") as in_handle:
-        reader = csv.DictReader(in_handle, dialect=sniff_format(in_handle))
-        # Validate the existence of the expected header columns.
-        if not required_columns.issubset(reader.fieldnames):
-            req_cols = ", ".join(required_columns)
-            logger.critical(f"The sample sheet **must** contain these column headers: {req_cols}.")
-            sys.exit(1)
-        # Validate each row.
-        checker = RowChecker()
-        for i, row in enumerate(reader):
-            try:
-                checker.validate_and_transform(row)
-            except AssertionError as error:
-                logger.critical(f"{str(error)} On line {i + 2}.")
-                sys.exit(1)
-        checker.validate_unique_samples()
-    header = list(reader.fieldnames)
-    header.insert(1, "single_end")
-    # See https://docs.python.org/3.9/library/csv.html#id3 to read up on `newline=""`.
-    with file_out.open(mode="w", newline="") as out_handle:
-        writer = csv.DictWriter(out_handle, header, delimiter=",")
-        writer.writeheader()
-        for row in checker.modified:
-            writer.writerow(row)
+                    ## Write to file
+                    for idx, sample_info in enumerate(sample_run_dict[sample][replicate]):
+                        sample_id = "{}_R{}_T{}".format(sample, replicate, idx + 1)
+                        fout.write(",".join([sample_id] + sample_info) + "\n")
 
 
-def parse_args(argv=None):
-    """Define and immediately parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description="Validate and transform a tabular samplesheet.",
-        epilog="Example: python check_samplesheet.py samplesheet.csv samplesheet.valid.csv",
-    )
-    parser.add_argument(
-        "file_in",
-        metavar="FILE_IN",
-        type=Path,
-        help="Tabular input samplesheet in CSV or TSV format.",
-    )
-    parser.add_argument(
-        "file_out",
-        metavar="FILE_OUT",
-        type=Path,
-        help="Transformed output samplesheet in CSV format.",
-    )
-    parser.add_argument(
-        "-l",
-        "--log-level",
-        help="The desired log level (default WARNING).",
-        choices=("CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"),
-        default="WARNING",
-    )
-    return parser.parse_args(argv)
-
-
-def main(argv=None):
-    """Coordinate argument parsing and program execution."""
-    args = parse_args(argv)
-    logging.basicConfig(level=args.log_level, format="[%(levelname)s] %(message)s")
-    if not args.file_in.is_file():
-        logger.error(f"The given input file {args.file_in} was not found!")
-        sys.exit(2)
-    args.file_out.parent.mkdir(parents=True, exist_ok=True)
-    check_samplesheet(args.file_in, args.file_out)
+def main(args=None):
+    args = parse_args(args)
+    check_samplesheet(args.FILE_IN, args.FILE_OUT, args.USE_CONTROL)
 
 
 if __name__ == "__main__":

@@ -8,24 +8,106 @@ on:
   release:
     types: [published]
 
-env:
-  NXF_ANSI_LOG: false
-
+# Cancel if a newer run is started
 concurrency:
-  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  ##############################
+  ### SMALL INTEGRATION TEST ###
+  ##############################
   test:
-    name: Run pipeline with test data
+    name: Run standard pipeline test
     # Only run on push if this is the nf-core dev branch (merged PRs)
     if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}"
     runs-on: ubuntu-latest
+    env:
+      NXF_VER: ${{ matrix.NXF_VER }}
+      NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     strategy:
       matrix:
-        NXF_VER:
-          - "22.10.1"
-          - "latest-everything"
+        NXF_VER: ["22.10.1", ""]
+    steps:
+      - name: Check out pipeline code
+        uses: actions/checkout@v3
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
+      # files during pipeline execution
+      - name: Download data
+        run: |
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20.fa.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-bowtie2.tar.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.bed.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.fa.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.tar.gz
+
+      - name: Run Pipeline
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
+          attempt_limit: 2
+
+  ##############################
+  ### LARGE INTEGRATION TEST ###
+  ##############################
+  test_full_small:
+    name: Run extended pipeline test
+    # Only run on push if this is the nf-core dev branch (merged PRs)
+    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
+    runs-on: ubuntu-latest
+    env:
+      NXF_VER: ${{ matrix.nxf_ver }}
+      NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
+    strategy:
+      matrix:
+        # Nextflow versions: check pipeline minimum and current latest
+        NXF_VER: ["22.10.1", ""]
+    steps:
+      - name: Check out pipeline code
+        uses: actions/checkout@v3
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
+      # files during pipeline execution
+      - name: Download data
+        run: |
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20.fa.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-bowtie2.tar.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.bed.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.fa.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.tar.gz
+
+      - name: Run Pipeline
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: nextflow run ${GITHUB_WORKSPACE} -profile docker,test_full_small_local_zip
+          attempt_limit: 2
+
+  #####################################
+  ### EDGE VERSION INTEGRATION TEST ###
+  #####################################
+  test_edge:
+    name: Run standard pipeline test (edge version)
+    # Only run on push if this is the nf-core dev branch (merged PRs)
+    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
+    runs-on: ubuntu-latest
+    env:
+      NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v3
@@ -33,11 +115,146 @@ jobs:
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v1
         with:
-          version: "${{ matrix.NXF_VER }}"
+          version: "latest-everything"
 
-      - name: Run pipeline with test data
-        # TODO nf-core: You can customise CI pipeline run tests as required
-        # For example: adding multiple test runs with different parameters
-        # Remember that you can parallelise this by using strategy.matrix
+      # Work around for the unexpected end of file error that github actions seems to get when downloading compressed
+      # files during pipeline execution
+      - name: Download data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile test,docker --outdir ./results
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20.fa.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-bowtie2.tar.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.gtf.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/hg38-chr20-genes.bed.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.fa.gz
+          wget -q https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun/reference/genomes/e_coli_U00096_3.tar.gz
+
+      - name: Run Pipeline
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: nextflow run ${GITHUB_WORKSPACE} -profile docker,test_local_zip
+          attempt_limit: 2
+
+  ##############################
+  ###      UNIT TESTS        ###
+  ##############################
+  unit_tests:
+    name: ${{ matrix.NXF_VER }} ${{ matrix.tags }}
+    if: ${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}
+    runs-on: ubuntu-20.04
+    env:
+      NXF_VER: ${{ matrix.NXF_VER }}
+      NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
+    strategy:
+      fail-fast: false
+      matrix:
+        NXF_VER: ["22.10.1", ""]
+        tags:
+          - test_genome_options
+          - test_genome_options_spikein
+          - test_samplesheet
+          - test_samplesheet_2
+          - test_samplesheet_3
+          - test_filtering_noqfilter
+          - test_filtering_withqfilter
+          - test_bam_scale_none
+          - test_bam_scale_spikein
+          - test_bam_scale_cpm
+          - test_bam_scale_rpkm
+          - test_bam_scale_bpm
+          - test_bam_scale_cpm_iggscale
+          - test_peak_callers_seacr
+          - test_peak_callers_macs2
+          - test_peak_callers_invalid
+          - test_peak_callers_seacr_macs2
+          - test_peak_callers_macs2_seacr
+          - test_peak_callers_seacr_macs2_noigg
+          - test_peak_callers_ctrl_tests
+          - test_consensus_peaks_group
+          - test_consensus_peaks_all
+          - test_consensus_peaks_invalid
+          - verify_output_only_input
+          - verify_output_save_merged
+          - verify_output_save_trimmed
+          - verify_output_skip_trimming
+          - verify_output_skip_fastqc
+          - verify_output_save_ref
+          - verify_output_align_only_align
+          - verify_output_align_intermed
+          - verify_output_align_save_spikein_align
+          - verify_output_align_save_unaligned
+          - verify_output_align_duplicates_mark
+          - verify_output_align_duplicates_remove
+          - verify_output_align_duplicates_remove_target
+          - verify_output_only_filtering
+          - verify_output_peak_calling_only_peak_calling
+          - verify_output_reporting_skip_preseq_false
+          - verify_output_reporting_skip_preseq_true
+          - verify_output_reporting_skip_dtqc_false
+          - verify_output_reporting_skip_dtqc_true
+          - verify_output_reporting_skip_heatmaps_false
+          - verify_output_reporting_skip_heatmaps_true
+          - verify_output_reporting_skip_heatmaps_grouped
+          - verify_output_reporting_skip_igv_false
+          - verify_output_reporting_skip_igv_true
+          - verify_output_reporting_skip_multiqc_false
+          - verify_output_reporting_skip_multiqc_true
+          - verify_output_reporting_skip_peak_qc_false
+          - verify_output_reporting_skip_peak_qc_true
+          - verify_output_reporting_skip_reporting
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+
+      - name: Setup Pip Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip pytest-workflow
+
+      - name: Restore Keys
+        uses: actions/cache@v3
+        with:
+          path: /usr/local/bin/nextflow
+          key: ${{ runner.os }}-nextflow-${{ matrix.nxf_version }}
+          restore-keys: |
+            ${{ runner.os }}-nextflow-
+
+      - name: Install Nextflow
+        run: |
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+
+      - name: Run pytest-workflow
+        uses: Wandalen/wretry.action@v1.0.11
+        with:
+          command: TMPDIR=~ PROFILE=docker pytest --tag ${{ matrix.tags }} --symlink --kwdof --color=yes
+          attempt_limit: 3
+
+      - name: Output log on failure
+        if: failure()
+        run: |
+          sudo apt install bat > /dev/null
+          batcat --decorations=always --color=always /home/runner/pytest_workflow_*/*/log.{out,err}
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs-unit-tests
+          path: |
+            /home/runner/pytest_workflow_*/*/.nextflow.log
+            /home/runner/pytest_workflow_*/*/log.out
+            /home/runner/pytest_workflow_*/*/log.err
+            /home/runner/pytest_workflow_*/*/work
+            !/home/runner/pytest_workflow_*/*/work/conda
+            !/home/runner/pytest_workflow_*/*/work/singularity

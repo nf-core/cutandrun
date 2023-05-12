@@ -2,53 +2,37 @@
 
 ## :warning: Please read this documentation on the nf-core website: [https://nf-co.re/cutandrun/usage](https://nf-co.re/cutandrun/usage)
 
-> _Documentation of pipeline parameters is generated automatically from the pipeline schema and can no longer be found in markdown files._
+**nf-core/cutandrun** is a best-practice bioinformatic analysis pipeline for CUT&RUN and CUT&Tag experimental protocols that where developed to study protein-DNA interactions and epigenomic profiling.
 
-## Introduction
-
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+**NOTE: This pipeline does not support single-end reads**
 
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below.
+You will need to create a samplesheet file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with the correct data structure as shown in the examples below.
 
 ```bash
---input '[path to samplesheet file]'
+--input <path to samplesheet file>
 ```
 
-### Multiple runs of the same sample
+An example sample sheet structure is shown below. This defines two target experimental groups for the histone marks h3k27me3 and h3k4me3 with two biological replicates per group. Each antibody target also has an IgG control. The two IgG experiments are configured as biological replicates in the same group named `igg_ctrl`. They are assigned as controls to the two other groups using the last `control` column. If there are an equal number of replicates assigned to the samples from the control group as is the case below, the IgG controls will automatically be assigned to the same replicate number. If there is a mismatch then the first replicate of the control group will be assigned to all.
 
-The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
-
-```console
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
+```bash
+group,replicate,fastq_1,fastq_2,control
+h3k27me3,1,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k27me3,2,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k4me3,1,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+h3k4me3,2,READ1_FASTQ.gz,READ2_FASTQ.gz,igg_ctrl
+igg_ctrl,1,READ1_FASTQ.gz,READ2_FASTQ.gz,
+igg_ctrl,2,READ1_FASTQ.gz,READ2_FASTQ.gz,
 ```
 
-### Full samplesheet
-
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
-
-A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
-
-```console
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
-TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,
-TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
-```
-
-| Column    | Description                                                                                                                                                                            |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sample`  | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
-| `fastq_1` | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
-| `fastq_2` | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+| Column      | Description                                                                                                 |
+| ----------- | ----------------------------------------------------------------------------------------------------------- |
+| `group`     | Group identifier for sample. This will be identical for replicate samples from the same experimental group. |
+| `replicate` | Integer representing replicate number.                                                                      |
+| `fastq_1`   | Full path to FastQ file for read 1. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `fastq_2`   | Full path to FastQ file for read 2. File has to be zipped and have the extension ".fastq.gz" or ".fq.gz".   |
+| `control`   | String representing the control group in the `group` column to which this replicate is assigned to.         |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
@@ -56,8 +40,8 @@ An [example samplesheet](../assets/samplesheet.csv) has been provided with the p
 
 The typical command for running the pipeline is as follows:
 
-```bash
-nextflow run nf-core/cutandrun --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile docker
+```console
+nextflow run nf-core/cutandrun --input samplesheet.csv  --outdir <OUTDIR> --genome GRCh37 -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -102,6 +86,72 @@ When you run the above command, Nextflow automatically pulls the pipeline code f
 nextflow pull nf-core/cutandrun
 ```
 
+## Pipeline Configuration Options
+
+### Flow and Output Configuration
+
+There are some options detailed on the parameters page that are prefixed with `save`, `skip` or `only`. These are flow control options that allow for saving additional output to the results directory, skipping unwanted portions of the pipeline or running the pipeline up to a certain point, which can be useful for testing.
+
+### Genome Configuration
+
+The easiest way to run the pipeline is by using one of the pre-configured genomes that reflect the available genomes at [iGenomes]([AWS iGenomes](https://ewels.github.io/AWS-iGenomes/)). Assign `genome` to one of the key words for iGenomes and all the available reference data will be automatically fetched. The pipeline uses the following reference data:
+
+- Target genome FASTA
+
+- Target genome Bowtie2 Index
+
+- Target genome GTF
+
+- Target genome BED (will be generated from the GTF if not supplied)
+
+- Target genome Blacklist (blacklist files for major genomes are included in the pipeline)
+
+- Spike-in genome FASTA
+
+- Spike-in genome Bowtie2 Index
+
+If the `genome` parameter is not supplied, the user must provide all the target genome data themselves (except the gene BED file). The default spike-in genome is e.coli given that this is the natural spike-in product of the protein production process. However, it is possible to spike-in different DNA during the experimental protocol and then set the `spikein_genome` to the target organism.
+
+### Read Filtering and Duplication
+
+After alignment using Bowtie2, mapped reads are filtered to remove those which do not pass a minimum quality threshold. This threshold can be changed using the `minimum_alignment_q_score` parameter.
+
+CUT&RUN and CUT&Tag both integrate adapters into the vicinity of antibody-tethered enzymes, and the exact sites of integration are affected by the accessibility of surrounding DNA. Given these experimental parameters, it is expected that there are many fragments which share common starting and end positions; thus, such duplicates are generally valid but would be filtered out by de-duplication tools. However, there will be a fraction of fragments that are present due to PCR duplication that cannot be separated.
+
+Control samples such as those from IgG datasets have relatively high duplication rates due to non-specific interactions with the genome; therefore, it is appropriate to remove duplicates from control samples.
+
+The default for the pipeline therefore is to only run de-duplication on control samples. If it is suspected that there is a heavy fraction of PCR duplicates present in the primary samples then the parameter `dedup_target_reads` can be set using
+
+`--dedup_target_reads`
+
+### Read Normalisation
+
+The default mode in the pipeline is to normalise stacked reads before peak calling for epitope abundance using spike-in normalisation.
+
+Traditionally, E. coli DNA is carried along with bacterially-produced enzymes that are used in CUT&RUN and CUT&Tag experiments and gets tagmented non-specifically during the reaction. The fraction of total reads that map to the E.coli genome depends on the yield of epitope-targeted CUT&Tag, and so depends on the number of cells used and the abundance of that epitope in chromatin. Since a constant amount of protein is added to the reactions and brings along a fixed amount of E. coli DNA, E. coli reads can be used to normalize epitope abundance in a set of experiments.
+
+Since the introduction of these techniques there are several factors that have reduced the usefulness of this type of normalisation in certain experimental conditions. Firstly, many commercially available kits now have very low levels of E.coli DNA in them, which therefore requires users to spike-in their own DNA for normalisation which is not always done. Secondly the normalisation approach is dependant on the cell count between samples being constant, which in our experience is quite difficult to achieve especially in tissue samples.
+
+For these reasons we provide several other modes of normalisation based on read count; however, it should be noted that this form of normalisation is more simplistic and does not take into account epitope abundance. These normalisation modes are performed by [Deeptools bamCoverage](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html), some are more relevant than others to this type of data, we recommend using CPM with a bin size of 1 as a default.
+
+| Mode      | Description                                                                                               |
+| --------- | --------------------------------------------------------------------------------------------------------- |
+| `Spikein` | The default mode which normalises by E. coli DNA.                                                         |
+| `RPKM`    | Reads Per Kilobase per Million mapped reads. More relevant for transcript based assays.                   |
+| `CPM`     | Counts Per Million mapped reads = number of reads per bin / number of mapped reads. Default bin size is 1 |
+| `BPM`     | number of reads per bin / sum of all reads per bin (in millions),                                         |
+| `None`    | Disables normalisation.                                                                                   |
+
+Normalisation mode can be changed by the parameter `--normalisation_mode`.
+
+### Peak Calling
+
+This pipeline currently provides peak calling via `SEACR` or `MACS2` using the `peakcaller` parameter. If control samples are provided in the sample sheet by default they will be used to normalise the called peaks against non-specific background noise. Control normalisation can be disabled using `--use_control`. Additionally it may be necessary to scale control samples being used as background, especially when read count normalisation methods have been used at earlier stages in the pipeline. To scale the control samples before peak calling, change the `--igg_scale_factor` parameter to a number between 0-1. Multiple peak callers can be run by using comma separated values e.g. `--peakcaller SEACR,MACS2`, in this mode the primary peak caller is the first in the list and will be used for downstream processing; any additional peak callers will simply output to the results directory.
+
+### Consensus Peaks
+
+After peak calling, consensus peaks will be calculated based on merging peaks within the same groups. The number of replicates required for a valid peak can be changed using `replicate_threshold`. In some situations a user may which to call consensus peaks based on all samples, this can be configured by changing the `consensus_peak_mode` parameter from `group` to `all`.
+
 ### Reproducibility
 
 It is a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
@@ -124,7 +174,7 @@ Use this parameter to choose a configuration profile. Profiles can give configur
 
 Several generic profiles are bundled with the pipeline which instruct the pipeline to use software packaged using different methods (Docker, Singularity, Podman, Shifter, Charliecloud, Apptainer, Conda) - see below.
 
-> We highly recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported.
+> We recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported.
 
 The pipeline also dynamically loads configurations from [https://github.com/nf-core/configs](https://github.com/nf-core/configs) when it runs, making multiple config profiles for various institutional clusters available at run time. For more information and to see if your system is available in these configs please see the [nf-core/configs documentation](https://github.com/nf-core/configs#documentation).
 

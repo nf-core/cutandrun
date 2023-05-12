@@ -1,0 +1,11 @@
+- name: test_verify_output_only_align
+  command: nextflow run main.nf -profile docker,test --only_alignment --skip_fastqc -c tests/config/nextflow.config
+  tags:
+    - verify_output_align_only_align
+  files:
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.sorted.bam
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.sorted.bam
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.target.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.target.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/igg_ctrl_R1.flagstat

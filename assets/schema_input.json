@@ -7,10 +7,15 @@
     "items": {
         "type": "object",
         "properties": {
-            "sample": {
+            "group": {
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Sample name must be provided and cannot contain spaces"
+                "errorMessage": "Sample group must be provided and cannot contain spaces"
+            },
+            "replicate": {
+                "type": "integer",
+                "pattern": "^[0-9]*$",
+                "errorMessage": "Biological Replicate number within the group - technical replicates must have the same replicate number"
             },
             "fastq_1": {
                 "type": "string",
@@ -18,19 +23,16 @@
                 "errorMessage": "FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
             },
             "fastq_2": {
-                "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'",
-                "anyOf": [
-                    {
-                        "type": "string",
-                        "pattern": "^\\S+\\.f(ast)?q\\.gz$"
-                    },
-                    {
-                        "type": "string",
-                        "maxLength": 0
-                    }
-                ]
+                "type": "string",
+                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
+                "errorMessage": "FastQ file for reads 2 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+            },
+            "control": {
+                "type": "string",
+                "pattern": "^\\S+$",
+                "errorMessage": "Control group id"
             }
         },
-        "required": ["sample", "fastq_1"]
+        "required": ["group", "replicate", "fastq_1", "fastq_2", "control"]
     }
 }
