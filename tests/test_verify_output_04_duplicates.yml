@@ -45,3 +45,50 @@
     - path: results/02_alignment/bowtie2/target/dedup/igg_ctrl_R1.target.dedup.sorted.bam.bai
     - path: results/02_alignment/bowtie2/target/dedup/h3k27me3_R1.flagstat
     - path: results/02_alignment/bowtie2/target/dedup/igg_ctrl_R1.flagstat
+
+- name: test_verify_output_linear_duplicates_remove
+  command: nextflow run main.nf -profile docker,test --only_filtering --skip_fastqc --skip_preseq --dedup_target_reads false -c tests/config/nextflow.config --remove_linear_duplicates true
+  tags:
+    - verify_output_align_linear_duplicates
+    - verify_output_align_linear_duplicates_remove
+  files:
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.target.markdup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.target.markdup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/dedup/igg_ctrl_R1.target.dedup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/dedup/igg_ctrl_R1.target.dedup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/dedup/igg_ctrl_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/linear_dedup/igg_ctrl_R1.target.linear_dedup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/linear_dedup/igg_ctrl_R1.target.linear_dedup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/linear_dedup/igg_ctrl_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/linear_dedup/igg_ctrl_R1.target.linear_dedup_metrics.txt
+
+- name: test_verify_output_linear_duplicates_remove_target
+  command: nextflow run main.nf -profile docker,test --only_filtering --skip_fastqc --skip_preseq --dedup_target_reads true -c tests/config/nextflow.config --remove_linear_duplicates true
+  tags:
+    - verify_output_align_linear_duplicates
+    - verify_output_align_linear_duplicates_remove_target
+  files:
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.target.markdup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.target.markdup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.target.markdup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/markdup/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/markdup/igg_ctrl_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/dedup/h3k27me3_R1.target.dedup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/dedup/igg_ctrl_R1.target.dedup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/dedup/h3k27me3_R1.target.dedup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/dedup/igg_ctrl_R1.target.dedup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/dedup/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/dedup/igg_ctrl_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/linear_dedup/h3k27me3_R1.target.linear_dedup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/linear_dedup/igg_ctrl_R1.target.linear_dedup.sorted.bam
+    - path: results/02_alignment/bowtie2/target/linear_dedup/h3k27me3_R1.target.linear_dedup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/linear_dedup/igg_ctrl_R1.target.linear_dedup.sorted.bam.bai
+    - path: results/02_alignment/bowtie2/target/linear_dedup/h3k27me3_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/linear_dedup/igg_ctrl_R1.flagstat
+    - path: results/02_alignment/bowtie2/target/linear_dedup/h3k27me3_R1.target.linear_dedup_metrics.txt
+    - path: results/02_alignment/bowtie2/target/linear_dedup/igg_ctrl_R1.target.linear_dedup_metrics.txt

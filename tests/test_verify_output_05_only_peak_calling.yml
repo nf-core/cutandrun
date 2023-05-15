@@ -12,5 +12,5 @@
     - path: results/03_peak_calling/04_called_peaks/seacr/h3k27me3_R1.seacr.peaks.stringent.bed
     - path: results/03_peak_calling/04_called_peaks/seacr/igg_ctrl_R1.seacr.peaks.stringent.bed
       should_exist: false
-    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peaks.awk.bed
-    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.consensus.peak_counts.bed
+    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.seacr.consensus.peaks.awk.bed
+    - path: results/03_peak_calling/05_consensus_peaks/h3k27me3.seacr.consensus.peak_counts.bed

@@ -40,6 +40,14 @@ class WorkflowCutandrun {
         if (params.dt_calc_all_matrix) {
             matrixWarn(log)
         }
+
+        if (!params.genome && !params.mito_name && params.remove_mitochondrial_reads) {
+            rmMitoWarn(log)
+        }
+
+        if (!params.fasta && !params.mito_name && params.remove_mitochondrial_reads) {
+            rmMitoWarn(log)
+        }
     }
 
     //
@@ -84,7 +92,9 @@ class WorkflowCutandrun {
         def description_html = engine.createTemplate(methods_text).make(meta)
 
         return description_html
-    }//
+    }
+
+    //
     // Exit pipeline if incorrect --genome key provided
     //
     private static void genomeExistsError(params, log) {
@@ -153,10 +163,21 @@ class WorkflowCutandrun {
     // Print a warning if gen all plots are on
     //
     private static void matrixWarn(log) {
-        log.warn "==========================================================================================================\n" +
+        log.warn "=========================================================================================================\n" +
             "  dt_calc_all_matrix is switched on which will calculate a deeptools matrix for all samples. \n" +
             "  If you have a large sample count, this may affect pipeline performance and result in errors. \n" +
             "  Set this option to false to disable this feature and only calculate deeptools heatmaps for single samples\n" +
             "==============================================================================================================="
+    }
+
+    //
+    // Print a warning if neither genome or mito_name are specified and user wants to filter mitochodnrial reads
+    //
+    private static void rmMitoWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  No genome or mito_name specified but remove_mitochondrial_reads set to true \n" +
+            "  remove_mitochondrial_reads is now set to false as the name of mitochondrial reads \n" +
+            "  in the .bam files is unknown. \n" +
+            "==================================================================================="
     }
 }

@@ -87,15 +87,15 @@ workflow PREPARE_GENOME {
     /*
     * Sort and index the bed annotation file
     */
-    ch_tabix = ch_gene_bed.map { 
-        row -> [ [ id:row.getName() ] , row ] 
+    ch_tabix = ch_gene_bed.map {
+        row -> [ [ id:row.getName() ] , row ]
     }
 
     if (params.gene_bed && params.gene_bed.endsWith(".gz")) {
         ch_tabix = ch_tabix.map {
             row ->
                 new_id = row[0].id.split("\\.")[0]
-                [ [ id: new_id ] , row[1] ] 
+                [ [ id: new_id ] , row[1] ]
         }
     }
 
@@ -172,7 +172,7 @@ workflow PREPARE_GENOME {
         ch_versions = ch_versions.mix(BLACKLIST_AWK.out.versions)
 
         // Create intersect channel between the chrom sizes bed and the blacklist bed
-        // This reduces the blacklist file down to the 
+        // This reduces the blacklist file down to the
         ch_blacklist_intersect = blacklist
             .map {row -> [ [id: "blacklist"], row ]}
             .combine( BLACKLIST_AWK.out.file )
