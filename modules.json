@@ -135,6 +135,11 @@
                         "git_sha": "0f8a77ff00e65eaeebc509b8156eaa983192474b",
                         "installed_by": ["modules", "bam_stats_samtools"]
                     },
+                    "samtools/view": {
+                        "branch": "master",
+                        "git_sha": "154bbe00ffd75ceeedd69a7c9358b759a5991e49",
+                        "installed_by": ["modules"]
+                    },
                     "seacr/callpeak": {
                         "branch": "master",
                         "git_sha": "0f8a77ff00e65eaeebc509b8156eaa983192474b",

@@ -1,0 +1,14 @@
+#id: 'linear_duplication_levels'
+#section_name: 'Linear Duplication Levels'
+#description: "Calculated from the .bam file using unique 5' start sites."
+#plot_type: 'bargraph'
+#anchor: 'linear_duplicationrate'
+#pconfig:
+#    id: 'linear_duplicationrate_plot'
+#    title: 'Duplication rate'
+#    ylab: 'Duplication rate'
+#    ymin: 0
+#    ymax: 100
+#    tt_decimals: 2
+#    tt_percentages: False
+#    cpswitch: False

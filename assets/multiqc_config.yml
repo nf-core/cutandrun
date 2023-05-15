@@ -47,14 +47,16 @@ module_order:
   - custom_content
 
 report_section_order:
-  fragment_lengths:
+  linear_duplication_levels:
     order: -1001
-  peak_qc:
+  fragment_lengths:
     order: -1002
-  software_versions:
+  peak_qc:
     order: -1003
-  nf-core-cutandrun-summary:
+  software_versions:
     order: -1004
+  nf-core-cutandrun-summary:
+    order: -1005
 
 custom_content:
   order:

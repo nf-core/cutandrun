@@ -26,7 +26,7 @@ workflow ALIGN_BOWTIE2 {
         reads,
         ch_index.collect{ it[1] },
         params.save_unaligned,
-        false 
+        false
     )
     ch_versions = ch_versions.mix(BOWTIE2_TARGET_ALIGN.out.versions)
 
