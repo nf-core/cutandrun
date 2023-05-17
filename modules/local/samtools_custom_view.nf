@@ -2,10 +2,10 @@ process SAMTOOLS_CUSTOMVIEW {
     tag "$meta.id"
     label 'process_low'
 
-    conda "bioconda::samtools=1.16.1"
+    conda "bioconda::samtools=1.17"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/samtools:1.16.1--h6899075_1' :
-        'biocontainers/samtools:1.16.1--h6899075_1' }"
+        'https://depot.galaxyproject.org/singularity/samtools:1.17--h6899075_1' :
+        'biocontainers/samtools:1.17--h6899075_1' }"
 
     input:
     tuple val(meta), path(bam), path(bai)
