@@ -87,7 +87,7 @@ The easiest way to run the pipeline is by using one of the pre-configured genome
 
 - Spike-in genome Bowtie2 Index
 
-If the `genome` parameter is not supplied, the user must provide all the target genome data themselves (except the gene BED file). The default spike-in genome is e.coli given that this is the natural spike-in product of the protein production process. However, it is possible to spike-in different DNA during the experimental protocol and then set the `spikein_genome` to the target organism.
+If the `genome` parameter is not supplied, the user must provide all the target genome data themselves (except the gene BED file). The default spike-in genome is E. coli (identified by the string "K12-MG1655") given that this is the natural spike-in product of the protein production process. However, it is possible to spike-in different DNA during the experimental protocol and then set the `spikein_genome` to the target organism, i.e. for yeast (S. cerevisiae) set to "R64-1-1", for fruit fly (D. melanogaster) it is "BDGP6".
 
 ### Read Filtering and Duplication
 
@@ -107,9 +107,9 @@ If the assay has been modified to include a linear amplification step prior to P
 
 The default mode in the pipeline is to normalise stacked reads before peak calling for epitope abundance using spike-in normalisation.
 
-Traditionally, E. coli DNA is carried along with bacterially-produced enzymes that are used in CUT&RUN and CUT&Tag experiments and gets tagmented non-specifically during the reaction. The fraction of total reads that map to the E.coli genome depends on the yield of epitope-targeted CUT&Tag, and so depends on the number of cells used and the abundance of that epitope in chromatin. Since a constant amount of protein is added to the reactions and brings along a fixed amount of E. coli DNA, E. coli reads can be used to normalize epitope abundance in a set of experiments.
+Traditionally, DNA from E. coli is carried along with bacterially-produced enzymes that are used in CUT&RUN and CUT&Tag experiments and gets tagmented non-specifically during the reaction. The fraction of total reads that map to the E. coli genome depends on the yield of epitope-targeted CUT&Tag, and so depends on the number of cells used and the abundance of that epitope in chromatin. Since a constant amount of protein is added to the reactions and brings along a fixed amount of E. coli DNA, E. coli reads can be used to normalize epitope abundance in a set of experiments.
 
-Since the introduction of these techniques there are several factors that have reduced the usefulness of this type of normalisation in certain experimental conditions. Firstly, many commercially available kits now have very low levels of E.coli DNA in them, which therefore requires users to spike-in their own DNA for normalisation which is not always done. Secondly the normalisation approach is dependant on the cell count between samples being constant, which in our experience is quite difficult to achieve especially in tissue samples.
+Since the introduction of these techniques there are several factors that have reduced the usefulness of this type of normalisation in certain experimental conditions. Firstly, many commercially available kits now have very low levels of E. coli DNA in them, which therefore requires users to spike-in their own DNA for normalisation which is not always done. Secondly the normalisation approach is dependant on the cell count between samples being constant, which in our experience is quite difficult to achieve especially in tissue samples.
 
 For these reasons we provide several other modes of normalisation based on read count; however, it should be noted that this form of normalisation is more simplistic and does not take into account epitope abundance. These normalisation modes are performed by [Deeptools bamCoverage](https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html), some are more relevant than others to this type of data, we recommend using CPM with a bin size of 1 as a default.
 

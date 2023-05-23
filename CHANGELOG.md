@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default. If using a custom reference genome, user can specify the string that is used to denote the mitochondrial reads in the reference using `--mito_name` parameter.
 - The user can now specify explicitly if `end-to-end` vs `local` mode of Bowtie2 should be used by setting `--end_to_end` to `true` or `false`. `true` is default.
 - Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps
+- Extended documentation for most common alternative spike-in genomes, i.e. yeast and fruit fly.
 
 ## [3.1] - 2023-02-20
 
@@ -36,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed deeptools correlation plots that were showing low levels of correlation even in test data by changing the plot to use Pearson correlation.
 - Corrected the SEACR p-value parameter description.
 - Fixed output of Picard mark/remove duplicate files so that the sorted, indexed bams for all files always output to the results folder.
-- Spikein genome processes and checks no longer run when the normalisation mode is set to something other than `SpikeIn`.
+- Spike-in genome processes and checks no longer run when the normalisation mode is set to something other than `SpikeIn`.
 - Pipeline will now fail gracefully when single-end reads are detected.
 
 ### Software dependencies
