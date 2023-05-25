@@ -139,6 +139,60 @@ First, go to the [nf-core/cutandrun releases page](https://github.com/nf-core/cu
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future. For example, at the bottom of the MultiQC reports.
 
+## How to interpret and discuss those results
+
+This pipeline provides a direct representation of the alignment of reads produced from the Cut'n'Run protocol on the genome, specifically the identified peaks. Additionally, it calculates the relationship between these peak positions and the start and end locations of genes, which is visualized through heatmaps. The way you interpret and utilize this information depends on the nature of your experiment. You may choose a quantitative interpretation, such as comparing the number of reads with the control samples, or a categorical interpretation, such as identifying peaks of any hight that are present in all disease samples but not in any of the controls.
+
+We have found the peak calling process to be highly reliable, and we recommend using the corresponding .bed files located in the 04_reporting/igv directory as a basis for your analysis. To interpret these .bed files, the bedtools software proves to be useful. It also provides interfaces to programming languages like Python or R, but for basic usage, the regular UNIX command line is sufficient. For example, to generate consensus peaks, you can execute the following command:
+
+```bash
+bedtools multiinter -i nextflow_output/04_reporting/igv/*.seacr.peaks.stringent.bed > consensus.bed
+```
+This command generates a file that contains complete or partial overlaps across multiple (in this example, six) .bed files. Here's a preview of the file's content:
+```
+chr1	777764	777901	1	1	1	0	0	0	0	0
+chr1	777901	778005	2	1,3	1	0	1	0	0	0
+chr1	778005	778371	3	1,3,5	1	0	1	0	1	0
+chr1	778371	778825	4	1,2,3,5	1	1	1	0	1	0
+chr1	778825	779952	3	1,2,3	1	1	1	0	0	0
+chr1	779952	780145	2	2,3	0	1	1	0	0	0
+chr1	780145	780381	1	2	0	1	0	0	0	0
+chr1	826685	826934	1	1	1	0	0	0	0	0
+chr1	827275	827277	1	1	1	0	0	0	0	0
+chr1	827277	827691	2	1,3	1	0	1	0	0	0
+```
+
+The first three columns indicate the chromosomal location, followed by the number of files representing that peak. Subsequently, the exact identification of the files contributing to that position is listed (based on the order in which they were passed as an argument), followed by individual columns representing each file. A value of 1 in a column indicates that the file has a peak overlapping that region, while 0 indicates no contribution from that file. The columns are tab-separated, making the files easily compatible with UNIX tools like grep, awk, or sed for filtering specific lines or treating them as regular spreadsheets.
+
+To filter for lines that have complete coverage in all six files (in this example), you can use the following grep command:
+```bash
+grep 1,2,3,4,5,6 consensus.bed > consensus_123456.bed
+```
+Alternatively, the following grep command achieves the same result:
+```bash
+grep 1.1.1.1.1.1$ consensus.bed > consensus_123456.bed
+```
+In this command, the '$' symbol denotes the end of the line, while the '.' acts as a wildcard character, eliminating the need to specify the exact field separator (tab).
+By using grep with an appropriate pattern, you can explicitly indicate that a .bed file (represented by a column) should not contribute by setting the grepped value in that column to '0'. If a column's value is irrelevant, you can assign it the wildcard character '.'.
+
+To map the peaks to the genome, you can execute the following command:
+```bash
+bedtools closest -a consensus_123456.bed -b nextflow_output/04_reporting/igv/genes.bed.bed.gz > consensus_123456_annotated.bed
+```
+It's crucial to annotate the bed files with peaks (specified by -a) using the information provided with -b, rather than the other way around. Otherwise, you would obtain the nearest peak for all genes, which is not the desired outcome.
+
+You will likely want to generate annotated lists for multiple such lists. To search for motifs in the derived lists, you can retrieve the genomic sequences represented by those peaks using the following command:
+```bash
+bedtools getfasta -fi nextflow_output/04_reporting/igv/genome.fa -bed consensus_123456.bed -fo consensus_123456.fasta
+```
+Alternatively, if you wish to retrieve the gene list from those files for gene set enrichment analysis, you can use the following command:
+```bash
+cut -f 15 consensus_123456_annotated.bed | sort | uniq -c | sort -nr > consensus_2_123456_annotated_list.txt
+```
+This command first retrieves all gene names, then sorts them (in case the peaks were not sorted, although they should be). Next, it counts the number of occurrences for each gene and sorts the list in descending order based on the count, placing the most frequently mentioned gene at the top.
+
+Cut'n'Run is still a relatively recent development. We encourage you to report your experiences and contribute to the development of this pipeline.
+
 ## Core Nextflow arguments
 
 > **NB:** These options are part of Nextflow and use a _single_ hyphen (pipeline parameters use a double-hyphen).
