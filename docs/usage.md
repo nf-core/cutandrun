@@ -148,7 +148,9 @@ We have found the peak calling process to be highly reliable, and we recommend u
 ```bash
 bedtools multiinter -i nextflow_output/04_reporting/igv/*.seacr.peaks.stringent.bed > consensus.bed
 ```
+
 This command generates a file that contains complete or partial overlaps across multiple (in this example, six) .bed files. Here's a preview of the file's content:
+
 ```
 chr1	777764	777901	1	1	1	0	0	0	0	0
 chr1	777901	778005	2	1,3	1	0	1	0	0	0
@@ -165,30 +167,40 @@ chr1	827277	827691	2	1,3	1	0	1	0	0	0
 The first three columns indicate the chromosomal location, followed by the number of files representing that peak. Subsequently, the exact identification of the files contributing to that position is listed (based on the order in which they were passed as an argument), followed by individual columns representing each file. A value of 1 in a column indicates that the file has a peak overlapping that region, while 0 indicates no contribution from that file. The columns are tab-separated, making the files easily compatible with UNIX tools like grep, awk, or sed for filtering specific lines or treating them as regular spreadsheets.
 
 To filter for lines that have complete coverage in all six files (in this example), you can use the following grep command:
+
 ```bash
 grep 1,2,3,4,5,6 consensus.bed > consensus_123456.bed
 ```
+
 Alternatively, the following grep command achieves the same result:
+
 ```bash
 grep 1.1.1.1.1.1$ consensus.bed > consensus_123456.bed
 ```
+
 In this command, the '$' symbol denotes the end of the line, while the '.' acts as a wildcard character, eliminating the need to specify the exact field separator (tab).
 By using grep with an appropriate pattern, you can explicitly indicate that a .bed file (represented by a column) should not contribute by setting the grepped value in that column to '0'. If a column's value is irrelevant, you can assign it the wildcard character '.'.
 
 To map the peaks to the genome, you can execute the following command:
+
 ```bash
 bedtools closest -a consensus_123456.bed -b nextflow_output/04_reporting/igv/genes.bed.bed.gz > consensus_123456_annotated.bed
 ```
+
 It's crucial to annotate the bed files with peaks (specified by -a) using the information provided with -b, rather than the other way around. Otherwise, you would obtain the nearest peak for all genes, which is not the desired outcome.
 
 You will likely want to generate annotated lists for multiple such lists. To search for motifs in the derived lists, you can retrieve the genomic sequences represented by those peaks using the following command:
+
 ```bash
 bedtools getfasta -fi nextflow_output/04_reporting/igv/genome.fa -bed consensus_123456.bed -fo consensus_123456.fasta
 ```
+
 Alternatively, if you wish to retrieve the gene list from those files for gene set enrichment analysis, you can use the following command:
+
 ```bash
 cut -f 15 consensus_123456_annotated.bed | sort | uniq -c | sort -nr > consensus_2_123456_annotated_list.txt
 ```
+
 This command first retrieves all gene names, then sorts them (in case the peaks were not sorted, although they should be). Next, it counts the number of occurrences for each gene and sorts the list in descending order based on the count, placing the most frequently mentioned gene at the top.
 
 Cut'n'Run is still a relatively recent development. We encourage you to report your experiences and contribute to the development of this pipeline.
