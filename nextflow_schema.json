@@ -92,7 +92,7 @@
                     "type": "string",
                     "default": "K12-MG1655",
                     "fa_icon": "fas fa-book",
-                    "description": "Name of the igenome reference for the spike-in genome"
+                    "description": "Name of the iGenome reference for the spike-in genome, defaulting to E. coli K12, for yeast set to R64-1-1, for fruit fly BDGP6"
                 },
                 "spikein_bowtie2": {
                     "type": "string",
