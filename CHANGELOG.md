@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Major Changes
 
-- Duplicates arising from linear amplification can be now removed by setting `--remove_linear_duplicates true`. `false` is default. [Linear amplification](https://doi.org/10.1186/1471-2164-4-19) is used in the [TIPseq protocol](https://doi.org/10.1083/jcb.202103078) in which genomic DNA is cut with Tn5 loaded with T7 promoter sequence that gets inserted in the cut DNA fragment. The T7 promoter sequence is then used to perform in vitro transcription to produce copies of the cut fragment. These duplicates are referred to as linear duplicates. Recent iterations of the CUT&Tag protocol, such as [nano-CUT&Tag](https://doi.org/10.1038/s41587-022-01535-4), have also been modified to include a linear amplification step. 
+- Duplicates arising from linear amplification can be now removed by setting `--remove_linear_duplicates true`. `false` is default. [Linear amplification](https://doi.org/10.1186/1471-2164-4-19) is used in the [TIPseq protocol](https://doi.org/10.1083/jcb.202103078) in which genomic DNA is cut with Tn5 loaded with T7 promoter sequence that gets inserted in the cut DNA fragment. The T7 promoter sequence is then used to perform in vitro transcription to produce copies of the cut fragment. These duplicates are referred to as linear duplicates. Recent iterations of the CUT&Tag protocol, such as [nano-CUT&Tag](https://doi.org/10.1038/s41587-022-01535-4), have also been modified to include a linear amplification step.
 
 ### Enhancements
 
@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixes
 
-- Standardised channel structure for the nf-core Bowtie2 `align` module in the local `align_bowtie2` and `prepare_genome` subworkflows to prevent file errors. 
+- Standardised channel structure for the nf-core Bowtie2 `align` module in the local `align_bowtie2` and `prepare_genome` subworkflows to prevent file errors.
 - Fixed error caused by altered channel structure of the nf-core `bedtools_intersect` module.
 
 ### Software dependencies

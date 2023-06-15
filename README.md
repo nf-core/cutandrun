@@ -90,7 +90,7 @@ nextflow run nf-core/cutandrun \
 > provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
 > see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
 
-   - Typical command for CUT&Run/CUT&Tag/TIPseq analysis:
+- Typical command for CUT&Run/CUT&Tag/TIPseq analysis:
 
 ## Pipeline output
 
