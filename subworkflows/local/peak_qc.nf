@@ -112,7 +112,7 @@ workflow PEAK_QC {
     */
     BEDTOOLS_INTERSECT (
         ch_beds_intersect,
-        "bed"
+        [[:],[]]
     )
     ch_versions = ch_versions.mix(BEDTOOLS_INTERSECT.out.versions)
     //EXAMPLE CHANNEL STRUCT: [[META], BED]

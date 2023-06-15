@@ -183,7 +183,7 @@ workflow PREPARE_GENOME {
         // this prevents error in the next two processes
         BLACKLIST_BEDTOOLS_INTERSECT(
             ch_blacklist_intersect,
-            "filtered.bed"
+            [[:],[]]
         )
         ch_versions = ch_versions.mix(BLACKLIST_BEDTOOLS_INTERSECT.out.versions)
 

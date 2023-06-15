@@ -3,25 +3,44 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.2] - 2023-04-14
+## [3.2] - 2023-06-15
 
 ### Major Changes
 
-- Duplicates arising from linear amplification can be now removed by setting `--remove_linear_duplicates true`. [Linear amplification](https://doi.org/10.1186/1471-2164-4-19) is used in the [TIPseq protocol](https://doi.org/10.1083/jcb.202103078) in which genomic DNA is cut with Tn5 loaded with T7 promoter sequence that gets inserted in the cut DNA fragment. The T7 promoter sequence is then used to perform in vitro transcription to produce copies of the cut fragment. These duplicates are referred to as linear duplicates.
+- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Duplicates arising from linear amplification can be now removed by setting `--remove_linear_duplicates true`. `false` is default. [Linear amplification](https://doi.org/10.1186/1471-2164-4-19) is used in the [TIPseq protocol](https://doi.org/10.1083/jcb.202103078) in which genomic DNA is cut with Tn5 loaded with T7 promoter sequence that gets inserted in the cut DNA fragment. The T7 promoter sequence is then used to perform in vitro transcription to produce copies of the cut fragment. These duplicates are referred to as linear duplicates. Recent iterations of the CUT&Tag protocol, such as [nano-CUT&Tag](https://doi.org/10.1038/s41587-022-01535-4), have also been modified to include a linear amplification step. Credit to teemuronkko for this.
 
 ### Enhancements
 
-- Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default. If using a custom reference genome, user can specify the string that is used to denote the mitochondrial reads in the reference using `--mito_name` parameter.
-- The user can now specify explicitly if `end-to-end` vs `local` mode of Bowtie2 should be used by setting `--end_to_end` to `true` or `false`. `true` is default.
-- Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps
-- Extended documentation for most common alternative spike-in genomes, i.e. yeast and fruit fly.
+- Updated pipeline template to nf-core/tools `2.8`.
+- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default. If using a custom reference genome, user can specify the string that is used to denote the mitochondrial reads in the reference using the `--mito_name` parameter.
+- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - The user can now specify explicitly if `end-to-end` vs `local` mode of Bowtie2 should be used by setting `--end_to_end` to `true` or `false`. `true` is default. In the `end-to-end` mode, all read characters are included when optiming an alignment. If the `local` mode is specified, Bowtie2 might exclude characters from one or both ends of the read to maximise alignment scores.
+- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps.
+- [[#196](https://github.com/nf-core/cutandrun/pull/196)] - Extended documentation for most common alternative spike-in genomes, i.e. yeast and fruit fly. Credit to smoe for this.
+- The Preseq module `lcextrap` was moved from `local` to `nf-core`
+
+### Fixes
+
+- Standardised channel structure for the nf-core Bowtie2 `align` module in the local `align_bowtie2` and `prepare_genome` subworkflows to prevent file errors.
+- Fixed error caused by altered channel structure of the nf-core `bedtools_intersect` module.
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+| Dependency | Old version | New version |
+| ---------- | ----------- | ----------- |
+| `samtools` | 1.16.1      | 1.17        |
+
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
 
 ## [3.1] - 2023-02-20
 
 ### Major Changes
 
 - IgG controls will now be analysed by the deeptools QC subworkflow giving greater visibility on the quality of control samples.
-- Updated the MACS2 default parameters to better process PA-Tn5/PA-Mnase based experiments. The new defaults use the q-value of `0.01` as the default cutoff in place of the p-value. The defaults have also been updated to keep duplicate reads int he peak finding process and also to shift the model to better account for nucleosome positioning `--nomodel --shift -75 --extsize 150 --keep-dup all`
+- Updated the MACS2 default parameters to better process PA-Tn5/PA-Mnase based experiments. The new defaults use the q-value of `0.01` as the default cutoff in place of the p-value. The defaults have also been updated to keep duplicate reads in the peak finding process and also to shift the model to better account for nucleosome positioning `--nomodel --shift -75 --extsize 150 --keep-dup all`
 - Deeptools plotHeatmap will now run for all samples as well as for singles. This can be disabled using the parameter `--dt_calc_all_matrix false`
 - Bowtie2 default parameters have been updated to use the `--dovetail` option. After careful consideration and literature review, we have decided that overlapping mates can occur in CUT&RUN data and are still valid reads. This is also the agreed parameterisation in similar pipelines and also on the 4D nucleome portal.
 
@@ -161,7 +180,7 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 - Added support for GFF files in IGV session generation
 - [[#57](https://github.com/nf-core/cutandrun/issues/57), [#66](https://github.com/nf-core/cutandrun/issues/66)] - Upgraded version reporting in multiqc to support both software version by module and unique software versions. This improves detection of multi-version software usage in the pipeline
 - [[#54](https://github.com/nf-core/cutandrun/issues/54)] - Fixed pipeline error where dots in sample ids inside the sample sheet were not correctly handled
-- [[#75](https://github.com/nf-core/cutandrun/issues/75)] - Fixed error caused by emtpy peak files being passed to the `CALCULATE_FRIP` and `CALCULATE_PEAK_REPROD` python reporting modules
+- [[#75](https://github.com/nf-core/cutandrun/issues/75)] - Fixed error caused by empty peak files being passed to the `CALCULATE_FRIP` and `CALCULATE_PEAK_REPROD` python reporting modules
 - [[#83]](https://github.com/nf-core/cutandrun/issues/83) - Fixed error in violin chart generation with cast to int64
 
 ### Software dependencies
@@ -197,7 +216,7 @@ We thank Harshil Patel ([@drpatelh](https://github.com/drpatelh)) and everyone i
 5. Alignment to both target and spike-in genomes ([`Bowtie 2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
 6. Filter on quality, sort and index alignments ([`samtools`](https://sourceforge.net/projects/samtools/files/samtools/))
 7. Duplicate read marking ([`picard`](https://broadinstitute.github.io/picard/))
-8. Create bedGraph files ([`bedtools`](https://github.com/arq5x/bedtools2/)
+8. Create bedGraph files ([`bedtools`](https://github.com/arq5x/bedtools2/))
 9. Create bigWig coverage files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
 10. Peak calling specifically tailored for low background noise experiments ([`SEACR`](https://github.com/FredHutch/SEACR))
 11. Consensus peak merging and reporting ([`bedtools`](https://github.com/arq5x/bedtools2/))
