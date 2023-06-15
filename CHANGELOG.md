@@ -12,9 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Enhancements
 
 - Updated pipeline template to nf-core/tools `2.8`.
-- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default. If using a custom reference genome, user can specify the string that is used to denote the mitochondrial reads in the reference using the `--mito_name` parameter. 
+- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default. If using a custom reference genome, user can specify the string that is used to denote the mitochondrial reads in the reference using the `--mito_name` parameter.
 - [[#189](https://github.com/nf-core/cutandrun/pull/189)] - The user can now specify explicitly if `end-to-end` vs `local` mode of Bowtie2 should be used by setting `--end_to_end` to `true` or `false`. `true` is default. In the `end-to-end` mode, all read characters are included when optiming an alignment. If the `local` mode is specified, Bowtie2 might exclude characters from one or both ends of the read to maximise alignment scores.
-- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps. 
+- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps.
 - [[#196](https://github.com/nf-core/cutandrun/pull/196)] - Extended documentation for most common alternative spike-in genomes, i.e. yeast and fruit fly. Credit to smoe for this.
 - The Preseq module `lcextrap` was moved from `local` to `nf-core`
 
