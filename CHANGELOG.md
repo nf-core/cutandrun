@@ -3,21 +3,20 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.2] - 2023-04-14
+## [3.2] - 2023-06-15
 
 ### Major Changes
 
-- Duplicates arising from linear amplification can be now removed by setting `--remove_linear_duplicates true`. `false` is default. [Linear amplification](https://doi.org/10.1186/1471-2164-4-19) is used in the [TIPseq protocol](https://doi.org/10.1083/jcb.202103078) in which genomic DNA is cut with Tn5 loaded with T7 promoter sequence that gets inserted in the cut DNA fragment. The T7 promoter sequence is then used to perform in vitro transcription to produce copies of the cut fragment. These duplicates are referred to as linear duplicates. Recent iterations of the CUT&Tag protocol, such as [nano-CUT&Tag](https://doi.org/10.1038/s41587-022-01535-4), have also been modified to include a linear amplification step.
+- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Duplicates arising from linear amplification can be now removed by setting `--remove_linear_duplicates true`. `false` is default. [Linear amplification](https://doi.org/10.1186/1471-2164-4-19) is used in the [TIPseq protocol](https://doi.org/10.1083/jcb.202103078) in which genomic DNA is cut with Tn5 loaded with T7 promoter sequence that gets inserted in the cut DNA fragment. The T7 promoter sequence is then used to perform in vitro transcription to produce copies of the cut fragment. These duplicates are referred to as linear duplicates. Recent iterations of the CUT&Tag protocol, such as [nano-CUT&Tag](https://doi.org/10.1038/s41587-022-01535-4), have also been modified to include a linear amplification step. Credit to teemuronkko for this.
 
 ### Enhancements
 
 - Updated pipeline template to nf-core/tools `2.8`.
-- Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default. If using a custom reference genome, user can specify the string that is used to denote the mitochondrial reads in the reference using the `--mito_name` parameter.
-- The user can now specify explicitly if `end-to-end` vs `local` mode of Bowtie2 should be used by setting `--end_to_end` to `true` or `false`. `true` is default. In the `end-to-end` mode, all read characters are included when optiming an alignment. If the `local` mode is specified, Bowtie2 might exclude characters from one or both ends of the read to maximise alignment scores.
-- Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps
-- Extended documentation for most common alternative spike-in genomes, i.e. yeast and fruit fly.
+- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Mitochondrial reads can be filtered before peak calling by setting `--remove_mitochondrial_reads true`. `false` is default. If using a custom reference genome, user can specify the string that is used to denote the mitochondrial reads in the reference using the `--mito_name` parameter.
+- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - The user can now specify explicitly if `end-to-end` vs `local` mode of Bowtie2 should be used by setting `--end_to_end` to `true` or `false`. `true` is default. In the `end-to-end` mode, all read characters are included when optiming an alignment. If the `local` mode is specified, Bowtie2 might exclude characters from one or both ends of the read to maximise alignment scores.
+- [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps.
+- [[#196](https://github.com/nf-core/cutandrun/pull/196)] - Extended documentation for most common alternative spike-in genomes, i.e. yeast and fruit fly. Credit to smoe for this.
 - The Preseq module `lcextrap` was moved from `local` to `nf-core`
-- Updated all nf-core modules and subworkflows to latest versions.
 
 ### Fixes
 
@@ -217,7 +216,7 @@ We thank Harshil Patel ([@drpatelh](https://github.com/drpatelh)) and everyone i
 5. Alignment to both target and spike-in genomes ([`Bowtie 2`](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml))
 6. Filter on quality, sort and index alignments ([`samtools`](https://sourceforge.net/projects/samtools/files/samtools/))
 7. Duplicate read marking ([`picard`](https://broadinstitute.github.io/picard/))
-8. Create bedGraph files ([`bedtools`](https://github.com/arq5x/bedtools2/)
+8. Create bedGraph files ([`bedtools`](https://github.com/arq5x/bedtools2/))
 9. Create bigWig coverage files ([`bedGraphToBigWig`](http://hgdownload.soe.ucsc.edu/admin/exe/))
 10. Peak calling specifically tailored for low background noise experiments ([`SEACR`](https://github.com/FredHutch/SEACR))
 11. Consensus peak merging and reporting ([`bedtools`](https://github.com/arq5x/bedtools2/))

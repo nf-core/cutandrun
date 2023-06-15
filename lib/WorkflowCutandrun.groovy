@@ -19,13 +19,13 @@ class WorkflowCutandrun {
         }
 
         if (params.normalisation_mode == "Spikein" && !params.spikein_fasta) {
-            log.error "Spike-in fasta file not specified with e.g. '--spikein_fasta genome.fa' or via a detectable config file."
-            System.exit(1)
+            def error_string = "Spike-in fasta file not specified with e.g. '--spikein_fasta genome.fa' or via a detectable config file."
+            Nextflow.error(error_string)
         }
 
         if (!params.gtf) {
-            log.error "No GTF annotation specified!"
-            System.exit(1)
+            def error_string = "No GTF annotation specified!"
+            Nextflow.error(error_string)
         }
 
         if (params.gtf) {
@@ -131,7 +131,7 @@ class WorkflowCutandrun {
     }
 
     private static void varryingReplicateNumbersError(log) {
-        log.error "===================================================================================\n" +
+        def error_string = "===================================================================================\n" +
             "  There are varrying numbers of replicates across experiemental and IgG samples.\n" +
             "  Options:\n" +
             "    - provide a consistent number of replicates across all experiments and control\n" +
@@ -139,7 +139,7 @@ class WorkflowCutandrun {
             "    - provide any number of experimental replicates and give all control replicates\n" +
             "      the same replicate number, so that they will be merged for downstream analysis\n" +
             "==================================================================================="
-        System.exit(1)
+        Nextflow.error(error_string)
     }
 
     private static void varryingReplicateNumbersWarn(log) {
