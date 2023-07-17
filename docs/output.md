@@ -112,7 +112,7 @@ The Per-sequence GC content report shows the distribution of the GC content of a
 
 ![mqc_04_fastqc_per_sequence_gc_content](images/output/mqc_04_fastqc_per_sequence_gc_content.png)
 
-An unusually shaped distribution such as one with dual peaks could indicate a contaminated library or some other kind of biased subset. In the image below, we see a signifiant batch effect between two groups of samples run on different days. The samples in red most likely are contaminated with DNA that has a different GC content to that of the target organism.
+An unusually shaped distribution such as one with dual peaks could indicate a contaminated library or some other kind of biased subset. In the image below, we see a significant batch effect between two groups of samples run on different days. The samples in red most likely are contaminated with DNA that has a different GC content to that of the target organism.
 
 ![plot](images/output/mqc_05_fastqc_per_sequence_gc_content.png)
 
