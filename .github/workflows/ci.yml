@@ -28,7 +28,7 @@ jobs:
       CAPSULE_LOG: none
     strategy:
       matrix:
-        NXF_VER: ["22.10.1", ""]
+        NXF_VER: ["23.04.0", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v3
@@ -70,7 +70,7 @@ jobs:
     strategy:
       matrix:
         # Nextflow versions: check pipeline minimum and current latest
-        NXF_VER: ["22.10.1", ""]
+        NXF_VER: ["23.04.0", ""]
     steps:
       - name: Check out pipeline code
         uses: actions/checkout@v3
@@ -148,7 +148,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        NXF_VER: ["22.10.1", ""]
+        NXF_VER: ["23.04.0", ""]
         tags:
           - test_genome_options
           - test_genome_options_spikein

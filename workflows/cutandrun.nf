@@ -4,11 +4,16 @@
 ========================================================================================
 */
 
-// Create summary input parameters map for reporting
-def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
+include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
 
 // Validate input parameters in specialised library
 WorkflowCutandrun.initialise(params, log)
+def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
+def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
+def summary_params = paramsSummaryMap(workflow)
+
+// Print parameter summary log to screen
+log.info logo + paramsSummaryLog(workflow) + citation
 
 // Check input path parameters to see if the files exist if they have been specified
 checkPathParamList = [
