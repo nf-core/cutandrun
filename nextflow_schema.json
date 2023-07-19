@@ -278,7 +278,6 @@
                 },
                 "mito_name": {
                     "type": "string",
-                    "default": null,
                     "fa_icon": "fas fa-book",
                     "description": "Name of mitochondrial reads in reference genome. Only necessary when using a custom (non-igenomes) reference genome."
                 },
