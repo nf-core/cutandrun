@@ -4,11 +4,16 @@
 ========================================================================================
 */
 
-// Create summary input parameters map for reporting
-def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
+include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
 
 // Validate input parameters in specialised library
 WorkflowCutandrun.initialise(params, log)
+def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
+def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
+def summary_params = paramsSummaryMap(workflow)
+
+// Print parameter summary log to screen
+log.info logo + paramsSummaryLog(workflow) + citation
 
 // Check input path parameters to see if the files exist if they have been specified
 checkPathParamList = [
@@ -258,8 +263,8 @@ workflow CUTANDRUN {
                 ch_trimmed_reads,
                 PREPARE_GENOME.out.bowtie2_index,
                 PREPARE_GENOME.out.bowtie2_spikein_index,
-                PREPARE_GENOME.out.fasta.collect{it[1]},
-                PREPARE_GENOME.out.spikein_fasta.collect{it[1]}
+                PREPARE_GENOME.out.fasta,
+                PREPARE_GENOME.out.spikein_fasta
             )
             ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.versions)
             ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
@@ -320,7 +325,7 @@ workflow CUTANDRUN {
         FILTER_READS (
             ch_samtools_bam,
             PREPARE_GENOME.out.allowed_regions.collect{it[1]}.ifEmpty([]),
-            PREPARE_GENOME.out.fasta.collect{it[1]}
+            PREPARE_GENOME.out.fasta
         )
         ch_samtools_bam      = FILTER_READS.out.bam
         ch_samtools_bai      = FILTER_READS.out.bai
@@ -353,8 +358,8 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             ch_samtools_bai,
             true,
-            PREPARE_GENOME.out.fasta.collect{it[1]},
-            PREPARE_GENOME.out.fasta_index.collect{it[1]}
+            PREPARE_GENOME.out.fasta, 
+            PREPARE_GENOME.out.fasta_index
         )
         ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
         ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
@@ -375,8 +380,8 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             ch_samtools_bai,
             params.dedup_target_reads,
-            PREPARE_GENOME.out.fasta.collect{it[1]},
-            PREPARE_GENOME.out.fasta_index.collect{it[1]}
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta_index
         )
         ch_samtools_bam      = DEDUPLICATE_PICARD.out.bam
         ch_samtools_bai      = DEDUPLICATE_PICARD.out.bai
@@ -413,8 +418,8 @@ workflow CUTANDRUN {
         DEDUPLICATE_LINEAR (
             ch_samtools_bam,
             ch_samtools_bai,
-            PREPARE_GENOME.out.fasta.collect{it[1]},
-            PREPARE_GENOME.out.fasta_index.collect{it[1]},
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta_index,
             params.dedup_target_reads,
             ch_linear_duplication_header_multiqc
         )

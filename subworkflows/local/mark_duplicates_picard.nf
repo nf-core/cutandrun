@@ -10,8 +10,8 @@ workflow MARK_DUPLICATES_PICARD {
     bam            // channel: [ val(meta), [ bam ] ]
     bai            // channel: [ val(meta), [ bai ] ]
     process_target // boolean
-    fasta          // channel: [ fasta ]
-    fai            // channel: [ fai ]
+    fasta          // channel: [ val(meta), fasta ]
+    fai            // channel: [ val(meta), fai ]
 
     main:
     // Init
