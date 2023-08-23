@@ -5,7 +5,7 @@
 import nextflow.Nextflow
 
 //
-// This file holds several functions specific to the main.nf workflow in the {{ name }} pipeline
+// This file holds several functions specific to the main.nf workflow in the nf-core/cutandrun pipeline
 //
 class WorkflowMain {
 
