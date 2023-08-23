@@ -12,8 +12,8 @@ workflow ALIGN_BOWTIE2 {
     reads         // channel: [ val(meta), [ reads ] ]
     index         // channel: [ val(meta), [ index ] ]
     spikein_index // channel: [ val(meta), [ index ] ]
-    fasta         // channel: [ val(meta), path(fasta) ]
-    spikein_fasta // channel: [ val(meta), path(fasta) ]
+    fasta         // channel: [ val(meta), fasta ]
+    spikein_fasta // channel: [ val(meta), fasta ]
 
     main:
     ch_versions = Channel.empty()
