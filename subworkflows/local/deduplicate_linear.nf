@@ -12,8 +12,8 @@ workflow DEDUPLICATE_LINEAR {
     take:
     bam            // channel: [ val(meta), [ bam ] ]
     bai            // channel: [ val(meta), [ bai ] ]
-    fasta          // channel: [ fasta ]
-    fai            // channel: [ fai ]
+    fasta          // channel: [ val(meta), fasta ]
+    fai            // channel: [ val(meta), fai ]
     process_target // boolean
     mqc_header     // path
 
