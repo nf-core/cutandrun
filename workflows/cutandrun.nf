@@ -418,8 +418,8 @@ workflow CUTANDRUN {
         DEDUPLICATE_LINEAR (
             ch_samtools_bam,
             ch_samtools_bai,
-            PREPARE_GENOME.out.fasta.collect{it[1]},
-            PREPARE_GENOME.out.fasta_index.collect{it[1]},
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta_index,
             params.dedup_target_reads,
             ch_linear_duplication_header_multiqc
         )
