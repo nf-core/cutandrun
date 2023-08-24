@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Added the name of the peak caller in the consensus peaks to make it clearer which peaks were used in the downstream reporting steps.
 - [[#196](https://github.com/nf-core/cutandrun/pull/196)] - Extended documentation for most common alternative spike-in genomes, i.e. yeast and fruit fly. Credit to smoe for this.
 - The Preseq module `lcextrap` was moved from `local` to `nf-core`
+- Updated all nf-core modules to latest versions.
 
 ### Fixes
 
@@ -29,6 +30,8 @@ Note, since the pipeline is now using Nextflow DSL2, each process will be run wi
 
 | Dependency | Old version | New version |
 | ---------- | ----------- | ----------- |
+| `bedtools` | 1.13        | 1.14        |
+| `multiqc`  | 2.30.0      | 2.31.0      |
 | `samtools` | 1.16.1      | 1.17        |
 
 > **NB:** Dependency has been **updated** if both old and new version information is present.
