@@ -11,7 +11,7 @@ workflow SAMTOOLS_VIEW_SORT_STATS {
     take:
     bam     // channel: [ val(meta), [ bam ] ]
     regions // channel: [ regions ]
-    fasta   // channel: [ fasta ]
+    fasta   // channel: [ val(meta), fasta ]
 
     main:
     ch_versions = Channel.empty()

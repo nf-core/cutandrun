@@ -19,17 +19,16 @@ workflow DEEPTOOLS_QC {
     /*
     * CHANNEL: Combine bam and bai files on id
     */
-    bam.map { row -> [row[0].id, row ].flatten()}
-    .join ( bai.map { row -> [row[0].id, row ].flatten()} )
-    .map { row -> [row[1], row[2], row[4]] }
+    bam
+    .join( bai )
     .set { ch_bam_bai }
     // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
-    //ch_bam_bai | view
+    // ch_bam_bai | view
 
     /*
     * CHANNEL: Get list of sample ids
     */
-    bam.map { row -> [row[0].id] }
+    ch_bam_bai.map { row -> [row[0].id] }
     .collect()
     .map { row -> [row] }
     .set { ch_ids }
@@ -39,10 +38,10 @@ workflow DEEPTOOLS_QC {
     * CHANNEL: Combine bam and bai files into one list
     * if we only have one file then cancel correlation and PCA
     */
-    bam.map { row -> [row[1]] }
+    ch_bam_bai.map { row -> [row[1]] }
     .collect()
-    .map { row -> [row] } 
-    .combine( bai.map { row -> [row[1]] }.collect().map { row -> [row] } )
+    .map { row -> [row] }
+    .combine( ch_bam_bai.map { row -> [row[2]] }.collect().map { row -> [row] } )
     .combine( ch_ids )
     .map { row -> [[id: 'all_target_bams'], row[0], row[1], row[2], row[1].size()] }
     .filter { row -> row[4] > 1 }

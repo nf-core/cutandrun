@@ -1,10 +1,10 @@
 process MULTIQC {
     label 'process_single'
 
-    conda "bioconda::multiqc=1.14"
+    conda "bioconda::multiqc=1.15"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/multiqc:1.14--pyhdfd78af_0' :
-        'quay.io/biocontainers/multiqc:1.14--pyhdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/multiqc:1.15--pyhdfd78af_0' :
+        'biocontainers/multiqc:1.15--pyhdfd78af_0' }"
 
     input:
     path multiqc_config
@@ -30,6 +30,7 @@ process MULTIQC {
     path ('peak_metrics/peak_count_consensus/*')
     path ('peak_metrics/peak_reprod_perc/*')
     path ('frag_len/*')
+    path ('linear_duplicates/*')
 
     output:
     path "*multiqc_report.html", emit: report

@@ -15,6 +15,7 @@
 - 4. [Alignment post-processing](#Alignmentpost-processing)
      - 4.1. [Quality Filtering](#QualityFiltering)
      - 4.2. [PICARD MarkDuplicates/RemoveDuplicates](#PICARDMarkDuplicatesRemoveDuplicates)
+     - 4.3. [Removing Linear Amplification Duplicates](#CUSTOMLinearAmplificationDeduplication)
 - 5. [Fragment-based QC](#Fragment-basedQC)
      - 5.1. [PCA](#PCA)
      - 5.2. [Fingerprint](#Fingerprint)
@@ -111,7 +112,7 @@ The Per-sequence GC content report shows the distribution of the GC content of a
 
 ![mqc_04_fastqc_per_sequence_gc_content](images/output/mqc_04_fastqc_per_sequence_gc_content.png)
 
-An unusually shaped distribution such as one with dual peaks could indicate a contaminated library or some other kind of biased subset. In the image below, we see a signifiant batch effect between two groups of samples run on different days. The samples in red most likely are contaminated with DNA that has a different GC content to that of the target organism.
+An unusually shaped distribution such as one with dual peaks could indicate a contaminated library or some other kind of biased subset. In the image below, we see a significant batch effect between two groups of samples run on different days. The samples in red most likely are contaminated with DNA that has a different GC content to that of the target organism.
 
 ![plot](images/output/mqc_05_fastqc_per_sequence_gc_content.png)
 
@@ -228,7 +229,7 @@ The plot below shows a group of samples where the majority of unique molecules a
 
 </details>
 
-BAM files are filtered for a minimum quality score and for fully mapped reads using [SAMtools](http://samtools.sourceforge.net/). These results are then passed on to Picard for duplicate removal.
+BAM files are filtered for a minimum quality score, mitochondrial reads (if necessary) and for fully mapped reads using [SAMtools](http://samtools.sourceforge.net/). These results are then passed on to Picard for duplicate removal.
 
 ### 4.2. <a name='PICARDMarkDuplicatesRemoveDuplicates'></a>PICARD MarkDuplicates/RemoveDuplicates
 
@@ -252,6 +253,18 @@ The plot below shows a typical CUT&Tag experiment that has its PCR cycles optimi
 ![MultiQC - Picard MarkDuplicates metrics plot](images/output/mqc_19_picard_markduplicates.png)
 
 High levels of duplication are not necessarily a problem as long as they are consistent across biological replicates or other comparable groups. Given that the target samples are not de-duplicated by default, if the balance of duplicate reads is off when comparing two samples, it may lead to inaccurate peak calling and subsequent spurious signals. High levels of non-optical duplication are indicative of over-amplified samples.
+
+### 4.3. <a name='CUSTOMLinearAmplificationDeduplication'></a>Removal of Linear Amplification Duplicates
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `02_alignment/bowtie2/target/la_duplicates/`
+  - `.la_dedup.bam`: Coordinate sorted BAM file after Linear Amplification duplicate removal. This is the final post-processed BAM file and so will be saved by default in the results directory.
+  - `.la_dedup.bam.bai`: BAI index file for coordinate sorted BAM file after Linear Amplification duplicate removal. This is the final post-processed BAM index file and so will be saved by default in the results directory.
+  - `.la_dedup_metrics.txt`: Metrics file from custom deduplication based on read 1 5' start location.
+
+In assays where linear amplification is used, the resulting library may contain reads that share the same start site but have a unique 3' end due to random cut and tagmentation with Tn5-ME-B. In this case, these duplicates should be removed by filtering all read 1's based on their 5' start site and keeping the read aligning with the highest mapping quality.
 
 ## 5. <a name='Fragment-basedQC'></a>Fragment-based QC
 

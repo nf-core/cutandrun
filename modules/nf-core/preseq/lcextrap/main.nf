@@ -1,18 +1,18 @@
 process PRESEQ_LCEXTRAP {
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_single'
     label 'error_ignore'
 
     conda "bioconda::preseq=3.1.2"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/preseq:3.1.2--h445547b_2':
-        'quay.io/biocontainers/preseq:3.1.2--h445547b_2' }"
+        'biocontainers/preseq:3.1.2--h445547b_2' }"
 
     input:
     tuple val(meta), path(bam)
 
     output:
-    tuple val(meta), path("*.lc_extrap.txt"), emit: lc_extrap, optional:true
+    tuple val(meta), path("*.lc_extrap.txt"), emit: lc_extrap
     tuple val(meta), path("*.log")          , emit: log
     path  "versions.yml"                    , emit: versions
 
@@ -29,8 +29,8 @@ process PRESEQ_LCEXTRAP {
         $args \\
         $paired_end \\
         -output ${prefix}.lc_extrap.txt \\
-        $bam \\
-    && cp .command.log ${prefix}.command.log || cp .command.log ${prefix}.command.log
+        $bam
+    cp .command.err ${prefix}.command.log
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

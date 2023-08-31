@@ -5,7 +5,7 @@ process TRIMGALORE {
     conda "bioconda::trim-galore=0.6.6"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/trim-galore:0.6.6--0' :
-        'quay.io/biocontainers/trim-galore:0.6.6--0' }"
+        'biocontainers/trim-galore:0.6.6--0' }"
 
     input:
     tuple val(meta), path(reads)

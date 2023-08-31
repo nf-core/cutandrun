@@ -4,11 +4,16 @@
 ========================================================================================
 */
 
-// Create summary input parameters map for reporting
-def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
+include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
 
 // Validate input parameters in specialised library
 WorkflowCutandrun.initialise(params, log)
+def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
+def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
+def summary_params = paramsSummaryMap(workflow)
+
+// Print parameter summary log to screen
+log.info logo + paramsSummaryLog(workflow) + citation
 
 // Check input path parameters to see if the files exist if they have been specified
 checkPathParamList = [
@@ -20,7 +25,7 @@ checkPathParamList = [
 ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
-if(params.normalisation_mode == "Spikein") { 
+if(params.normalisation_mode == "Spikein") {
     // Check spike-in only if it is enabled
     checkPathParamList = [
         params.spikein_bowtie2,
@@ -71,6 +76,8 @@ ch_frip_score_header_multiqc            = file("$projectDir/assets/multiqc/frip_
 ch_peak_counts_header_multiqc           = file("$projectDir/assets/multiqc/peak_counts_header.txt", checkIfExists: true)
 ch_peak_counts_consensus_header_multiqc = file("$projectDir/assets/multiqc/peak_counts_consensus_header.txt", checkIfExists: true)
 ch_peak_reprod_header_multiqc           = file("$projectDir/assets/multiqc/peak_reprod_header.txt", checkIfExists: true)
+ch_linear_duplication_header_multiqc    = file("$projectDir/assets/multiqc/linear_duplication_header.txt", checkIfExists: true)
+
 
 /*
 ========================================================================================
@@ -97,14 +104,14 @@ if ((caller_list + callers).unique().size() != caller_list.size()) {
 /*
  * MODULES
  */
-include { INPUT_CHECK                     } from "../subworkflows/local/input_check"
-include { CUT as PEAK_TO_BED              } from '../modules/local/linux/cut'
-include { AWK as AWK_NAME_PEAK_BED        } from "../modules/local/linux/awk"
-include { IGV_SESSION                     } from "../modules/local/python/igv_session"
-include { AWK as AWK_EXTRACT_SUMMITS      } from "../modules/local/linux/awk"
-include { SAMTOOLS_CUSTOMVIEW             } from "../modules/local/samtools_custom_view"
-include { FRAG_LEN_HIST                   } from "../modules/local/python/frag_len_hist"
-include { MULTIQC                         } from "../modules/local/multiqc"
+include { INPUT_CHECK                } from "../subworkflows/local/input_check"
+include { CUT as PEAK_TO_BED         } from '../modules/local/linux/cut'
+include { AWK as AWK_NAME_PEAK_BED   } from "../modules/local/linux/awk"
+include { IGV_SESSION                } from "../modules/local/python/igv_session"
+include { AWK as AWK_EXTRACT_SUMMITS } from "../modules/local/linux/awk"
+include { SAMTOOLS_CUSTOMVIEW        } from "../modules/local/samtools_custom_view"
+include { FRAG_LEN_HIST              } from "../modules/local/python/frag_len_hist"
+include { MULTIQC                    } from "../modules/local/multiqc"
 
 /*
  * SUBWORKFLOWS
@@ -124,6 +131,7 @@ include { PREPARE_PEAKCALLING                              } from "../subworkflo
 include { DEEPTOOLS_QC                                     } from "../subworkflows/local/deeptools_qc"
 include { PEAK_QC                                          } from "../subworkflows/local/peak_qc"
 include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS         } from "../subworkflows/local/samtools_view_sort_stats"
+include { DEDUPLICATE_LINEAR                               } from "../subworkflows/local/deduplicate_linear"
 
 /*
 ========================================================================================
@@ -135,7 +143,7 @@ include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS         } from "../subworkflo
  * MODULES
  */
 include { CAT_FASTQ                                                    } from "../modules/nf-core/cat/fastq/main"
-include { PRESEQ_LCEXTRAP                                              } from "../modules/local/for_patch/preseq/lcextrap/main"
+include { PRESEQ_LCEXTRAP                                              } from "../modules/nf-core/preseq/lcextrap/main"
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_IGG                         } from "../modules/nf-core/seacr/callpeak/main"
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                       } from "../modules/nf-core/seacr/callpeak/main"
 include { MACS2_CALLPEAK as MACS2_CALLPEAK_IGG                         } from "../modules/nf-core/macs2/callpeak/main"
@@ -255,8 +263,8 @@ workflow CUTANDRUN {
                 ch_trimmed_reads,
                 PREPARE_GENOME.out.bowtie2_index,
                 PREPARE_GENOME.out.bowtie2_spikein_index,
-                PREPARE_GENOME.out.fasta.collect{it[1]},
-                PREPARE_GENOME.out.spikein_fasta.collect{it[1]}
+                PREPARE_GENOME.out.fasta,
+                PREPARE_GENOME.out.spikein_fasta
             )
             ch_software_versions          = ch_software_versions.mix(ALIGN_BOWTIE2.out.versions)
             ch_orig_bam                   = ALIGN_BOWTIE2.out.orig_bam
@@ -311,12 +319,13 @@ workflow CUTANDRUN {
      *  - Multi-mapped reads
      *  - Filter out reads aligned to blacklist regions
      *  - Filter out reads below a threshold q score
-     */ 
+     *  - Filter out mitochondrial reads (if required)
+     */
     if (params.run_read_filter) {
         FILTER_READS (
             ch_samtools_bam,
             PREPARE_GENOME.out.allowed_regions.collect{it[1]}.ifEmpty([]),
-            PREPARE_GENOME.out.fasta.collect{it[1]}
+            PREPARE_GENOME.out.fasta
         )
         ch_samtools_bam      = FILTER_READS.out.bam
         ch_samtools_bai      = FILTER_READS.out.bai
@@ -327,7 +336,7 @@ workflow CUTANDRUN {
     }
     //EXAMPLE CHANNEL STRUCT: [[id:h3k27me3_R1, group:h3k27me3, replicate:1, single_end:false, is_control:false], [BAM]]
     //ch_samtools_bam | view
-    
+
     /*
      * MODULE: Run preseq on BAM files before de-duplication
     */
@@ -349,8 +358,8 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             ch_samtools_bai,
             true,
-            PREPARE_GENOME.out.fasta.collect{it[1]},
-            PREPARE_GENOME.out.fasta_index.collect{it[1]}
+            PREPARE_GENOME.out.fasta, 
+            PREPARE_GENOME.out.fasta_index
         )
         ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
         ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
@@ -371,8 +380,8 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             ch_samtools_bai,
             params.dedup_target_reads,
-            PREPARE_GENOME.out.fasta.collect{it[1]},
-            PREPARE_GENOME.out.fasta_index.collect{it[1]}
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta_index
         )
         ch_samtools_bam      = DEDUPLICATE_PICARD.out.bam
         ch_samtools_bai      = DEDUPLICATE_PICARD.out.bai
@@ -398,6 +407,31 @@ workflow CUTANDRUN {
         ch_software_versions          = ch_software_versions.mix(EXTRACT_PICARD_DUP_META.out.versions)
     }
     //ch_metadata_picard_duplicates | view
+
+
+    /*
+     * SUBWORKFLOW: Remove linear amplification duplicates - default is false
+     */
+    ch_linear_metrics         = Channel.empty()
+    ch_linear_duplication_mqc = Channel.empty()
+    if (params.run_remove_linear_dups) {
+        DEDUPLICATE_LINEAR (
+            ch_samtools_bam,
+            ch_samtools_bai,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.fasta_index,
+            params.dedup_target_reads,
+            ch_linear_duplication_header_multiqc
+        )
+        ch_samtools_bam           = DEDUPLICATE_LINEAR.out.bam
+        ch_samtools_bai           = DEDUPLICATE_LINEAR.out.bai
+        ch_samtools_stats         = DEDUPLICATE_LINEAR.out.stats
+        ch_samtools_flagstat      = DEDUPLICATE_LINEAR.out.flagstat
+        ch_samtools_idxstats      = DEDUPLICATE_LINEAR.out.idxstats
+        ch_linear_metrics         = DEDUPLICATE_LINEAR.out.metrics
+        ch_linear_duplication_mqc = DEDUPLICATE_LINEAR.out.linear_metrics_mqc
+        ch_software_versions      = ch_software_versions.mix(DEDUPLICATE_LINEAR.out.versions)
+    }
 
     ch_bedgraph               = Channel.empty()
     ch_bigwig                 = Channel.empty()
@@ -702,7 +736,7 @@ workflow CUTANDRUN {
             */
             ch_bigwig.filter { it[0].is_control == false }
             .set { ch_bigwig_no_igg }
-            //ch_bigwig_no_igg | view
+            // ch_bigwig_no_igg | view
 
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Genes
@@ -735,6 +769,7 @@ workflow CUTANDRUN {
             ch_bigwig_no_igg
             .map { row -> [row[0].id, row ].flatten()}
             .join ( ch_peaks_summits_id )
+            .filter ( it -> it[-1].size() > 1)
             .set { ch_dt_bigwig_summits }
             //ch_dt_peaks | view
 
@@ -745,17 +780,18 @@ workflow CUTANDRUN {
 
             ch_dt_bigwig_summits
             .map { row -> row[-1] }
-            .filter { it -> it.size() > 1}
             .set { ch_ordered_peaks_max }
             //ch_ordered_peaks_max | view
 
             /*
             * MODULE: Compute DeepTools matrix used in heatmap plotting for Peaks
             */
+
             DEEPTOOLS_COMPUTEMATRIX_PEAKS (
                 ch_ordered_bigwig,
                 ch_ordered_peaks_max
             )
+
             ch_software_versions = ch_software_versions.mix(DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.versions)
             //EXAMPLE CHANNEL STRUCT: [[META], MATRIX]
             //DEEPTOOLS_COMPUTEMATRIX_PEAKS.out.matrix | view
@@ -777,27 +813,12 @@ workflow CUTANDRUN {
                     PREPARE_GENOME.out.bed.toSortedList()
                 )
 
-                // /*
-                // * MODULE: Run calc peak matrix for all samples
-                // */
-                // DEEPTOOLS_COMPUTEMATRIX_PEAKS_ALL (
-                //     ch_ordered_bigwig.collect{ it[1] }.map{ [[id:'all_peaks'], it]},
-                //     ch_ordered_peaks_max.collect()
-                // )
-
                 /*
                 * MODULE: Calculate DeepTools heatmap for all samples
                 */
                 DEEPTOOLS_PLOTHEATMAP_GENE_ALL (
                     DEEPTOOLS_COMPUTEMATRIX_GENE_ALL.out.matrix
                 )
-
-                // /*
-                // * MODULE: Calculate DeepTools heatmap for all samples
-                // */
-                // DEEPTOOLS_PLOTHEATMAP_PEAKS_ALL (
-                //     DEEPTOOLS_COMPUTEMATRIX_PEAKS_ALL.out.matrix
-                // )
             }
         }
 
@@ -865,6 +886,7 @@ workflow CUTANDRUN {
         /*
         * CHANNEL: Combine bam and bai files on id
         */
+
         ch_bam_target.map { row -> [row[0].id, row ].flatten()}
         .join ( ch_bai_target.map { row -> [row[0].id, row ].flatten()} )
         .map { row -> [row[1], row[2], row[4]] }
@@ -907,6 +929,7 @@ workflow CUTANDRUN {
     }
     //ch_frag_len_hist_mqc | view
 
+
     if (params.run_multiqc) {
         workflow_summary    = WorkflowCutandrun.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
@@ -944,7 +967,8 @@ workflow CUTANDRUN {
             ch_peakqc_frip_mqc.collect{it[1]}.ifEmpty([]),
             ch_peakqc_count_consensus_mqc.collect{it[1]}.ifEmpty([]),
             ch_peakqc_reprod_perc_mqc.collect().ifEmpty([]),
-            ch_frag_len_hist_mqc.collect().ifEmpty([])
+            ch_frag_len_hist_mqc.collect().ifEmpty([]),
+            ch_linear_duplication_mqc.collect{it[1]}.ifEmpty([])
         )
         multiqc_report = MULTIQC.out.report.toList()
     }

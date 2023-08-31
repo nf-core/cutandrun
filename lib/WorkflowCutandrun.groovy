@@ -2,6 +2,7 @@
 // This file holds several functions specific to the workflow/cutandrun.nf in the nf-core/cutandrun pipeline
 //
 
+import nextflow.Nextflow
 import groovy.text.SimpleTemplateEngine
 
 class WorkflowCutandrun {
@@ -10,22 +11,21 @@ class WorkflowCutandrun {
     // Check and validate parameters
     //
     public static void initialise(params, log) {
+
         genomeExistsError(params, log)
 
-
         if (!params.fasta) {
-            log.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
-            System.exit(1)
+            Nextflow.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
         }
 
         if (params.normalisation_mode == "Spikein" && !params.spikein_fasta) {
-            log.error "Spike-in fasta file not specified with e.g. '--spikein_fasta genome.fa' or via a detectable config file."
-            System.exit(1)
+            def error_string = "Spike-in fasta file not specified with e.g. '--spikein_fasta genome.fa' or via a detectable config file."
+            Nextflow.error(error_string)
         }
 
         if (!params.gtf) {
-            log.error "No GTF annotation specified!"
-            System.exit(1)
+            def error_string = "No GTF annotation specified!"
+            Nextflow.error(error_string)
         }
 
         if (params.gtf) {
@@ -39,6 +39,14 @@ class WorkflowCutandrun {
 
         if (params.dt_calc_all_matrix) {
             matrixWarn(log)
+        }
+
+        if (!params.genome && !params.mito_name && params.remove_mitochondrial_reads) {
+            rmMitoWarn(log)
+        }
+
+        if (!params.fasta && !params.mito_name && params.remove_mitochondrial_reads) {
+            rmMitoWarn(log)
         }
     }
 
@@ -69,14 +77,56 @@ class WorkflowCutandrun {
         return yaml_file_text
     }
 
-    public static String methodsDescriptionText(run_workflow, mqc_methods_yaml) {
+    //
+    // Generate methods description for MultiQC
+    //
+
+    public static String toolCitationText(params) {
+
+        // TODO Optionally add in-text citation tools to this list.
+        // Can use ternary operators to dynamically construct based conditions, e.g. params["run_xyz"] ? "Tool (Foo et al. 2023)" : "",
+        // Uncomment function in methodsDescriptionText to render in MultiQC report
+        def citation_text = [
+                "Tools used in the workflow included:",
+                "FastQC (Andrews 2010),",
+                "MultiQC (Ewels et al. 2016)",
+                "."
+            ].join(' ').trim()
+
+        return citation_text
+    }
+
+    public static String toolBibliographyText(params) {
+
+        // TODO Optionally add bibliographic entries to this list.
+        // Can use ternary operators to dynamically construct based conditions, e.g. params["run_xyz"] ? "<li>Author (2023) Pub name, Journal, DOI</li>" : "",
+        // Uncomment function in methodsDescriptionText to render in MultiQC report
+        def reference_text = [
+                "<li>Andrews S, (2010) FastQC, URL: https://www.bioinformatics.babraham.ac.uk/projects/fastqc/).</li>",
+                "<li>Ewels, P., Magnusson, M., Lundin, S., & Käller, M. (2016). MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics , 32(19), 3047–3048. doi: /10.1093/bioinformatics/btw354</li>"
+            ].join(' ').trim()
+
+        return reference_text
+    }
+
+    public static String methodsDescriptionText(run_workflow, mqc_methods_yaml, params) {
         // Convert  to a named map so can be used as with familar NXF ${workflow} variable syntax in the MultiQC YML file
         def meta = [:]
         meta.workflow = run_workflow.toMap()
         meta["manifest_map"] = run_workflow.manifest.toMap()
 
+        // Pipeline DOI
         meta["doi_text"] = meta.manifest_map.doi ? "(doi: <a href=\'https://doi.org/${meta.manifest_map.doi}\'>${meta.manifest_map.doi}</a>)" : ""
         meta["nodoi_text"] = meta.manifest_map.doi ? "": "<li>If available, make sure to update the text to include the Zenodo DOI of version of the pipeline used. </li>"
+
+        // Tool references
+        meta["tool_citations"] = ""
+        meta["tool_bibliography"] = ""
+
+        // TODO Only uncomment below if logic in toolCitationText/toolBibliographyText has been filled!
+        //meta["tool_citations"] = toolCitationText(params).replaceAll(", \\.", ".").replaceAll("\\. \\.", ".").replaceAll(", \\.", ".")
+        //meta["tool_bibliography"] = toolBibliographyText(params)
+
 
         def methods_text = mqc_methods_yaml.text
 
@@ -84,17 +134,19 @@ class WorkflowCutandrun {
         def description_html = engine.createTemplate(methods_text).make(meta)
 
         return description_html
-    }//
+    }
+
+    //
     // Exit pipeline if incorrect --genome key provided
     //
     private static void genomeExistsError(params, log) {
         if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-            log.error "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
+            def error_string = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
                 "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" +
                 "  Currently, the available genome keys are:\n" +
                 "  ${params.genomes.keySet().join(", ")}\n" +
                 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-            System.exit(1)
+            Nextflow.error(error_string)
         }
     }
 
@@ -121,7 +173,7 @@ class WorkflowCutandrun {
     }
 
     private static void varryingReplicateNumbersError(log) {
-        log.error "===================================================================================\n" +
+        def error_string = "===================================================================================\n" +
             "  There are varrying numbers of replicates across experiemental and IgG samples.\n" +
             "  Options:\n" +
             "    - provide a consistent number of replicates across all experiments and control\n" +
@@ -129,7 +181,7 @@ class WorkflowCutandrun {
             "    - provide any number of experimental replicates and give all control replicates\n" +
             "      the same replicate number, so that they will be merged for downstream analysis\n" +
             "==================================================================================="
-        System.exit(1)
+        Nextflow.error(error_string)
     }
 
     private static void varryingReplicateNumbersWarn(log) {
@@ -153,10 +205,21 @@ class WorkflowCutandrun {
     // Print a warning if gen all plots are on
     //
     private static void matrixWarn(log) {
-        log.warn "==========================================================================================================\n" +
+        log.warn "=========================================================================================================\n" +
             "  dt_calc_all_matrix is switched on which will calculate a deeptools matrix for all samples. \n" +
             "  If you have a large sample count, this may affect pipeline performance and result in errors. \n" +
             "  Set this option to false to disable this feature and only calculate deeptools heatmaps for single samples\n" +
             "==============================================================================================================="
+    }
+
+    //
+    // Print a warning if neither genome or mito_name are specified and user wants to filter mitochodnrial reads
+    //
+    private static void rmMitoWarn(log) {
+        log.warn "=============================================================================\n" +
+            "  No genome or mito_name specified but remove_mitochondrial_reads set to true \n" +
+            "  remove_mitochondrial_reads is now set to false as the name of mitochondrial reads \n" +
+            "  in the .bam files is unknown. \n" +
+            "==================================================================================="
     }
 }

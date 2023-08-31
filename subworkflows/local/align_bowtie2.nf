@@ -10,10 +10,10 @@ include { BAM_SORT_STATS_SAMTOOLS as BAM_SORT_STATS_SAMTOOLS_SPIKEIN } from '../
 workflow ALIGN_BOWTIE2 {
     take:
     reads         // channel: [ val(meta), [ reads ] ]
-    index         // channel: /path/to/bowtie2/target/index/
-    spikein_index // channel: /path/to/bowtie2/spikein/index/
-    fasta         // channel: [ fasta ]
-    spikein_fasta // channel: [ fasta ]
+    index         // channel: [ val(meta), [ index ] ]
+    spikein_index // channel: [ val(meta), [ index ] ]
+    fasta         // channel: [ val(meta), fasta ]
+    spikein_fasta // channel: [ val(meta), fasta ]
 
     main:
     ch_versions = Channel.empty()
@@ -24,9 +24,9 @@ workflow ALIGN_BOWTIE2 {
     ch_index = index.map { [[id:it.baseName], it] }
     BOWTIE2_TARGET_ALIGN (
         reads,
-        ch_index.collect(),
+        ch_index.collect{ it[1] },
         params.save_unaligned,
-        false 
+        false
     )
     ch_versions = ch_versions.mix(BOWTIE2_TARGET_ALIGN.out.versions)
 
@@ -36,7 +36,7 @@ workflow ALIGN_BOWTIE2 {
     ch_spikein_index = spikein_index.map { [[id:it.baseName], it] }
     BOWTIE2_SPIKEIN_ALIGN (
         reads,
-        ch_spikein_index.collect(),
+        ch_spikein_index.collect{ it[1] },
         params.save_unaligned,
         false
     )
@@ -44,16 +44,16 @@ workflow ALIGN_BOWTIE2 {
     /*
      * Sort, index BAM file and run samtools stats, flagstat and idxstats
      */
-    BAM_SORT_STATS_SAMTOOLS ( BOWTIE2_TARGET_ALIGN.out.bam, fasta )
+    BAM_SORT_STATS_SAMTOOLS ( BOWTIE2_TARGET_ALIGN.out.aligned, fasta ) 
     ch_versions = ch_versions.mix(BAM_SORT_STATS_SAMTOOLS.out.versions)
 
-    BAM_SORT_STATS_SAMTOOLS_SPIKEIN ( BOWTIE2_SPIKEIN_ALIGN.out.bam, spikein_fasta )
+    BAM_SORT_STATS_SAMTOOLS_SPIKEIN ( BOWTIE2_SPIKEIN_ALIGN.out.aligned, spikein_fasta ) 
 
     emit:
     versions             = ch_versions                                  // channel: [ versions.yml ]
 
-    orig_bam             = BOWTIE2_TARGET_ALIGN.out.bam                 // channel: [ val(meta), bam ]
-    orig_spikein_bam     = BOWTIE2_SPIKEIN_ALIGN.out.bam                // channel: [ val(meta), bam ]
+    orig_bam             = BOWTIE2_TARGET_ALIGN.out.aligned             // channel: [ val(meta), bam ] 
+    orig_spikein_bam     = BOWTIE2_SPIKEIN_ALIGN.out.aligned            // channel: [ val(meta), bam ]
 
     bowtie2_log          = BOWTIE2_TARGET_ALIGN.out.log                 // channel: [ val(meta), log_final ]
     bowtie2_spikein_log  = BOWTIE2_SPIKEIN_ALIGN.out.log                // channel: [ val(meta), log_final ]
