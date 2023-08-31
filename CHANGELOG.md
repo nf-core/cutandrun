@@ -3,11 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.2] - 2023-06-15
+## [3.2] - 2023-08-31
 
 ### Major Changes
 
 - [[#189](https://github.com/nf-core/cutandrun/pull/189)] - Duplicates arising from linear amplification can be now removed by setting `--remove_linear_duplicates true`. `false` is default. [Linear amplification](https://doi.org/10.1186/1471-2164-4-19) is used in the [TIPseq protocol](https://doi.org/10.1083/jcb.202103078) in which genomic DNA is cut with Tn5 loaded with T7 promoter sequence that gets inserted in the cut DNA fragment. The T7 promoter sequence is then used to perform in vitro transcription to produce copies of the cut fragment. These duplicates are referred to as linear duplicates. Recent iterations of the CUT&Tag protocol, such as [nano-CUT&Tag](https://doi.org/10.1038/s41587-022-01535-4), have also been modified to include a linear amplification step. Credit to teemuronkko for this.
+- [[#208](https://github.com/nf-core/cutandrun/issues/208)] - Updated the genome blacklists file to more accurate CUT&RUN specific regions rather than the old ChIP-Seq ENCODE blacklist. This should improve mapping rates and reduce spurious peaks. Credit to Adrija K for this. [[The CUT&RUN suspect list of problematic regions of the genome](https://doi.org/10.1186/s13059-023-03027-3)]
 
 ### Enhancements
 
