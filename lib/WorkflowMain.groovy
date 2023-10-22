@@ -4,9 +4,6 @@
 
 import nextflow.Nextflow
 
-//
-// This file holds several functions specific to the main.nf workflow in the nf-core/cutandrun pipeline
-//
 class WorkflowMain {
 
     //
@@ -21,10 +18,12 @@ class WorkflowMain {
             "  https://github.com/${workflow.manifest.name}/blob/master/CITATIONS.md"
     }
 
+
     //
-    // Initialise the workflow
+    // Validate parameters and print summary to screen
     //
     public static void initialise(workflow, params, log) {
+
         // Print workflow version and exit on --version
         if (params.version) {
             String workflow_version = NfcoreTemplate.version(workflow)
