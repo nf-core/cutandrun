@@ -358,8 +358,8 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             ch_samtools_bai,
             true,
-            PREPARE_GENOME.out.fasta, 
-            PREPARE_GENOME.out.fasta_index
+            PREPARE_GENOME.out.fasta.collect(), 
+            PREPARE_GENOME.out.fasta_index.collect()
         )
         ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
         ch_samtools_bai           = MARK_DUPLICATES_PICARD.out.bai
