@@ -3,6 +3,30 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.1] - 2023-10-22
+
+### Enhancements
+
+- Updated pipeline template to nf-core/tools `2.10`.
+
+### Fixes
+
+- Fixed error that caused one random sample to run for markduplicates with certain versions of nextflow. Adding an explicit `collect()` on genome files has fixed this issue.
+
+### Software dependencies
+
+Note, since the pipeline is now using Nextflow DSL2, each process will be run with its own [Biocontainer](https://biocontainers.pro/#/registry). This means that on occasion it is entirely possible for the pipeline to be using different versions of the same tool. However, the overall software dependency changes compared to the last release have been listed below for reference.
+
+| Dependency | Old version | New version |
+| ---------- | ----------- | ----------- |
+| `fastqc`   | 11.9        | 12.1        |
+| `picard`   | 3.0.0       | 3.1.0       |
+| `multiqc`  | 1.15        | 1.17        |
+
+> **NB:** Dependency has been **updated** if both old and new version information is present.
+> **NB:** Dependency has been **added** if just the new version information is present.
+> **NB:** Dependency has been **removed** if version information isn't present.
+
 ## [3.2] - 2023-08-31
 
 ### Major Changes
