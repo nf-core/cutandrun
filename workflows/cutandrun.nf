@@ -450,7 +450,7 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             ch_samtools_bai,
             PREPARE_GENOME.out.chrom_sizes.collect(),
-            ch_dummy_file.collect(),
+            ch_dummy_file,
             params.normalisation_mode,
             ch_metadata_bt2_spikein
         )
