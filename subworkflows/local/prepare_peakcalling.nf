@@ -55,8 +55,6 @@ workflow PREPARE_PEAKCALLING {
         //ch_bam_scale_factor | view
     }
 
-    ch_bam_scale_factor | view
-
     if (norm_mode == "Spikein" || norm_mode == "None") {
         /*
         * MODULE: Convert bam files to bedgraph
