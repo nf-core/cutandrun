@@ -380,8 +380,8 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             ch_samtools_bai,
             params.dedup_target_reads,
-            PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.fasta_index
+            PREPARE_GENOME.out.fasta.collect(),
+            PREPARE_GENOME.out.fasta_index.collect()
         )
         ch_samtools_bam      = DEDUPLICATE_PICARD.out.bam
         ch_samtools_bai      = DEDUPLICATE_PICARD.out.bai
@@ -418,8 +418,8 @@ workflow CUTANDRUN {
         DEDUPLICATE_LINEAR (
             ch_samtools_bam,
             ch_samtools_bai,
-            PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.fasta_index,
+            PREPARE_GENOME.out.fasta.collect(),
+            PREPARE_GENOME.out.fasta_index.collect(),
             params.dedup_target_reads,
             ch_linear_duplication_header_multiqc
         )
@@ -450,7 +450,7 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             ch_samtools_bai,
             PREPARE_GENOME.out.chrom_sizes.collect(),
-            ch_dummy_file,
+            ch_dummy_file.collect(),
             params.normalisation_mode,
             ch_metadata_bt2_spikein
         )
