@@ -4,4 +4,3 @@ lint:
   files_unchanged:
     - assets/email_template.html
     - assets/email_template.txt
-    - lib/NfcoreTemplate.groovy
