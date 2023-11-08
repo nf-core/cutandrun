@@ -484,28 +484,15 @@ workflow CUTANDRUN {
             */
             if('seacr' in callers) {
                 /*
-                * CHANNEL: Subset control groups
-                */
-                ch_bedgraph_target.map{
-                    row -> [row[0].control_group, row]
-                }
-                .set { ch_bg_target_ctrlgrp }
-                //ch_bg_target_ctrlgrp | view
-
-                ch_bedgraph_control.map{
-                    row -> [row[0].control_group, row]
-                }
-                .set { ch_bg_control_ctrlgrp }
-                //ch_bg_control_ctrlgrp | view
-
-                /*
                 * CHANNEL: Create target/control pairings
                 */
-                // Create pairs of controls (IgG) with target samples if they are supplied
-                ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp).map {
-                    row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                ch_bedgraph_control.map{ row -> [row[0].control_group + row[0].replicate, row] }
+                .cross( ch_bedgraph_target.map{ row -> [row[0].control_group + row[0].replicate, row] } )
+                .map {
+                    row ->
+                    [ row[1][1][0], row[1][1][1], row[0][1][1] ]
                 }
-                .set{ ch_bedgraph_paired }
+                .set { ch_bedgraph_paired }
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
                 //ch_bedgraph_paired | view
 
@@ -521,30 +508,17 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 /*
-                * CHANNEL: Split control groups
-                */
-                ch_bam_target.map{
-                    row -> [row[0].control_group, row]
-                }
-                .set { ch_bam_target_ctrlgrp }
-                //ch_bam_target_ctrlgrp | view
-
-                ch_bam_control.map{
-                    row -> [row[0].control_group, row]
-                }
-                .set { ch_bam_control_ctrlgrp }
-                // ch_bam_control_ctrlgrp | view
-
-                /*
                 * CHANNEL: Create target/control pairings
                 */
-                // Create pairs of controls (IgG) with target samples if they are supplied
-                ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp).map{
-                    row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                ch_bam_control.map{ row -> [row[0].control_group + row[0].replicate, row] }
+                .cross( ch_bam_target.map{ row -> [row[0].control_group + row[0].replicate, row] } )
+                .map {
+                    row ->
+                    [ row[1][1][0], row[1][1][1], row[0][1][1] ]
                 }
-                .set{ ch_bam_paired }
+                .set { ch_bam_paired }
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
-                // ch_bam_paired | view
+                //ch_bam_paired | view
 
                 MACS2_CALLPEAK_IGG (
                     ch_bam_paired,
