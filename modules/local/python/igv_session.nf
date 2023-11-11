@@ -15,6 +15,7 @@ process IGV_SESSION {
     path beds
     path secondary_beds
     path bigwig
+    val sort_by_groups
 
     output:
     path('*.{txt,xml,bed,bigWig,fa,fai,fna,gtf,gff,narrowPeak,broadPeak,gz,tbi,bedGraph}', includeInputs:true)
@@ -27,10 +28,17 @@ process IGV_SESSION {
     output = ''
     colours = [:]
     colour_pos = 0
+    file_list = []
 
-    file_list = beds.collect{it.toString()}.sort()
-    file_list += secondary_beds.collect{it.toString()}.sort()
-    file_list += bigwig.collect{it.toString()}.sort()
+    if(sort_by_groups) {
+        file_list = beds.collect{it.toString()}.sort()
+        file_list += secondary_beds.collect{it.toString()}.sort()
+        file_list += bigwig.collect{it.toString()}.sort()
+    }
+    else {
+        file_list = (bigwig + secondary_beds + beds).collect{ it.toString() }.sort()
+    }
+
     for(file in file_list){
         file_split = file.split('_R')
         group = file_split[0]

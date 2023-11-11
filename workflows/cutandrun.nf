@@ -699,7 +699,8 @@ workflow CUTANDRUN {
                 //PREPARE_GENOME.out.gtf.collect(),
                 ch_peaks_primary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_peaks_secondary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
-                ch_bigwig.collect{it[1]}.ifEmpty([])
+                ch_bigwig.collect{it[1]}.ifEmpty([]),
+                params.igv_sort_by_groups
             )
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
