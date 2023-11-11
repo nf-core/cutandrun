@@ -159,7 +159,7 @@ def igv_files_to_session(XMLOut, ListFile, Genome, GtfBed, PathPrefix=""):
             )
         elif extension in [".bw", ".bigwig", ".tdf", ".bedGraph", ".bedgraph"]:
             XMLStr += (
-                '\t\t<Track altColor="0,0,178" autoScale="true" clazz="org.broad.igv.track.DataSourceTrack" color="%s" '
+                '\t\t<Track altColor="0,0,178" autoScale="true" autoscaleGroup="1" clazz="org.broad.igv.track.DataSourceTrack" color="%s" '
                 % (colour)
             )
             XMLStr += 'displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="12" height="100" '
