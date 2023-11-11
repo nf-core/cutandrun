@@ -80,7 +80,6 @@ workflow PREPARE_PEAKCALLING {
                 new File('scale-factors.csv').withWriter('UTF-8') { writer ->
                     list.each { item ->
                         str = item[0] + "," + item[1] + "," + item[2]
-                        log.info str
                         writer.write(str + "\n")
                     }
                 }
@@ -160,7 +159,6 @@ workflow PREPARE_PEAKCALLING {
                 new File('scale-factors.csv').withWriter('UTF-8') { writer ->
                     list.each { item ->
                         str = item[0] + "," + item[1] + "," + item[2]
-                        //log.info str
                         writer.write(str + "\n")
                     }
                 }
