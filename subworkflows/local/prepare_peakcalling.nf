@@ -74,12 +74,12 @@ workflow PREPARE_PEAKCALLING {
         */
         if(params.dump_scale_factors) {
             ch_scale_factor = ch_bam_scale_factor
-            .map { [it[0].id, it[2]] }
+            .map { [it[0].id, it[0].group, it[2]] }
             .toSortedList( { a, b -> a[0] <=> b[0] } )
             .map { list ->
                 new File('scale-factors.csv').withWriter('UTF-8') { writer ->
                     list.each { item ->
-                        str = "Scale-Factor," + item[0] + "," + item[1]
+                        str = item[0] + "," + item[1] + "," + item[2]
                         log.info str
                         writer.write(str + "\n")
                     }
@@ -154,13 +154,13 @@ workflow PREPARE_PEAKCALLING {
         */
         if(params.dump_scale_factors) {
             ch_scale_factor = ch_bam_bai_scale_factor
-            .map { [it[0].id, it[3]] }
+            .map { [it[0].id, it[0].group, it[3]] }
             .toSortedList( { a, b -> a[0] <=> b[0] } )
             .map { list ->
                 new File('scale-factors.csv').withWriter('UTF-8') { writer ->
                     list.each { item ->
-                        str = "Scale-Factor," + item[0] + "," + item[1]
-                        log.info str
+                        str = item[0] + "," + item[1] + "," + item[2]
+                        //log.info str
                         writer.write(str + "\n")
                     }
                 }
