@@ -99,12 +99,11 @@ def igv_files_to_session(XMLOut, ListFile, Genome, GtfBed, PathPrefix=""):
             break
             fout.close()
 
-
     ## Construct groups
     groups = {}
     group_num = 1
     for ifile, colour in fileList:
-        group = os.path.basename(ifile).split('_R')[0]
+        group = os.path.basename(ifile).split("_R")[0]
         if group not in groups:
             groups[group] = group_num
             group_num = group_num + 1
@@ -170,7 +169,7 @@ def igv_files_to_session(XMLOut, ListFile, Genome, GtfBed, PathPrefix=""):
         elif extension in [".bw", ".bigwig", ".tdf", ".bedGraph", ".bedgraph"]:
             XMLStr += (
                 '\t\t<Track altColor="0,0,178" autoScale="true" autoscaleGroup="%s" clazz="org.broad.igv.track.DataSourceTrack" color="%s" '
-                % (groups[os.path.basename(ifile).split('_R')[0]], colour)
+                % (groups[os.path.basename(ifile).split("_R")[0]], colour)
             )
             XMLStr += 'displayMode="COLLAPSED" featureVisibilityWindow="-1" fontSize="12" height="100" '
             XMLStr += (

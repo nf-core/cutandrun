@@ -247,13 +247,12 @@ def check_samplesheet(file_in, file_out, use_control):
     # Calculate the exact control/replicate id combo
     if use_control == "true":
         for group, reps in sorted(sample_run_dict.items()):
-
             # Calculate the ctrl group
             ctrl_group = None
             is_ctrl = False
             for replicate, info in sorted(reps.items()):
                 ctrl_group = info[0][2]
-                if ctrl_group == '':
+                if ctrl_group == "":
                     is_ctrl = True
                 break
 
