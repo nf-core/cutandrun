@@ -486,15 +486,14 @@ workflow CUTANDRUN {
                 /*
                 * CHANNEL: Create target/control pairings
                 */
-                ch_bedgraph_control.map{ row -> [row[0].control_group + row[0].replicate, row] }
-                .cross( ch_bedgraph_target.map{ row -> [row[0].control_group + row[0].replicate, row] } )
+                ch_bedgraph_control.map{ row -> [row[0].control_group + "_" + row[0].replicate, row] }
+                .cross( ch_bedgraph_target.map{ row -> [row[0].control_group, row] } )
                 .map {
                     row ->
                     [ row[1][1][0], row[1][1][1], row[0][1][1] ]
                 }
                 .set { ch_bedgraph_paired }
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
-                //ch_bedgraph_paired | view
 
                 SEACR_CALLPEAK_IGG (
                     ch_bedgraph_paired,
@@ -510,8 +509,8 @@ workflow CUTANDRUN {
                 /*
                 * CHANNEL: Create target/control pairings
                 */
-                ch_bam_control.map{ row -> [row[0].control_group + row[0].replicate, row] }
-                .cross( ch_bam_target.map{ row -> [row[0].control_group + row[0].replicate, row] } )
+                ch_bam_control.map{ row -> [row[0].control_group + "_" + row[0].replicate, row] }
+                .cross( ch_bam_target.map{ row -> [row[0].control_group, row] } )
                 .map {
                     row ->
                     [ row[1][1][0], row[1][1][1], row[0][1][1] ]
