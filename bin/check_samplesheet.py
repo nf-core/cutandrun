@@ -295,7 +295,8 @@ def check_samplesheet(file_in, file_out, use_control):
                     check_group = sample_run_dict[sample][replicate][0][2]
                     for tech_rep in sample_run_dict[sample][replicate]:
                         if tech_rep[2] != check_group:
-                            print_error("Control group must match within technical replicates", tech_rep[2])
+                            tech_rep[2] = check_group
+                            # print_error("Control group must match within technical replicates", tech_rep[2])
 
                     ## Write to file
                     for idx, sample_info in enumerate(sample_run_dict[sample][replicate]):
