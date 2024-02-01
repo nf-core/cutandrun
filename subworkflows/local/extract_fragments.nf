@@ -19,6 +19,7 @@ workflow EXTRACT_FRAGMENTS {
     SAMTOOLS_SORT (
         bam
     )
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
 
     /*
     * MODULE: Convert BAM file to paired-end bed format
@@ -33,7 +34,7 @@ workflow EXTRACT_FRAGMENTS {
     * MODULE: Keep the read pairs that are on the same chromosome and fragment length less than 1000bp.
     */
     AWK (
-        BEDTOOLS_BAMTOBED.out.bed  
+        BEDTOOLS_BAMTOBED.out.bed
     )
     ch_versions = ch_versions.mix(AWK.out.versions)
 

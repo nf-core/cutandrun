@@ -26,7 +26,8 @@
                     "type": "string",
                     "format": "directory-path",
                     "description": "The output directory where the results will be saved. You have to use absolute paths to store on Cloud infrastructure.",
-                    "fa_icon": "fas fa-folder-open"
+                    "fa_icon": "fas fa-folder-open",
+                    "default": "./results"
                 },
                 "multiqc_title": {
                     "type": "string",
@@ -69,6 +70,10 @@
                     "fa_icon": "fas fa-envelope",
                     "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
+                },
+                "dump_scale_factors": {
+                    "type": "boolean",
+                    "description": "Output calculated scale factors from pipeline"
                 }
             }
         },
@@ -84,10 +89,26 @@
                     "fa_icon": "fas fa-book",
                     "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`. \n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
                 },
-                "bowtie2": { "type": "string", "fa_icon": "fas fa-book", "description": "Path to bowtie2 index" },
-                "gtf": { "type": "string", "fa_icon": "fas fa-book", "description": "Path to GTF annotation file" },
-                "gene_bed": { "type": "string", "fa_icon": "fas fa-book", "description": "Path to gene BED file" },
-                "blacklist": { "type": "string", "fa_icon": "fas fa-book", "description": "Path to genome blacklist" },
+                "bowtie2": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to bowtie2 index"
+                },
+                "gtf": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to GTF annotation file"
+                },
+                "gene_bed": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to gene BED file"
+                },
+                "blacklist": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to genome blacklist"
+                },
                 "spikein_genome": {
                     "type": "string",
                     "default": "K12-MG1655",
@@ -164,14 +185,25 @@
                     "fa_icon": "fas fa-random",
                     "description": "Skips fastqc reporting"
                 },
-                "skip_trimming": { "type": "boolean", "fa_icon": "fas fa-random", "description": "Skips trimming" },
+                "skip_trimming": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips trimming"
+                },
                 "skip_removeduplicates": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
                     "description": "Skips de-duplication"
                 },
-                "skip_reporting": { "type": "boolean", "fa_icon": "fas fa-random", "description": "Skips reporting" },
-                "skip_preseq": { "type": "boolean", "description": "Skips preseq reporting" },
+                "skip_reporting": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips reporting"
+                },
+                "skip_preseq": {
+                    "type": "boolean",
+                    "description": "Skips preseq reporting"
+                },
                 "skip_igv": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
@@ -192,7 +224,11 @@
                     "description": "Skips peak QC reporting",
                     "fa_icon": "fas fa-random"
                 },
-                "skip_multiqc": { "type": "boolean", "fa_icon": "fas fa-random", "description": "Skips multiqc" }
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips multiqc"
+                }
             },
             "fa_icon": "fas fa-exchange-alt"
         },
@@ -258,13 +294,12 @@
                 },
                 "minimum_alignment_q_score": {
                     "type": "integer",
-                    "default": 0,
+                    "default": 20,
                     "fa_icon": "fas fa-sort-numeric-down",
                     "description": "Filter reads below a q-score threshold"
                 },
                 "remove_mitochondrial_reads": {
                     "type": "boolean",
-                    "default": false,
                     "fa_icon": "fas fa-clone",
                     "description": "Filter mitochondrial reads"
                 },
@@ -281,7 +316,6 @@
                 "remove_linear_duplicates": {
                     "type": "boolean",
                     "fa_icon": "fas fa-clone",
-                    "default": false,
                     "description": "De-duplicate reads based on read 1 5' start position. Relevant for assays using linear amplification with tagmentation (default is false)."
                 },
                 "end_to_end": {
@@ -299,7 +333,7 @@
                 },
                 "normalisation_binsize": {
                     "type": "integer",
-                    "default": 1,
+                    "default": 50,
                     "description": "If normsalisation option is one of  \"RPKM\", \"CPM\", \"BPM\" - then the binsize that the reads count is calculated on is used.",
                     "fa_icon": "fas fa-arrows-alt-h"
                 },
@@ -360,7 +394,7 @@
                 },
                 "macs_gsize": {
                     "type": "number",
-                    "default": 2700000000.0,
+                    "default": 2700000000,
                     "fa_icon": "fas fa-align-justify",
                     "description": "parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38."
                 },
@@ -385,7 +419,7 @@
                 },
                 "replicate_threshold": {
                     "type": "number",
-                    "default": 1.0,
+                    "default": 1,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
                 },
@@ -462,6 +496,11 @@
                     "default": 0.2,
                     "description": "Minimum peak overlap for peak reproducibility plot",
                     "fa_icon": "fas fa-align-justify"
+                },
+                "igv_sort_by_groups": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Sort the IGV output tracks by group"
                 }
             }
         },
@@ -559,14 +598,12 @@
                     "type": "boolean",
                     "description": "Display help text.",
                     "fa_icon": "fas fa-question-circle",
-                    "default": false,
                     "hidden": true
                 },
                 "version": {
                     "type": "boolean",
                     "description": "Display version and exit.",
                     "fa_icon": "fas fa-question-circle",
-                    "default": false,
                     "hidden": true
                 },
                 "publish_dir_mode": {
@@ -594,7 +631,6 @@
                     "type": "boolean",
                     "description": "Send plain-text email instead of HTML.",
                     "fa_icon": "fas fa-remove-format",
-                    "default": false,
                     "hidden": true
                 },
                 "max_multiqc_email_size": {
@@ -609,7 +645,6 @@
                     "type": "boolean",
                     "description": "Do not use coloured log outputs.",
                     "fa_icon": "fas fa-palette",
-                    "default": false,
                     "hidden": true
                 },
                 "hook_url": {
@@ -648,7 +683,6 @@
                     "type": "boolean",
                     "fa_icon": "far fa-eye-slash",
                     "description": "Show all params when using `--help`",
-                    "default": false,
                     "hidden": true,
                     "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
                 },
@@ -670,14 +704,32 @@
         }
     },
     "allOf": [
-        { "$ref": "#/definitions/input_output_options" },
-        { "$ref": "#/definitions/reference_data_options" },
-        { "$ref": "#/definitions/flow_switching_options" },
-        { "$ref": "#/definitions/trimming_options" },
-        { "$ref": "#/definitions/pipeline_options" },
-        { "$ref": "#/definitions/reporting_options" },
-        { "$ref": "#/definitions/institutional_config_options" },
-        { "$ref": "#/definitions/max_job_request_options" },
-        { "$ref": "#/definitions/generic_options" }
+        {
+            "$ref": "#/definitions/input_output_options"
+        },
+        {
+            "$ref": "#/definitions/reference_data_options"
+        },
+        {
+            "$ref": "#/definitions/flow_switching_options"
+        },
+        {
+            "$ref": "#/definitions/trimming_options"
+        },
+        {
+            "$ref": "#/definitions/pipeline_options"
+        },
+        {
+            "$ref": "#/definitions/reporting_options"
+        },
+        {
+            "$ref": "#/definitions/institutional_config_options"
+        },
+        {
+            "$ref": "#/definitions/max_job_request_options"
+        },
+        {
+            "$ref": "#/definitions/generic_options"
+        }
     ]
 }

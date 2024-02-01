@@ -36,7 +36,6 @@ workflow PEAK_QC {
     .join ( flagstat.map { row -> [row[0].id, row ].flatten()} )
     .map { row -> [ row[1], row[2], row[4], row[6] ]}
     .set { ch_frip }
-    //ch_frip | view 
 
     /*
     * MODULE: Calculate frip scores for primary peaks
@@ -47,7 +46,7 @@ workflow PEAK_QC {
         min_frip_overlap
     )
     ch_versions = ch_versions.mix(PEAK_FRIP.out.versions)
-    // PEAK_FRIP.out.frip_mqc | view 
+    // PEAK_FRIP.out.frip_mqc | view
 
     /*
     * MODULE: Calculate peak counts for primary peaks
@@ -144,8 +143,8 @@ workflow PEAK_QC {
     /*
     * MODULE: Plot upset plots for sample peaks
     */
-    PLOT_CONSENSUS_PEAKS ( 
-        ch_merged_bed_sorted.ifEmpty([]) 
+    PLOT_CONSENSUS_PEAKS (
+        ch_merged_bed_sorted.ifEmpty([])
     )
     ch_versions = ch_versions.mix(PLOT_CONSENSUS_PEAKS.out.versions)
 

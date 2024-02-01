@@ -68,6 +68,23 @@ workflow PREPARE_PEAKCALLING {
         ch_bedgraph = BEDTOOLS_GENOMECOV.out.genomecov
         //EXAMPLE CHANNEL STRUCT: [META], BEDGRAPH]
         //BEDTOOLS_GENOMECOV.out.genomecov | view
+
+        /*
+        * CHANNEL: Dump scale factor values
+        */
+        if(params.dump_scale_factors) {
+            ch_scale_factor = ch_bam_scale_factor
+            .map { [it[0].id, it[0].group, it[2]] }
+            .toSortedList( { a, b -> a[0] <=> b[0] } )
+            .map { list ->
+                new File('scale-factors.csv').withWriter('UTF-8') { writer ->
+                    list.each { item ->
+                        str = item[0] + "," + item[1] + "," + item[2]
+                        writer.write(str + "\n")
+                    }
+                }
+            }
+        }
     } else {
         /*
         * CHANNEL: Combine bam and bai files on id
@@ -130,6 +147,23 @@ workflow PREPARE_PEAKCALLING {
         ch_bedgraph = DEEPTOOLS_BAMCOVERAGE.out.bedgraph
         // EXAMPLE CHANNEL STRUCT: [[META], BAM, BAI]
         //ch_bedgraph | view
+
+        /*
+        * CHANNEL: Dump scale factor values
+        */
+        if(params.dump_scale_factors) {
+            ch_scale_factor = ch_bam_bai_scale_factor
+            .map { [it[0].id, it[0].group, it[3]] }
+            .toSortedList( { a, b -> a[0] <=> b[0] } )
+            .map { list ->
+                new File('scale-factors.csv').withWriter('UTF-8') { writer ->
+                    list.each { item ->
+                        str = item[0] + "," + item[1] + "," + item[2]
+                        writer.write(str + "\n")
+                    }
+                }
+            }
+        }
     }
 
     /*

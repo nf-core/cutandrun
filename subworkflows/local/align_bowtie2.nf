@@ -40,19 +40,21 @@ workflow ALIGN_BOWTIE2 {
         params.save_unaligned,
         false
     )
+    ch_versions = ch_versions.mix(BOWTIE2_SPIKEIN_ALIGN.out.versions)
 
     /*
      * Sort, index BAM file and run samtools stats, flagstat and idxstats
      */
-    BAM_SORT_STATS_SAMTOOLS ( BOWTIE2_TARGET_ALIGN.out.aligned, fasta ) 
+    BAM_SORT_STATS_SAMTOOLS ( BOWTIE2_TARGET_ALIGN.out.aligned, fasta )
     ch_versions = ch_versions.mix(BAM_SORT_STATS_SAMTOOLS.out.versions)
 
-    BAM_SORT_STATS_SAMTOOLS_SPIKEIN ( BOWTIE2_SPIKEIN_ALIGN.out.aligned, spikein_fasta ) 
+    BAM_SORT_STATS_SAMTOOLS_SPIKEIN ( BOWTIE2_SPIKEIN_ALIGN.out.aligned, spikein_fasta )
+    ch_versions = ch_versions.mix(BAM_SORT_STATS_SAMTOOLS_SPIKEIN.out.versions)
 
     emit:
     versions             = ch_versions                                  // channel: [ versions.yml ]
 
-    orig_bam             = BOWTIE2_TARGET_ALIGN.out.aligned             // channel: [ val(meta), bam ] 
+    orig_bam             = BOWTIE2_TARGET_ALIGN.out.aligned             // channel: [ val(meta), bam ]
     orig_spikein_bam     = BOWTIE2_SPIKEIN_ALIGN.out.aligned            // channel: [ val(meta), bam ]
 
     bowtie2_log          = BOWTIE2_TARGET_ALIGN.out.log                 // channel: [ val(meta), log_final ]

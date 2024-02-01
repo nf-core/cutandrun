@@ -358,7 +358,7 @@ workflow CUTANDRUN {
             ch_samtools_bam,
             ch_samtools_bai,
             true,
-            PREPARE_GENOME.out.fasta.collect(), 
+            PREPARE_GENOME.out.fasta.collect(),
             PREPARE_GENOME.out.fasta_index.collect()
         )
         ch_samtools_bam           = MARK_DUPLICATES_PICARD.out.bam
@@ -484,30 +484,16 @@ workflow CUTANDRUN {
             */
             if('seacr' in callers) {
                 /*
-                * CHANNEL: Subset control groups
-                */
-                ch_bedgraph_target.map{
-                    row -> [row[0].control_group, row]
-                }
-                .set { ch_bg_target_ctrlgrp }
-                //ch_bg_target_ctrlgrp | view
-
-                ch_bedgraph_control.map{
-                    row -> [row[0].control_group, row]
-                }
-                .set { ch_bg_control_ctrlgrp }
-                //ch_bg_control_ctrlgrp | view
-
-                /*
                 * CHANNEL: Create target/control pairings
                 */
-                // Create pairs of controls (IgG) with target samples if they are supplied
-                ch_bg_control_ctrlgrp.cross(ch_bg_target_ctrlgrp).map {
-                    row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                ch_bedgraph_control.map{ row -> [row[0].control_group + "_" + row[0].replicate, row] }
+                .cross( ch_bedgraph_target.map{ row -> [row[0].control_group, row] } )
+                .map {
+                    row ->
+                    [ row[1][1][0], row[1][1][1], row[0][1][1] ]
                 }
-                .set{ ch_bedgraph_paired }
+                .set { ch_bedgraph_paired }
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BEDGRAPH, CONTROL_BEDGRAPH]
-                //ch_bedgraph_paired | view
 
                 SEACR_CALLPEAK_IGG (
                     ch_bedgraph_paired,
@@ -521,30 +507,17 @@ workflow CUTANDRUN {
 
             if('macs2' in callers) {
                 /*
-                * CHANNEL: Split control groups
-                */
-                ch_bam_target.map{
-                    row -> [row[0].control_group, row]
-                }
-                .set { ch_bam_target_ctrlgrp }
-                //ch_bam_target_ctrlgrp | view
-
-                ch_bam_control.map{
-                    row -> [row[0].control_group, row]
-                }
-                .set { ch_bam_control_ctrlgrp }
-                // ch_bam_control_ctrlgrp | view
-
-                /*
                 * CHANNEL: Create target/control pairings
                 */
-                // Create pairs of controls (IgG) with target samples if they are supplied
-                ch_bam_control_ctrlgrp.cross(ch_bam_target_ctrlgrp).map{
-                    row -> [row[1][1][0], row[1][1][1], row[0][1][1]]
+                ch_bam_control.map{ row -> [row[0].control_group + "_" + row[0].replicate, row] }
+                .cross( ch_bam_target.map{ row -> [row[0].control_group, row] } )
+                .map {
+                    row ->
+                    [ row[1][1][0], row[1][1][1], row[0][1][1] ]
                 }
-                .set{ ch_bam_paired }
+                .set { ch_bam_paired }
                 // EXAMPLE CHANNEL STRUCT: [[META], TARGET_BAM, CONTROL_BAM]
-                // ch_bam_paired | view
+                //ch_bam_paired | view
 
                 MACS2_CALLPEAK_IGG (
                     ch_bam_paired,
@@ -725,7 +698,8 @@ workflow CUTANDRUN {
                 //PREPARE_GENOME.out.gtf.collect(),
                 ch_peaks_primary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
                 ch_peaks_secondary.collect{it[1]}.filter{ it -> it.size() > 1}.ifEmpty([]),
-                ch_bigwig.collect{it[1]}.ifEmpty([])
+                ch_bigwig.collect{it[1]}.ifEmpty([]),
+                params.igv_sort_by_groups
             )
             //ch_software_versions = ch_software_versions.mix(IGV_SESSION.out.versions)
         }
@@ -983,6 +957,13 @@ workflow.onComplete {
     NfcoreTemplate.summary(workflow, params, log)
     if (params.hook_url) {
         NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
+    }
+}
+
+workflow.onError {
+    if (workflow.errorReport.contains("Process requirement exceeds available memory")) {
+        println("🛑 Default resources exceed availability 🛑 ")
+        println("💡 See here on how to configure pipeline: https://nf-co.re/docs/usage/configuration#tuning-workflow-resources 💡")
     }
 }
 
