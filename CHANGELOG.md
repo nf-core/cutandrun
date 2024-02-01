@@ -15,7 +15,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed error that caused mismapping of IgG controls to their targets in certain samplesheet configurations.
 
-
 ## [3.2.1] - 2023-10-22
 
 ### Enhancements
