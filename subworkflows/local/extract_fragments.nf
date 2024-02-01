@@ -19,6 +19,7 @@ workflow EXTRACT_FRAGMENTS {
     SAMTOOLS_SORT (
         bam
     )
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
 
     /*
     * MODULE: Convert BAM file to paired-end bed format
