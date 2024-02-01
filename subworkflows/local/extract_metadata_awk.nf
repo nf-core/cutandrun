@@ -1,5 +1,5 @@
 /*
- * Generate table-based metadata from a summary report using AWK 
+ * Generate table-based metadata from a summary report using AWK
  */
 
 include { AWK_SCRIPT } from '../../modules/local/linux/awk_script'

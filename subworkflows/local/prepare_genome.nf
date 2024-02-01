@@ -116,7 +116,7 @@ workflow PREPARE_GENOME {
     /*
     * Index genome fasta file
     */
-    ch_fasta_index = SAMTOOLS_FAIDX ( ch_fasta, [[id:"fasta"], []] ).fai  
+    ch_fasta_index = SAMTOOLS_FAIDX ( ch_fasta, [[id:"fasta"], []] ).fai
     ch_versions    = ch_versions.mix(SAMTOOLS_FAIDX.out.versions)
 
     /*

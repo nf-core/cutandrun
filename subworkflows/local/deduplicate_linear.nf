@@ -101,7 +101,7 @@ workflow DEDUPLICATE_LINEAR {
         ch_metrics           = FIND_UNIQUE_READS.out.metrics
         ch_versions          = ch_versions.mix( FIND_UNIQUE_READS.out.versions )
 
-         // Subset original .bam file to contain only unique alignments
+        // Subset original .bam file to contain only unique alignments
         ch_split.control
         .join( bai )
         .join( ch_linear_duplicates )
