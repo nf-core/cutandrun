@@ -2,10 +2,10 @@ process PEAK_COUNTS {
     tag "$meta.id"
     label 'process_low'
 
-    conda "bioconda::bedtools=2.31.0"
+    conda "bioconda::bedtools=2.31.1"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bedtools:2.31.0--hf5e1c6e_2' :
-        'biocontainers/bedtools:2.31.0--hf5e1c6e_2' }"
+        'https://depot.galaxyproject.org/singularity/bedtools:2.31.1--hf5e1c6e_0' :
+        'biocontainers/bedtools:2.31.1--hf5e1c6e_0' }"
 
     input:
     tuple val(meta), path(bed)
