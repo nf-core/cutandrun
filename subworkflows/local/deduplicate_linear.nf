@@ -31,11 +31,13 @@ workflow DEDUPLICATE_LINEAR {
         SAMTOOLS_SORT (
             bam
         )
+        ch_versions = ch_versions.mix( SAMTOOLS_SORT.out.versions )
 
         // Convert .bam files to bed to find unique Tn5-ME-A insertion sites
         BEDTOOLS_BAMTOBED (
             SAMTOOLS_SORT.out.bam
         )
+        ch_versions = ch_versions.mix( BEDTOOLS_BAMTOBED.out.versions )
 
         // Use custom .py script to find names of unique alignments
         FIND_UNIQUE_READS (
@@ -65,9 +67,8 @@ workflow DEDUPLICATE_LINEAR {
             fasta,
             ch_txt
         )
-
-        // Return the filtered bam in the channel
-        ch_bam = SAMTOOLS_VIEW.out.bam
+        ch_versions = ch_versions.mix( SAMTOOLS_VIEW.out.versions )
+        ch_bam      = SAMTOOLS_VIEW.out.bam
 
     }
     else { // Split out control files and run only on these
@@ -83,11 +84,13 @@ workflow DEDUPLICATE_LINEAR {
         SAMTOOLS_SORT (
             ch_split.control
         )
+        ch_versions = ch_versions.mix( SAMTOOLS_SORT.out.versions )
 
         // Run .bam to bed on control files only and find unique alignments in control files
         BEDTOOLS_BAMTOBED (
             SAMTOOLS_SORT.out.bam
         )
+        ch_versions = ch_versions.mix( BEDTOOLS_BAMTOBED.out.versions )
 
         // Use custom .py script to find names of unique alignments in control files only
         FIND_UNIQUE_READS (
@@ -98,7 +101,7 @@ workflow DEDUPLICATE_LINEAR {
         ch_metrics           = FIND_UNIQUE_READS.out.metrics
         ch_versions          = ch_versions.mix( FIND_UNIQUE_READS.out.versions )
 
-         // Subset original .bam file to contain only unique alignments
+        // Subset original .bam file to contain only unique alignments
         ch_split.control
         .join( bai )
         .join( ch_linear_duplicates )
@@ -118,8 +121,7 @@ workflow DEDUPLICATE_LINEAR {
             fasta,
             ch_txt
         )
-
-         // Return the filtered bam in the channel
+        ch_versions = ch_versions.mix( SAMTOOLS_VIEW.out.versions )
         ch_bam = SAMTOOLS_VIEW.out.bam
 
         // Prevents issues with resume with the branch elements coming in the wrong order
@@ -134,10 +136,6 @@ workflow DEDUPLICATE_LINEAR {
         // Return the filtered control bam file concatenated with the original target bam
         ch_bam = ch_sorted_targets.concat( ch_sorted_controls )
     }
-    //ch_bam | view
-
-    // Save versions from the SAMTOOLS VIEW process
-    ch_versions = ch_versions.mix( SAMTOOLS_VIEW.out.versions )
 
     /*
     * WORKFLOW: Re sort and index all the bam files + calculate stats
@@ -146,8 +144,6 @@ workflow DEDUPLICATE_LINEAR {
         ch_bam,
         fasta
     )
-
-    // Save versions from BAM_SORT_STATS_SAMTOOLS
     ch_versions = ch_versions.mix( BAM_SORT_STATS_SAMTOOLS.out.versions )
 
     emit:

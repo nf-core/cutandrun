@@ -37,7 +37,7 @@ workflow PREPARE_GENOME {
         ch_fasta    = GUNZIP_FASTA ( [ [id:"target_fasta"], params.fasta ] ).gunzip
         ch_versions = ch_versions.mix(GUNZIP_FASTA.out.versions)
     } else {
-        ch_fasta = Channel.from( file(params.fasta) ).map { row -> [[id:"spikein_fasta"], row] }
+        ch_fasta = Channel.from( file(params.fasta) ).map { row -> [[id:"fasta"], row] }
     }
 
     /*
@@ -116,7 +116,7 @@ workflow PREPARE_GENOME {
     /*
     * Index genome fasta file
     */
-    ch_fasta_index = SAMTOOLS_FAIDX ( ch_fasta, [[id:"spikein_fasta"], []] ).fai  
+    ch_fasta_index = SAMTOOLS_FAIDX ( ch_fasta, [[id:"fasta"], []] ).fai
     ch_versions    = ch_versions.mix(SAMTOOLS_FAIDX.out.versions)
 
     /*

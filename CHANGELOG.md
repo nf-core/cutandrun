@@ -3,6 +3,18 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.2] - 2024-02-01
+
+### Enhancements
+
+- Updated pipeline template to nf-core/tools `2.12`.
+- Added option to dump calculated scale factor values from the pipeline using `--dump_scale_factors`
+- Added options to group IGV tracks by samplesheet group or by file type using `--igv_sort_by_groups`
+
+### Fixes
+
+- Fixed error that caused mismapping of IgG controls to their targets in certain samplesheet configurations.
+
 ## [3.2.1] - 2023-10-22
 
 ### Enhancements
