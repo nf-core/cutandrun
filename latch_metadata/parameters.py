@@ -1,0 +1,480 @@
+
+from dataclasses import dataclass
+import typing
+import typing_extensions
+
+from flytekit.core.annotation import FlyteAnnotation
+
+from latch.types.metadata import NextflowParameter
+from latch.types.file import LatchFile
+from latch.types.directory import LatchDir, LatchOutputDir
+
+# Import these into your `__init__.py` file:
+#
+# from .parameters import generated_parameters
+
+generated_parameters = {
+    'input': NextflowParameter(
+        type=LatchFile,
+        default=None,
+        section_title='Input/output options',
+        description='Path to comma-separated file containing information about the samples in the experiment.',
+    ),
+    'outdir': NextflowParameter(
+        type=typing_extensions.Annotated[LatchDir, FlyteAnnotation({'output': True})],
+        default=None,
+        section_title=None,
+        description='The output directory where the results will be saved. You have to use absolute paths to store on Cloud infrastructure.',
+    ),
+    'multiqc_title': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        description='MultiQC report title. Printed as page header, used for filename if not otherwise specified.',
+    ),
+    'save_reference': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Save genome reference data to the output directory',
+    ),
+    'save_merged_fastq': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Save any technical replicate FASTQ files that were merged to the output directory',
+    ),
+    'save_trimmed': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Save trimmed FASTQ files to the output directory',
+    ),
+    'save_spikein_aligned': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Save BAM files aligned to the spike-in genome to the output directory',
+    ),
+    'save_unaligned': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Save unaligned sequences to the output directory',
+    ),
+    'save_align_intermed': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Save alignment intermediates to the output directory (WARNING: can be very large)',
+    ),
+    'email': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        description='Email address for completion summary.',
+    ),
+    'dump_scale_factors': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Output calculated scale factors from pipeline',
+    ),
+    'genome': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title='Reference data options',
+        description='Name of iGenomes reference.',
+    ),
+    'bowtie2': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        description='Path to bowtie2 index',
+    ),
+    'gtf': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        description='Path to GTF annotation file',
+    ),
+    'gene_bed': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        description='Path to gene BED file',
+    ),
+    'blacklist': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        description='Path to genome blacklist',
+    ),
+    'spikein_genome': NextflowParameter(
+        type=typing.Optional[str],
+        default='K12-MG1655',
+        section_title=None,
+        description='Name of the iGenome reference for the spike-in genome, defaulting to E. coli K12, for yeast set to R64-1-1, for fruit fly BDGP6',
+    ),
+    'spikein_bowtie2': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        description='Path to spike-in bowtie2 index',
+    ),
+    'spikein_fasta': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        description='Path to spike-in fasta',
+    ),
+    'fasta': NextflowParameter(
+        type=typing.Optional[LatchFile],
+        default=None,
+        section_title=None,
+        description='Path to FASTA genome file.',
+    ),
+    'only_input': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title='Flow switching options',
+        description='Run pipeline up to input checking',
+    ),
+    'only_genome': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Run pipeline up to reference preparation',
+    ),
+    'only_preqc': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Run pipeline up to pre-alignment',
+    ),
+    'only_alignment': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Run pipeline up to alignment',
+    ),
+    'only_filtering': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Run pipeline up to q-filtering',
+    ),
+    'only_peak_calling': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Run pipeline up to peak calling',
+    ),
+    'skip_fastqc': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Skips fastqc reporting',
+    ),
+    'skip_trimming': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Skips trimming',
+    ),
+    'skip_removeduplicates': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Skips de-duplication',
+    ),
+    'skip_reporting': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Skips reporting',
+    ),
+    'skip_preseq': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Skips preseq reporting',
+    ),
+    'skip_igv': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Skips igv session generation',
+    ),
+    'skip_dt_qc': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Skips deeptools QC repoting',
+    ),
+    'skip_heatmaps': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Skips deeptools heatmap generation',
+    ),
+    'skip_peak_qc': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Skips peak QC reporting',
+    ),
+    'skip_multiqc': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Skips multiqc',
+    ),
+    'clip_r1': NextflowParameter(
+        type=typing.Optional[int],
+        default=0,
+        section_title='Trimming Options',
+        description="Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads).",
+    ),
+    'clip_r2': NextflowParameter(
+        type=typing.Optional[int],
+        default=0,
+        section_title=None,
+        description="Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only).",
+    ),
+    'three_prime_clip_r1': NextflowParameter(
+        type=typing.Optional[int],
+        default=0,
+        section_title=None,
+        description="Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed.",
+    ),
+    'three_prime_clip_r2': NextflowParameter(
+        type=typing.Optional[int],
+        default=0,
+        section_title=None,
+        description="Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed.",
+    ),
+    'trim_nextseq': NextflowParameter(
+        type=typing.Optional[int],
+        default=0,
+        section_title=None,
+        description='Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails.',
+    ),
+    'minimum_alignment_q_score': NextflowParameter(
+        type=typing.Optional[int],
+        default=20,
+        section_title='Pipeline Options',
+        description='Filter reads below a q-score threshold',
+    ),
+    'remove_mitochondrial_reads': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='Filter mitochondrial reads',
+    ),
+    'mito_name': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        description='Name of mitochondrial reads in reference genome. Only necessary when using a custom (non-igenomes) reference genome.',
+    ),
+    'dedup_target_reads': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description='De-duplicate target reads AND control reads (default is control only)',
+    ),
+    'remove_linear_duplicates': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title=None,
+        description="De-duplicate reads based on read 1 5' start position. Relevant for assays using linear amplification with tagmentation (default is false).",
+    ),
+    'end_to_end': NextflowParameter(
+        type=typing.Optional[bool],
+        default=True,
+        section_title=None,
+        description='Use --end-to-end mode of Bowtie2 during alignment',
+    ),
+    'normalisation_mode': NextflowParameter(
+        type=typing.Optional[str],
+        default='Spikein',
+        section_title=None,
+        description='Sets the target read normalisation mode. Options are: ["Spikein", "RPKM", "CPM", "BPM", "None" ]',
+    ),
+    'normalisation_binsize': NextflowParameter(
+        type=typing.Optional[int],
+        default=50,
+        section_title=None,
+        description='If normsalisation option is one of  "RPKM", "CPM", "BPM" - then the binsize that the reads count is calculated on is used.',
+    ),
+    'peakcaller': NextflowParameter(
+        type=typing.Optional[str],
+        default='seacr',
+        section_title=None,
+        description='Selects the peak caller for the pipeline. Options are: [seacr, macs2]. More than one peak caller can be chosen and the order specifies which is a primary peak called (the first) that will be used downstream. Any secondary peak callers will be run and outputed to the results folder.',
+    ),
+    'use_control': NextflowParameter(
+        type=typing.Optional[bool],
+        default=True,
+        section_title=None,
+        description='Specifies whether to use a control to normalise peak calls against (e.g. IgG)',
+    ),
+    'extend_fragments': NextflowParameter(
+        type=typing.Optional[bool],
+        default=True,
+        section_title=None,
+        description='Specifies whether to extend paired-end fragments between the read mates when calculating coveage tracks',
+    ),
+    'igg_scale_factor': NextflowParameter(
+        type=typing.Optional[float],
+        default=0.5,
+        section_title=None,
+        description='Specifies whether the background control is scaled prior to being used to normalise peaks.',
+    ),
+    'seacr_peak_threshold': NextflowParameter(
+        type=typing.Optional[float],
+        default=0.05,
+        section_title=None,
+        description='SEACR specifies returns the top n fraction (between 0 and 1) of peaks based on total signal within peaks. This is only used if there are no controls included with the samples and if `--use_control` is `false`',
+    ),
+    'seacr_norm': NextflowParameter(
+        type=typing.Optional[str],
+        default='non',
+        section_title=None,
+        description='SEACR normalization. ',
+    ),
+    'seacr_stringent': NextflowParameter(
+        type=typing.Optional[str],
+        default='stringent',
+        section_title=None,
+        description='SEACR stringency.',
+    ),
+    'macs2_qvalue': NextflowParameter(
+        type=typing.Optional[float],
+        default=0.01,
+        section_title=None,
+        description='Q-value threshold for MACS2 peak caller.',
+    ),
+    'macs2_pvalue': NextflowParameter(
+        type=typing.Optional[float],
+        default=None,
+        section_title=None,
+        description='P-value threshold for macs2 peak caller. If set it will overide the qvalue.',
+    ),
+    'macs_gsize': NextflowParameter(
+        type=typing.Optional[float],
+        default=2700000000,
+        section_title=None,
+        description='parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38.',
+    ),
+    'macs2_narrow_peak': NextflowParameter(
+        type=typing.Optional[bool],
+        default=True,
+        section_title=None,
+        description='Determines whether MACS2 broad or narrow peak mode is used for the peak caller',
+    ),
+    'macs2_broad_cutoff': NextflowParameter(
+        type=typing.Optional[float],
+        default=0.1,
+        section_title=None,
+        description='MACS2 broad cutoff parameter',
+    ),
+    'consensus_peak_mode': NextflowParameter(
+        type=typing.Optional[str],
+        default='group',
+        section_title=None,
+        description='Specifies what samples to group together for consensus peaks. Options are [group, all]',
+    ),
+    'replicate_threshold': NextflowParameter(
+        type=typing.Optional[float],
+        default=1,
+        section_title=None,
+        description='Minimum number of overlapping replicates needed for a consensus peak',
+    ),
+    'igv_show_gene_names': NextflowParameter(
+        type=typing.Optional[bool],
+        default=True,
+        section_title=None,
+        description='Show gene names instead of symbols in IGV browser sessions',
+    ),
+    'dt_qc_bam_binsize': NextflowParameter(
+        type=typing.Optional[int],
+        default=500,
+        section_title='Reporting Options',
+        description='Deeptools multiBamSummary bam bin size',
+    ),
+    'dt_qc_corr_method': NextflowParameter(
+        type=typing.Optional[str],
+        default='pearson',
+        section_title=None,
+        description='Deeptools Correlation Plot statistical calculation method',
+    ),
+    'dt_heatmap_gene_beforelen': NextflowParameter(
+        type=typing.Optional[int],
+        default=3000,
+        section_title=None,
+        description='Deeptools heatmap gene plot before length (bases)',
+    ),
+    'dt_heatmap_gene_bodylen': NextflowParameter(
+        type=typing.Optional[int],
+        default=5000,
+        section_title=None,
+        description='Deeptools heatmap gene plot body length (bases)',
+    ),
+    'dt_heatmap_gene_afterlen': NextflowParameter(
+        type=typing.Optional[int],
+        default=3000,
+        section_title=None,
+        description='Deeptools heatmap gene plot after length (bases)',
+    ),
+    'dt_heatmap_peak_beforelen': NextflowParameter(
+        type=typing.Optional[int],
+        default=3000,
+        section_title=None,
+        description='Deeptools heatmap peak plot before length (bases)',
+    ),
+    'dt_heatmap_peak_afterlen': NextflowParameter(
+        type=typing.Optional[int],
+        default=3000,
+        section_title=None,
+        description='Deeptools heatmap peak plot after length (bases)',
+    ),
+    'dt_calc_all_matrix': NextflowParameter(
+        type=typing.Optional[bool],
+        default=True,
+        section_title=None,
+        description='Flag for whether to generate a heatmap for all samples together',
+    ),
+    'min_frip_overlap': NextflowParameter(
+        type=typing.Optional[float],
+        default=0.2,
+        section_title=None,
+        description='Minimum fragment overlap for FriP score',
+    ),
+    'min_peak_overlap': NextflowParameter(
+        type=typing.Optional[float],
+        default=0.2,
+        section_title=None,
+        description='Minimum peak overlap for peak reproducibility plot',
+    ),
+    'igv_sort_by_groups': NextflowParameter(
+        type=typing.Optional[bool],
+        default=True,
+        section_title=None,
+        description='Sort the IGV output tracks by group',
+    ),
+    'singularity_pull_docker_container': NextflowParameter(
+        type=typing.Optional[bool],
+        default=None,
+        section_title='Generic options',
+        description='Pull Docker container.',
+    ),
+    'multiqc_methods_description': NextflowParameter(
+        type=typing.Optional[str],
+        default=None,
+        section_title=None,
+        description='Custom MultiQC yaml file containing HTML including a methods description.',
+    ),
+}
+
