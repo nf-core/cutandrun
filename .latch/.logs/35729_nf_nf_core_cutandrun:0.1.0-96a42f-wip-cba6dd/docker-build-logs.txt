@@ -62,48 +62,19 @@ Step 9/15 : run apt-get update && apt-get install -y default-jre-headless
 Step 10/15 : copy . /root/
 
 
- ---> 3f3e4ac9e1cf
+ ---> 58b86d8aeb3f
 
 Step 11/15 : run ln -s /root/.latch/bin/nextflow /root/nextflow
 
 
- ---> Running in c15dac84f040
+ ---> Running in 8d5137feef53
 
 [91mln -s /root/.latch/bin/nextflow /root/nextflow
 [0m
- ---> c24b956d7b18
+ ---> 13a37c04603e
 
 Step 12/15 : run ln -s /root/.latch/.nextflow /root/.nextflow
 
 
- ---> Running in 72a50362b6e5
-
-[91mln -s /root/.latch/.nextflow /root/.nextflow
-[0m
- ---> b64ac576009f
-
-Step 13/15 : arg tag
-
-
- ---> Running in 235d45699fc3
-
- ---> c1de3bbb49b5
-
-Step 14/15 : env FLYTE_INTERNAL_IMAGE $tag
-
-
- ---> Running in 7662e8e183e9
-
- ---> 11282b33ea19
-
-Step 15/15 : workdir /root
-
-
- ---> Running in b851b30539aa
-
- ---> a2635d95d5dd
-
-Successfully built a2635d95d5dd
-
-Successfully tagged 812206152185.dkr.ecr.us-west-2.amazonaws.com/35597_nf_nf_core_cutandrun:0.1.0-88a084
+ ---> Running in 4bae33b8f040
 
