@@ -1,17 +1,10 @@
-import csv
 import typing
 from dataclasses import dataclass
 from enum import Enum
 
-import typing_extensions
-from flytekit.core.annotation import FlyteAnnotation
 from latch.types.directory import LatchDir, LatchOutputDir
 from latch.types.file import LatchFile
-from latch.types.metadata import Multiselect, NextflowParameter
-
-# Import these into your `__init__.py` file:
-#
-# from .parameters import generated_parameters
+from latch.types.metadata import LatchRule, Multiselect, NextflowParameter
 
 
 @dataclass
@@ -24,8 +17,8 @@ class SampleSheet:
 
 
 class Reference(Enum):
-    hg19 = "GRCh37 (Homo Sapiens hg19)"
     hg38 = "GRCh38 (Homo Sapiens hg38)"
+    hg19 = "GRCh37 (Homo Sapiens hg19)"
 
 
 generated_parameters = {
@@ -39,7 +32,7 @@ generated_parameters = {
         default=None,
     ),
     "outdir": NextflowParameter(
-        type=LatchOutputDir,  # typing_extensions.Annotated[LatchDir, FlyteAnnotation({"output": True})],
+        type=LatchOutputDir,
         default=None,
         display_name="Outdir",
         description="The output directory where the results will be saved. You have to use absolute paths to store on Cloud infrastructure.",
@@ -345,10 +338,15 @@ generated_parameters = {
     ),
     "run_name": NextflowParameter(
         type=str,
-        default=None,
-        section_title=None,
         display_name="Run Name",
-        description="Run Name",
+        description="Name of run",
+        batch_table_column=True,
+        rules=[
+            LatchRule(
+                regex=r"^[a-zA-Z0-9_-]+$",
+                message="Run name must contain only letters, digits, underscores, and dashes. No spaces are allowed.",
+            )
+        ],
     ),
     "mito_name": NextflowParameter(
         type=typing.Optional[str],

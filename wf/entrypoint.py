@@ -2,18 +2,15 @@ import os
 import shutil
 import subprocess
 import sys
-import typing
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import List, Optional
 
 import requests
-import typing_extensions
-from flytekit.core.annotation import FlyteAnnotation
-from latch.executions import report_nextflow_used_storage
+from latch.executions import rename_current_execution, report_nextflow_used_storage
 from latch.ldata.path import LPath
 from latch.resources.tasks import custom_task, nextflow_runtime_task
-from latch.resources.workflow import workflow
 from latch.types import metadata
 from latch.types.directory import LatchDir, LatchOutputDir
 from latch.types.file import LatchFile
@@ -22,13 +19,16 @@ from latch_cli.nextflow.workflow import get_flag
 from latch_cli.services.register.utils import import_module_by_path
 from latch_cli.utils import urljoins
 
+sys.stdout.reconfigure(line_buffering=True)
+
 meta = Path("latch_metadata") / "__init__.py"
 import_module_by_path(meta)
-import latch_metadata
 
 
 @custom_task(cpu=0.25, memory=0.5, storage_gib=1)
-def initialize() -> str:
+def initialize(run_name: str) -> str:
+    rename_current_execution(str(run_name))
+
     token = os.environ.get("FLYTE_INTERNAL_EXECUTION_ID")
     if token is None:
         raise RuntimeError("failed to get execution token")
@@ -39,7 +39,10 @@ def initialize() -> str:
     resp = requests.post(
         "http://nf-dispatcher-service.flyte.svc.cluster.local/provision-storage",
         headers=headers,
-        json={"storage_expiration_hours": 0, "version": 2},
+        json={
+            "storage_expiration_hours": 0,
+            "version": 2,
+        },
     )
     resp.raise_for_status()
     print("Done.")
@@ -57,8 +60,8 @@ class SampleSheet:
 
 
 class Reference(Enum):
-    hg19 = "GRCh37 (Homo Sapiens hg19)"
     hg38 = "GRCh38 (Homo Sapiens hg38)"
+    hg19 = "GRCh37 (Homo Sapiens hg19)"
 
 
 input_construct_samplesheet = metadata._nextflow_metadata.parameters["input"].samplesheet_constructor
@@ -67,27 +70,27 @@ input_construct_samplesheet = metadata._nextflow_metadata.parameters["input"].sa
 @nextflow_runtime_task(cpu=4, memory=8, storage_gib=100)
 def nextflow_runtime(
     pvc_name: str,
-    input: typing.List[SampleSheet],
+    input: List[SampleSheet],
     outdir: LatchOutputDir,
-    multiqc_title: typing.Optional[str],
+    multiqc_title: Optional[str],
     save_reference: bool,
     save_merged_fastq: bool,
     save_trimmed: bool,
     save_spikein_aligned: bool,
     save_unaligned: bool,
     save_align_intermed: bool,
-    email: typing.Optional[str],
+    email: Optional[str],
     dump_scale_factors: bool,
     genome_source: str,
-    genome: typing.Optional[str],
-    latch_genome: typing.Optional[Reference],
-    bowtie2: typing.Optional[LatchDir],
-    gtf: typing.Optional[LatchFile],
-    gene_bed: typing.Optional[LatchFile],
-    blacklist: typing.Optional[LatchFile],
-    spikein_bowtie2: typing.Optional[LatchFile],
-    spikein_fasta: typing.Optional[LatchFile],
-    fasta: typing.Optional[LatchFile],
+    genome: Optional[str],
+    latch_genome: Optional[Reference],
+    bowtie2: Optional[LatchDir],
+    gtf: Optional[LatchFile],
+    gene_bed: Optional[LatchFile],
+    blacklist: Optional[LatchFile],
+    spikein_bowtie2: Optional[LatchFile],
+    spikein_fasta: Optional[LatchFile],
+    fasta: Optional[LatchFile],
     only_input: bool,
     only_genome: bool,
     only_preqc: bool,
@@ -106,46 +109,46 @@ def nextflow_runtime(
     skip_multiqc: bool,
     remove_mitochondrial_reads: bool,
     run_name: str,
-    mito_name: typing.Optional[str],
+    mito_name: Optional[str],
     dedup_target_reads: bool,
     remove_linear_duplicates: bool,
-    macs2_pvalue: typing.Optional[float],
+    macs2_pvalue: Optional[float],
     singularity_pull_docker_container: bool,
-    multiqc_methods_description: typing.Optional[str],
-    spikein_genome: typing.Optional[str],
-    clip_r1: typing.Optional[int],
-    clip_r2: typing.Optional[int],
-    three_prime_clip_r1: typing.Optional[int],
-    three_prime_clip_r2: typing.Optional[int],
-    trim_nextseq: typing.Optional[int],
-    minimum_alignment_q_score: typing.Optional[int],
+    multiqc_methods_description: Optional[str],
+    spikein_genome: Optional[str],
+    clip_r1: Optional[int],
+    clip_r2: Optional[int],
+    three_prime_clip_r1: Optional[int],
+    three_prime_clip_r2: Optional[int],
+    trim_nextseq: Optional[int],
+    minimum_alignment_q_score: Optional[int],
     end_to_end: bool,
-    normalisation_mode: typing.Optional[str],
-    normalisation_binsize: typing.Optional[int],
-    peakcaller: typing.Optional[str],
+    normalisation_mode: Optional[str],
+    normalisation_binsize: Optional[int],
+    peakcaller: Optional[str],
     use_control: bool,
     extend_fragments: bool,
-    igg_scale_factor: typing.Optional[float],
-    seacr_peak_threshold: typing.Optional[float],
-    seacr_norm: typing.Optional[str],
-    seacr_stringent: typing.Optional[str],
-    macs2_qvalue: typing.Optional[float],
-    macs_gsize: typing.Optional[float],
+    igg_scale_factor: Optional[float],
+    seacr_peak_threshold: Optional[float],
+    seacr_norm: Optional[str],
+    seacr_stringent: Optional[str],
+    macs2_qvalue: Optional[float],
+    macs_gsize: Optional[float],
     macs2_narrow_peak: bool,
-    macs2_broad_cutoff: typing.Optional[float],
-    consensus_peak_mode: typing.Optional[str],
-    replicate_threshold: typing.Optional[float],
+    macs2_broad_cutoff: Optional[float],
+    consensus_peak_mode: Optional[str],
+    replicate_threshold: Optional[float],
     igv_show_gene_names: bool,
-    dt_qc_bam_binsize: typing.Optional[int],
-    dt_qc_corr_method: typing.Optional[str],
-    dt_heatmap_gene_beforelen: typing.Optional[int],
-    dt_heatmap_gene_bodylen: typing.Optional[int],
-    dt_heatmap_gene_afterlen: typing.Optional[int],
-    dt_heatmap_peak_beforelen: typing.Optional[int],
-    dt_heatmap_peak_afterlen: typing.Optional[int],
+    dt_qc_bam_binsize: Optional[int],
+    dt_qc_corr_method: Optional[str],
+    dt_heatmap_gene_beforelen: Optional[int],
+    dt_heatmap_gene_bodylen: Optional[int],
+    dt_heatmap_gene_afterlen: Optional[int],
+    dt_heatmap_peak_beforelen: Optional[int],
+    dt_heatmap_peak_afterlen: Optional[int],
     dt_calc_all_matrix: bool,
-    min_frip_overlap: typing.Optional[float],
-    min_peak_overlap: typing.Optional[float],
+    min_frip_overlap: Optional[float],
+    min_peak_overlap: Optional[float],
     igv_sort_by_groups: bool,
 ) -> None:
     shared_dir = Path("/nf-workdir")
@@ -173,14 +176,6 @@ def nextflow_runtime(
         dirs_exist_ok=True,
     )
 
-    profile_list = ["docker"]
-    if False:
-        profile_list.extend([p.value for p in execution_profiles])
-
-    if len(profile_list) == 0:
-        profile_list.append("standard")
-
-    profiles = ",".join(profile_list)
     if genome_source == "latch_genome_source":
         fasta = os.path.join(
             "s3://latch-public/test-data/35729/cutandrun/",
@@ -201,7 +196,7 @@ def nextflow_runtime(
         "-work-dir",
         str(shared_dir),
         "-profile",
-        profiles,
+        "docker",
         "-c",
         "latch.config",
         "-resume",

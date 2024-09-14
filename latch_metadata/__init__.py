@@ -1,13 +1,9 @@
-from latch.ldata.path import LPath
-from latch.types import metadata
-from latch.types.directory import LatchDir, LatchOutputDir
-from latch.types.file import LatchFile
+from latch.types.directory import LatchDir
 from latch.types.metadata import (
     Fork,
     ForkBranch,
     LatchAuthor,
     NextflowMetadata,
-    NextflowParameter,
     NextflowRuntimeResources,
     Params,
     Section,
@@ -18,7 +14,14 @@ from latch.types.metadata import (
 from .parameters import generated_parameters
 
 flow = [
-    Section("Input/Output", Params("input", "outdir", "run_name"), Spoiler("Optional", Params("use_control"))),
+    Section(
+        "Input",
+        Params("input"),
+        Spoiler(
+            "Optional",
+            Params("use_control"),
+        ),
+    ),
     Section(
         "Reference Genome Options",
         Fork(
@@ -47,6 +50,12 @@ flow = [
             "spikein_fasta",
             "save_spikein_aligned",
         ),
+    ),
+    Section(
+        "Output Directory",
+        Params("run_name"),
+        Text("Parent directory for outputs"),
+        Params("outdir"),
     ),
     Spoiler(
         "Optional Parameters",
@@ -159,11 +168,13 @@ flow = [
     ),
 ]
 
+
 NextflowMetadata(
     display_name="nf-core/cutandrun",
     author=LatchAuthor(
         name="nf-core",
     ),
+    repository="https://github.com/latchbio-nfcore/cutandrun",
     parameters=generated_parameters,
     runtime_resources=NextflowRuntimeResources(
         cpus=4,
