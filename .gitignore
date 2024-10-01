@@ -15,3 +15,5 @@ R_sessionInfo.log
 
 .vscode/
 profile.svg
+
+.latch/.logs

@@ -1,0 +1,84 @@
+Step 1/12 : from 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base-nextflow:v2.0.0
+
+
+ ---> 98d9cd0f2a3a
+
+Step 2/12 : workdir /tmp/docker-build/work/
+
+
+ ---> Using cache
+
+ ---> 8f95defb9629
+
+Step 3/12 : shell [     "/usr/bin/env", "bash",     "-o", "errexit",     "-o", "pipefail",     "-o", "nounset",     "-o", "verbose",     "-o", "errtrace",     "-O", "inherit_errexit",     "-O", "shift_verbose",     "-c" ]
+
+
+ ---> Using cache
+
+ ---> b2b2f8c4e3df
+
+Step 4/12 : env TZ='Etc/UTC'
+
+
+ ---> Using cache
+
+ ---> ee07cb31686a
+
+Step 5/12 : env LANG='en_US.UTF-8'
+
+
+ ---> Using cache
+
+ ---> b133cffabb9a
+
+Step 6/12 : arg DEBIAN_FRONTEND=noninteractive
+
+
+ ---> Using cache
+
+ ---> 7f1ec8bb956e
+
+Step 7/12 : run pip install latch==2.52.1
+
+
+ ---> Using cache
+
+ ---> f6fd6659b394
+
+Step 8/12 : run mkdir /opt/latch
+
+
+ ---> Using cache
+
+ ---> 48d9448c23ba
+
+Step 9/12 : copy . /root/
+
+
+ ---> a54c7a5429ce
+
+Step 10/12 : arg tag
+
+
+ ---> Running in 1611dd9279c6
+
+ ---> 47275525bde6
+
+Step 11/12 : env FLYTE_INTERNAL_IMAGE $tag
+
+
+ ---> Running in 6c382ae94c87
+
+ ---> b0392c15561b
+
+Step 12/12 : workdir /root
+
+
+ ---> Running in 30c93e051f0e
+
+ ---> d4c27b80d980
+
+Successfully built d4c27b80d980
+
+Successfully tagged 812206152185.dkr.ecr.us-west-2.amazonaws.com/35729_nf_nf_core_cutandrun:0.1.0-96a42f-wip-96dd33
+
