@@ -37,10 +37,10 @@ def initialize(run_name: str) -> str:
 
     print("Provisioning shared storage volume... ", end="")
     resp = requests.post(
-        "http://nf-dispatcher-service.flyte.svc.cluster.local/provision-storage",
+        "http://nf-dispatcher-service.flyte.svc.cluster.local/provision-storage-ofs",
         headers=headers,
         json={
-            "storage_expiration_hours": 0,
+            "storage_expiration_hours": 1,
             "version": 2,
         },
     )
@@ -56,7 +56,7 @@ class SampleSheet:
     replicate: int
     fastq_1: LatchFile
     fastq_2: LatchFile
-    control: str
+    control: Optional[str]
 
 
 class Reference(Enum):

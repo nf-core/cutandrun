@@ -17,6 +17,7 @@ flow = [
     Section(
         "Input",
         Params("input"),
+        Text("Samplesheet expects 'control' column to be filled for all non-control samples."),
         Spoiler(
             "Optional",
             Params("use_control"),
