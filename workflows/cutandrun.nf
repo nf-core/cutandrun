@@ -4,7 +4,7 @@
 ========================================================================================
 */
 
-include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
+include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-schema'
 
 // Validate input parameters in specialised library
 WorkflowCutandrun.initialise(params, log)

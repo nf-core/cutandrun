@@ -1,10 +1,10 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/nf-core/cutandrun/master/nextflow_schema.json",
     "title": "nf-core/cutandrun pipeline parameters",
     "description": "Analysis pipeline for CUT&RUN and CUT&TAG experiments that includes sequencing QC, spike-in normalisation, IgG control normalisation, peak calling and downstream peak analysis.",
     "type": "object",
-    "definitions": {
+    "$defs": {
         "input_output_options": {
             "title": "Input/output options",
             "type": "object",
@@ -393,7 +393,7 @@
                     "description": "P-value threshold for macs2 peak caller. If set it will overide the qvalue."
                 },
                 "macs_gsize": {
-                    "type": "number",
+                    "type": "integer",
                     "default": 2700000000,
                     "fa_icon": "fas fa-align-justify",
                     "description": "parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38."
@@ -418,7 +418,7 @@
                     "enum": ["group", "all"]
                 },
                 "replicate_threshold": {
-                    "type": "number",
+                    "type": "integer",
                     "default": 1,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
@@ -705,31 +705,31 @@
     },
     "allOf": [
         {
-            "$ref": "#/definitions/input_output_options"
+            "$ref": "#/$defs/input_output_options"
         },
         {
-            "$ref": "#/definitions/reference_data_options"
+            "$ref": "#/$defs/reference_data_options"
         },
         {
-            "$ref": "#/definitions/flow_switching_options"
+            "$ref": "#/$defs/flow_switching_options"
         },
         {
-            "$ref": "#/definitions/trimming_options"
+            "$ref": "#/$defs/trimming_options"
         },
         {
-            "$ref": "#/definitions/pipeline_options"
+            "$ref": "#/$defs/pipeline_options"
         },
         {
-            "$ref": "#/definitions/reporting_options"
+            "$ref": "#/$defs/reporting_options"
         },
         {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/$defs/institutional_config_options"
         },
         {
-            "$ref": "#/definitions/max_job_request_options"
+            "$ref": "#/$defs/max_job_request_options"
         },
         {
-            "$ref": "#/definitions/generic_options"
+            "$ref": "#/$defs/generic_options"
         }
     ]
 }
