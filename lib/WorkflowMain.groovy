@@ -54,9 +54,9 @@ class WorkflowMain {
     // Get attribute from genome config file e.g. fasta
     //
     public static Object getGenomeAttribute(params, attribute) {
-        log.info "=== DEBUG getGenomeAttribute ==="
-        log.info "Requested attribute: '${attribute}'"
-        log.info "params.genome: '${params.genome}'"
+        println "=== DEBUG getGenomeAttribute ==="
+        println "Requested attribute: '${attribute}'"
+        println "params.genome: '${params.genome}'"
         if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
             if (params.genomes[ params.genome ].containsKey(attribute)) {
                    return params.genomes[ params.genome ][ attribute ]
@@ -70,7 +70,7 @@ class WorkflowMain {
     // log.info "Requested attribute: '${attribute}'"
     // log.info "params.genome: '${params.genome}'"
     // 
-    Check if params.genomes exists
+   // Check if params.genomes exists
     // if (!params.genomes) {
         // log.warn "DEBUG: params.genomes is null or empty"
         // return null
@@ -78,34 +78,34 @@ class WorkflowMain {
     // log.info "DEBUG: params.genomes exists and contains ${params.genomes.size()} entries"
     // log.info "DEBUG: Available genomes: ${params.genomes.keySet()}"
     // 
-    Check if params.genome is set
+   // Check if params.genome is set
     // if (!params.genome) {
         // log.warn "DEBUG: params.genome is null or empty"
         // return null
     // }
     // log.info "DEBUG: params.genome is set to: '${params.genome}'"
     // 
-    Check if the specified genome exists in params.genomes
+   // Check if the specified genome exists in params.genomes
     // if (!params.genomes.containsKey(params.genome)) {
         // log.warn "DEBUG: Genome '${params.genome}' not found in available genomes"
         // log.warn "DEBUG: Available genomes are: ${params.genomes.keySet()}"
         // return null
     // }
-    // log.info "DEBUG: Found genome '${params.genome}' in genomes config"
-    // 
-    Get the genome config
+    //  log.info "DEBUG: Found genome '${params.genome}' in genomes config"
+    //  
+   // Get the genome config
     // def genomeConfig = params.genomes[params.genome]
     // log.info "DEBUG: Genome config for '${params.genome}': ${genomeConfig}"
     // log.info "DEBUG: Available attributes for '${params.genome}': ${genomeConfig.keySet()}"
     // 
-    Check if the requested attribute exists
+   // Check if the requested attribute exists
     // if (!genomeConfig.containsKey(attribute)) {
         // log.warn "DEBUG: Attribute '${attribute}' not found for genome '${params.genome}'"
         // log.warn "DEBUG: Available attributes are: ${genomeConfig.keySet()}"
         // return null
     // }
     // 
-    Get the attribute value
+   // Get the attribute value
     // def attributeValue = genomeConfig[attribute]
     // log.info "DEBUG: Found attribute '${attribute}' for genome '${params.genome}'"
     // log.info "DEBUG: Attribute value: '${attributeValue}'"
