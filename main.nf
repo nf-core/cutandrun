@@ -22,8 +22,11 @@ params.bowtie2   = WorkflowMain.getGenomeAttribute(params, 'bowtie2')
 params.gtf       = WorkflowMain.getGenomeAttribute(params, 'gtf')
 params.gene_bed  = WorkflowMain.getGenomeAttribute(params, 'bed12')
 params.blacklist = WorkflowMain.getGenomeAttribute(params, 'blacklist')
-
+params.newName = WorkflowMain.getGenomeAttribute(params, 'newName')
+log.info "MAIN: ${params.blacklist}"
+log.info "MAIN: ${params.newName}"
 log.info "MAIN: Blacklist parameter value: ${params.blacklist ?: 'Not set'}"
+log.info "MAIN: NewName parameter value: ${params.newName ?: 'Not set'}"
 
 /*
 ========================================================================================
