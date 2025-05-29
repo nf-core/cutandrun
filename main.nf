@@ -23,6 +23,8 @@ params.gtf       = WorkflowMain.getGenomeAttribute(params, 'gtf')
 params.gene_bed  = WorkflowMain.getGenomeAttribute(params, 'bed12')
 params.blacklist = WorkflowMain.getGenomeAttribute(params, 'blacklist')
 
+log.info "Blacklist parameter value: ${params.blacklist ?: 'Not set'}"
+
 /*
 ========================================================================================
     SPIKEIN GENOME PARAMETER VALUES
