@@ -15,6 +15,13 @@ def summary_params = paramsSummaryMap(workflow)
 // Print parameter summary log to screen
 log.info logo + paramsSummaryLog(workflow) + citation
 
+if(params.blacklist) {
+   // fine, use that
+}
+else {
+    params.blacklist = getGenomeAttributes('blacklist')
+}
+
 // Check input path parameters to see if the files exist if they have been specified
 checkPathParamList = [
     params.blacklist,
