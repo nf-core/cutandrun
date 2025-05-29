@@ -16,15 +16,21 @@ nextflow.enable.dsl = 2
     GENOME PARAMETER VALUES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-log.info "BEFORE BLACKLIST getGenomeAttribute: ${params.blacklist}"
+
 params.fasta     = WorkflowMain.getGenomeAttribute(params, 'fasta')
 params.bowtie2   = WorkflowMain.getGenomeAttribute(params, 'bowtie2')
 params.gtf       = WorkflowMain.getGenomeAttribute(params, 'gtf')
 params.gene_bed  = WorkflowMain.getGenomeAttribute(params, 'bed12')
+
+log.info "BLACKLIST BEFORE getGenomeAttribute: ${params.blacklist}" // should be empty
 params.blacklist = WorkflowMain.getGenomeAttribute(params, 'blacklist')
-newName   = WorkflowMain.getGenomeAttribute(params, 'blacklist')
 log.info "MAIN BLACKLIST: ${params.blacklist}"
-log.info "MAIN NEWNAME:  ${newName}"
+
+log.info "BEFORE NEWNAME getGenomeAttribute: ${params.newName}" // should be empty
+params.newName   = WorkflowMain.getGenomeAttribute(params, 'blacklist')
+log.info "AFTER NEWNAME getGenomeAttribute: ${params.newName}" // should be empty
+
+//log.info "MAIN NEWNAME:  ${params.newName}"
 log.info "MAIN: Blacklist parameter value: ${params.blacklist ?: 'Not set'}"
 log.info "MAIN: NewName parameter value: ${params.newName ?: 'Not set'}"
 
