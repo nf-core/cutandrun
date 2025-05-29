@@ -55,7 +55,7 @@ class WorkflowMain {
     //
     public static Object getGenomeAttribute(params, attribute) {
         println "=== DEBUG getGenomeAttribute ==="
-        println "Requested attribute: '${attribute}'"
+        println "Requested attribute: '>${attribute}<'"
         println "params.genome: '${params.genome}'"
         if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
             println "params.genomes[ params.genome ]: '${params.genomes[ params.genome ]}'"
