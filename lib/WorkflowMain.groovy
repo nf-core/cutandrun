@@ -58,10 +58,11 @@ class WorkflowMain {
         println "Requested attribute: '>${attribute}<'"
         println "params.genome: '${params.genome}'"
         if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
-            println "params.genomes[ params.genome ]: '${params.genomes[ params.genome ]}'"
+            println "params.genomes[ params.z ]: '${params.genomes[ params.genome ]}'"
             if (params.genomes[ params.genome ].containsKey(attribute)) {
                 println "params.genomes[ params.genome ][ attribute ]: '${params.genomes[ params.genome ][ attribute ]}'"
-                   return params.genomes[ params.genome ][ attribute ]
+                println "return value: '${params.genomes[ params.genome ][ attribute ]}'"
+                return params.genomes[ params.genome ][ attribute ]
             }
             else {
                 println "params.genomes[ params.genome ] does not contain attribute: '${attribute}'"
