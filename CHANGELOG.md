@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixes
 
 - `blacklist` and `gene_bed` were not loaded from `igenomes.config`
+- fix off-by-one/two errors in blacklists
+- Ensembl blacklist used NCBI contig names
 
 ## [3.2.2] - 2024-02-01
 
