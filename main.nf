@@ -15,7 +15,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { CUTANDRUN  } from './workflows/cutandrun'
+include { CUTANDRUN               } from './workflows/cutandrun'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_cutandrun_pipeline'
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_cutandrun_pipeline'
 include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_cutandrun_pipeline'
@@ -26,10 +26,22 @@ include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_cuta
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// TODO nf-core: Remove this line if you don't need a FASTA file
-//   This is an example of how to use getGenomeAttribute() to fetch parameters
-//   from igenomes.config using `--genome`
-params.fasta = getGenomeAttribute('fasta')
+params.fasta     = getGenomeAttribute('fasta')
+params.bowtie2   = getGenomeAttribute(params, 'bowtie2')
+params.gtf       = getGenomeAttribute(params, 'gtf')
+params.gene_bed  = getGenomeAttribute(params, 'bed12')
+params.blacklist = getGenomeAttribute(params, 'blacklist')
+
+/*
+========================================================================================
+    SPIKEIN GENOME PARAMETER VALUES
+========================================================================================
+*/
+
+if(params.normalisation_mode == "Spikein") {
+    params.spikein_fasta   = getGenomeAttributeSpikeIn(params, 'fasta')
+    params.spikein_bowtie2 = getGenomeAttributeSpikeIn(params, 'bowtie2')
+}
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -37,25 +49,15 @@ params.fasta = getGenomeAttribute('fasta')
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-//
-// WORKFLOW: Run main analysis pipeline depending on type of input
-//
+include { CUTANDRUN } from './workflows/cutandrun'
+
 workflow NFCORE_CUTANDRUN {
-
-    take:
-    samplesheet // channel: samplesheet read in from --input
-
-    main:
-
-    //
-    // WORKFLOW: Run pipeline
-    //
-    CUTANDRUN (
-        samplesheet
-    )
-    emit:
-    multiqc_report = CUTANDRUN.out.multiqc_report // channel: /path/to/multiqc_report.html
+    /*
+     * WORKFLOW: Run main nf-core/cutandrun analysis pipeline
+     */
+    CUTANDRUN ()
 }
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -80,9 +82,7 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    NFCORE_CUTANDRUN (
-        PIPELINE_INITIALISATION.out.samplesheet
-    )
+    NFCORE_CUTANDRUN ()
     //
     // SUBWORKFLOW: Run completion tasks
     //
