@@ -89,7 +89,7 @@ workflow CUTANDRUN {
     emit:multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 
-// TODO: handle this merge conflict =======
+/*
 ========================================================================================
     VALIDATE INPUTS
 ========================================================================================
@@ -172,7 +172,7 @@ ch_linear_duplication_header_multiqc    = file("$projectDir/assets/multiqc/linea
 
 /*
 ========================================================================================
-    INIALISE PARAMETERS AND OPTIONS
+    INITIALISE PARAMETERS AND OPTIONS
 ========================================================================================
 */
 
@@ -665,7 +665,7 @@ workflow CUTANDRUN {
             }
         }
 
-        if ("macs2" in params.callers) {
+        if ("macs2" in callers) {
             /*
             * MODULE: Convert narrow or broad peak to bed
             */
@@ -1049,7 +1049,6 @@ workflow.onComplete {
     if (params.hook_url) {
         NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
     }
-// TODO: handle this merge conflict >>>>>>> f1b7994671f71cc4c19c720de1ba276729314c44
 }
 
 workflow.onError {
