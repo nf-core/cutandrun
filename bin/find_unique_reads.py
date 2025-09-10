@@ -88,7 +88,7 @@ with open(bed_path) as csvfile:
             alignments[unique_id] = [row[3], row[4]]
 
         # If ID already exists, check whether mapping quality is better
-        elif alignments[unique_id][1] > row[4]:
+        elif alignments[unique_id][1] < row[4]:
             alignments[unique_id] = [row[3], row[4]]
 
         # Increase counter
