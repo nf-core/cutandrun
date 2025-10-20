@@ -8,17 +8,17 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { UTILS_NFVALIDATION_PLUGIN } from '../../nf-core/utils_nfvalidation_plugin'
-include { paramsSummaryMap          } from 'plugin/nf-validation'
-include { fromSamplesheet           } from 'plugin/nf-validation'
-include { UTILS_NEXTFLOW_PIPELINE   } from '../../nf-core/utils_nextflow_pipeline'
-include { completionEmail           } from '../../nf-core/utils_nfcore_pipeline'
-include { completionSummary         } from '../../nf-core/utils_nfcore_pipeline'
-include { dashedLine                } from '../../nf-core/utils_nfcore_pipeline'
-include { nfCoreLogo                } from '../../nf-core/utils_nfcore_pipeline'
-include { imNotification            } from '../../nf-core/utils_nfcore_pipeline'
-include { UTILS_NFCORE_PIPELINE     } from '../../nf-core/utils_nfcore_pipeline'
-include { workflowCitation          } from '../../nf-core/utils_nfcore_pipeline'
+include { UTILS_NFSCHEMA_PLUGIN   } from '../../nf-core/utils_nfschema_plugin'
+include { paramsSummaryMap        } from 'plugin/nf-schema'
+include { samplesheetToList       } from 'plugin/nf-schema'
+include { UTILS_NEXTFLOW_PIPELINE } from '../../nf-core/utils_nextflow_pipeline'
+include { completionEmail         } from '../../nf-core/utils_nfcore_pipeline'
+include { completionSummary       } from '../../nf-core/utils_nfcore_pipeline'
+include { dashedLine              } from '../../nf-core/utils_nfcore_pipeline'
+include { nfCoreLogo              } from '../../nf-core/utils_nfcore_pipeline'
+include { imNotification          } from '../../nf-core/utils_nfcore_pipeline'
+include { UTILS_NFCORE_PIPELINE   } from '../../nf-core/utils_nfcore_pipeline'
+include { workflowCitation        } from '../../nf-core/utils_nfcore_pipeline'
 
 /*
 ========================================================================================
@@ -27,15 +27,16 @@ include { workflowCitation          } from '../../nf-core/utils_nfcore_pipeline'
 */
 
 workflow PIPELINE_INITIALISATION {
-
     take:
     version           // boolean: Display version and exit
-    help              // boolean: Display help text
     validate_params   // boolean: Boolean whether to validate parameters against the schema at runtime
     monochrome_logs   // boolean: Do not use coloured log outputs
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
     input             //  string: Path to input samplesheet
+    help              // boolean: Display help message and exit
+    help_full         // boolean: Show the full help message
+    show_hidden       // boolean: Show hidden parameters in the help message
 
     main:
 
@@ -44,32 +45,30 @@ workflow PIPELINE_INITIALISATION {
     //
     // Print version and exit if required and dump pipeline parameters to JSON file
     //
-    UTILS_NEXTFLOW_PIPELINE (
+    UTILS_NEXTFLOW_PIPELINE(
         version,
         true,
         outdir,
-        workflow.profile.tokenize(',').intersect(['conda', 'mamba']).size() >= 1
+        workflow.profile.tokenize(',').intersect(['conda', 'mamba']).size() >= 1,
     )
 
-    //
     // Validate parameters and generate parameter summary to stdout
-    //
-    pre_help_text = nfCoreLogo(monochrome_logs)
-    post_help_text = '\n' + workflowCitation() + '\n' + dashedLine(monochrome_logs)
-    def String workflow_command = "nextflow run ${workflow.manifest.name} -profile <docker/singularity/.../institute> --input samplesheet.csv --outdir <OUTDIR>"
-    UTILS_NFVALIDATION_PLUGIN (
-        help,
-        workflow_command,
-        pre_help_text,
-        post_help_text,
+    UTILS_NFSCHEMA_PLUGIN(
+        workflow,
         validate_params,
-        "nextflow_schema.json"
+        null,
+        help,
+        help_full,
+        show_hidden,
+        nfCoreLogo(monochrome_logs),
+        '\n' + workflowCitation() + '\n' + dashedLine(monochrome_logs),
+        "nextflow run ${workflow.manifest.name} -profile <docker/singularity/.../institute> --input samplesheet.csv --outdir <OUTDIR>",
     )
 
     //
     // Check config provided to the pipeline
     //
-    UTILS_NFCORE_PIPELINE (
+    UTILS_NFCORE_PIPELINE(
         nextflow_cli_args
     )
     //
@@ -77,28 +76,29 @@ workflow PIPELINE_INITIALISATION {
     //
     validateInputParameters()
 
-    //
     // Create channel from input file provided through params.input
-    //
-    Channel
-        .fromSamplesheet("input")
-        .map {
-            meta, fastq_1, fastq_2 ->
-                if (!fastq_2) {
-                    return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
-                } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
-                }
+    // Just get all info from the samplesheet
+    // We need more to gather all the meta data to be able to validate
+    ch_samplesheet = Channel.fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
+        .map { meta, fastq_1, fastq_2 ->
+            [[group: meta.group, control_group: meta.control_group], [meta, [fastq_1, fastq_2]]]
         }
         .groupTuple()
-        .map {
-            validateInputSamplesheet(it)
+        .flatMap { meta, tuple ->
+            tuple.collect { meta_tuple, reads ->
+                if (meta.control_group) {
+                    [meta_tuple + [control_group: meta.control_group, is_control: false], reads]
+                }
+                else {
+                    [meta_tuple + [control_group: "${meta.group}_1", is_control: true], reads]
+                }
+            }
         }
-        .map {
-            meta, fastqs ->
-                return [ meta, fastqs.flatten() ]
+        .map { meta, reads ->
+            validateInputSamplesheet(meta + [single_end: false], reads)
         }
-        .set { ch_samplesheet }
+
+    ch_samplesheet.view()
 
     emit:
     samplesheet = ch_samplesheet
@@ -112,7 +112,6 @@ workflow PIPELINE_INITIALISATION {
 */
 
 workflow PIPELINE_COMPLETION {
-
     take:
     email           //  string: email address
     email_on_fail   //  string: email address sent on pipeline failure
@@ -155,29 +154,11 @@ def validateInputParameters() {
 }
 
 //
-// Validate channels from input samplesheet
+// Cut&Run specific sample validation and metadata enhancement
 //
-def validateInputSamplesheet(input) {
-    def (metas, fastqs) = input[1..2]
-
-    // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
-    def endedness_ok = metas.collect{ it.single_end }.unique().size == 1
-    if (!endedness_ok) {
-        error("Please check input samplesheet -> Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end: ${metas[0].id}")
-    }
-
-    return [ metas[0], fastqs ]
-}
-//
-// Get attribute from genome config file e.g. fasta
-//
-def getGenomeAttribute(attribute) {
-    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
-        if (params.genomes[ params.genome ].containsKey(attribute)) {
-            return params.genomes[ params.genome ][ attribute ]
-        }
-    }
-    return null
+// TODO: add control handling
+def validateInputSamplesheet(meta, fastqs) {
+    return [meta + [group: meta.group ?: meta.id.split('_')[0], replicate: meta.replicate ?: 1, id: "${meta.group ?: meta.id.split('_')[0]}_R${meta.replicate ?: 1}_T1"], fastqs]
 }
 
 //
@@ -185,11 +166,7 @@ def getGenomeAttribute(attribute) {
 //
 def genomeExistsError() {
     if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-        def error_string = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
-            "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" +
-            "  Currently, the available genome keys are:\n" +
-            "  ${params.genomes.keySet().join(", ")}\n" +
-            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        def error_string = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" + "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" + "  Currently, the available genome keys are:\n" + "  ${params.genomes.keySet().join(", ")}\n" + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         error(error_string)
     }
 }
@@ -202,11 +179,11 @@ def toolCitationText() {
     // Can use ternary operators to dynamically construct based conditions, e.g. params["run_xyz"] ? "Tool (Foo et al. 2023)" : "",
     // Uncomment function in methodsDescriptionText to render in MultiQC report
     def citation_text = [
-            "Tools used in the workflow included:",
-            "FastQC (Andrews 2010),",
-            "MultiQC (Ewels et al. 2016)",
-            "."
-        ].join(' ').trim()
+        "Tools used in the workflow included:",
+        "FastQC (Andrews 2010),",
+        "MultiQC (Ewels et al. 2016)",
+        ".",
+    ].join(' ').trim()
 
     return citation_text
 }
@@ -216,9 +193,9 @@ def toolBibliographyText() {
     // Can use ternary operators to dynamically construct based conditions, e.g. params["run_xyz"] ? "<li>Author (2023) Pub name, Journal, DOI</li>" : "",
     // Uncomment function in methodsDescriptionText to render in MultiQC report
     def reference_text = [
-            "<li>Andrews S, (2010) FastQC, URL: https://www.bioinformatics.babraham.ac.uk/projects/fastqc/).</li>",
-            "<li>Ewels, P., Magnusson, M., Lundin, S., & Käller, M. (2016). MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics , 32(19), 3047–3048. doi: /10.1093/bioinformatics/btw354</li>"
-        ].join(' ').trim()
+        "<li>Andrews S, (2010) FastQC, URL: https://www.bioinformatics.babraham.ac.uk/projects/fastqc/).</li>",
+        "<li>Ewels, P., Magnusson, M., Lundin, S., & Käller, M. (2016). MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics , 32(19), 3047–3048. doi: /10.1093/bioinformatics/btw354</li>",
+    ].join(' ').trim()
 
     return reference_text
 }
@@ -231,7 +208,7 @@ def methodsDescriptionText(mqc_methods_yaml) {
 
     // Pipeline DOI
     meta["doi_text"] = meta.manifest_map.doi ? "(doi: <a href=\'https://doi.org/${meta.manifest_map.doi}\'>${meta.manifest_map.doi}</a>)" : ""
-    meta["nodoi_text"] = meta.manifest_map.doi ? "": "<li>If available, make sure to update the text to include the Zenodo DOI of version of the pipeline used. </li>"
+    meta["nodoi_text"] = meta.manifest_map.doi ? "" : "<li>If available, make sure to update the text to include the Zenodo DOI of version of the pipeline used. </li>"
 
     // Tool references
     meta["tool_citations"] = ""
@@ -244,7 +221,7 @@ def methodsDescriptionText(mqc_methods_yaml) {
 
     def methods_text = mqc_methods_yaml.text
 
-    def engine =  new groovy.text.SimpleTemplateEngine()
+    def engine = new groovy.text.SimpleTemplateEngine()
     def description_html = engine.createTemplate(methods_text).make(meta)
 
     return description_html.toString()
