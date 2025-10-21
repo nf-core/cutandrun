@@ -1,0 +1,7 @@
+- name: test_verify_output_save_merged
+  command: nextflow run main.nf -profile docker,test_tech_reps --save_merged_fastq --only_preqc -c tests/config/nextflow.config
+  tags:
+    - verify_output_save_merged
+  files:
+    - path: results/01_prealign/merged_fastq/h3k27me3_R1_1.merged.fastq.gz
+    - path: results/01_prealign/merged_fastq/h3k27me3_R1_2.merged.fastq.gz

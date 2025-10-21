@@ -1,0 +1,9 @@
+- name: test_verify_output_save_unaligned
+  command: nextflow run main.nf -profile docker,test --only_alignment --skip_fastqc --save_unaligned -c tests/config/nextflow.config
+  tags:
+    - verify_output_align_save_unaligned
+  files:
+    - path: results/02_alignment/bowtie2/target/unmapped/h3k27me3_R1.unmapped_1.fastq.gz
+    - path: results/02_alignment/bowtie2/target/unmapped/igg_ctrl_R1.unmapped_2.fastq.gz
+    - path: results/02_alignment/bowtie2/target/unmapped/h3k27me3_R1.unmapped_1.fastq.gz
+    - path: results/02_alignment/bowtie2/target/unmapped/igg_ctrl_R1.unmapped_2.fastq.gz
