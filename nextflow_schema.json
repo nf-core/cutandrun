@@ -1,10 +1,10 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/nf-core/cutandrun/master/nextflow_schema.json",
     "title": "nf-core/cutandrun pipeline parameters",
     "description": "Analysis pipeline for CUT&RUN and CUT&TAG experiments that includes sequencing QC, spike-in normalisation, IgG control normalisation, peak calling and downstream peak analysis.",
     "type": "object",
-    "definitions": {
+    "$defs": {
         "input_output_options": {
             "title": "Input/output options",
             "type": "object",
@@ -20,14 +20,50 @@
                     "mimetype": "text/csv",
                     "pattern": "^\\S+\\.csv$",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/cutandrun/usage#samplesheet-input).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re//usage#samplesheet-input).",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {
                     "type": "string",
                     "format": "directory-path",
-                    "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
-                    "fa_icon": "fas fa-folder-open"
+                    "description": "The output directory where the results will be saved. You have to use absolute paths to store on Cloud infrastructure.",
+                    "fa_icon": "fas fa-folder-open",
+                    "default": "./results"
+                },
+                "multiqc_title": {
+                    "type": "string",
+                    "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
+                    "fa_icon": "fas fa-file-signature"
+                },
+                "save_reference": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save genome reference data to the output directory"
+                },
+                "save_merged_fastq": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save any technical replicate FASTQ files that were merged to the output directory"
+                },
+                "save_trimmed": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save trimmed FASTQ files to the output directory"
+                },
+                "save_spikein_aligned": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save BAM files aligned to the spike-in genome to the output directory"
+                },
+                "save_unaligned": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save unaligned sequences to the output directory"
+                },
+                "save_align_intermed": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-folder-plus",
+                    "description": "Save alignment intermediates to the output directory (WARNING: can be very large)"
                 },
                 "email": {
                     "type": "string",
@@ -36,24 +72,59 @@
                     "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 },
-                "multiqc_title": {
-                    "type": "string",
-                    "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
-                    "fa_icon": "fas fa-file-signature"
+                "dump_scale_factors": {
+                    "type": "boolean",
+                    "description": "Output calculated scale factors from pipeline"
                 }
             }
         },
-        "reference_genome_options": {
-            "title": "Reference genome options",
+        "reference_data_options": {
+            "title": "Reference data options",
             "type": "object",
             "fa_icon": "fas fa-dna",
-            "description": "Reference genome related files and options required for the workflow.",
+            "description": "Reference genome related files and options.",
             "properties": {
                 "genome": {
                     "type": "string",
                     "description": "Name of iGenomes reference.",
                     "fa_icon": "fas fa-book",
                     "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`. \n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
+                },
+                "bowtie2": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to bowtie2 index"
+                },
+                "gtf": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to GTF annotation file"
+                },
+                "gene_bed": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to gene BED file"
+                },
+                "blacklist": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to genome blacklist"
+                },
+                "spikein_genome": {
+                    "type": "string",
+                    "default": "K12-MG1655",
+                    "fa_icon": "fas fa-book",
+                    "description": "Name of the iGenome reference for the spike-in genome, defaulting to E. coli K12, for yeast set to R64-1-1, for fruit fly BDGP6"
+                },
+                "spikein_bowtie2": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to spike-in bowtie2 index"
+                },
+                "spikein_fasta": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Path to spike-in fasta"
                 },
                 "fasta": {
                     "type": "string",
@@ -71,6 +142,366 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                }
+            }
+        },
+        "flow_switching_options": {
+            "title": "Flow switching options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "only_input": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to input checking"
+                },
+                "only_genome": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to reference preparation"
+                },
+                "only_preqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to pre-alignment"
+                },
+                "only_alignment": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to alignment"
+                },
+                "only_filtering": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to q-filtering"
+                },
+                "only_peak_calling": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Run pipeline up to peak calling"
+                },
+                "skip_fastqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips fastqc reporting"
+                },
+                "skip_trimming": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips trimming"
+                },
+                "skip_removeduplicates": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips de-duplication"
+                },
+                "skip_reporting": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips reporting"
+                },
+                "skip_preseq": {
+                    "type": "boolean",
+                    "description": "Skips preseq reporting"
+                },
+                "skip_igv": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips igv session generation"
+                },
+                "skip_dt_qc": {
+                    "type": "boolean",
+                    "description": "Skips deeptools QC repoting",
+                    "fa_icon": "fas fa-random"
+                },
+                "skip_heatmaps": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips deeptools heatmap generation"
+                },
+                "skip_peak_qc": {
+                    "type": "boolean",
+                    "description": "Skips peak QC reporting",
+                    "fa_icon": "fas fa-random"
+                },
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-random",
+                    "description": "Skips multiqc"
+                }
+            },
+            "fa_icon": "fas fa-exchange-alt"
+        },
+        "trimming_options": {
+            "title": "Trimming Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "clip_r1": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Instructs Trim Galore to remove bp from the 5' end of read 1 (or single-end reads)."
+                },
+                "clip_r2": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Instructs Trim Galore to remove bp from the 5' end of read 2 (paired-end reads only)."
+                },
+                "three_prime_clip_r1": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Instructs Trim Galore to remove bp from the 3' end of read 1 AFTER adapter/quality trimming has been performed."
+                },
+                "three_prime_clip_r2": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Instructs Trim Galore to remove bp from the 3' end of read 2 AFTER adapter/quality trimming has been performed."
+                },
+                "trim_nextseq": {
+                    "type": "integer",
+                    "default": 0,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Instructs Trim Galore to apply the --nextseq=X option, to trim based on quality after removing poly-G tails.",
+                    "help_text": "This enables the option Cutadapt `--nextseq-trim=3'CUTOFF` option via Trim Galore, which will set a quality cutoff (that is normally given with -q instead), but qualities of G bases are ignored. This trimming is in common for the NextSeq- and NovaSeq-platforms, where basecalls without any signal are called as high-quality G bases."
+                }
+            },
+            "fa_icon": "fas fa-cut"
+        },
+        "pipeline_options": {
+            "title": "Pipeline Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "aligner": {
+                    "type": "string",
+                    "default": "bowtie2",
+                    "hidden": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Select aligner"
+                },
+                "normalisation_c": {
+                    "type": "integer",
+                    "default": 10000,
+                    "hidden": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Normalisation constant for spike-in read normalisation"
+                },
+                "minimum_alignment_q_score": {
+                    "type": "integer",
+                    "default": 20,
+                    "fa_icon": "fas fa-sort-numeric-down",
+                    "description": "Filter reads below a q-score threshold"
+                },
+                "remove_mitochondrial_reads": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-clone",
+                    "description": "Filter mitochondrial reads"
+                },
+                "mito_name": {
+                    "type": "string",
+                    "fa_icon": "fas fa-book",
+                    "description": "Name of mitochondrial reads in reference genome. Only necessary when using a custom (non-igenomes) reference genome."
+                },
+                "dedup_target_reads": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-clone",
+                    "description": "De-duplicate target reads AND control reads (default is control only)"
+                },
+                "remove_linear_duplicates": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-clone",
+                    "description": "De-duplicate reads based on read 1 5' start position. Relevant for assays using linear amplification with tagmentation (default is false)."
+                },
+                "end_to_end": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-clone",
+                    "default": true,
+                    "description": "Use --end-to-end mode of Bowtie2 during alignment"
+                },
+                "normalisation_mode": {
+                    "type": "string",
+                    "default": "Spikein",
+                    "fa_icon": "fab fa-buffer",
+                    "description": "Sets the target read normalisation mode. Options are: [\"Spikein\", \"RPKM\", \"CPM\", \"BPM\", \"None\" ]",
+                    "enum": ["Spikein", "RPKM", "CPM", "BPM", "None"]
+                },
+                "normalisation_binsize": {
+                    "type": "integer",
+                    "default": 50,
+                    "description": "If normsalisation option is one of  \"RPKM\", \"CPM\", \"BPM\" - then the binsize that the reads count is calculated on is used.",
+                    "fa_icon": "fas fa-arrows-alt-h"
+                },
+                "peakcaller": {
+                    "type": "string",
+                    "default": "seacr",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Selects the peak caller for the pipeline. Options are: [seacr, macs2]. More than one peak caller can be chosen and the order specifies which is a primary peak called (the first) that will be used downstream. Any secondary peak callers will be run and outputed to the results folder."
+                },
+                "use_control": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies whether to use a control to normalise peak calls against (e.g. IgG)"
+                },
+                "extend_fragments": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies whether to extend paired-end fragments between the read mates when calculating coveage tracks"
+                },
+                "igg_scale_factor": {
+                    "type": "number",
+                    "default": 0.5,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies whether the background control is scaled prior to being used to normalise peaks."
+                },
+                "seacr_peak_threshold": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "SEACR specifies returns the top n fraction (between 0 and 1) of peaks based on total signal within peaks. This is only used if there are no controls included with the samples and if `--use_control` is `false`"
+                },
+                "seacr_norm": {
+                    "type": "string",
+                    "default": "non",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "SEACR normalization. ",
+                    "enum": ["non", "norm"]
+                },
+                "seacr_stringent": {
+                    "type": "string",
+                    "default": "stringent",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "SEACR stringency.",
+                    "enum": ["stringent", "relaxed"]
+                },
+                "macs2_qvalue": {
+                    "type": "number",
+                    "default": 0.01,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Q-value threshold for MACS2 peak caller."
+                },
+                "macs2_pvalue": {
+                    "type": "number",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "P-value threshold for macs2 peak caller. If set it will overide the qvalue."
+                },
+                "macs_gsize": {
+                    "type": "number",
+                    "default": 2700000000,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38."
+                },
+                "macs2_narrow_peak": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Determines whether MACS2 broad or narrow peak mode is used for the peak caller"
+                },
+                "macs2_broad_cutoff": {
+                    "type": "number",
+                    "default": 0.1,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "MACS2 broad cutoff parameter"
+                },
+                "consensus_peak_mode": {
+                    "type": "string",
+                    "default": "group",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Specifies what samples to group together for consensus peaks. Options are [group, all]",
+                    "enum": ["group", "all"]
+                },
+                "replicate_threshold": {
+                    "type": "number",
+                    "default": 1,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Minimum number of overlapping replicates needed for a consensus peak"
+                },
+                "igv_show_gene_names": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "Show gene names instead of symbols in IGV browser sessions"
+                }
+            },
+            "fa_icon": "fas fa-cog"
+        },
+        "reporting_options": {
+            "title": "Reporting Options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "fa_icon": "fas fa-atlas",
+            "properties": {
+                "dt_qc_bam_binsize": {
+                    "type": "integer",
+                    "default": 500,
+                    "description": "Deeptools multiBamSummary bam bin size",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_qc_corr_method": {
+                    "type": "string",
+                    "default": "pearson",
+                    "description": "Deeptools Correlation Plot statistical calculation method"
+                },
+                "dt_heatmap_gene_beforelen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap gene plot before length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_gene_bodylen": {
+                    "type": "integer",
+                    "default": 5000,
+                    "description": "Deeptools heatmap gene plot body length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_gene_afterlen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap gene plot after length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_peak_beforelen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap peak plot before length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_heatmap_peak_afterlen": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Deeptools heatmap peak plot after length (bases)",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "dt_calc_all_matrix": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Flag for whether to generate a heatmap for all samples together"
+                },
+                "min_frip_overlap": {
+                    "type": "number",
+                    "default": 0.2,
+                    "description": "Minimum fragment overlap for FriP score",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "min_peak_overlap": {
+                    "type": "number",
+                    "default": 0.2,
+                    "description": "Minimum peak overlap for peak reproducibility plot",
+                    "fa_icon": "fas fa-align-justify"
+                },
+                "igv_sort_by_groups": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Sort the IGV output tracks by group"
                 }
             }
         },
@@ -122,41 +553,6 @@
                 }
             }
         },
-        "max_job_request_options": {
-            "title": "Max job request options",
-            "type": "object",
-            "fa_icon": "fab fa-acquisitions-incorporated",
-            "description": "Set the top limit for requested resources for any single job.",
-            "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
-            "properties": {
-                "max_cpus": {
-                    "type": "integer",
-                    "description": "Maximum number of CPUs that can be requested for any single job.",
-                    "default": 16,
-                    "fa_icon": "fas fa-microchip",
-                    "hidden": true,
-                    "help_text": "Use to set an upper-limit for the CPU requirement for each process. Should be an integer e.g. `--max_cpus 1`"
-                },
-                "max_memory": {
-                    "type": "string",
-                    "description": "Maximum amount of memory that can be requested for any single job.",
-                    "default": "128.GB",
-                    "fa_icon": "fas fa-memory",
-                    "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
-                    "hidden": true,
-                    "help_text": "Use to set an upper-limit for the memory requirement for each process. Should be a string in the format integer-unit e.g. `--max_memory '8.GB'`"
-                },
-                "max_time": {
-                    "type": "string",
-                    "description": "Maximum amount of time that can be requested for any single job.",
-                    "default": "240.h",
-                    "fa_icon": "far fa-clock",
-                    "pattern": "^(\\d+\\.?\\s*(s|m|h|d|day)\\s*)+$",
-                    "hidden": true,
-                    "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
-                }
-            }
-        },
         "generic_options": {
             "title": "Generic options",
             "type": "object",
@@ -165,10 +561,16 @@
             "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
             "properties": {
                 "help": {
+                    "type": ["boolean", "string"],
+                    "description": "Display the help message."
+                },
+                "help_full": {
                     "type": "boolean",
-                    "description": "Display help text.",
-                    "fa_icon": "fas fa-question-circle",
-                    "hidden": true
+                    "description": "Display the full detailed help message."
+                },
+                "show_hidden": {
+                    "type": "boolean",
+                    "description": "Display hidden parameters in the help message (only works when --help or --help_full are provided)."
                 },
                 "version": {
                     "type": "boolean",
@@ -278,19 +680,28 @@
     },
     "allOf": [
         {
-            "$ref": "#/definitions/input_output_options"
+            "$ref": "#/$defs/input_output_options"
         },
         {
-            "$ref": "#/definitions/reference_genome_options"
+            "$ref": "#/$defs/reference_data_options"
         },
         {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/$defs/flow_switching_options"
         },
         {
-            "$ref": "#/definitions/max_job_request_options"
+            "$ref": "#/$defs/trimming_options"
         },
         {
-            "$ref": "#/definitions/generic_options"
+            "$ref": "#/$defs/pipeline_options"
+        },
+        {
+            "$ref": "#/$defs/reporting_options"
+        },
+        {
+            "$ref": "#/$defs/institutional_config_options"
+        },
+        {
+            "$ref": "#/$defs/generic_options"
         }
     ]
 }
