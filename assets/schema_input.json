@@ -7,11 +7,17 @@
     "items": {
         "type": "object",
         "properties": {
-            "sample": {
+            "group": {
+                "meta": "group",
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Sample name must be provided and cannot contain spaces",
-                "meta": ["id"]
+                "errorMessage": "Sample group must be provided and cannot contain spaces"
+            },
+            "replicate": {
+                "meta": "replicate",
+                "type": "integer",
+                "pattern": "^[0-9]*$",
+                "errorMessage": "Biological Replicate number within the group - technical replicates must have the same replicate number"
             },
             "fastq_1": {
                 "type": "string",
@@ -25,9 +31,15 @@
                 "format": "file-path",
                 "exists": true,
                 "pattern": "^\\S+\\.f(ast)?q\\.gz$",
-                "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+                "errorMessage": "FastQ file for reads 2 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+            },
+            "control": {
+                "meta": "control_group",
+                "type": "string",
+                "pattern": "^\\S*$",
+                "errorMessage": "Control group id cannot contain spaces"
             }
         },
-        "required": ["sample", "fastq_1"]
+        "required": ["group", "replicate", "fastq_1", "fastq_2"]
     }
 }

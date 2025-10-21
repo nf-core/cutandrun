@@ -1,0 +1,16 @@
+- name: verify_output_reporting_skip_igv_false
+  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_multiqc --skip_preseq -c tests/config/nextflow.config
+  tags:
+    - verify_output_reporting_skip_igv
+    - verify_output_reporting_skip_igv_false
+  files:
+    - path: results/04_reporting/igv/igv_session.xml
+
+- name: verify_output_reporting_skip_igv_true
+  command: nextflow run main.nf -profile docker,test --skip_fastqc --skip_multiqc --skip_preseq --skip_igv -c tests/config/nextflow.config
+  tags:
+    - verify_output_reporting_skip_igv
+    - verify_output_reporting_skip_igv_true
+  files:
+    - path: results/04_reporting/igv/igv_session.xml
+      should_exist: false
