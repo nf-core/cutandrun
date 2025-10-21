@@ -15,15 +15,22 @@ env:
   NXF_SINGULARITY_LIBRARYDIR: ${{ github.workspace }}/.singularity
 
 concurrency:
-  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  ##############################
+  ### SMALL INTEGRATION TEST ###
+  ##############################
   test:
     name: "Run pipeline with test data (${{ matrix.NXF_VER }} | ${{ matrix.test_name }} | ${{ matrix.profile }})"
     # Only run on push if this is the nf-core dev branch (merged PRs)
     if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}"
     runs-on: ubuntu-latest
+    env:
+      NXF_VER: ${{ matrix.NXF_VER }}
+      NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     strategy:
       matrix:
         NXF_VER:
@@ -52,7 +59,7 @@ jobs:
       - name: Set up Nextflow
         uses: nf-core/setup-nextflow@v2
         with:
-          version: "${{ matrix.NXF_VER }}"
+          version: "latest-everything"
 
       - name: Set up Apptainer
         if: matrix.profile == 'singularity'
