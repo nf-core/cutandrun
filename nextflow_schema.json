@@ -189,6 +189,57 @@
                     "fa_icon": "fas fa-hand-paper",
                     "description": "Run pipeline up to peak calling"
                 },
+                "run_genome_prep": {
+                    "type": "boolean"
+                },
+                "run_cat_fastq": {
+                    "type": "boolean"
+                },
+                "run_trim_galore_fastqc": {
+                    "type": "boolean"
+                },
+                "run_alignment": {
+                    "type": "boolean"
+                },
+                "run_read_filter": {
+                    "type": "boolean"
+                },
+                "run_preseq": {
+                    "type": "boolean"
+                },
+                "run_mark_dups": {
+                    "type": "boolean"
+                },
+                "run_remove_dups": {
+                    "type": "boolean"
+                },
+                "run_remove_linear_dups": {
+                    "type": "boolean"
+                },
+                "run_peak_calling": {
+                    "type": "boolean"
+                },
+                "run_consensus_all": {
+                    "type": "boolean"
+                },
+                "run_reporting": {
+                    "type": "boolean"
+                },
+                "run_deeptools_heatmaps": {
+                    "type": "boolean"
+                },
+                "run_deeptools_qc": {
+                    "type": "boolean"
+                },
+                "run_peak_qc": {
+                    "type": "boolean"
+                },
+                "run_multiqc": {
+                    "type": "boolean"
+                },
+                "run_igv": {
+                    "type": "boolean"
+                },
                 "skip_fastqc": {
                     "type": "boolean",
                     "fa_icon": "fas fa-random",
@@ -403,7 +454,7 @@
                 },
                 "macs_gsize": {
                     "type": "number",
-                    "default": 2700000000,
+                    "default": 2700000000.0,
                     "fa_icon": "fas fa-align-justify",
                     "description": "parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. Otherwise the gsize will default to GRCh38."
                 },
@@ -428,7 +479,7 @@
                 },
                 "replicate_threshold": {
                     "type": "number",
-                    "default": 1,
+                    "default": 1.0,
                     "fa_icon": "fas fa-align-justify",
                     "description": "Minimum number of overlapping replicates needed for a consensus peak"
                 },
@@ -493,6 +544,10 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Flag for whether to generate a heatmap for all samples together"
+                },
+                "fragment_size": {
+                    "type": "integer",
+                    "default": 100
                 },
                 "min_frip_overlap": {
                     "type": "number",

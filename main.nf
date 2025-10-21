@@ -48,7 +48,7 @@ workflow NFCORE_CUTANDRUN {
     def caller_list = ['seacr', 'macs2']
     callers = params.peakcaller ? params.peakcaller.split(',').collect { it.trim().toLowerCase() } : ['seacr']
     if ((caller_list + callers).unique().size() != caller_list.size()) {
-        error("Invalid variant calller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}")
+        error("Invalid variant caller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}")
     }
 
     //
