@@ -70,16 +70,16 @@
                     "seaborn": "0.11.2"
                 },
                 "GUNZIP_BED": {
-                    "gunzip": 1.1
+                    "gunzip": 1.13
                 },
                 "GUNZIP_FASTA": {
-                    "gunzip": 1.1
+                    "gunzip": 1.13
                 },
                 "GUNZIP_GTF": {
-                    "gunzip": 1.1
+                    "gunzip": 1.13
                 },
                 "GUNZIP_SPIKEIN_FASTA": {
-                    "gunzip": 1.1
+                    "gunzip": 1.13
                 },
                 "IGV_SESSION": {
                     "python": "3.8.3"
@@ -427,8 +427,6 @@
                 "multiqc_citations.txt:md5,4b5abc8e418cb04d88e0d71797bd4e16",
                 "multiqc_picard_dups.txt:md5,3e8bcc3e9be7442d640f4ede7e3d7fd3",
                 "multiqc_samtools_flagstat.txt:md5,e9256d01fde9f3793a46fa74224a3cd3",
-                "multiqc_samtools_idxstats.txt:md5,155daf40e808dd2a2c975a9bc426d4aa",
-                "multiqc_samtools_stats.txt:md5,0c09266d879ebd76ebfdc554b3b9c99d",
                 "picard_MarkIlluminaAdapters_histogram.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "picard_MeanQualityByCycle_histogram.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "picard_MeanQualityByCycle_histogram_1.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -437,16 +435,13 @@
                 "samtools-flagstat-pct-table.txt:md5,c853c02ecb72fbc8a125f9cae9b052a8",
                 "samtools-flagstat-table.txt:md5,c66d965468c7607ef620421620cf968e",
                 "samtools-idxstats-mapped-reads-plot_Normalised_Counts.txt:md5,c19cc35badede739b4dae61da8ee5b9b",
-                "samtools-idxstats-mapped-reads-plot_Observed_over_Expected_Counts.txt:md5,c19cc35badede739b4dae61da8ee5b9b",
-                "samtools-idxstats-mapped-reads-plot_Raw_Counts.txt:md5,33f72be3b43d0cb56cd909d68e62b247",
-                "samtools-stats-dp.txt:md5,be39815a39d09fdffe4fd6b0f1d99f7c",
-                "samtools_alignment_plot.txt:md5,9a33582b67307aa3f8e514fc0ca1a61b"
+                "samtools-idxstats-mapped-reads-plot_Observed_over_Expected_Counts.txt:md5,c19cc35badede739b4dae61da8ee5b9b"
             ]
         ],
         "meta": {
             "nf-test": "0.9.3",
             "nextflow": "25.04.8"
         },
-        "timestamp": "2025-10-21T13:34:47.360045122"
+        "timestamp": "2025-10-21T14:22:50.971328282"
     }
 }
