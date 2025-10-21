@@ -11,9 +11,9 @@ process DEEPTOOLS_BAMCOVERAGE {
     tuple val(meta), path(input), path(input_index), val(scale)
 
     output:
-    tuple val(meta), path("*.bigWig"),   emit: bigwig, optional: true
+    tuple val(meta), path("*.bigWig"), emit: bigwig, optional: true
     tuple val(meta), path("*.bedgraph"), emit: bedgraph, optional: true
-    path "versions.yml",                 emit: versions
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when

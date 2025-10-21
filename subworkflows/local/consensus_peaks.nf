@@ -26,7 +26,7 @@ workflow CONSENSUS_PEAKS {
     ch_versions = ch_versions.mix(AWK.out.versions)
 
     emit:
-    filtered_bed = AWK.out.file           // channel: [ val(meta), [ bed ] ]
+    filtered_bed = AWK.out.file // channel: [ val(meta), [ bed ] ]
     merged_bed   = BEDTOOLS_MERGE.out.bed // channel: [ val(meta), [ bed ] ]
-    versions     = ch_versions            // channel: [ versions.yml       ]
+    versions     = ch_versions // channel: [ versions.yml       ]
 }

@@ -12,7 +12,7 @@ process FRAG_LEN_HIST {
 
     output:
     path '*frag_len_mqc.yml', emit: frag_len_mqc
-    path "versions.yml",      emit: versions
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when

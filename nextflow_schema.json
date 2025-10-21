@@ -79,7 +79,7 @@
             }
         },
         "reference_genome_options": {
-            "title": "Reference genome options",
+            "title": "Reference data options",
             "type": "object",
             "fa_icon": "fas fa-dna",
             "description": "Reference genome related files and options.",
@@ -594,6 +594,10 @@
                     "fa_icon": "fas fa-copy",
                     "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
                     "hidden": true
+                },
+                "singularity_pull_docker_container": {
+                    "type": "boolean",
+                    "description": "Pull Docker container."
                 },
                 "email_on_fail": {
                     "type": "string",

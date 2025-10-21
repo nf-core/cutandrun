@@ -46,10 +46,10 @@ workflow SAMTOOLS_VIEW_SORT_STATS {
     ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions.first())
 
     emit:
-    bai      = SAMTOOLS_INDEX.out.bai          // channel: [ val(meta), [ bai ] ]
-    bam      = SAMTOOLS_SORT.out.bam           // channel: [ val(meta), [ bam ] ]
+    bai      = SAMTOOLS_INDEX.out.bai // channel: [ val(meta), [ bai ] ]
+    bam      = SAMTOOLS_SORT.out.bam // channel: [ val(meta), [ bam ] ]
     flagstat = BAM_STATS_SAMTOOLS.out.flagstat // channel: [ val(meta), [ flagstat ] ]
     idxstats = BAM_STATS_SAMTOOLS.out.idxstats // channel: [ val(meta), [ idxstats ] ]
-    stats    = BAM_STATS_SAMTOOLS.out.stats    // channel: [ val(meta), [ stats ] ]
-    versions = ch_versions                     // channel: [ versions.yml ]
+    stats    = BAM_STATS_SAMTOOLS.out.stats // channel: [ val(meta), [ stats ] ]
+    versions = ch_versions // channel: [ versions.yml ]
 }

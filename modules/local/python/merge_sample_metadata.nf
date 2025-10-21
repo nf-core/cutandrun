@@ -10,7 +10,7 @@ process MERGE_SAMPLE_METADATA {
     path metadata
 
     output:
-    path '*.csv',        emit: csv
+    path '*.csv', emit: csv
     path "versions.yml", emit: versions
 
     when:

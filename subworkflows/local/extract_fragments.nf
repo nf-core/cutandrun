@@ -41,5 +41,5 @@ workflow EXTRACT_FRAGMENTS {
 
     emit:
     bed      = CUT.out.file // channel: [ val(meta), [ bed ] ]
-    versions = ch_versions  // channel: [ versions.yml ]
+    versions = ch_versions // channel: [ versions.yml ]
 }

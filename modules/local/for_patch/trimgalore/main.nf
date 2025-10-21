@@ -12,10 +12,10 @@ process TRIMGALORE {
 
     output:
     tuple val(meta), path("*trimmed.fastq.gz"), emit: reads
-    tuple val(meta), path("*report.txt"),       emit: log
-    tuple val(meta), path("*.html"),            emit: html, optional: true
-    tuple val(meta), path("*.zip"),             emit: zip, optional: true
-    path "versions.yml",                        emit: versions
+    tuple val(meta), path("*report.txt"), emit: log
+    tuple val(meta), path("*.html"), emit: html, optional: true
+    tuple val(meta), path("*.zip"), emit: zip, optional: true
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when

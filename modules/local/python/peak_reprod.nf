@@ -13,8 +13,8 @@ process CALCULATE_PEAK_REPROD {
 
     output:
     tuple val(meta), path("*peak_repro.tsv"), emit: tsv
-    path "*_mqc.tsv",                         emit: mqc
-    path "versions.yml",                      emit: versions
+    path "*_mqc.tsv", emit: mqc
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when

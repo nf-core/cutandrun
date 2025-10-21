@@ -150,8 +150,8 @@ workflow PEAK_QC {
 
     emit:
     consensus_count_mqc = CONSENSUS_PEAK_COUNTS.out.count_mqc // channel: [ val(meta), [ mqc ] ]
-    primary_count_mqc   = PRIMARY_PEAK_COUNTS.out.count_mqc   // channel: [ val(meta), [ mqc ] ]
-    primary_frip_mqc    = PEAK_FRIP.out.frip_mqc              // channel: [ val(meta), [ mqc ] ]
-    reprod_perc_mqc     = CALCULATE_PEAK_REPROD.out.mqc       // channel: [ val(meta), [ mqc ] ]
-    versions            = ch_versions                         // channel: [ versions.yml ]
+    primary_count_mqc   = PRIMARY_PEAK_COUNTS.out.count_mqc // channel: [ val(meta), [ mqc ] ]
+    primary_frip_mqc    = PEAK_FRIP.out.frip_mqc // channel: [ val(meta), [ mqc ] ]
+    reprod_perc_mqc     = CALCULATE_PEAK_REPROD.out.mqc // channel: [ val(meta), [ mqc ] ]
+    versions            = ch_versions // channel: [ versions.yml ]
 }

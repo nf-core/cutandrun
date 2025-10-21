@@ -11,7 +11,7 @@ process GTF2BED {
     path gtf
 
     output:
-    path '*.bed',        emit: bed
+    path '*.bed', emit: bed
     path "versions.yml", emit: versions
 
     when:

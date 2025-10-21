@@ -147,12 +147,12 @@ workflow DEDUPLICATE_LINEAR {
     ch_versions = ch_versions.mix(BAM_SORT_STATS_SAMTOOLS.out.versions)
 
     emit:
-    bai                = BAM_SORT_STATS_SAMTOOLS.out.bai          // channel: [ val(meta), [ bai ] ]
-    bam                = BAM_SORT_STATS_SAMTOOLS.out.bam          // channel: [ val(meta), [ bam ] ]
-    flagstat           = BAM_SORT_STATS_SAMTOOLS.out.flagstat     // channel: [ val(meta), [ flagstat ] ]
-    idxstats           = BAM_SORT_STATS_SAMTOOLS.out.idxstats     // channel: [ val(meta), [ idxstats ] ]
+    bai                = BAM_SORT_STATS_SAMTOOLS.out.bai // channel: [ val(meta), [ bai ] ]
+    bam                = BAM_SORT_STATS_SAMTOOLS.out.bam // channel: [ val(meta), [ bam ] ]
+    flagstat           = BAM_SORT_STATS_SAMTOOLS.out.flagstat // channel: [ val(meta), [ flagstat ] ]
+    idxstats           = BAM_SORT_STATS_SAMTOOLS.out.idxstats // channel: [ val(meta), [ idxstats ] ]
     linear_metrics_mqc = FIND_UNIQUE_READS.out.linear_metrics_mqc // channel: [ mqc.tsv ]
-    metrics            = ch_metrics                               // channel: [ metrics.txt  ]
-    stats              = BAM_SORT_STATS_SAMTOOLS.out.stats        // channel: [ val(meta), [ stats ] ]
-    versions           = ch_versions                              // channel: [ versions.yml ]
+    metrics            = ch_metrics // channel: [ metrics.txt  ]
+    stats              = BAM_SORT_STATS_SAMTOOLS.out.stats // channel: [ val(meta), [ stats ] ]
+    versions           = ch_versions // channel: [ versions.yml ]
 }

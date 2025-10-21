@@ -13,9 +13,9 @@ process FIND_UNIQUE_READS {
 
     output:
     tuple val(meta), path('*alignments.txt'), emit: txt
-    tuple val(meta), path('*metrics.txt'),    emit: metrics
-    tuple val(meta), path('*mqc.tsv'),        emit: linear_metrics_mqc
-    path "versions.yml",                      emit: versions
+    tuple val(meta), path('*metrics.txt'), emit: metrics
+    tuple val(meta), path('*mqc.tsv'), emit: linear_metrics_mqc
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when

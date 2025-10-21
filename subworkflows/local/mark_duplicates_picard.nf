@@ -88,11 +88,11 @@ workflow MARK_DUPLICATES_PICARD {
     }
 
     emit:
-    bai      = ch_bai      // channel: [ val(meta), [ bai ] ]
-    bam      = ch_bam      // channel: [ val(meta), [ bam ] ]
+    bai      = ch_bai // channel: [ val(meta), [ bai ] ]
+    bam      = ch_bam // channel: [ val(meta), [ bam ] ]
     flagstat = ch_flagstat // channel: [ val(meta), [ flagstat ] ]
     idxstats = ch_idxstats // channel: [ val(meta), [ idxstats ] ]
-    metrics  = ch_metrics  // channel: [ val(meta), [ metrics ] ]
-    stats    = ch_stats    // channel: [ val(meta), [ stats ] ]
+    metrics  = ch_metrics // channel: [ val(meta), [ metrics ] ]
+    stats    = ch_stats // channel: [ val(meta), [ stats ] ]
     versions = ch_versions // channel: [ versions.yml ]
 }

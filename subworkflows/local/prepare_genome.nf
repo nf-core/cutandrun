@@ -214,15 +214,15 @@ workflow PREPARE_GENOME {
 
     emit:
     allowed_regions       = ch_genome_include_regions // path: genome.regions
-    bed                   = ch_gene_bed               // path: genome.bed
-    bed_index             = ch_gene_bed_index         // path: genome.bed_index
-    bowtie2_index         = ch_bt2_index              // path: bt2/index/
-    bowtie2_spikein_index = ch_bt2_spikein_index      // path: bt2/index/
-    chrom_sizes           = ch_chrom_sizes            // path: genome.sizes
-    fasta                 = ch_fasta                  // path: genome.fasta
-    fasta_index           = ch_fasta_index            // path: genome.fai
-    gtf                   = ch_gtf                    // path: genome.gtf
-    spikein_chrom_sizes   = ch_spikein_chrom_sizes    // path: genome.sizes
-    spikein_fasta         = ch_spikein_fasta          // path: genome.fasta
-    versions              = ch_versions               // channel: [ versions.yml ]
+    bed                   = ch_gene_bed // path: genome.bed
+    bed_index             = ch_gene_bed_index // path: genome.bed_index
+    bowtie2_index         = ch_bt2_index // path: bt2/index/
+    bowtie2_spikein_index = ch_bt2_spikein_index // path: bt2/index/
+    chrom_sizes           = ch_chrom_sizes // path: genome.sizes
+    fasta                 = ch_fasta // path: genome.fasta
+    fasta_index           = ch_fasta_index // path: genome.fai
+    gtf                   = ch_gtf // path: genome.gtf
+    spikein_chrom_sizes   = ch_spikein_chrom_sizes // path: genome.sizes
+    spikein_fasta         = ch_spikein_fasta // path: genome.fasta
+    versions              = ch_versions // channel: [ versions.yml ]
 }

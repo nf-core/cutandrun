@@ -12,7 +12,7 @@ process SAMTOOLS_CUSTOMVIEW {
 
     output:
     tuple val(meta), path("*.txt"), emit: tsv
-    path "versions.yml",            emit: versions
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when

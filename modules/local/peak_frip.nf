@@ -14,7 +14,7 @@ process PEAK_FRIP {
 
     output:
     tuple val(meta), path("*mqc.tsv"), emit: frip_mqc
-    path "versions.yml",               emit: versions
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when

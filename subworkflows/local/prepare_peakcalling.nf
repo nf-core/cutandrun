@@ -197,7 +197,7 @@ workflow PREPARE_PEAKCALLING {
     ch_versions = ch_versions.mix(UCSC_BEDGRAPHTOBIGWIG.out.versions)
 
     emit:
-    bedgraph = UCSC_BEDCLIP.out.bedgraph        // channel: [ val(meta), [ bedgraph ] ]
+    bedgraph = UCSC_BEDCLIP.out.bedgraph // channel: [ val(meta), [ bedgraph ] ]
     bigwig   = UCSC_BEDGRAPHTOBIGWIG.out.bigwig // channel: [ val(meta), [ bigwig ] ]
-    versions = ch_versions                      // channel: [ versions.yml ]
+    versions = ch_versions // channel: [ versions.yml ]
 }
