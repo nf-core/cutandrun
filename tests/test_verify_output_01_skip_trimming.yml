@@ -1,0 +1,7 @@
+- name: test_verify_output_skip_trimming
+  command: nextflow run main.nf -profile docker,test --only_preqc --save_trimmed --skip_trimming -c tests/config/nextflow.config
+  tags:
+    - verify_output_skip_trimming
+  files:
+    - path: results/01_prealign/trimgalore/h3k27me3_R1_1.trimmed.fastq.gz
+      should_exist: false

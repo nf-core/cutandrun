@@ -1,0 +1,55 @@
+- name: test_bam_scale_none
+  command: nextflow run main.nf -profile docker,test --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_preseq --skip_multiqc --normalisation_mode None -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_none
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+
+- name: test_bam_scale_spikein
+  command: nextflow run main.nf -profile docker,test --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_preseq --skip_multiqc --normalisation_mode Spikein -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_spikein
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+
+- name: test_bam_scale_cpm
+  command: nextflow run main.nf -profile docker,test --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_preseq --skip_multiqc --normalisation_mode CPM -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_cpm
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+
+- name: test_bam_scale_rpkm
+  command: nextflow run main.nf -profile docker,test --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_preseq --skip_multiqc --normalisation_mode RPKM -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_rpkm
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+
+- name: test_bam_scale_bpm
+  command: nextflow run main.nf -profile docker,test --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_preseq --skip_multiqc --normalisation_mode BPM -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_bpm
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+
+- name: test_bam_scale_cpm_iggscale
+  command: nextflow run main.nf -profile docker,test --only_peak_calling --skip_fastqc --skip_removeduplicates --skip_preseq --skip_multiqc --normalisation_mode CPM --igg_scale_factor 0.1 -c tests/config/nextflow.config
+  tags:
+    - test_bam_scale
+    - test_bam_scale_cpm_iggscale
+  files:
+    - path: results/03_peak_calling/01_bam_to_bedgraph/h3k27me3_R1.sorted.bedGraph
+    - path: results/03_peak_calling/01_bam_to_bedgraph/igg_ctrl_R1.sorted.bedGraph
+
+- name: test_normalisation_mode_invalid
+  command:
+    nextflow run main.nf -profile docker,test --only_peak_calling --normalisation_mode test -c tests/config/nextflow.config
+    - test_bam_scale
+    - test_bam_scale_invalid
+  exit_code: 1
