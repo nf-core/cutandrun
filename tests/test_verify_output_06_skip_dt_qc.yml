@@ -1,0 +1,22 @@
+- name: verify_output_reporting_skip_dtqc_false
+  command: nextflow run main.nf -profile docker,test_full_small --skip_fastqc --skip_multiqc --skip_preseq -c tests/config/nextflow.config
+  tags:
+    - verify_output_reporting_skip_dtqc
+    - verify_output_reporting_skip_dtqc_false
+  files:
+    - path: results/04_reporting/deeptools_qc/all_target_bams.plotCorrelation.pdf
+    - path: results/04_reporting/deeptools_qc/all_target_bams.plotPCA.pdf
+    - path: results/04_reporting/deeptools_qc/h3k4me3_R1.plotFingerprint.pdf
+
+- name: verify_output_reporting_skip_dtqc_true
+  command: nextflow run main.nf -profile docker,test_full_small --skip_fastqc --skip_multiqc --skip_preseq --skip_dt_qc -c tests/config/nextflow.config
+  tags:
+    - verify_output_reporting_skip_dtqc
+    - verify_output_reporting_skip_dtqc_true
+  files:
+    - path: results/04_reporting/deeptools_qc/all_target_bams.plotCorrelation.pdf
+      should_exist: false
+    - path: results/04_reporting/deeptools_qc/all_target_bams.plotPCA.pdf
+      should_exist: false
+    - path: results/04_reporting/deeptools_qc/h3k4me3_R1.plotFingerprint.pdf
+      should_exist: false
