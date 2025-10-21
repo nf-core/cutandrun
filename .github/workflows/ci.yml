@@ -9,19 +9,24 @@ on:
     types: [published]
   workflow_dispatch:
 
-env:
-  NXF_ANSI_LOG: false
-
+# Cancel if a newer run is started
 concurrency:
-  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  ##############################
+  ### SMALL INTEGRATION TEST ###
+  ##############################
   test:
-    name: Run pipeline with test data
+    name: Run standard pipeline test
     # Only run on push if this is the nf-core dev branch (merged PRs)
     if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'nf-core/cutandrun') }}"
     runs-on: ubuntu-latest
+    env:
+      NXF_VER: ${{ matrix.NXF_VER }}
+      NXF_ANSI_LOG: false
+      CAPSULE_LOG: none
     strategy:
       matrix:
         NXF_VER:
@@ -34,7 +39,7 @@ jobs:
       - name: Install Nextflow
         uses: nf-core/setup-nextflow@v2
         with:
-          version: "${{ matrix.NXF_VER }}"
+          version: "latest-everything"
 
       - name: Disk space cleanup
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1

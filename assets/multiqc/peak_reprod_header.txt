@@ -1,0 +1,13 @@
+#id: 'peak_reprod_perc'
+#parent_id: 'peak_qc'
+#parent_name: 'Peak QC'
+#parent_description: 'This section contains peak-based QC reports'
+#section_name: 'Sample Peak reproducibility %'
+#description: 'Calculated from the total number of overlapping peaks within group replicate sets'
+#plot_type: 'bargraph'
+#anchor: 'primary_peakrepro'
+#pconfig:
+#    id: 'primary_peakrepro_plot'
+#    title: 'Peak reproducibility %'
+#    ylab: "Reprod Fraction"
+#    stacking: None

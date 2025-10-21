@@ -1,0 +1,47 @@
+- name: moo file # The name of the workflow (required)
+  command: bash moo_workflow.sh # The command to execute the workflow (required)
+  files: # A list of files to check (optional)
+    - path: "moo.txt" # File path. (Required for each file)
+      contains: # A list of strings that should be in the file (optional)
+        - "moo"
+      must_not_contain: # A list of strings that should NOT be in the file (optional)
+        - "Cock a doodle doo"
+      md5sum: e583af1f8b00b53cda87ae9ead880224 # Md5sum of the file (optional)
+
+- name: simple echo # A second workflow. Notice the starting `-` which means
+  command: "echo moo" # that workflow items are in a list. You can add as much workflows as you want
+  files:
+    - path: "moo.txt"
+      should_exist: false # Whether a file should be there or not. (optional, if not given defaults to true)
+  stdout: # Options for testing stdout (optional)
+    contains: # List of strings which should be in stdout (optional)
+      - "moo"
+    must_not_contain: # List of strings that should NOT be in stout (optional)
+      - "Cock a  doodle doo"
+
+- name: mission impossible # Also failing workflows can be tested
+  tags: # A list of tags that can be used to select which test
+    - should fail # is run with pytest using the `--tag` flag.
+  command: bash impossible.sh
+  exit_code: 2 # What the exit code should be (optional, if not given defaults to 0)
+  files:
+    - path: "fail.log" # Multiple files can be tested for each workflow
+    - path: "TomCruise.txt.gz" # Gzipped files can also be searched, provided their extension is '.gz'
+      contains:
+        - "starring"
+  stderr: # Options for testing stderr (optional)
+    contains: # A list of strings which should be in stderr (optional)
+      - "BSOD error, please contact the IT crowd"
+    must_not_contain: # A list of strings which should NOT be in stderr (optional)
+      - "Mission accomplished!"
+
+- name: regex tests
+  command: echo Hello, world
+  stdout:
+    contains_regex: # A list of regex patterns that should be in stdout (optional)
+      - "Hello.*" # Note the single quotes,these are required for complex regexes
+      - "Hello .*" # This will fail, since there is a comma after Hello, not a space
+
+    must_not_contain_regex: # A list of regex patterns that should not be in stdout (optional)
+      - "^He.*" # This will fail, since the regex matches Hello, world
+      - "^Hello .*" # Complex regexes will break yaml if double quotes are used
