@@ -1,5 +1,5 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://raw.githubusercontent.com/nf-core/cutandrun/master/assets/schema_input.json",
     "title": "nf-core/cutandrun pipeline - params.input schema",
     "description": "Schema for the file provided with params.input",
@@ -8,31 +8,38 @@
         "type": "object",
         "properties": {
             "group": {
+                "meta": "group",
                 "type": "string",
                 "pattern": "^\\S+$",
                 "errorMessage": "Sample group must be provided and cannot contain spaces"
             },
             "replicate": {
+                "meta": "replicate",
                 "type": "integer",
                 "pattern": "^[0-9]*$",
                 "errorMessage": "Biological Replicate number within the group - technical replicates must have the same replicate number"
             },
             "fastq_1": {
                 "type": "string",
-                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
+                "format": "file-path",
+                "exists": true,
+                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
                 "errorMessage": "FastQ file for reads 1 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
             },
             "fastq_2": {
                 "type": "string",
-                "pattern": "^\\S+\\.f(ast)?q\\.gz$",
+                "format": "file-path",
+                "exists": true,
+                "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
                 "errorMessage": "FastQ file for reads 2 must be provided, cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
             },
             "control": {
+                "meta": "control_group",
                 "type": "string",
-                "pattern": "^\\S+$",
-                "errorMessage": "Control group id"
+                "pattern": "^\\S*$",
+                "errorMessage": "Control group id cannot contain spaces"
             }
         },
-        "required": ["group", "replicate", "fastq_1", "fastq_2", "control"]
+        "required": ["group", "replicate", "fastq_1", "fastq_2"]
     }
 }

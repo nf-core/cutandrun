@@ -1,11 +1,11 @@
 process AWK_SCRIPT {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_min'
 
     conda "conda-forge::sed=4.7"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/ubuntu:20.04' :
-        'nf-core/ubuntu:20.04' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/ubuntu:20.04'
+        : 'nf-core/ubuntu:20.04'}"
 
     input:
     tuple val(meta), path(input)
@@ -13,16 +13,16 @@ process AWK_SCRIPT {
 
     output:
     tuple val(meta), path("*.awk.txt"), emit: file
-    path  "versions.yml"              , emit: versions
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
 
     script:
-    def args   = task.ext.args ?: ''
+    def args = task.ext.args ?: ''
     def prefix = task.ext.suffix ? "${meta.id}${task.ext.suffix}" : "${meta.id}"
     """
-    awk $args -f $script $input > ${prefix}.awk.txt
+    awk ${args} -f ${script} ${input} > ${prefix}.awk.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

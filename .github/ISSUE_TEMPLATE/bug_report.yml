@@ -9,7 +9,6 @@ body:
 
         - [nf-core website: troubleshooting](https://nf-co.re/usage/troubleshooting)
         - [nf-core/cutandrun pipeline documentation](https://nf-co.re/cutandrun/usage)
-
   - type: textarea
     id: description
     attributes:

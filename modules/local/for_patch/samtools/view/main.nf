@@ -1,11 +1,11 @@
 process SAMTOOLS_VIEW {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_medium'
 
     conda "bioconda::samtools=1.15.1"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/samtools:1.15.1--h1170115_0' :
-        'biocontainers/samtools:1.15.1--h1170115_0' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/samtools:1.15.1--h1170115_0'
+        : 'biocontainers/samtools:1.15.1--h1170115_0'}"
 
     input:
     tuple val(meta), path(input), path(index)
@@ -13,9 +13,9 @@ process SAMTOOLS_VIEW {
     path regions
 
     output:
-    tuple val(meta), path("*.bam") , emit: bam , optional: true
+    tuple val(meta), path("*.bam"), emit: bam, optional: true
     tuple val(meta), path("*.cram"), emit: cram, optional: true
-    path  "versions.yml"           , emit: versions
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -25,18 +25,20 @@ process SAMTOOLS_VIEW {
     def args2 = task.ext.args2 ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def reference = fasta ? "--reference ${fasta} -C" : ""
-    def blacklist = regions ? "-L $regions" : ""
+    def blacklist = regions ? "-L ${regions}" : ""
     def file_type = input.getExtension()
-    if ("$input" == "${prefix}.${file_type}") error "Input and output names are the same, use \"task.ext.prefix\" to disambiguate!"
+    if ("${input}" == "${prefix}.${file_type}") {
+        error("Input and output names are the same, use \"task.ext.prefix\" to disambiguate!")
+    }
     """
     samtools \\
         view \\
-        --threads ${task.cpus-1} \\
+        --threads ${task.cpus - 1} \\
         ${reference} \\
         ${blacklist} \\
-        $args \\
-        $input \\
-        $args2 \\
+        ${args} \\
+        ${input} \\
+        ${args2} \\
         > ${prefix}.${file_type}
 
     cat <<-END_VERSIONS > versions.yml
