@@ -1,4 +1,4 @@
-nf_core_version: 3.4.1
+nf_core_version: 3.5.1
 repository_type: pipeline
 template:
   author: Chris Cheshire, Charlotte West and Tamara Hodgetts
@@ -10,4 +10,4 @@ template:
   name: cutandrun
   org: nf-core
   outdir: .
-  version: 3.2.2
+  version: 3.3.0dev
