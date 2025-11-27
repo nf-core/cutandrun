@@ -1,19 +1,19 @@
 process DEEPTOOLS_BAMCOVERAGE {
-    tag "$meta.id"
+    tag "${meta.id}"
     label 'process_low'
 
     conda "bioconda::deeptools=3.5.1"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/deeptools:3.5.1--py_0':
-        'biocontainers/deeptools:3.5.1--py_0' }"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/deeptools:3.5.1--py_0'
+        : 'biocontainers/deeptools:3.5.1--py_0'}"
 
     input:
     tuple val(meta), path(input), path(input_index), val(scale)
 
     output:
-    tuple val(meta), path("*.bigWig")   , emit: bigwig, optional: true
-    tuple val(meta), path("*.bedgraph") , emit: bedgraph, optional: true
-    path "versions.yml"                 , emit: versions
+    tuple val(meta), path("*.bigWig"), emit: bigwig, optional: true
+    tuple val(meta), path("*.bedgraph"), emit: bedgraph, optional: true
+    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -24,8 +24,8 @@ process DEEPTOOLS_BAMCOVERAGE {
 
     """
     bamCoverage \
-    --bam $input \
-    $args \
+    --bam ${input} \
+    ${args} \
     --scaleFactor ${scale} \
     --numberOfProcessors ${task.cpus} \
     --outFileName ${prefix}
