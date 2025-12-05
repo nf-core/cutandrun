@@ -263,7 +263,7 @@ High levels of duplication are not necessarily a problem as long as they are con
   - `.la_dedup.bam`: Coordinate sorted BAM file after Linear Amplification duplicate removal. This is the final post-processed BAM file and so will be saved by default in the results directory.
   - `.la_dedup.bam.bai`: BAI index file for coordinate sorted BAM file after Linear Amplification duplicate removal. This is the final post-processed BAM index file and so will be saved by default in the results directory.
   - `.la_dedup_metrics.txt`: Metrics file from custom deduplication based on read 1 5' start location.
-
+</details>
 In assays where linear amplification is used, the resulting library may contain reads that share the same start site but have a unique 3' end due to random cut and tagmentation with Tn5-ME-B. In this case, these duplicates should be removed by filtering all read 1's based on their 5' start site and keeping the read aligning with the highest mapping quality.
 
 ## 5. <a name='Fragment-basedQC'></a>Fragment-based QC
@@ -344,8 +344,6 @@ MACS2 is a peak caller used in many other experiments such as ATAC-seq and ChIP-
 MACS2 has its main parameters exposed through the pipeline configuration. The default p-values and genome size can be changed using the `--macs2_pvalue` and `--macs2_gsize` parameters. MACS2 has two calling modes: narrow and broad peak. We recommend using broad peak for epitopes with a wide peak range such as histone marks, and narrow peak for small binding proteins such as transcription factors. This mode can be changed using `--macs2_narrow_peak`.
 
 ### 6.5. <a name='ConsensusPeaks'></a>Consensus Peaks
-
-</details>
 
 The merge function from [BEDtools](https://github.com/arq5x/bedtools2) is used to merge replicate peaks of the same experimental group to create a consensus peak set. This can then optionally be filtered for consensus peaks contributed to be a threshold number of replicates using `--replicate_threshold`.
 
