@@ -8,7 +8,7 @@ ChIPBinner takes a fundamentally different approach from traditional peak caller
 
 ---
 
-## When to Use ChIPBinner
+## When to Use [ChIPBinner](https://github.com/padilr1/ChIPbinner.git)
 
 ### Ideal Use Cases
 
@@ -125,7 +125,7 @@ ChIPBinner uses ROTS (Reproducibility-Optimized Test Statistic) rather than DESe
 
 ## Snakemake Workflow Extension
 
-The `snakemake_chipbinner` repo adds automation:
+The [snakemake_chipbinner](https://github.com/andygglez/snakemake_chipbinner) repo adds automation:
 
 - Automated BAM → binned BED conversion
 - CSV-based sample sheet management
@@ -136,7 +136,27 @@ The `snakemake_chipbinner` repo adds automation:
 **Note:** Controls are disabled by default (`use_input: False`) in the Snakemake config—you may want to change this.
 
 ---
+## [ChIPBinner Database](https://github.com/padilr1/ChIPbinner_database?tab=readme-ov-file)
 
+The ChIPBinner database repo contains example data as well as curated databases from Ensembl, Encode and RepeatMasker for use with ChIPbinner.
+
+'reference_windows' contains reference windows that can be used to transform aligned BAM files into binned BED files.
+
+'example_data' contains complete datasets from Farhangdoost et al. (https://doi.org/10.1016/j.celrep.2021.108769):
+
+HNSCC H3K36me2 ChIP-seq samples binned into 10kb windows
+normalized bigWig files
+complete pooled BED file of genomic coordinates
+complete matrix file of binned scores
+complete clustering results from running HDBSCAN on the whole dataset
+'functional_db' contains curated databases (as R objects) for input into the 'enrich_clust()' function of ChIPbinner.
+
+ensemblDB from https://useast.ensembl.org/info/genome/index.html"
+ccreDB (candidate cis-regulatory elements) from "https://useast.ensembl.org/info/genome/index.html"
+repeatsDB (repeatMasker) from https://www.repeatmasker.org/
+
+
+---
 ## Summary
 
 ChIPBinner is purpose-built for analyzing broad histone marks under conditions of global change. It's excellent for studying marks like H3K36me2/me3 after writer/eraser knockouts when you have external normalization available. For sharp marks or focal changes, stick with traditional peak callers.
