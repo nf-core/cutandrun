@@ -67,17 +67,21 @@ def check_samplesheet(file_in, file_out, use_control):
     """
     This function checks that the samplesheet follows the following structure:
 
-    group,replicate,fastq_1,fastq_2,control
-    WT,1,WT_LIB1_REP1_1.fastq.gz,WT_LIB1_REP1_2.fastq.gz,CONTROL_GROUP
-    WT,1,WT_LIB2_REP1_1.fastq.gz,WT_LIB2_REP1_2.fastq.gz,CONTROL_GROUP
-    WT,2,WT_LIB1_REP2_1.fastq.gz,WT_LIB1_REP2_2.fastq.gz,CONTROL_GROUP
-    KO,1,KO_LIB1_REP1_1.fastq.gz,KO_LIB1_REP1_2.fastq.gz,CONTROL_GROUP
-    CONTROL_GROUP,1,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz,
-    CONTROL_GROUP,2,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz,
+    group,replicate,fastq_1,fastq_2,control[,condition]
+    WT,1,WT_LIB1_REP1_1.fastq.gz,WT_LIB1_REP1_2.fastq.gz,CONTROL_GROUP,WT
+    WT,1,WT_LIB2_REP1_1.fastq.gz,WT_LIB2_REP1_2.fastq.gz,CONTROL_GROUP,WT
+    WT,2,WT_LIB1_REP2_1.fastq.gz,WT_LIB1_REP2_2.fastq.gz,CONTROL_GROUP,WT
+    KO,1,KO_LIB1_REP1_1.fastq.gz,KO_LIB1_REP1_2.fastq.gz,CONTROL_GROUP,KO
+    CONTROL_GROUP,1,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz,,WT
+    CONTROL_GROUP,2,KO_LIB1_REP1_1.fastq.gz,IGG_LIB1_REP1_2.fastq.gz,,KO
+
+    The 'condition' column is optional for backward compatibility.
+    If not provided, defaults to 'default' for all samples.
     """
 
     # Init
     control_present = False
+    condition_present = False
     num_fastq_list = []
     sample_names_list = []
     control_names_list = []
@@ -87,21 +91,31 @@ def check_samplesheet(file_in, file_out, use_control):
         ## Check header
         MIN_COLS = 3
         LEGACY_HEADER = ["group", "replicate", "control_group", "fastq_1", "fastq_2"]
-        HEADER = ["group", "replicate", "fastq_1", "fastq_2", "control"]
-        HEADER_LEN = len(HEADER)
+        HEADER_BASE = ["group", "replicate", "fastq_1", "fastq_2", "control"]
+        HEADER_EXTENDED = ["group", "replicate", "fastq_1", "fastq_2", "control", "condition"]
         header = [x.strip('"') for x in fin.readline().strip().split(",")]
 
         if len(header) >= len(LEGACY_HEADER) and header[: len(LEGACY_HEADER)] == LEGACY_HEADER:
             print(
                 "ERROR: It looks like you are using a legacy header format with a newer version of the pipeline -> {} != {}".format(
-                    ",".join(header), ",".join(HEADER)
+                    ",".join(header), ",".join(HEADER_BASE)
                 )
             )
             sys.exit(1)
 
-        if header[: len(HEADER)] != HEADER:
-            print("ERROR: Please check samplesheet header -> {} != {}".format(",".join(header), ",".join(HEADER)))
+        # Check for extended header with condition column
+        if len(header) == len(HEADER_EXTENDED) and header == HEADER_EXTENDED:
+            condition_present = True
+            HEADER = HEADER_EXTENDED
+        elif len(header) == len(HEADER_BASE) and header == HEADER_BASE:
+            condition_present = False
+            HEADER = HEADER_BASE
+        else:
+            print("ERROR: Please check samplesheet header -> {} not matching {} or {}".format(
+                ",".join(header), ",".join(HEADER_BASE), ",".join(HEADER_EXTENDED)))
             sys.exit(1)
+
+        HEADER_LEN = len(HEADER)
 
         ## Check sample entries
         line_no = 1
@@ -136,7 +150,12 @@ def check_samplesheet(file_in, file_out, use_control):
                 )
 
             ## Check sample name entries
-            sample, replicate, fastq_1, fastq_2, control = lspl[: len(HEADER)]
+            if condition_present:
+                sample, replicate, fastq_1, fastq_2, control, condition = lspl[: len(HEADER)]
+            else:
+                sample, replicate, fastq_1, fastq_2, control = lspl[: len(HEADER)]
+                condition = "default"  # Default condition for backward compatibility
+
             if sample:
                 if sample.find(" ") != -1:
                     print_error("Group entry contains spaces!", "Line", line)
@@ -146,6 +165,13 @@ def check_samplesheet(file_in, file_out, use_control):
             if control:
                 if control.find(" ") != -1:
                     print_error("Control entry contains spaces!", "Line", line)
+
+            ## Validate condition entry
+            if condition:
+                if condition.find(" ") != -1:
+                    print_error("Condition entry contains spaces!", "Line", line)
+            else:
+                condition = "default"  # Default if empty
 
             ## Check for single-end
             if fastq_2 == "":
@@ -179,9 +205,9 @@ def check_samplesheet(file_in, file_out, use_control):
             ## Auto-detect paired-end/single-end
             sample_info = []
             if sample and fastq_1 and fastq_2:  ## Paired-end short reads
-                sample_info = [sample, str(replicate), control, "0", fastq_1, fastq_2]
+                sample_info = [sample, str(replicate), control, "0", fastq_1, fastq_2, condition]
             elif sample and fastq_1 and not fastq_2:  ## Single-end short reads
-                sample_info = [sample, str(replicate), control, "1", fastq_1, fastq_2]
+                sample_info = [sample, str(replicate), control, "1", fastq_1, fastq_2, condition]
             else:
                 print_error("Invalid combination of columns provided!", "Line", line)
 
@@ -278,7 +304,7 @@ def check_samplesheet(file_in, file_out, use_control):
         make_dir(out_dir)
         with open(file_out, "w") as fout:
             fout.write(
-                ",".join(["id", "group", "replicate", "control", "single_end", "fastq_1", "fastq_2", "is_control"])
+                ",".join(["id", "group", "replicate", "control", "single_end", "fastq_1", "fastq_2", "condition", "is_control"])
                 + "\n"
             )
             for sample in sorted(sample_run_dict.keys()):

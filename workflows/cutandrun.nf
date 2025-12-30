@@ -89,10 +89,16 @@ ch_linear_duplication_header_multiqc    = file("$projectDir/assets/multiqc/linea
 def prepare_tool_indices = ["bowtie2"]
 
 // Check peak caller params
-def caller_list = ['seacr', 'macs2']
+def caller_list = [
+    'seacr',
+    'macs2', 'macs2_narrow', 'macs2_broad',
+    'gopeaks', 'gopeaks_narrow', 'gopeaks_broad',
+    'epic2', 'epic2_200bp', 'epic2_150bp', 'epic2_25bp',
+    'span', 'span_default', 'span_stringent'
+]
 callers = params.peakcaller ? params.peakcaller.split(',').collect{ it.trim().toLowerCase() } : ['seacr']
 if ((caller_list + callers).unique().size() != caller_list.size()) {
-    exit 1, "Invalid variant calller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}"
+    exit 1, "Invalid variant caller option: ${params.peakcaller}. Valid options: ${caller_list.join(', ')}"
 }
 
 /*
@@ -132,6 +138,7 @@ include { DEEPTOOLS_QC                                     } from "../subworkflo
 include { PEAK_QC                                          } from "../subworkflows/local/peak_qc"
 include { SAMTOOLS_VIEW_SORT_STATS as FILTER_READS         } from "../subworkflows/local/samtools_view_sort_stats"
 include { DEDUPLICATE_LINEAR                               } from "../subworkflows/local/deduplicate_linear"
+include { POOL_CONTROLS                                    } from "../subworkflows/local/pool_controls"
 
 /*
 ========================================================================================
@@ -148,6 +155,19 @@ include { SEACR_CALLPEAK as SEACR_CALLPEAK_IGG                         } from ".
 include { SEACR_CALLPEAK as SEACR_CALLPEAK_NOIGG                       } from "../modules/nf-core/seacr/callpeak/main"
 include { MACS2_CALLPEAK as MACS2_CALLPEAK_IGG                         } from "../modules/nf-core/macs2/callpeak/main"
 include { MACS2_CALLPEAK as MACS2_CALLPEAK_NOIGG                       } from "../modules/nf-core/macs2/callpeak/main"
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_NARROW_IGG                  } from "../modules/nf-core/macs2/callpeak/main"
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_NARROW_NOIGG                } from "../modules/nf-core/macs2/callpeak/main"
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_BROAD_IGG                   } from "../modules/nf-core/macs2/callpeak/main"
+include { MACS2_CALLPEAK as MACS2_CALLPEAK_BROAD_NOIGG                 } from "../modules/nf-core/macs2/callpeak/main"
+include { GOPEAKS as GOPEAKS_NARROW_IGG                                } from "../modules/nf-core/gopeaks/main"
+include { GOPEAKS as GOPEAKS_NARROW_NOIGG                              } from "../modules/nf-core/gopeaks/main"
+include { GOPEAKS as GOPEAKS_BROAD_IGG                                 } from "../modules/nf-core/gopeaks/main"
+include { GOPEAKS as GOPEAKS_BROAD_NOIGG                               } from "../modules/nf-core/gopeaks/main"
+include { EPIC2 as EPIC2_200BP                                         } from "../modules/nf-core/epic2/main"
+include { EPIC2 as EPIC2_150BP                                         } from "../modules/nf-core/epic2/main"
+include { EPIC2 as EPIC2_25BP                                          } from "../modules/nf-core/epic2/main"
+include { SPAN as SPAN_DEFAULT                                         } from "../modules/local/span/main"
+include { SPAN as SPAN_STRINGENT                                       } from "../modules/local/span/main"
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_GENE      } from "../modules/nf-core/deeptools/computematrix/main"
 include { DEEPTOOLS_COMPUTEMATRIX as DEEPTOOLS_COMPUTEMATRIX_PEAKS     } from "../modules/nf-core/deeptools/computematrix/main"
 include { DEEPTOOLS_PLOTHEATMAP as DEEPTOOLS_PLOTHEATMAP_GENE          } from "../modules/nf-core/deeptools/plotheatmap/main"
@@ -437,6 +457,16 @@ workflow CUTANDRUN {
     ch_bigwig                 = Channel.empty()
     ch_seacr_peaks            = Channel.empty()
     ch_macs2_peaks            = Channel.empty()
+    ch_macs2_narrow_peaks     = Channel.empty()
+    ch_macs2_broad_peaks      = Channel.empty()
+    ch_gopeaks_narrow_peaks   = Channel.empty()
+    ch_gopeaks_broad_peaks    = Channel.empty()
+    ch_epic2_200bp_peaks      = Channel.empty()
+    ch_epic2_150bp_peaks      = Channel.empty()
+    ch_epic2_25bp_peaks       = Channel.empty()
+    ch_span_default_peaks     = Channel.empty()
+    ch_span_stringent_peaks   = Channel.empty()
+    ch_pooled_control_bam     = Channel.empty()
     ch_peaks_primary          = Channel.empty()
     ch_peaks_secondary        = Channel.empty()
     ch_peaks_summits          = Channel.empty()
@@ -574,6 +604,117 @@ workflow CUTANDRUN {
             }
         }
 
+        /*
+         * ADDITIONAL PEAK CALLERS: GoPeaks, MACS2 narrow/broad, epic2, SPAN
+         */
+
+        // Pool controls for epic2 and SPAN if needed
+        def needs_pooled_controls = callers.any { it.startsWith('epic2') || it.startsWith('span') }
+        if (needs_pooled_controls && params.use_control) {
+            POOL_CONTROLS (
+                ch_bam_control,
+                params.pool_controls_by
+            )
+            ch_pooled_control_bam = POOL_CONTROLS.out.bam
+            ch_software_versions  = ch_software_versions.mix(POOL_CONTROLS.out.versions)
+        }
+
+        // GoPeaks Narrow
+        if (callers.any { it == 'gopeaks' || it == 'gopeaks_narrow' }) {
+            if (params.use_control) {
+                GOPEAKS_NARROW_IGG (ch_bam_paired)
+                ch_gopeaks_narrow_peaks = GOPEAKS_NARROW_IGG.out.peaks
+                ch_software_versions    = ch_software_versions.mix(GOPEAKS_NARROW_IGG.out.versions)
+            } else {
+                GOPEAKS_NARROW_NOIGG (ch_samtools_bam_target_fctrl)
+                ch_gopeaks_narrow_peaks = GOPEAKS_NARROW_NOIGG.out.peaks
+                ch_software_versions    = ch_software_versions.mix(GOPEAKS_NARROW_NOIGG.out.versions)
+            }
+        }
+
+        // GoPeaks Broad
+        if (callers.any { it == 'gopeaks' || it == 'gopeaks_broad' }) {
+            if (params.use_control) {
+                GOPEAKS_BROAD_IGG (ch_bam_paired)
+                ch_gopeaks_broad_peaks = GOPEAKS_BROAD_IGG.out.peaks
+                ch_software_versions   = ch_software_versions.mix(GOPEAKS_BROAD_IGG.out.versions)
+            } else {
+                GOPEAKS_BROAD_NOIGG (ch_samtools_bam_target_fctrl)
+                ch_gopeaks_broad_peaks = GOPEAKS_BROAD_NOIGG.out.peaks
+                ch_software_versions   = ch_software_versions.mix(GOPEAKS_BROAD_NOIGG.out.versions)
+            }
+        }
+
+        // MACS2 Narrow (explicit)
+        if (callers.any { it == 'macs2_narrow' }) {
+            if (params.use_control) {
+                MACS2_CALLPEAK_NARROW_IGG (ch_bam_paired, params.macs_gsize)
+                ch_macs2_narrow_peaks = MACS2_CALLPEAK_NARROW_IGG.out.peak
+                ch_software_versions  = ch_software_versions.mix(MACS2_CALLPEAK_NARROW_IGG.out.versions)
+            } else {
+                MACS2_CALLPEAK_NARROW_NOIGG (ch_samtools_bam_target_fctrl, params.macs_gsize)
+                ch_macs2_narrow_peaks = MACS2_CALLPEAK_NARROW_NOIGG.out.peak
+                ch_software_versions  = ch_software_versions.mix(MACS2_CALLPEAK_NARROW_NOIGG.out.versions)
+            }
+        }
+
+        // MACS2 Broad (explicit)
+        if (callers.any { it == 'macs2_broad' }) {
+            if (params.use_control) {
+                MACS2_CALLPEAK_BROAD_IGG (ch_bam_paired, params.macs_gsize)
+                ch_macs2_broad_peaks = MACS2_CALLPEAK_BROAD_IGG.out.peak
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_BROAD_IGG.out.versions)
+            } else {
+                MACS2_CALLPEAK_BROAD_NOIGG (ch_samtools_bam_target_fctrl, params.macs_gsize)
+                ch_macs2_broad_peaks = MACS2_CALLPEAK_BROAD_NOIGG.out.peak
+                ch_software_versions = ch_software_versions.mix(MACS2_CALLPEAK_BROAD_NOIGG.out.versions)
+            }
+        }
+
+        // epic2 and SPAN require pooled controls
+        if (needs_pooled_controls && params.use_control) {
+            // Create channel pairing target with pooled control by condition
+            ch_bam_target.map { meta, bam -> [meta.condition, meta, bam] }
+            .combine(ch_pooled_control_bam.map { meta, bam -> [meta.condition, bam] }, by: 0)
+            .map { condition, meta, bam, ctrl_bam -> [meta, bam, ctrl_bam] }
+            .set { ch_bam_paired_pooled }
+
+            // epic2 200bp
+            if (callers.any { it == 'epic2' || it == 'epic2_200bp' }) {
+                EPIC2_200BP (ch_bam_paired_pooled, params.genome ?: 'hg38')
+                ch_epic2_200bp_peaks = EPIC2_200BP.out.peaks
+                ch_software_versions = ch_software_versions.mix(EPIC2_200BP.out.versions)
+            }
+
+            // epic2 150bp
+            if (callers.any { it == 'epic2_150bp' }) {
+                EPIC2_150BP (ch_bam_paired_pooled, params.genome ?: 'hg38')
+                ch_epic2_150bp_peaks = EPIC2_150BP.out.peaks
+                ch_software_versions = ch_software_versions.mix(EPIC2_150BP.out.versions)
+            }
+
+            // epic2 25bp
+            if (callers.any { it == 'epic2_25bp' }) {
+                EPIC2_25BP (ch_bam_paired_pooled, params.genome ?: 'hg38')
+                ch_epic2_25bp_peaks  = EPIC2_25BP.out.peaks
+                ch_software_versions = ch_software_versions.mix(EPIC2_25BP.out.versions)
+            }
+
+            // SPAN default
+            if (callers.any { it == 'span' || it == 'span_default' }) {
+                SPAN_DEFAULT (ch_bam_paired_pooled, PREPARE_GENOME.out.chrom_sizes.collect())
+                ch_span_default_peaks = SPAN_DEFAULT.out.peaks
+                ch_software_versions  = ch_software_versions.mix(SPAN_DEFAULT.out.versions)
+            }
+
+            // SPAN stringent
+            if (callers.any { it == 'span_stringent' }) {
+                SPAN_STRINGENT (ch_bam_paired_pooled, PREPARE_GENOME.out.chrom_sizes.collect())
+                ch_span_stringent_peaks = SPAN_STRINGENT.out.peaks
+                ch_software_versions    = ch_software_versions.mix(SPAN_STRINGENT.out.versions)
+            }
+        }
+
         if ("macs2" in params.callers) {
             /*
             * MODULE: Convert narrow or broad peak to bed
@@ -586,13 +727,58 @@ workflow CUTANDRUN {
         }
 
         // Identify the primary peak data stream for downstream analysis
-        if(callers[0] == 'seacr') {
-            ch_peaks_primary   = ch_seacr_peaks
-            ch_peaks_secondary = ch_macs2_peaks
+        // Primary peaks are from the first caller specified
+        def primary_caller = callers[0]
+        if (primary_caller == 'seacr') {
+            ch_peaks_primary = ch_seacr_peaks
+        } else if (primary_caller == 'macs2') {
+            ch_peaks_primary = ch_macs2_peaks
+        } else if (primary_caller == 'macs2_narrow') {
+            ch_peaks_primary = ch_macs2_narrow_peaks
+        } else if (primary_caller == 'macs2_broad') {
+            ch_peaks_primary = ch_macs2_broad_peaks
+        } else if (primary_caller == 'gopeaks' || primary_caller == 'gopeaks_narrow') {
+            ch_peaks_primary = ch_gopeaks_narrow_peaks
+        } else if (primary_caller == 'gopeaks_broad') {
+            ch_peaks_primary = ch_gopeaks_broad_peaks
+        } else if (primary_caller == 'epic2' || primary_caller == 'epic2_200bp') {
+            ch_peaks_primary = ch_epic2_200bp_peaks
+        } else if (primary_caller == 'epic2_150bp') {
+            ch_peaks_primary = ch_epic2_150bp_peaks
+        } else if (primary_caller == 'epic2_25bp') {
+            ch_peaks_primary = ch_epic2_25bp_peaks
+        } else if (primary_caller == 'span' || primary_caller == 'span_default') {
+            ch_peaks_primary = ch_span_default_peaks
+        } else if (primary_caller == 'span_stringent') {
+            ch_peaks_primary = ch_span_stringent_peaks
         }
-        if(callers[0] == 'macs2') {
-            ch_peaks_primary   = ch_macs2_peaks
-            ch_peaks_secondary = ch_seacr_peaks
+
+        // Secondary peaks (if more than one caller)
+        if (callers.size() > 1) {
+            def secondary_caller = callers[1]
+            if (secondary_caller == 'seacr') {
+                ch_peaks_secondary = ch_seacr_peaks
+            } else if (secondary_caller == 'macs2') {
+                ch_peaks_secondary = ch_macs2_peaks
+            } else if (secondary_caller == 'macs2_narrow') {
+                ch_peaks_secondary = ch_macs2_narrow_peaks
+            } else if (secondary_caller == 'macs2_broad') {
+                ch_peaks_secondary = ch_macs2_broad_peaks
+            } else if (secondary_caller == 'gopeaks' || secondary_caller == 'gopeaks_narrow') {
+                ch_peaks_secondary = ch_gopeaks_narrow_peaks
+            } else if (secondary_caller == 'gopeaks_broad') {
+                ch_peaks_secondary = ch_gopeaks_broad_peaks
+            } else if (secondary_caller == 'epic2' || secondary_caller == 'epic2_200bp') {
+                ch_peaks_secondary = ch_epic2_200bp_peaks
+            } else if (secondary_caller == 'epic2_150bp') {
+                ch_peaks_secondary = ch_epic2_150bp_peaks
+            } else if (secondary_caller == 'epic2_25bp') {
+                ch_peaks_secondary = ch_epic2_25bp_peaks
+            } else if (secondary_caller == 'span' || secondary_caller == 'span_default') {
+                ch_peaks_secondary = ch_span_default_peaks
+            } else if (secondary_caller == 'span_stringent') {
+                ch_peaks_secondary = ch_span_stringent_peaks
+            }
         }
 
         if(callers[0] == 'seacr') {

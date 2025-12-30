@@ -30,6 +30,7 @@ def get_samplesheet_paths(LinkedHashMap row) {
     meta.single_end    = row.single_end.toBoolean()
     meta.is_control    = row.is_control.toBoolean()
     meta.control_group = meta.is_control ? meta.group : row.control
+    meta.condition     = row.condition ?: "default"
 
     def array = []
     if (!file(row.fastq_1).exists()) {

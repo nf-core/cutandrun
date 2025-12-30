@@ -341,7 +341,7 @@
                     "type": "string",
                     "default": "seacr",
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Selects the peak caller for the pipeline. Options are: [seacr, macs2]. More than one peak caller can be chosen and the order specifies which is a primary peak called (the first) that will be used downstream. Any secondary peak callers will be run and outputed to the results folder."
+                    "description": "Selects the peak caller(s) for the pipeline. Options include: seacr, macs2, macs2_narrow, macs2_broad, gopeaks, gopeaks_narrow, gopeaks_broad, epic2, epic2_200bp, epic2_150bp, epic2_25bp, span, span_default, span_stringent. Multiple callers can be comma-separated; the first is used for downstream analysis."
                 },
                 "use_control": {
                     "type": "boolean",
@@ -410,12 +410,56 @@
                     "fa_icon": "fas fa-align-justify",
                     "description": "MACS2 broad cutoff parameter"
                 },
+                "gopeaks_pval": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "GoPeaks p-value threshold for peak calling"
+                },
+                "epic2_fdr": {
+                    "type": "number",
+                    "default": 0.01,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "epic2 false discovery rate cutoff"
+                },
+                "span_fdr": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "SPAN FDR threshold for default mode"
+                },
+                "span_stringent_fdr": {
+                    "type": "number",
+                    "default": 1.0E-9,
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "SPAN FDR threshold for stringent mode"
+                },
+                "pool_controls_by": {
+                    "type": "string",
+                    "default": "condition",
+                    "fa_icon": "fas fa-align-justify",
+                    "description": "How to pool IgG controls for epic2/SPAN. Options: [condition, all]",
+                    "enum": ["condition", "all"]
+                },
+                "normalisation_scope": {
+                    "type": "string",
+                    "default": "global",
+                    "fa_icon": "fab fa-buffer",
+                    "description": "Scope for normalization. Options: [global, condition, group, group_condition]",
+                    "enum": ["global", "condition", "group", "group_condition"]
+                },
+                "condition_aware_norm": {
+                    "type": "boolean",
+                    "default": false,
+                    "fa_icon": "fas fa-balance-scale",
+                    "description": "Enable condition-specific normalization for differential analysis"
+                },
                 "consensus_peak_mode": {
                     "type": "string",
                     "default": "group",
                     "fa_icon": "fas fa-align-justify",
-                    "description": "Specifies what samples to group together for consensus peaks. Options are [group, all]",
-                    "enum": ["group", "all"]
+                    "description": "Specifies what samples to group together for consensus peaks. Options are [group, all, condition, group_condition]",
+                    "enum": ["group", "all", "condition", "group_condition"]
                 },
                 "replicate_threshold": {
                     "type": "number",
