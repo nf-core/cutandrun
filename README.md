@@ -4,18 +4,28 @@
     <img alt="nf-core/cutandrun" src="docs/images/nf-core-cutandrun_logo_light.png">
   </picture>
 </h1>
-[![GitHub Actions CI Status](https://github.com/nf-core/cutandrun/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/cutandrun/actions?query=workflow%3A%22nf-core+CI%22)
-[![GitHub Actions Linting Status](https://github.com/nf-core/cutandrun/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/cutandrun/actions?query=workflow%3A%22nf-core+linting%22)
-[![AWS CI](https://img.shields.io/badge/CI%20tests-full%20size-FF9900?logo=Amazon%20AWS)](https://nf-co.re/cutandrun/results)
-[![Cite with Zenodo](http://img.shields.io/badge/DOI-10.5281/zenodo.5653535-1073c8)](https://doi.org/10.5281/zenodo.5653535)
 
-[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A523.04.0-23aa62.svg)](https://www.nextflow.io/)
+ [![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A523.04.0-23aa62.svg)](https://www.nextflow.io/)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 [![Launch on Nextflow Tower](https://img.shields.io/badge/Launch%20%F0%9F%9A%80-Nextflow%20Tower-%234256e7)](https://tower.nf/launch?pipeline=https://github.com/nf-core/cutandrun)
 
 [![Get help on Slack](http://img.shields.io/badge/slack-nf--core%20%23cutandrun-4A154B?labelColor=000000&logo=slack)](https://nfcore.slack.com/channels/cutandrun)[![Follow on Twitter](http://img.shields.io/badge/twitter-%40nf__core-1DA1F2?labelColor=000000&logo=twitter)](https://twitter.com/nf_core)[![Follow on Mastodon](https://img.shields.io/badge/mastodon-nf__core-6364ff?labelColor=FFFFFF&logo=mastodon)](https://mstdn.science/@nf_core)[![Watch on YouTube](http://img.shields.io/badge/youtube-nf--core-FF0000?labelColor=000000&logo=youtube)](https://www.youtube.com/c/nf-core)
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Pipeline Summary](#pipeline-summary)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+- [Testing the Pipeline](#testing-the-pipeline)
+- [Documentation](#documentation)
+- [Pipeline Output](#pipeline-output)
+- [Credits](#credits)
+- [Contributions and Support](#contributions-and-support)
+- [Citations](#citations)
 
 ## Introduction
 
@@ -59,6 +69,50 @@ The pipeline has been developed with continuous integration (CI) and test driven
 16. Genome browser session ([`IGV`](https://software.broadinstitute.org/software/igv/))
 17. Present all QC in web-based report ([`MultiQC`](http://multiqc.info/))
 
+## Prerequisites
+
+To run this pipeline, you only need to install:
+
+1. **Nextflow** (version ≥23.04.0)
+   - Follow the installation instructions at [nextflow.io](https://www.nextflow.io/docs/latest/getstarted.html#installation)
+   - Or use the nf-core [installation guide](https://nf-co.re/docs/usage/installation)
+
+2. **A container engine** (choose one):
+   - [Docker](https://docs.docker.com/get-docker/)
+   - [Singularity](https://sylabs.io/guides/latest/user-guide/)
+   - [Podman](https://podman.io/getting-started/installation)
+
+> [!NOTE]
+> All other software dependencies (alignment tools, peak callers, QC tools, etc.) are automatically handled by the pipeline through containers, You do not need to install them manually.
+
+For institutional cluster users, check if your institution has a custom nf-core configuration profile available at [nf-core/configs](https://github.com/nf-core/configs).
+
+## Quick Start
+
+1. **Install Nextflow and a container engine** (see [Prerequisites](#prerequisites))
+
+2. **Test the pipeline** with the included test dataset:
+
+   ```bash
+   nextflow run nf-core/cutandrun -profile test,docker --outdir results
+   ```
+
+3. **Prepare your samplesheet** (see [Usage](#usage) for format details)
+
+4. **Run the pipeline** with your data:
+
+   ```bash
+   nextflow run nf-core/cutandrun \
+     -profile docker \
+     --input samplesheet.csv \
+     --genome GRCh38 \
+     --outdir results
+   ```
+
+5. **Explore the results** in the output directory and review the MultiQC report
+
+For more detailed instructions, see the [full documentation](https://nf-co.re/cutandrun).
+
 ## Usage
 
 > [!NOTE]
@@ -78,26 +132,110 @@ igg_ctrl,2,igg_rep2_r1.fastq.gz,igg_rep2_r2.fastq.gz,
 
 Each row represents a pair of fastq files (paired end).
 
+### Basic Command
+
 Now, you can run the pipeline using:
 
+```bash
 nextflow run nf-core/cutandrun \
- -profile <docker/singularity/.../institute> \
- --input samplesheet.csv \
- --peakcaller 'seacr,MACS2' \
- --genome GRCh38 \
- --outdir <OUTDIR>
+  -profile <docker/singularity/.../institute> \
+  --input samplesheet.csv \
+  --peakcaller 'seacr,MACS2' \
+  --genome GRCh38 \
+  --outdir <OUTDIR>
+```
 
 > [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
 > see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
 
-- Typical command for CUT&Run/CUT&Tag/TIPseq analysis:
+### Example Commands
 
-## Pipeline output
+**CUT&Run/CUT&Tag analysis with SEACR and MACS2 peak calling:**
 
-To see the the results of a test run with a full size dataset refer to the [results](https://nf-co.re/cutandrun/results) tab on the nf-core website pipeline page.
-For more details about the output files and reports, please refer to the
-[output documentation](https://nf-co.re/cutandrun/output).
+```bash
+nextflow run nf-core/cutandrun \
+  -profile docker \
+  --input samplesheet.csv \
+  --peakcaller 'seacr,MACS2' \
+  --genome GRCh38 \
+  --outdir results
+```
+
+**TIPseq analysis with linear duplicate removal:**
+
+```bash
+nextflow run nf-core/cutandrun \
+  -profile docker \
+  --input samplesheet.csv \
+  --peakcaller 'seacr' \
+  --genome GRCh38 \
+  --use_linear_dedup \
+  --outdir results
+```
+
+For more usage examples and parameter details, see the [usage documentation](https://nf-co.re/cutandrun/usage).
+
+## Testing the Pipeline
+
+It is recommended to test the pipeline with the included test dataset before running it on your own data.
+
+### Running the Test Profile
+
+```bash
+nextflow run nf-core/cutandrun -profile test,docker --outdir test_results
+```
+
+This will:
+- Download a small test dataset automatically
+- Run the complete pipeline workflow
+- Complete in approximately 10-15 minutes (depending on your system)
+- Generate output in the `test_results` directory
+
+### Available Test Profiles
+
+The pipeline includes several test profiles for different scenarios:
+
+- `test` - Basic test with small dataset
+- `test_full` - Full-sized dataset test
+- `test_no_control` - Test without control samples
+- `test_tech_reps` - Test with technical replicates
+
+For example:
+```bash
+nextflow run nf-core/cutandrun -profile test_full,docker --outdir results
+```
+
+For more information on testing, see the [nf-core documentation](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline).
+
+## Documentation
+
+Comprehensive documentation for nf-core/cutandrun is available on the nf-core website:
+
+**📚 [https://nf-co.re/cutandrun](https://nf-co.re/cutandrun)**
+
+The documentation includes:
+
+- **[Usage Guide](https://nf-co.re/cutandrun/usage)** - Detailed instructions on running the pipeline
+- **[Parameters](https://nf-co.re/cutandrun/parameters)** - Complete list of all pipeline parameters
+- **[Output Documentation](https://nf-co.re/cutandrun/output)** - Description of all output files and reports
+- **[Results](https://nf-co.re/cutandrun/results)** - Example results from full-sized test dataset
+
+## Pipeline Output
+
+The pipeline generates comprehensive outputs including:
+
+- Quality control reports (FastQC, MultiQC)
+- Alignment files (BAM files, coverage tracks)
+- Peak calls (SEACR, MACS2)
+- Consensus peaks and reproducibility analysis
+- Heatmaps and genome browser sessions
+
+To see example results from a full-sized dataset, visit:
+- **[Example Results](https://nf-co.re/cutandrun/results)** - Full test run outputs on AWS
+
+For detailed descriptions of all output files and reports, see:
+- **[Output Documentation](https://nf-co.re/cutandrun/output)** - Complete output file reference
 
 ## Credits
 
