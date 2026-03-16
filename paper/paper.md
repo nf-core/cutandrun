@@ -30,9 +30,9 @@ authors:
     affiliation: 1
 
 affiliations:
- - name: The Francis Crick Institute, London, UK
+ - name: The Francis Crick Institute, London, United Kingdom
    index: 1
- - name: European Molecular Biology Laboratory, European Bioinformatics Institute (EMBL-EBI), Wellcome Genome Campus, Hinxton, UK
+ - name: European Molecular Biology Laboratory, European Bioinformatics Institute (EMBL-EBI), Wellcome Genome Campus, Hinxton, United Kingdom
    index: 2
  - name: Okinawa Institute of Science and Technology, Okinawa, Japan
    index: 3
