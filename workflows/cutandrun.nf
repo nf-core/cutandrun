@@ -799,6 +799,7 @@ workflow CUTANDRUN {
     }
 
 
+    def multiqc_report = Channel.empty()
     if (params.run_multiqc) {
         ch_multiqc_files = ch_multiqc_files.mix(ch_bowtie2_log.collect { it[1] }.ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(ch_bowtie2_spikein_log.collect { it[1] }.ifEmpty([]))
