@@ -17,18 +17,10 @@ nextflow_function {
             }
         }
         then {
-            assert function.success
-            def out = function.result as List
-            assert out.size() == 2
-            def metas = out.collect { it[0] }
-            def target  = metas.find { (it as Map).group == 'h3k27me3' }
-            def control = metas.find { (it as Map).group == 'igg_ctrl' }
-            assert target.id == 'h3k27me3_R1_T1'
-            assert target.is_control == false
-            assert target.control_group == 'igg_ctrl_1'
-            assert control.id == 'igg_ctrl_R1_T1'
-            assert control.is_control == true
-            assert control.control_group == 'igg_ctrl'
+            assertAll(
+                { assert function.success },
+                { assert snapshot(function.result).match() },
+            )
         }
     }
 
@@ -48,13 +40,10 @@ nextflow_function {
             }
         }
         then {
-            assert function.success
-            def out = function.result as List
-            assert out.size() == 4
-            def byId = out.collectEntries { entry -> [(entry[0] as Map).id, entry[0]] }
-            assert byId['h3k27me3_R1_T1'].control_group == 'igg_ctrl_1'
-            assert byId['h3k27me3_R2_T1'].control_group == 'igg_ctrl_2'
-            assert byId['igg_ctrl_R1_T1'].is_control == true
+            assertAll(
+                { assert function.success },
+                { assert snapshot(function.result).match() },
+            )
         }
     }
 
@@ -73,11 +62,10 @@ nextflow_function {
             }
         }
         then {
-            assert function.success
-            def out = function.result as List
-            def byId = out.collectEntries { entry -> [(entry[0] as Map).id, entry[0]] }
-            assert byId['h3k27me3_R1_T1'].control_group == 'igg_ctrl_1'
-            assert byId['h3k27me3_R2_T1'].control_group == 'igg_ctrl_1'
+            assertAll(
+                { assert function.success },
+                { assert snapshot(function.result).match() },
+            )
         }
     }
 
@@ -96,12 +84,10 @@ nextflow_function {
             }
         }
         then {
-            assert function.success
-            def out = function.result as List
-            assert out.size() == 3
-            def ids = out.collect { entry -> (entry[0] as Map).id }
-            assert ids.contains('h3k27me3_R1_T1')
-            assert ids.contains('h3k27me3_R1_T2')
+            assertAll(
+                { assert function.success },
+                { assert snapshot(function.result).match() },
+            )
         }
     }
 
@@ -118,12 +104,10 @@ nextflow_function {
             }
         }
         then {
-            assert function.success
-            def out = function.result as List
-            assert out.size() == 1
-            def m = out[0][0] as Map
-            assert m.is_control == false
-            assert m.control_group == ''
+            assertAll(
+                { assert function.success },
+                { assert snapshot(function.result).match() },
+            )
         }
     }
 
