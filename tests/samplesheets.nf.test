@@ -1,0 +1,164 @@
+nextflow_pipeline {
+
+    name "Test samplesheet validation"
+    script "../main.nf"
+    tag "samplesheet"
+
+    def base = "https://raw.githubusercontent.com/nf-core/test-datasets/cutandrun"
+
+    test("rejects samplesheet with wrong header") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/header_error.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet with row that has wrong column count") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/invalid_column_in_row.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet with blank group") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/group_is_blank.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet where group contains spaces") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/group_has_spaces.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet where control contains spaces") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/control_has_spaces.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet where group equals control") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/group_equals_control.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet with negative replicate id") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/negative_rep_num.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet whose replicate ids do not start at 1") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/rep_not_start_one.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet with invalid FASTQ extension") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/fastq_ext_error.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet with spaces in FASTQ path") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/fastq_file_spaces.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet with duplicate rows") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/duplicate_rows.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet referencing a control group that does not exist") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/control_not_exist.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet where a control row declares its own control") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/control_with_control.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects samplesheet without controls when --use_control true") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/no_igg.csv"
+            use_control      = true
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("rejects single-end samplesheet (paired-end is required)") {
+        when { params {
+            input            = "${base}/samplesheet_3_0/unit_tests/single_end.csv"
+            use_control      = false
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.failed }
+    }
+
+    test("accepts samplesheet with no controls when --use_control false") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/no_igg.csv"
+            use_control      = false
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.success }
+    }
+
+    test("accepts samplesheet with dots in group names") {
+        when { params {
+            input            = "${base}/samplesheet_2_0/unit_tests/sample_dot.csv"
+            only_input       = true
+            outdir           = "${outputDir}"
+        } }
+        then { assert workflow.success }
+    }
+}
