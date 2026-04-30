@@ -97,7 +97,6 @@ workflow PIPELINE_INITIALISATION {
     //
     validateInputParameters()
 
-    // Schema validates per-row; processSamplesheet adds cross-row checks and meta
     def rows = samplesheetToList(input, "${projectDir}/assets/schema_input.json")
     ch_samplesheet = Channel.fromList(processSamplesheet(rows, params.use_control))
 
@@ -166,8 +165,7 @@ def validateInputParameters() {
 }
 
 //
-// Groovy port of bin/check_samplesheet.py: cross-row validation and meta
-// enrichment on top of nf-schema's per-row checks.
+// Cross-row validation and meta enrichment for the cutandrun samplesheet.
 //
 def processSamplesheet(rows, use_control) {
     if (!rows) {
