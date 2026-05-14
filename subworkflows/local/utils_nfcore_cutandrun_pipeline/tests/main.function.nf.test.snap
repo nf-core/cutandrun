@@ -1,0 +1,239 @@
+{
+    "Multi-rep target with single-rep control - all targets pair to control rep 1": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "h3k27me3_R1_T1",
+                        "group": "h3k27me3",
+                        "replicate": 1,
+                        "single_end": false,
+                        "is_control": false,
+                        "control_group": "igg_ctrl_1"
+                    },
+                    [
+                        "a",
+                        "b"
+                    ]
+                ],
+                [
+                    {
+                        "id": "h3k27me3_R2_T1",
+                        "group": "h3k27me3",
+                        "replicate": 2,
+                        "single_end": false,
+                        "is_control": false,
+                        "control_group": "igg_ctrl_1"
+                    },
+                    [
+                        "c",
+                        "d"
+                    ]
+                ],
+                [
+                    {
+                        "id": "igg_ctrl_R1_T1",
+                        "group": "igg_ctrl",
+                        "replicate": 1,
+                        "single_end": false,
+                        "is_control": true,
+                        "control_group": "igg_ctrl"
+                    },
+                    [
+                        "e",
+                        "f"
+                    ]
+                ]
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.4"
+        },
+        "timestamp": "2026-04-30T12:37:53.094895"
+    },
+    "Multi-rep target paired with multi-rep control - rep-by-rep matching": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "h3k27me3_R1_T1",
+                        "group": "h3k27me3",
+                        "replicate": 1,
+                        "single_end": false,
+                        "is_control": false,
+                        "control_group": "igg_ctrl_1"
+                    },
+                    [
+                        "a",
+                        "b"
+                    ]
+                ],
+                [
+                    {
+                        "id": "h3k27me3_R2_T1",
+                        "group": "h3k27me3",
+                        "replicate": 2,
+                        "single_end": false,
+                        "is_control": false,
+                        "control_group": "igg_ctrl_2"
+                    },
+                    [
+                        "c",
+                        "d"
+                    ]
+                ],
+                [
+                    {
+                        "id": "igg_ctrl_R1_T1",
+                        "group": "igg_ctrl",
+                        "replicate": 1,
+                        "single_end": false,
+                        "is_control": true,
+                        "control_group": "igg_ctrl"
+                    },
+                    [
+                        "e",
+                        "f"
+                    ]
+                ],
+                [
+                    {
+                        "id": "igg_ctrl_R2_T1",
+                        "group": "igg_ctrl",
+                        "replicate": 2,
+                        "single_end": false,
+                        "is_control": true,
+                        "control_group": "igg_ctrl"
+                    },
+                    [
+                        "g",
+                        "h"
+                    ]
+                ]
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.4"
+        },
+        "timestamp": "2026-04-30T12:37:46.417881"
+    },
+    "noigg with use_control false": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "wt_R1_T1",
+                        "group": "wt",
+                        "replicate": 1,
+                        "single_end": false,
+                        "is_control": false,
+                        "control_group": ""
+                    },
+                    [
+                        "a",
+                        "b"
+                    ]
+                ]
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.4"
+        },
+        "timestamp": "2026-04-30T12:38:04.249082"
+    },
+    "Single target + single control, use_control true": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "h3k27me3_R1_T1",
+                        "group": "h3k27me3",
+                        "replicate": 1,
+                        "single_end": false,
+                        "is_control": false,
+                        "control_group": "igg_ctrl_1"
+                    },
+                    [
+                        "h3k27me3_R1_1.fq.gz",
+                        "h3k27me3_R1_2.fq.gz"
+                    ]
+                ],
+                [
+                    {
+                        "id": "igg_ctrl_R1_T1",
+                        "group": "igg_ctrl",
+                        "replicate": 1,
+                        "single_end": false,
+                        "is_control": true,
+                        "control_group": "igg_ctrl"
+                    },
+                    [
+                        "igg_R1_1.fq.gz",
+                        "igg_R1_2.fq.gz"
+                    ]
+                ]
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.4"
+        },
+        "timestamp": "2026-04-30T12:37:41.282135"
+    },
+    "Technical replicates (same group+replicate, multiple rows)": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "h3k27me3_R1_T1",
+                        "group": "h3k27me3",
+                        "replicate": 1,
+                        "single_end": false,
+                        "is_control": false,
+                        "control_group": "igg_ctrl_1"
+                    },
+                    [
+                        "a",
+                        "b"
+                    ]
+                ],
+                [
+                    {
+                        "id": "h3k27me3_R1_T2",
+                        "group": "h3k27me3",
+                        "replicate": 1,
+                        "single_end": false,
+                        "is_control": false,
+                        "control_group": "igg_ctrl_1"
+                    },
+                    [
+                        "c",
+                        "d"
+                    ]
+                ],
+                [
+                    {
+                        "id": "igg_ctrl_R1_T1",
+                        "group": "igg_ctrl",
+                        "replicate": 1,
+                        "single_end": false,
+                        "is_control": true,
+                        "control_group": "igg_ctrl"
+                    },
+                    [
+                        "e",
+                        "f"
+                    ]
+                ]
+            ]
+        ],
+        "meta": {
+            "nf-test": "0.9.3",
+            "nextflow": "25.10.4"
+        },
+        "timestamp": "2026-04-30T12:37:58.957552"
+    }
+}

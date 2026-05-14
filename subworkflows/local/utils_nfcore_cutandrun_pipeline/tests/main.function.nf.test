@@ -1,0 +1,219 @@
+nextflow_function {
+
+    name "Test Functions: processSamplesheet"
+    script "../main.nf"
+
+    test("Single target + single control, use_control true") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'h3k27me3', replicate: 1, control_group: 'igg_ctrl'], 'h3k27me3_R1_1.fq.gz', 'h3k27me3_R1_2.fq.gz'],
+                    [[group: 'igg_ctrl',  replicate: 1, control_group: ''        ], 'igg_R1_1.fq.gz',     'igg_R1_2.fq.gz'],
+                ]
+                input[1] = true
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert function.success },
+                { assert snapshot(function.result).match() },
+            )
+        }
+    }
+
+    test("Multi-rep target paired with multi-rep control - rep-by-rep matching") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'h3k27me3', replicate: 1, control_group: 'igg_ctrl'], 'a', 'b'],
+                    [[group: 'h3k27me3', replicate: 2, control_group: 'igg_ctrl'], 'c', 'd'],
+                    [[group: 'igg_ctrl', replicate: 1, control_group: ''        ], 'e', 'f'],
+                    [[group: 'igg_ctrl', replicate: 2, control_group: ''        ], 'g', 'h'],
+                ]
+                input[1] = true
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert function.success },
+                { assert snapshot(function.result).match() },
+            )
+        }
+    }
+
+    test("Multi-rep target with single-rep control - all targets pair to control rep 1") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'h3k27me3', replicate: 1, control_group: 'igg_ctrl'], 'a', 'b'],
+                    [[group: 'h3k27me3', replicate: 2, control_group: 'igg_ctrl'], 'c', 'd'],
+                    [[group: 'igg_ctrl', replicate: 1, control_group: ''        ], 'e', 'f'],
+                ]
+                input[1] = true
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert function.success },
+                { assert snapshot(function.result).match() },
+            )
+        }
+    }
+
+    test("Technical replicates (same group+replicate, multiple rows)") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'h3k27me3', replicate: 1, control_group: 'igg_ctrl'], 'a', 'b'],
+                    [[group: 'h3k27me3', replicate: 1, control_group: 'igg_ctrl'], 'c', 'd'],
+                    [[group: 'igg_ctrl', replicate: 1, control_group: ''        ], 'e', 'f'],
+                ]
+                input[1] = true
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert function.success },
+                { assert snapshot(function.result).match() },
+            )
+        }
+    }
+
+    test("noigg with use_control false") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'wt', replicate: 1, control_group: ''], 'a', 'b'],
+                ]
+                input[1] = false
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert function.success },
+                { assert snapshot(function.result).match() },
+            )
+        }
+    }
+
+    test("Empty samplesheet errors") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = []
+                input[1] = false
+                """
+            }
+        }
+        then { assert function.failed }
+    }
+
+    test("Referenced control group does not exist") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'wt', replicate: 1, control_group: 'missing'], 'a', 'b'],
+                ]
+                input[1] = true
+                """
+            }
+        }
+        then { assert function.failed }
+    }
+
+    test("Sample group equals control") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'wt', replicate: 1, control_group: 'wt'], 'a', 'b'],
+                ]
+                input[1] = true
+                """
+            }
+        }
+        then { assert function.failed }
+    }
+
+    test("Replicate ids do not start at 1") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'wt', replicate: 2, control_group: ''], 'a', 'b'],
+                ]
+                input[1] = false
+                """
+            }
+        }
+        then { assert function.failed }
+    }
+
+    test("Duplicate row") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'wt', replicate: 1, control_group: ''], 'a', 'b'],
+                    [[group: 'wt', replicate: 1, control_group: ''], 'a', 'b'],
+                ]
+                input[1] = false
+                """
+            }
+        }
+        then { assert function.failed }
+    }
+
+    test("use_control true but no controls referenced") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'wt', replicate: 1, control_group: ''], 'a', 'b'],
+                ]
+                input[1] = true
+                """
+            }
+        }
+        then { assert function.failed }
+    }
+
+    test("Control row declares its own control") {
+        function "processSamplesheet"
+        when {
+            function {
+                """
+                input[0] = [
+                    [[group: 'wt',   replicate: 1, control_group: 'igg' ], 'a', 'b'],
+                    [[group: 'igg',  replicate: 1, control_group: 'oops'], 'c', 'd'],
+                    [[group: 'oops', replicate: 1, control_group: ''    ], 'e', 'f'],
+                ]
+                input[1] = true
+                """
+            }
+        }
+        then { assert function.failed }
+    }
+}

@@ -5,6 +5,12 @@
                 "AWK": {
                     "awk": "1.3.4"
                 },
+                "AWK_EXTRACT_SUMMITS": {
+                    "awk": "1.3.4"
+                },
+                "AWK_NAME_PEAK_BED": {
+                    "awk": "1.3.4"
+                },
                 "AWK_SCRIPT": {
                     "awk": "1.3.4"
                 },
@@ -12,6 +18,9 @@
                     "bedtools": "2.31.0"
                 },
                 "BEDTOOLS_GENOMECOV": {
+                    "bedtools": "2.31.0"
+                },
+                "BEDTOOLS_MERGE": {
                     "bedtools": "2.31.0"
                 },
                 "BEDTOOLS_SORT": {
@@ -39,7 +48,16 @@
                     "pigz": 2.6,
                     "samtools": "1.16.1"
                 },
+                "CONSENSUS_PEAK_COUNTS": {
+                    "bedtools": "2.31.1"
+                },
+                "CUT_CALC_REPROD": {
+                    "cut": 8.3
+                },
                 "DEEPTOOLS_COMPUTEMATRIX_GENE": {
+                    "deeptools": "3.5.1"
+                },
+                "DEEPTOOLS_COMPUTEMATRIX_PEAKS": {
                     "deeptools": "3.5.1"
                 },
                 "DEEPTOOLS_MULTIBAMSUMMARY": {
@@ -52,6 +70,9 @@
                     "deeptools": "3.5.1"
                 },
                 "DEEPTOOLS_PLOTHEATMAP_GENE": {
+                    "deeptools": "3.5.1"
+                },
+                "DEEPTOOLS_PLOTHEATMAP_PEAKS": {
                     "deeptools": "3.5.1"
                 },
                 "DEEPTOOLS_PLOTPCA": {
@@ -84,6 +105,9 @@
                 "IGV_SESSION": {
                     "python": "3.8.3"
                 },
+                "PEAK_FRIP": {
+                    "bedtools": "2.31.1"
+                },
                 "PICARD_MARKDUPLICATES": {
                     "picard": "3.1.0"
                 },
@@ -92,6 +116,9 @@
                     "pandas": "1.4.2",
                     "python": "3.9.12",
                     "upsetplot": "0.6.0"
+                },
+                "PRIMARY_PEAK_COUNTS": {
+                    "bedtools": "2.31.1"
                 },
                 "SAMTOOLS_CUSTOMVIEW": {
                     "samtools": "1.19.2"
@@ -116,6 +143,14 @@
                 },
                 "SAMTOOLS_VIEW": {
                     "samtools": 1.17
+                },
+                "SEACR_CALLPEAK_IGG": {
+                    "bedtools": "2.30.0",
+                    "r-base": "4.0.2",
+                    "seacr": 1.3
+                },
+                "SORT": {
+                    "sort": 8.3
                 },
                 "TABIX_BGZIPTABIX": {
                     "tabix": 1.12
@@ -214,6 +249,12 @@
                 "03_peak_calling/03_bed_to_bigwig",
                 "03_peak_calling/03_bed_to_bigwig/h3k27me3_R1.bigWig",
                 "03_peak_calling/03_bed_to_bigwig/igg_ctrl_R1.bigWig",
+                "03_peak_calling/04_called_peaks",
+                "03_peak_calling/04_called_peaks/seacr",
+                "03_peak_calling/04_called_peaks/seacr/h3k27me3_R1.seacr.peaks.stringent.bed",
+                "03_peak_calling/05_consensus_peaks",
+                "03_peak_calling/05_consensus_peaks/h3k27me3.seacr.consensus.peak_counts.bed",
+                "03_peak_calling/05_consensus_peaks/h3k27me3.seacr.consensus.peaks.awk.bed",
                 "03_peak_calling/06_fragments_from_bams",
                 "03_peak_calling/06_fragments_from_bams/h3k27me3_R1.frags.cut.bed",
                 "03_peak_calling/06_fragments_from_bams/h3k27me3_R1.frags.len.txt",
@@ -230,6 +271,11 @@
                 "04_reporting/deeptools_heatmaps/gene_all/all_genes.computeMatrix.vals.mat.tab",
                 "04_reporting/deeptools_heatmaps/gene_all/all_genes.plotHeatmap.mat.tab",
                 "04_reporting/deeptools_heatmaps/gene_all/all_genes.plotHeatmap.pdf",
+                "04_reporting/deeptools_heatmaps/peaks",
+                "04_reporting/deeptools_heatmaps/peaks/h3k27me3_R1.computeMatrix.mat.gz",
+                "04_reporting/deeptools_heatmaps/peaks/h3k27me3_R1.computeMatrix.vals.mat.tab",
+                "04_reporting/deeptools_heatmaps/peaks/h3k27me3_R1.plotHeatmap.mat.tab",
+                "04_reporting/deeptools_heatmaps/peaks/h3k27me3_R1.plotHeatmap.pdf",
                 "04_reporting/deeptools_qc",
                 "04_reporting/deeptools_qc/all_bam.bamSummary.npz",
                 "04_reporting/deeptools_qc/all_target_bams.plotCorrelation.mat.tab",
@@ -268,10 +314,13 @@
                 "04_reporting/multiqc/multiqc_data/multiqc.log",
                 "04_reporting/multiqc/multiqc_data/multiqc.parquet",
                 "04_reporting/multiqc/multiqc_data/multiqc_citations.txt",
+                "04_reporting/multiqc/multiqc_data/multiqc_consensus_peakcounts_plot.txt",
                 "04_reporting/multiqc/multiqc_data/multiqc_cutadapt.txt",
                 "04_reporting/multiqc/multiqc_data/multiqc_data.json",
                 "04_reporting/multiqc/multiqc_data/multiqc_general_stats.txt",
                 "04_reporting/multiqc/multiqc_data/multiqc_picard_dups.txt",
+                "04_reporting/multiqc/multiqc_data/multiqc_primary_fripscore_plot.txt",
+                "04_reporting/multiqc/multiqc_data/multiqc_primary_peakcounts_plot.txt",
                 "04_reporting/multiqc/multiqc_data/multiqc_samtools_flagstat.txt",
                 "04_reporting/multiqc/multiqc_data/multiqc_samtools_idxstats.txt",
                 "04_reporting/multiqc/multiqc_data/multiqc_samtools_stats.txt",
@@ -394,12 +443,17 @@
                 "igg_ctrl_R1.clipped.bedGraph:md5,9530d6cc4289ff32c34b3357fbcd0ef0",
                 "h3k27me3_R1.bigWig:md5,e4f91f606e6f780ad266df07fc3129e4",
                 "igg_ctrl_R1.bigWig:md5,512e32ef1fd6dc6b4df7e5015983cf30",
+                "h3k27me3_R1.seacr.peaks.stringent.bed:md5,daa70cf3a6e9feb896e92463f14e2f6d",
+                "h3k27me3.seacr.consensus.peak_counts.bed:md5,edf52a5e0671bcf4c62c5b40e0ee97d1",
+                "h3k27me3.seacr.consensus.peaks.awk.bed:md5,edf52a5e0671bcf4c62c5b40e0ee97d1",
                 "h3k27me3_R1.frags.cut.bed:md5,285b3e5fa185e6866d57e9e263bba3d2",
                 "h3k27me3_R1.frags.len.txt:md5,fa47e3502b5c52ff20ad56480b7ce247",
                 "h3k27me3_R1.computeMatrix.mat.gz:md5,7235beaf0ede8f7adc2f30bb805eaa2a",
                 "h3k27me3_R1.computeMatrix.vals.mat.tab:md5,447a55df7ecbdcfff2e6f4fc4b00a46d",
                 "all_genes.computeMatrix.mat.gz:md5,7235beaf0ede8f7adc2f30bb805eaa2a",
                 "all_genes.computeMatrix.vals.mat.tab:md5,447a55df7ecbdcfff2e6f4fc4b00a46d",
+                "h3k27me3_R1.computeMatrix.mat.gz:md5,79d2433795f30c2a243efa9a197ef7a7",
+                "h3k27me3_R1.computeMatrix.vals.mat.tab:md5,65ae5a93aaf3a59fb4841f9a2240f3c7",
                 "all_bam.bamSummary.npz:md5,b4a14c0423fb18ab418cfe44a4cec944",
                 "all_target_bams.plotCorrelation.mat.tab:md5,99282c31cbacf6b53ce6c6f3db991e54",
                 "all_target_bams.plotPCA.tab:md5,565903f7a6f17f262288c6928d68fd46",
@@ -425,7 +479,10 @@
                 "deeptools_plot_PCA.txt:md5,cb4119db9c4ce81c1a46c343e2a74a7e",
                 "deeptools_plot_fingerprint_counts.txt:md5,d69e2a473d63fbac6d6e29d4eeeef7ac",
                 "multiqc_citations.txt:md5,4b5abc8e418cb04d88e0d71797bd4e16",
+                "multiqc_consensus_peakcounts_plot.txt:md5,c63f3912385275d5a343193f9ef68d09",
                 "multiqc_picard_dups.txt:md5,3e8bcc3e9be7442d640f4ede7e3d7fd3",
+                "multiqc_primary_fripscore_plot.txt:md5,3195a80eeaeabf54dd4ffc885f81e71f",
+                "multiqc_primary_peakcounts_plot.txt:md5,a8f5fe403ccb12dc7e19ec82b1ed35b6",
                 "multiqc_samtools_flagstat.txt:md5,e9256d01fde9f3793a46fa74224a3cd3",
                 "picard_MarkIlluminaAdapters_histogram.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "picard_MeanQualityByCycle_histogram.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -438,10 +495,10 @@
                 "samtools-idxstats-mapped-reads-plot_Observed_over_Expected_Counts.txt:md5,c19cc35badede739b4dae61da8ee5b9b"
             ]
         ],
+        "timestamp": "2026-04-30T11:22:16.220241418",
         "meta": {
-            "nf-test": "0.9.3",
-            "nextflow": "25.04.8"
-        },
-        "timestamp": "2025-10-21T14:22:50.971328282"
+            "nf-test": "0.9.5",
+            "nextflow": "25.04.0"
+        }
     }
 }

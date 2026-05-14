@@ -97,27 +97,8 @@ workflow PIPELINE_INITIALISATION {
     //
     validateInputParameters()
 
-    // Create channel from input file provided through params.input
-    // Just get all info from the samplesheet
-    // We need more to gather all the meta data to be able to validate
-    ch_samplesheet = Channel.fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
-        .map { meta, fastq_1, fastq_2 ->
-            [[group: meta.group, control_group: meta.control_group], [meta, [fastq_1, fastq_2]]]
-        }
-        .groupTuple()
-        .flatMap { meta, tuple ->
-            tuple.collect { meta_tuple, reads ->
-                if (meta.control_group) {
-                    [meta_tuple + [control_group: meta.control_group, is_control: false], reads]
-                }
-                else {
-                    [meta_tuple + [control_group: "${meta.group}_1", is_control: true], reads]
-                }
-            }
-        }
-        .map { meta, reads ->
-            validateInputSamplesheet(meta + [single_end: false], reads)
-        }
+    def rows = samplesheetToList(input, "${projectDir}/assets/schema_input.json")
+    ch_samplesheet = Channel.fromList(processSamplesheet(rows, params.use_control))
 
     emit:
     samplesheet = ch_samplesheet
@@ -184,11 +165,93 @@ def validateInputParameters() {
 }
 
 //
-// Cut&Run specific sample validation and metadata enhancement
+// Cross-row validation and meta enrichment for the cutandrun samplesheet.
 //
-// TODO: add control handling
-def validateInputSamplesheet(meta, fastqs) {
-    return [meta + [group: meta.group ?: meta.id.split('_')[0], replicate: meta.replicate ?: 1, id: "${meta.group ?: meta.id.split('_')[0]}_R${meta.replicate ?: 1}_T1"], fastqs]
+def processSamplesheet(rows, use_control) {
+    if (!rows) {
+        error("Samplesheet error: no sample rows found in '${params.input}'")
+    }
+
+    def grouped = [:]
+    rows.each { row ->
+        def (meta, fastq_1, fastq_2) = row
+        grouped.computeIfAbsent(meta.group, { [:] }).computeIfAbsent(meta.replicate, { [] }) << [meta, fastq_1, fastq_2]
+    }
+
+    grouped.each { group, reps ->
+        def rep_ids = reps.keySet().sort()
+        if (rep_ids[0] != 1 || rep_ids != (1..rep_ids[-1]).toList()) {
+            error("Samplesheet error: group '${group}' replicate ids must start at 1 and be contiguous, got ${rep_ids}")
+        }
+    }
+
+    def referenced_controls = rows.collect { it[0].control_group }.findAll { it } as Set
+    def existing_groups = grouped.keySet() as Set
+    referenced_controls.each { c ->
+        if (!existing_groups.contains(c)) {
+            error("Samplesheet error: control group '${c}' is referenced but does not appear as a sample group")
+        }
+    }
+
+    rows.each { row ->
+        def meta = row[0]
+        if (meta.control_group && meta.control_group == meta.group) {
+            error("Samplesheet error: group '${meta.group}' lists itself as control")
+        }
+        if (meta.control_group && referenced_controls.contains(meta.group)) {
+            error("Samplesheet error: control row for group '${meta.group}' must not declare a control of its own")
+        }
+    }
+
+    def seen = [] as Set
+    rows.each { row ->
+        def key = [row[0].group, row[0].replicate, row[1].toString(), row[2].toString()].join('|')
+        if (!seen.add(key)) {
+            error("Samplesheet error: duplicate row detected for group '${row[0].group}' replicate ${row[0].replicate}")
+        }
+    }
+
+    def has_control_refs = !referenced_controls.isEmpty()
+    if (use_control && !has_control_refs) {
+        error("Samplesheet error: --use_control true but no control group is referenced in '${params.input}'. Set --use_control false if you do not want to use a control.")
+    }
+    if (!use_control && has_control_refs) {
+        log.warn("Parameter --use_control is false but the samplesheet declares control group(s); they will be processed but not used for peak calling.")
+    }
+
+    def output = []
+    grouped.each { group, reps ->
+        def is_control = referenced_controls.contains(group)
+        def num_reps = reps.size()
+        reps.sort().each { rep, tech_reps ->
+            tech_reps.eachWithIndex { entry, tidx ->
+                def (orig_meta, fastq_1, fastq_2) = entry
+                def ctrl_field = orig_meta.control_group ?: ''
+                def control_group_meta
+                if (is_control) {
+                    control_group_meta = group
+                }
+                else if (ctrl_field) {
+                    def num_ctrl_reps = grouped[ctrl_field].size()
+                    def matched_rep = (num_reps == num_ctrl_reps) ? rep : 1
+                    control_group_meta = "${ctrl_field}_${matched_rep}".toString()
+                }
+                else {
+                    control_group_meta = ''
+                }
+                def new_meta = [
+                    id           : "${group}_R${rep}_T${tidx + 1}".toString(),
+                    group        : group,
+                    replicate    : rep,
+                    single_end   : false,
+                    is_control   : is_control,
+                    control_group: control_group_meta,
+                ]
+                output << [new_meta, [fastq_1, fastq_2]]
+            }
+        }
+    }
+    return output
 }
 
 //
