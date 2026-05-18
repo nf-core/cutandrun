@@ -16,7 +16,7 @@ process PLOT_CONSENSUS_PEAKS {
     script:
     """
     plot_consensus_peaks.py \\
-        --peaks "*.peaks.bed" \\
+        --peaks "*.peak_counts.bed" \\
         --outpath .
 
     cat <<-END_VERSIONS > versions.yml
