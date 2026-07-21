@@ -15,8 +15,8 @@ process TRIMGALORE {
     tuple val(meta), path("*report.txt")        , emit: log
     path  "versions.yml"                        , emit: versions
 
-    tuple val(meta), path("*.html"), emit: html optional true
-    tuple val(meta), path("*.zip") , emit: zip optional true
+    tuple val(meta), path("*.html"), emit: html, optional: true
+    tuple val(meta), path("*.zip") , emit: zip, optional: true
 
     when:
     task.ext.when == null || task.ext.when
