@@ -1,4 +1,6 @@
-nf_core_version: 4.0.2
+lint:
+  nf_test_content: false
+nf_core_version: 4.0.3
 repository_type: pipeline
 template:
   author: Chris Cheshire, Charlotte West and Tamara Hodgetts
